@@ -1,0 +1,261 @@
+## Elementalism
+[]
+## Sorcerous Burst
+[]
+## Starry Wisp
+[]
+## Divine Smite
+[]
+## Arcane Vigor
+[]
+## Dragon's Breath
+[
+  {
+    "id": "sopro-do-dragao",
+    "nome": "Sopro de Dragão",
+    "nomeEN": "Dragon's Breath",
+    "fonte": "PHB24",
+    "pagina": 333
+  }
+]
+## Fount of Moonlight
+[
+  {
+    "id": "luz",
+    "nome": "Luz",
+    "nomeEN": "Light",
+    "fonte": "PHB24",
+    "pagina": 299
+  }
+]
+## Jallarzi's Storm of Radiance
+[
+  {
+    "id": "tempestade-radiante-de-jallarzi",
+    "nome": "Tempestade Radiante de Jallarzi",
+    "nomeEN": "Jallarzi's Storm of Radiance",
+    "fonte": "PHB24",
+    "pagina": 337
+  }
+]
+## Yolande's Regal Presence
+[
+  {
+    "id": "presenca-regia-de-yolande",
+    "nome": "Presença Régia de Yolande",
+    "nomeEN": "Yolande's Regal Presence",
+    "fonte": "PHB24",
+    "pagina": 319
+  }
+]
+## Tasha's Bubbling Cauldron
+[
+  {
+    "id": "infusao-caustica-de-tasha",
+    "nome": "Infusão Cáustica de Tasha",
+    "nomeEN": "Tasha's Caustic Brew",
+    "fonte": "TCoE",
+    "pagina": 115
+  },
+  {
+    "id": "chicote-mental-de-tasha",
+    "nome": "Chicote Mental de Tasha",
+    "nomeEN": "Tasha's Mind Whip",
+    "fonte": "TCoE",
+    "pagina": 115
+  },
+  {
+    "id": "guisa-extraterrena-de-tasha",
+    "nome": "Guisa Extraterrena de Tasha",
+    "nomeEN": "Tasha's Otherworldly Guise",
+    "fonte": "TCoE",
+    "pagina": 116
+  }
+]
+## Befuddlement
+[]
+## Hunter's Mark
+[
+  {
+    "id": "marca-do-cacador",
+    "nome": "Marca do Predador",
+    "nomeEN": "Hunter's Mark",
+    "fonte": "PHB24",
+    "pagina": 303
+  }
+]
+## Tasha's Hideous Laughter
+[
+  {
+    "id": "risada-histerica",
+    "nome": "Risada Histérica",
+    "nomeEN": "Tasha's Hideous Laughter",
+    "fonte": "PHB",
+    "pagina": 280
+  },
+  {
+    "id": "infusao-caustica-de-tasha",
+    "nome": "Infusão Cáustica de Tasha",
+    "nomeEN": "Tasha's Caustic Brew",
+    "fonte": "TCoE",
+    "pagina": 115
+  },
+  {
+    "id": "chicote-mental-de-tasha",
+    "nome": "Chicote Mental de Tasha",
+    "nomeEN": "Tasha's Mind Whip",
+    "fonte": "TCoE",
+    "pagina": 115
+  },
+  {
+    "id": "guisa-extraterrena-de-tasha",
+    "nome": "Guisa Extraterrena de Tasha",
+    "nomeEN": "Tasha's Otherworldly Guise",
+    "fonte": "TCoE",
+    "pagina": 116
+  }
+]
+## Shining Smite
+[]
+## Crusader's Mantle
+[
+  {
+    "id": "manto-do-cruzado",
+    "nome": "Manto do Cruzado",
+    "nomeEN": "Crusader's Mantle",
+    "fonte": "PHB24",
+    "pagina": 302
+  }
+]
+## Leomund's Tiny Hut
+[
+  {
+    "id": "pequena-cabana",
+    "nome": "Pequeno Refúgio de Leomund",
+    "nomeEN": "Leomund's Tiny Hut",
+    "fonte": "PHB24",
+    "pagina": 316
+  },
+  {
+    "id": "bau-secreto-de-leomund",
+    "nome": "Baú Secreto de Leomund",
+    "nomeEN": "Leomund's Secret Chest",
+    "fonte": "PHB",
+    "pagina": 254
+  }
+]
+## Evard's Black Tentacles
+[
+  {
+    "id": "tentaculos-negros",
+    "nome": "Tentáculos Negros",
+    "nomeEN": "Evard's Black Tentacles",
+    "fonte": "PHB",
+    "pagina": 238
+  }
+]
+## Leomund's Secret Chest
+[
+  {
+    "id": "pequena-cabana",
+    "nome": "Pequeno Refúgio de Leomund",
+    "nomeEN": "Leomund's Tiny Hut",
+    "fonte": "PHB24",
+    "pagina": 316
+  },
+  {
+    "id": "bau-secreto-de-leomund",
+    "nome": "Baú Secreto de Leomund",
+    "nomeEN": "Leomund's Secret Chest",
+    "fonte": "PHB",
+    "pagina": 254
+  }
+]
+## Mordenkainen's Faithful Hound
+[
+  {
+    "id": "santuario-privativo",
+    "nome": "Santuário Particular de Mordenkainen",
+    "nomeEN": "Private Sanctum",
+    "fonte": "PHB24",
+    "pagina": 330
+  },
+  {
+    "id": "cao-fiel",
+    "nome": "Cão Fiel",
+    "nomeEN": "Faithful Hound",
+    "fonte": "PHB",
+    "pagina": 248
+  },
+  {
+    "id": "mansao-magnifica",
+    "nome": "Mansão Magnífica de Mordenkainen",
+    "nomeEN": "Mordenkainen's Magnificent Mansion",
+    "fonte": "PHB24",
+    "pagina": 301
+  }
+]
+## Bigby's Hand
+[
+  {
+    "id": "mao-de-energia",
+    "nome": "Mão de Bigby",
+    "nomeEN": "Bigby's Hand",
+    "fonte": "PHB24",
+    "pagina": 302
+  }
+]
+## Rary's Telepathic Bond
+[
+  {
+    "id": "elo-telepatico",
+    "nome": "Ligação Telepática de Rary",
+    "nomeEN": "Telepathic Bond",
+    "fonte": "PHB24",
+    "pagina": 298
+  }
+]
+## Heroes' Feast
+[
+  {
+    "id": "banquete-dos-herois",
+    "nome": "Banquete dos Heróis",
+    "nomeEN": "Heroes' Feast",
+    "fonte": "PHB",
+    "pagina": 250
+  }
+]
+## Otiluke's Freezing Sphere
+[
+  {
+    "id": "esfera-congelante",
+    "nome": "Esfera Congelante",
+    "nomeEN": "Otiluke's Freezing Sphere",
+    "fonte": "PHB",
+    "pagina": 262
+  }
+]
+## Mordenkainen's Sword
+[
+  {
+    "id": "santuario-privativo",
+    "nome": "Santuário Particular de Mordenkainen",
+    "nomeEN": "Private Sanctum",
+    "fonte": "PHB24",
+    "pagina": 330
+  },
+  {
+    "id": "mansao-magnifica",
+    "nome": "Mansão Magnífica de Mordenkainen",
+    "nomeEN": "Mordenkainen's Magnificent Mansion",
+    "fonte": "PHB24",
+    "pagina": 301
+  },
+  {
+    "id": "espada-do-mago",
+    "nome": "Espada do Mago",
+    "nomeEN": "Mordenkainen's Sword",
+    "fonte": "PHB",
+    "pagina": 262
+  }
+]
