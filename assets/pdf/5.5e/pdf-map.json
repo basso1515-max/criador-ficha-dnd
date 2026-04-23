@@ -1,0 +1,753 @@
+{
+  "meta": {
+    "version": "5.5e",
+    "route": "5e-2024",
+    "template": "./assets/pdf/5.5e/ficha5.5e.pdf",
+    "notes": "Mapeamento inicial da ficha 5.5e/2024 com compatibilidade parcial para o schema legado da 5e."
+  },
+  "texto": {
+    "nome": "Name",
+    "classeENivel": null,
+    "antecedente": "Background",
+    "nomeJogador": null,
+    "raca": "Species",
+    "alinhamento": "Alignment",
+    "xp": "XP Points",
+    "idade": null,
+    "altura": null,
+    "peso": null,
+    "olhos": null,
+    "pele": null,
+    "cabelo": null,
+    "bonusProficiencia": "PROF BONUS",
+    "CA": "Armor Class",
+    "iniciativa": "init",
+    "deslocamento": "SPEED",
+    "hpMax": "Max HP",
+    "hpAtual": "Current HP",
+    "hpTemporario": "Temp HP",
+    "dadoVidaTotal": "Max HD",
+    "dadoVidaAtual": null,
+    "percepcaoPassiva": "PASSIVE PERCEPTION",
+    "tracosPersonalidade": null,
+    "ideais": null,
+    "vinculos": null,
+    "defeitos": null,
+    "historiaPersonagem": null,
+    "caracteristicasETalentos": "CLASS FEATURES 1",
+    "caracteristicasETalentosAdicionais": "CLASS FEATURES 2",
+    "nomeSimbolo": null,
+    "aliadosEOrganizacoes": null,
+    "tesouros": null,
+    "outrasProficienciasEIdiomas": null,
+    "equipamento": "EQUIPMENT",
+    "inspiracao": null,
+    "divindade": null
+  },
+  "personagem": {
+    "nome": "Name",
+    "classe": "Class",
+    "subclasse": "Subclass",
+    "nivel": "Level",
+    "background": "Background",
+    "especie": "Species",
+    "alinhamento": "Alignment",
+    "xp": "XP Points",
+    "tamanho": "SIZE",
+    "aparencia": "APPEARANCE",
+    "historiaEPersonalidade": "BACKSTORY / PERSONALITY"
+  },
+  "combate": {
+    "bonusProficiencia": "PROF BONUS",
+    "classeArmadura": "Armor Class",
+    "iniciativa": "init",
+    "deslocamento": "SPEED",
+    "percepcaoPassiva": "PASSIVE PERCEPTION",
+    "escudoEquipado": "shield chk",
+    "hp": {
+      "atual": "Current HP",
+      "maximo": "Max HP",
+      "temporario": "Temp HP"
+    },
+    "dadosVida": {
+      "maximo": "Max HD",
+      "gastos": "Spent HD"
+    }
+  },
+  "caracteristicas2024": {
+    "classe": [
+      "CLASS FEATURES 1",
+      "CLASS FEATURES 2"
+    ],
+    "especie": "SPECIES TRAITS",
+    "talentos": "FEATS",
+    "aparencia": "APPEARANCE",
+    "historiaEPersonalidade": "BACKSTORY / PERSONALITY"
+  },
+  "proficiencias2024": {
+    "armaduras": {
+      "leve": "Check Box33",
+      "media": "Check Box34",
+      "pesada": "Check Box35",
+      "escudo": "Check Box36"
+    },
+    "armas": "WEAPON PROF",
+    "ferramentas": "TOOL PROF",
+    "idiomas": "LANGUAGES"
+  },
+  "sintonizacao": [
+    {
+      "nome": "ATTUNMENT 1",
+      "ativo": "Check Box63"
+    },
+    {
+      "nome": "ATTUNMENT 2",
+      "ativo": "Check Box62"
+    },
+    {
+      "nome": "ATTUNMENT 3",
+      "ativo": "Check Box61"
+    }
+  ],
+  "imagem": {
+    "aparenciaPersonagem": null,
+    "simbolo": null
+  },
+  "ataques": {
+    "resumo": null,
+    "nomes": [
+      "NAME - WEAPON 1",
+      "NAME - WEAPON 2",
+      "NAME - WEAPON 3",
+      "NAME - WEAPON 4",
+      "NAME - WEAPON 5",
+      "NAME - WEAPON 6"
+    ],
+    "bonusAtaque": [
+      "BONUS/DC - WEAPON 1",
+      "BONUS/DC - WEAPON 2",
+      "BONUS/DC - WEAPON 3",
+      "BONUS/DC - WEAPON 4",
+      "BONUS/DC - WEAPON 5",
+      "BONUS/DC - WEAPON 6"
+    ],
+    "danoTipo": [
+      "DAMAGE/TYPE - WEAPON 1",
+      "DAMAGE/TYPE - WEAPON 2",
+      "DAMAGE/TYPE - WEAPON 3",
+      "DAMAGE/TYPE - WEAPON 4",
+      "DAMAGE/TYPE - WEAPON 5",
+      "DAMAGE/TYPE - WEAPON 6"
+    ],
+    "notas": [
+      "NOTES - WEAPON 1",
+      "NOTES - WEAPON 2",
+      "NOTES - WEAPON 3",
+      "NOTES - WEAPON 4",
+      "NOTES - WEAPON 5",
+      "NOTES - WEAPON 6"
+    ]
+  },
+  "magias": {
+    "classeConjuradora": null,
+    "atributoConjuracao": "SPELLCASTING ABILITY",
+    "cdMagia": "SPELL SAVE DC",
+    "ataqueMagico": "SPELL ATTACK BONUS",
+    "modificadorConjuracao": "SPELLCASTING MOD",
+    "truques": [],
+    "niveis": {
+      "1": {
+        "totalEspacos": "LVL1 TOTAL",
+        "espacosUsados": null,
+        "espacosMarcados": [
+          "Check Box52",
+          "Check Box46",
+          "Check Box40",
+          "Check Box37"
+        ],
+        "magias": []
+      },
+      "2": {
+        "totalEspacos": "LVL2 TOTAL",
+        "espacosUsados": null,
+        "espacosMarcados": [
+          "Check Box49",
+          "Check Box38",
+          "Check Box43"
+        ],
+        "magias": []
+      },
+      "3": {
+        "totalEspacos": "LVL3 TOTAL",
+        "espacosUsados": null,
+        "espacosMarcados": [
+          "Check Box47",
+          "Check Box44",
+          "Check Box41"
+        ],
+        "magias": []
+      },
+      "4": {
+        "totalEspacos": "LVL4 TOTAL",
+        "espacosUsados": null,
+        "espacosMarcados": [
+          "Check Box50",
+          "Check Box53",
+          "Check Box39"
+        ],
+        "magias": []
+      },
+      "5": {
+        "totalEspacos": "LVL5 TOTAL",
+        "espacosUsados": null,
+        "espacosMarcados": [
+          "Check Box48",
+          "Check Box45",
+          "Check Box42"
+        ],
+        "magias": []
+      },
+      "6": {
+        "totalEspacos": "LVL6 TOTAL",
+        "espacosUsados": null,
+        "espacosMarcados": [
+          "Check Box51",
+          "Check Box54"
+        ],
+        "magias": []
+      },
+      "7": {
+        "totalEspacos": "LVL7 TOTAL",
+        "espacosUsados": null,
+        "espacosMarcados": [
+          "Check Box55",
+          "Check Box56"
+        ],
+        "magias": []
+      },
+      "8": {
+        "totalEspacos": "LVL8 TOTAL",
+        "espacosUsados": null,
+        "espacosMarcados": [
+          "Check Box58"
+        ],
+        "magias": []
+      },
+      "9": {
+        "totalEspacos": "LVL9 TOTAL",
+        "espacosUsados": null,
+        "espacosMarcados": [
+          "Check Box57"
+        ],
+        "magias": []
+      }
+    },
+    "linhas": [
+      {
+        "nivel": "SPELL LEVEL",
+        "nome": "SPELL NAME",
+        "tempoConjuracao": "CASTING TIME",
+        "alcance": "RANGE",
+        "notas": "SPELL NOTES",
+        "marcadores": [
+          "Check Box0",
+          "Check Box59",
+          "Check Box60"
+        ]
+      },
+      {
+        "nivel": "SPELL LEVEL0",
+        "nome": "SPELL NAME0",
+        "tempoConjuracao": "CASTING TIME0",
+        "alcance": "RANGE0",
+        "notas": "SPELL NOTES0",
+        "marcadores": [
+          "Check Box64",
+          "Check Box65",
+          "Check Box66"
+        ]
+      },
+      {
+        "nivel": "SPELL LEVEL1",
+        "nome": "SPELL NAME1",
+        "tempoConjuracao": "CASTING TIME1",
+        "alcance": "RANGE1",
+        "notas": "SPELL NOTES1",
+        "marcadores": [
+          "Check Box67",
+          "Check Box68",
+          "Check Box69"
+        ]
+      },
+      {
+        "nivel": "SPELL LEVEL4",
+        "nome": "SPELL NAME4",
+        "tempoConjuracao": "CASTING TIME4",
+        "alcance": "RANGE4",
+        "notas": "SPELL NOTES2",
+        "marcadores": [
+          "Check Box70",
+          "Check Box71",
+          "Check Box72"
+        ]
+      },
+      {
+        "nivel": "SPELL LEVEL3",
+        "nome": "SPELL NAME3",
+        "tempoConjuracao": "CASTING TIME3",
+        "alcance": "RANGE3",
+        "notas": "SPELL NOTES3",
+        "marcadores": [
+          "Check Box73",
+          "Check Box74",
+          "Check Box75"
+        ]
+      },
+      {
+        "nivel": "SPELL LEVEL2",
+        "nome": "SPELL NAME2",
+        "tempoConjuracao": "CASTING TIME2",
+        "alcance": "RANGE2",
+        "notas": "SPELL NOTES4",
+        "marcadores": [
+          "Check Box76",
+          "Check Box77",
+          "Check Box78"
+        ]
+      },
+      {
+        "nivel": "SPELL LEVEL7",
+        "nome": "SPELL NAME7",
+        "tempoConjuracao": "CASTING TIME7",
+        "alcance": "RANGE7",
+        "notas": "SPELL NOTES5",
+        "marcadores": [
+          "Check Box79",
+          "Check Box80",
+          "Check Box81"
+        ]
+      },
+      {
+        "nivel": "SPELL LEVEL6",
+        "nome": "SPELL NAME6",
+        "tempoConjuracao": "CASTING TIME6",
+        "alcance": "RANGE6",
+        "notas": "SPELL NOTES6",
+        "marcadores": [
+          "Check Box85",
+          "Check Box86",
+          "Check Box87"
+        ]
+      },
+      {
+        "nivel": "SPELL LEVEL5",
+        "nome": "SPELL NAME5",
+        "tempoConjuracao": "CASTING TIME5",
+        "alcance": "RANGE5",
+        "notas": "SPELL NOTES7",
+        "marcadores": [
+          "Check Box82",
+          "Check Box83",
+          "Check Box84"
+        ]
+      },
+      {
+        "nivel": "SPELL LEVEL10",
+        "nome": "SPELL NAME10",
+        "tempoConjuracao": "CASTING TIME10",
+        "alcance": "RANGE10",
+        "notas": "SPELL NOTES8",
+        "marcadores": [
+          "Check Box88",
+          "Check Box89",
+          "Check Box90"
+        ]
+      },
+      {
+        "nivel": "SPELL LEVEL9",
+        "nome": "SPELL NAME9",
+        "tempoConjuracao": "CASTING TIME9",
+        "alcance": "RANGE9",
+        "notas": "SPELL NOTES9",
+        "marcadores": [
+          "Check Box91",
+          "Check Box92",
+          "Check Box93"
+        ]
+      },
+      {
+        "nivel": "SPELL LEVEL8",
+        "nome": "SPELL NAME8",
+        "tempoConjuracao": "CASTING TIME8",
+        "alcance": "RANGE8",
+        "notas": "SPELL NOTES10",
+        "marcadores": [
+          "Check Box94",
+          "Check Box95",
+          "Check Box96"
+        ]
+      },
+      {
+        "nivel": "SPELL LEVEL13",
+        "nome": "SPELL NAME13",
+        "tempoConjuracao": "CASTING TIME13",
+        "alcance": "RANGE13",
+        "notas": "SPELL NOTES11",
+        "marcadores": [
+          "Check Box97",
+          "Check Box98",
+          "Check Box99"
+        ]
+      },
+      {
+        "nivel": "SPELL LEVEL12",
+        "nome": "SPELL NAME12",
+        "tempoConjuracao": "CASTING TIME12",
+        "alcance": "RANGE12",
+        "notas": "SPELL NOTES12",
+        "marcadores": [
+          "Check Box100",
+          "Check Box101",
+          "Check Box102"
+        ]
+      },
+      {
+        "nivel": "SPELL LEVEL11",
+        "nome": "SPELL NAME11",
+        "tempoConjuracao": "CASTING TIME11",
+        "alcance": "RANGE11",
+        "notas": "SPELL NOTES13",
+        "marcadores": [
+          "Check Box103",
+          "Check Box104",
+          "Check Box105"
+        ]
+      },
+      {
+        "nivel": "SPELL LEVEL16",
+        "nome": "SPELL NAME16",
+        "tempoConjuracao": "CASTING TIME16",
+        "alcance": "RANGE16",
+        "notas": "SPELL NOTES14",
+        "marcadores": [
+          "Check Box106",
+          "Check Box107",
+          "Check Box108"
+        ]
+      },
+      {
+        "nivel": "SPELL LEVEL15",
+        "nome": "SPELL NAME15",
+        "tempoConjuracao": "CASTING TIME15",
+        "alcance": "RANGE15",
+        "notas": "SPELL NOTES15",
+        "marcadores": [
+          "Check Box109",
+          "Check Box110",
+          "Check Box111"
+        ]
+      },
+      {
+        "nivel": "SPELL LEVEL14",
+        "nome": "SPELL NAME14",
+        "tempoConjuracao": "CASTING TIME14",
+        "alcance": "RANGE14",
+        "notas": "SPELL NOTES16",
+        "marcadores": [
+          "Check Box112",
+          "Check Box113",
+          "Check Box114"
+        ]
+      },
+      {
+        "nivel": "SPELL LEVEL19",
+        "nome": "SPELL NAME19",
+        "tempoConjuracao": "CASTING TIME19",
+        "alcance": "RANGE19",
+        "notas": "SPELL NOTES17",
+        "marcadores": [
+          "Check Box115",
+          "Check Box116",
+          "Check Box117"
+        ]
+      },
+      {
+        "nivel": "SPELL LEVEL18",
+        "nome": "SPELL NAME18",
+        "tempoConjuracao": "CASTING TIME18",
+        "alcance": "RANGE18",
+        "notas": "SPELL NOTES18",
+        "marcadores": [
+          "Check Box118",
+          "Check Box119",
+          "Check Box120"
+        ]
+      },
+      {
+        "nivel": "SPELL LEVEL17",
+        "nome": "SPELL NAME17",
+        "tempoConjuracao": "CASTING TIME17",
+        "alcance": "RANGE17",
+        "notas": "SPELL NOTES19",
+        "marcadores": [
+          "Check Box121",
+          "Check Box122",
+          "Check Box123"
+        ]
+      },
+      {
+        "nivel": "SPELL LEVEL22",
+        "nome": "SPELL NAME22",
+        "tempoConjuracao": "CASTING TIME22",
+        "alcance": "RANGE22",
+        "notas": "SPELL NOTES20",
+        "marcadores": [
+          "Check Box124",
+          "Check Box125",
+          "Check Box126"
+        ]
+      },
+      {
+        "nivel": "SPELL LEVEL21",
+        "nome": "SPELL NAME21",
+        "tempoConjuracao": "CASTING TIME21",
+        "alcance": "RANGE21",
+        "notas": "SPELL NOTES21",
+        "marcadores": [
+          "Check Box127",
+          "Check Box128",
+          "Check Box129"
+        ]
+      },
+      {
+        "nivel": "SPELL LEVEL20",
+        "nome": "SPELL NAME20",
+        "tempoConjuracao": "CASTING TIME20",
+        "alcance": "RANGE20",
+        "notas": "SPELL NOTES22",
+        "marcadores": [
+          "Check Box130",
+          "Check Box131",
+          "Check Box132"
+        ]
+      },
+      {
+        "nivel": "SPELL LEVEL25",
+        "nome": "SPELL NAME25",
+        "tempoConjuracao": "CASTING TIME25",
+        "alcance": "RANGE25",
+        "notas": "SPELL NOTES23",
+        "marcadores": [
+          "Check Box133",
+          "Check Box134",
+          "Check Box135"
+        ]
+      },
+      {
+        "nivel": "SPELL LEVEL24",
+        "nome": "SPELL NAME24",
+        "tempoConjuracao": "CASTING TIME24",
+        "alcance": "RANGE24",
+        "notas": "SPELL NOTES24",
+        "marcadores": [
+          "Check Box136",
+          "Check Box137",
+          "Check Box138"
+        ]
+      },
+      {
+        "nivel": "SPELL LEVEL23",
+        "nome": "SPELL NAME23",
+        "tempoConjuracao": "CASTING TIME23",
+        "alcance": "RANGE23",
+        "notas": "SPELL NOTES25",
+        "marcadores": [
+          "Check Box139",
+          "Check Box140",
+          "Check Box141"
+        ]
+      },
+      {
+        "nivel": "SPELL LEVEL28",
+        "nome": "SPELL NAME28",
+        "tempoConjuracao": "CASTING TIME28",
+        "alcance": "RANGE28",
+        "notas": "SPELL NOTES26",
+        "marcadores": [
+          "Check Box142",
+          "Check Box143",
+          "Check Box144"
+        ]
+      },
+      {
+        "nivel": "SPELL LEVEL27",
+        "nome": "SPELL NAME27",
+        "tempoConjuracao": "CASTING TIME27",
+        "alcance": "RANGE27",
+        "notas": "SPELL NOTES27",
+        "marcadores": [
+          "Check Box145",
+          "Check Box146",
+          "Check Box147"
+        ]
+      },
+      {
+        "nivel": "SPELL LEVEL26",
+        "nome": "SPELL NAME26",
+        "tempoConjuracao": "CASTING TIME26",
+        "alcance": "RANGE26",
+        "notas": "SPELL NOTES28",
+        "marcadores": [
+          "Check Box148",
+          "Check Box150",
+          "Check Box26"
+        ]
+      }
+    ]
+  },
+  "atributos": {
+    "for": {
+      "valor": "STR SCORE",
+      "mod": "STR MOD"
+    },
+    "des": {
+      "valor": "DEX SCORE",
+      "mod": "DEX MOD"
+    },
+    "con": {
+      "valor": "CON SCORE",
+      "mod": "CON MOD"
+    },
+    "int": {
+      "valor": "INT SCORE",
+      "mod": "INT MOD"
+    },
+    "sab": {
+      "valor": "WIS SCORE",
+      "mod": "WIS MOD"
+    },
+    "car": {
+      "valor": "CHA SCORE",
+      "mod": "CHA MOD"
+    }
+  },
+  "salvaguardas": {
+    "for": {
+      "proficiente": "Check Box18",
+      "bonus": "STR SAVE"
+    },
+    "des": {
+      "proficiente": "Check Box11",
+      "bonus": "DEX SAVE"
+    },
+    "con": {
+      "proficiente": "Check Box7",
+      "bonus": "CON SAVE"
+    },
+    "int": {
+      "proficiente": "Check Box25",
+      "bonus": "INT SAVE"
+    },
+    "sab": {
+      "proficiente": "Check Box17",
+      "bonus": "Text Field71"
+    },
+    "car": {
+      "proficiente": "Check Box6",
+      "bonus": "CHA SAVE"
+    }
+  },
+  "pericias": {
+    "acrobacia": {
+      "proficiente": "Check Box8",
+      "bonus": "ACROBATICS"
+    },
+    "adestrarAnimais": {
+      "proficiente": "Check Box15",
+      "bonus": "ANIMAL HANDLING"
+    },
+    "arcanismo": {
+      "proficiente": "Check Box24",
+      "bonus": "ARCANA"
+    },
+    "atletismo": {
+      "proficiente": "Check Box19",
+      "bonus": "ATHLETICS"
+    },
+    "atuacao": {
+      "proficiente": "Check Box5",
+      "bonus": "PERFORMANCE"
+    },
+    "enganacao": {
+      "proficiente": "Check Box4",
+      "bonus": "DECEPTION"
+    },
+    "furtividade": {
+      "proficiente": "Check Box10",
+      "bonus": "STEALTH"
+    },
+    "historia": {
+      "proficiente": "Check Box20",
+      "bonus": "HISTORY"
+    },
+    "intimidacao": {
+      "proficiente": "Check Box3",
+      "bonus": "INTIMIDATE"
+    },
+    "intuicao": {
+      "proficiente": "Check Box13",
+      "bonus": "INSIGHT"
+    },
+    "investigacao": {
+      "proficiente": "Check Box21",
+      "bonus": "INVESTIGATION"
+    },
+    "medicina": {
+      "proficiente": "Check Box12",
+      "bonus": "MEDICINE"
+    },
+    "natureza": {
+      "proficiente": "Check Box22",
+      "bonus": "NATURE"
+    },
+    "percepcao": {
+      "proficiente": "Check Box14",
+      "bonus": "PERCEPTION"
+    },
+    "persuasao": {
+      "proficiente": "Check Box2",
+      "bonus": "PERSUASION"
+    },
+    "prestidigitacao": {
+      "proficiente": "Check Box9",
+      "bonus": "SLEIGHT OF HAND"
+    },
+    "religiao": {
+      "proficiente": "Check Box23",
+      "bonus": "RELIGION"
+    },
+    "sobrevivencia": {
+      "proficiente": "Check Box16",
+      "bonus": "SURVIVAL"
+    }
+  },
+  "testesMorte": {
+    "sucessos": [
+      "SUCCESS LEFT L chk",
+      "SUCCESS CTR chk",
+      "SUCCESS RIGHT chk"
+    ],
+    "falhas": [
+      "FAILURE LEFT chk",
+      "FAILURE CTR chk",
+      "FAILURE RIGHT chk"
+    ]
+  },
+  "moedas": {
+    "pc": "CP",
+    "pp": "SP",
+    "pe": "EP",
+    "po": "GP",
+    "pl": "PP"
+  }
+}

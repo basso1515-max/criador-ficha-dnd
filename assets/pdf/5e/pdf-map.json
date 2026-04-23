@@ -1,0 +1,279 @@
+{
+  "texto": {
+    "nome": [
+      "Campo de Texto0",
+      "Campo de Texto84"
+    ],
+    "classeENivel": "Campo de Texto8",
+    "antecedente": "Campo de Texto9",
+    "nomeJogador": "Campo de Texto10",
+    "raca": "Campo de Texto13",
+    "alinhamento": "Campo de Texto12",
+    "xp": "Campo de Texto11",
+    "idade": "Campo de Texto85",
+    "altura": "Campo de Texto86",
+    "peso": "Campo de Texto87",
+    "olhos": "Campo de Texto90",
+    "pele": "Campo de Texto89",
+    "cabelo": "Campo de Texto88",
+    "bonusProficiencia": "Campo de Texto28",
+    "CA": "Campo de Texto25",
+    "iniciativa": "Campo de Texto23",
+    "deslocamento": "Campo de Texto24",
+    "hpMax": "Campo de Texto42",
+    "hpAtual": "Campo de Texto40",
+    "hpTemporario": "Campo de Texto41",
+    "dadoVidaTotal": "Campo de Texto44",
+    "dadoVidaAtual": "Campo de Texto43",
+    "percepcaoPassiva": "Campo de Texto54",
+    "tracosPersonalidade": "Campo de Texto1",
+    "ideais": "Campo de Texto2",
+    "vinculos": "Campo de Texto3",
+    "defeitos": "Campo de Texto4",
+    "historiaPersonagem": "Campo de Texto17",
+    "caracteristicasETalentos": "Campo de Texto14",
+    "caracteristicasETalentosAdicionais": "Campo de Texto15",
+    "nomeSimbolo": "Campo de Texto18",
+    "aliadosEOrganizacoes": "Campo de Texto209",
+    "tesouros": "Campo de Texto16",
+    "outrasProficienciasEIdiomas": "Campo de Texto7",
+    "equipamento": "Campo de Texto6",
+    "inspiracao": "Campo de Texto26",
+    "divindade": null
+  },
+  "imagem": {
+    "aparenciaPersonagem": "Image78_af_image",
+    "simbolo": "Image77_af_image"
+  },
+  "ataques": {
+    "resumo": "Campo de Texto5",
+    "nomes": [
+      "Campo de Texto45",
+      "Campo de Texto46",
+      "Campo de Texto47"
+    ],
+    "bonusAtaque": [
+      "Campo de Texto48",
+      "Campo de Texto49",
+      "Campo de Texto50"
+    ],
+    "danoTipo": [
+      "Campo de Texto51",
+      "Campo de Texto52",
+      "Campo de Texto53"
+    ]
+  },
+  "magias": {
+    "classeConjuradora": "Campo de Texto19",
+    "atributoConjuracao": "Campo de Texto20",
+    "cdMagia": "Campo de Texto21",
+    "ataqueMagico": "Campo de Texto22",
+    "truques": [
+      "Campo de Texto134",
+      "Campo de Texto135",
+      "Campo de Texto136",
+      "Campo de Texto137",
+      "Campo de Texto138",
+      "Campo de Texto139",
+      "Campo de Texto140",
+      "Campo de Texto141"
+    ],
+    "niveis": {
+      "1": {
+        "totalEspacos": "Campo de Texto104",
+        "espacosUsados": "Campo de Texto103",
+        "magias": [
+          "Campo de Texto109",
+          "Campo de Texto110",
+          "Campo de Texto111",
+          "Campo de Texto112",
+          "Campo de Texto113",
+          "Campo de Texto114",
+          "Campo de Texto115",
+          "Campo de Texto116",
+          "Campo de Texto117",
+          "Campo de Texto118",
+          "Campo de Texto119",
+          "Campo de Texto120"
+        ]
+      },
+      "2": {
+        "totalEspacos": "Campo de Texto105",
+        "espacosUsados": "Campo de Texto102",
+        "magias": [
+          "Campo de Texto121",
+          "Campo de Texto122",
+          "Campo de Texto123",
+          "Campo de Texto124",
+          "Campo de Texto125",
+          "Campo de Texto126",
+          "Campo de Texto127",
+          "Campo de Texto128",
+          "Campo de Texto129",
+          "Campo de Texto130",
+          "Campo de Texto131",
+          "Campo de Texto132",
+          "Campo de Texto133"
+        ]
+      },
+      "3": {
+        "totalEspacos": "Campo de Texto92",
+        "espacosUsados": "Campo de Texto91",
+        "magias": [
+          "Campo de Texto208",
+          "Campo de Texto207",
+          "Campo de Texto206",
+          "Campo de Texto205",
+          "Campo de Texto204",
+          "Campo de Texto203",
+          "Campo de Texto202",
+          "Campo de Texto201",
+          "Campo de Texto200",
+          "Campo de Texto199",
+          "Campo de Texto198",
+          "Campo de Texto197",
+          "Campo de Texto196"
+        ]
+      },
+      "4": {
+        "totalEspacos": "Campo de Texto97",
+        "espacosUsados": "Campo de Texto98",
+        "magias": [
+          "Campo de Texto195",
+          "Campo de Texto194",
+          "Campo de Texto193",
+          "Campo de Texto192",
+          "Campo de Texto191",
+          "Campo de Texto190",
+          "Campo de Texto189",
+          "Campo de Texto188",
+          "Campo de Texto187",
+          "Campo de Texto186",
+          "Campo de Texto185",
+          "Campo de Texto184",
+          "Campo de Texto183"
+        ]
+      },
+      "5": {
+        "totalEspacos": "Campo de Texto106",
+        "espacosUsados": "Campo de Texto99",
+        "magias": [
+          "Campo de Texto182",
+          "Campo de Texto181",
+          "Campo de Texto180",
+          "Campo de Texto179",
+          "Campo de Texto178",
+          "Campo de Texto177",
+          "Campo de Texto176",
+          "Campo de Texto175",
+          "Campo de Texto174"
+        ]
+      },
+      "6": {
+        "totalEspacos": "Campo de Texto93",
+        "espacosUsados": "Campo de Texto94",
+        "magias": [
+          "Campo de Texto173",
+          "Campo de Texto172",
+          "Campo de Texto171",
+          "Campo de Texto170",
+          "Campo de Texto169",
+          "Campo de Texto168",
+          "Campo de Texto167",
+          "Campo de Texto166",
+          "Campo de Texto165"
+        ]
+      },
+      "7": {
+        "totalEspacos": "Campo de Texto95",
+        "espacosUsados": "Campo de Texto96",
+        "magias": [
+          "Campo de Texto164",
+          "Campo de Texto163",
+          "Campo de Texto162",
+          "Campo de Texto161",
+          "Campo de Texto160",
+          "Campo de Texto159",
+          "Campo de Texto158",
+          "Campo de Texto157",
+          "Campo de Texto156"
+        ]
+      },
+      "8": {
+        "totalEspacos": "Campo de Texto108",
+        "espacosUsados": "Campo de Texto101",
+        "magias": [
+          "Campo de Texto155",
+          "Campo de Texto154",
+          "Campo de Texto153",
+          "Campo de Texto152",
+          "Campo de Texto151",
+          "Campo de Texto150",
+          "Campo de Texto149"
+        ]
+      },
+      "9": {
+        "totalEspacos": "Campo de Texto107",
+        "espacosUsados": "Campo de Texto100",
+        "magias": [
+          "Campo de Texto148",
+          "Campo de Texto147",
+          "Campo de Texto146",
+          "Campo de Texto145",
+          "Campo de Texto144",
+          "Campo de Texto143",
+          "Campo de Texto142"
+        ]
+      }
+    }
+  },
+
+  "atributos": {
+    "for": { "valor": "Campo de Texto27", "mod": "Campo de Texto29" },
+    "des": { "valor": "Campo de Texto30", "mod": "Campo de Texto33" },
+    "con": { "valor": "Campo de Texto32", "mod": "Campo de Texto31" },
+    "int": { "valor": "Campo de Texto35", "mod": "Campo de Texto34" },
+    "sab": { "valor": "Campo de Texto36", "mod": "Campo de Texto39" },
+    "car": { "valor": "Campo de Texto38", "mod": "Campo de Texto37" }
+  },
+  "salvaguardas": {
+    "for": { "proficiente": "Caixa de Seleção0", "bonus": "Campo de Texto60" },
+    "des": { "proficiente": "Caixa de Seleção1", "bonus": "Campo de Texto61" },
+    "con": { "proficiente": "Caixa de Seleção2", "bonus": "Campo de Texto62" },
+    "int": { "proficiente": "Caixa de Seleção3", "bonus": "Campo de Texto63" },
+    "sab": { "proficiente": "Caixa de Seleção4", "bonus": "Campo de Texto64" },
+    "car": { "proficiente": "Caixa de Seleção5", "bonus": "Campo de Texto65" }
+  },
+  "pericias": {
+    "acrobacia": { "proficiente": "Caixa de Seleção6", "bonus": "Campo de Texto66" },
+    "arcanismo": { "proficiente": "Caixa de Seleção7", "bonus": "Campo de Texto67" },
+    "atletismo": { "proficiente": "Caixa de Seleção8", "bonus": "Campo de Texto68" },
+    "atuacao": { "proficiente": "Caixa de Seleção9", "bonus": "Campo de Texto69" },
+    "enganacao": { "proficiente": "Caixa de Seleção10", "bonus": "Campo de Texto70" },
+    "furtividade": { "proficiente": "Caixa de Seleção11", "bonus": "Campo de Texto71" },
+    "historia": { "proficiente": "Caixa de Seleção12", "bonus": "Campo de Texto72" },
+    "intimidacao": { "proficiente": "Caixa de Seleção13", "bonus": "Campo de Texto73" },    
+    "intuicao": { "proficiente": "Caixa de Seleção14", "bonus": "Campo de Texto74" },
+    "investigacao": { "proficiente": "Caixa de Seleção15", "bonus": "Campo de Texto75" },
+    "adestrarAnimais": { "proficiente": "Caixa de Seleção16", "bonus": "Campo de Texto76" },
+    "medicina": { "proficiente": "Caixa de Seleção17", "bonus": "Campo de Texto77" },
+    "natureza": { "proficiente": "Caixa de Seleção18", "bonus": "Campo de Texto78" },
+    "percepcao": { "proficiente": "Caixa de Seleção19", "bonus": "Campo de Texto79" },
+    "persuasao": { "proficiente": "Caixa de Seleção20", "bonus": "Campo de Texto80" },
+    "prestidigitacao": { "proficiente": "Caixa de Seleção21", "bonus": "Campo de Texto81" },    
+    "religiao": { "proficiente": "Caixa de Seleção22", "bonus": "Campo de Texto82" },
+    "sobrevivencia": { "proficiente": "Caixa de Seleção23", "bonus": "Campo de Texto83" }
+  },
+
+  "testesMorte": {
+    "sucessos": ["Caixa de Seleção24", "Caixa de Seleção25", "Caixa de Seleção26"],
+    "falhas": ["Caixa de Seleção27", "Caixa de Seleção28", "Caixa de Seleção29"]
+  },
+  "moedas": {
+    "pc": "Campo de Texto55",
+    "pp": "Campo de Texto57",
+    "pe": "Campo de Texto58",
+    "po": "Campo de Texto59",
+    "pl": "Campo de Texto56"
+  }
+}
