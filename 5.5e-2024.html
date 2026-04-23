@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Criador de ficha D&D 5.5e (2024)</title>
+  <link rel="stylesheet" href="./src/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Uncial+Antiqua&family=EB+Garamond&display=swap" rel="stylesheet">
+  <script defer src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+  <script type="module" defer src="./src/script-2024.js"></script>
+</head>
+
+<body data-active-screen="5e-2024">
+  <section id="version2024Screen" class="app-screen">
+    <header class="container">
+      <div class="version-toolbar">
+        <div class="version-toolbar-actions">
+          <a href="./index.html" class="ghost-button">Voltar para a seleção</a>
+          <a href="./5e.html" class="secondary-button">Abrir editor 5e</a>
+        </div>
+      </div>
+
+      <h1>Criador de ficha D&D 5.5e (2024)</h1>
+    </header>
+
+    <main class="container grid edition-beta-grid">
+      <section class="card">
+        <h2>Base do personagem</h2>
+
+        <form id="sheetForm2024">
+          <fieldset>
+            <legend>Unidades e Exibição</legend>
+
+            <div class="row-inline">
+              <label class="row">
+                <span>Distância</span>
+                <input id="distanceUnit2024" type="hidden" value="m" />
+                <div class="unit-toggle" data-target="distanceUnit2024" role="group" aria-label="Unidade de distância">
+                  <button type="button" class="unit-toggle-btn" data-value="ft">Feet (ft)</button>
+                  <button type="button" class="unit-toggle-btn is-active" data-value="m">Metros (m)</button>
+                </div>
+              </label>
+
+              <label class="row">
+                <span>Peso</span>
+                <input id="weightUnit2024" type="hidden" value="kg" />
+                <div class="unit-toggle" data-target="weightUnit2024" role="group" aria-label="Unidade de peso">
+                  <button type="button" class="unit-toggle-btn" data-value="lb">Libras (lb)</button>
+                  <button type="button" class="unit-toggle-btn is-active" data-value="kg">Quilos (kg)</button>
+                </div>
+              </label>
+            </div>
+
+            <p class="note subtle">Escolha as unidades logo no início para ver as informações no formato desejado.</p>
+          </fieldset>
+
+          <fieldset>
+            <legend>Identificação</legend>
+
+            <div class="row-inline identification-name-row">
+              <label class="row">
+                <span>Nome do personagem</span>
+                <input id="nome2024" type="text" placeholder="Ex.: Mirella" />
+                <div class="name-randomizer-group" role="group" aria-label="Gerar nome aleatório por gênero">
+                  <span class="name-randomizer-option is-disabled">
+                    <button id="nomeRandomMasculino2024" type="button" class="secondary-button name-randomizer-button" aria-label="Gerar nome masculino" title="Masculino" disabled>♂</button>
+                    <span class="name-randomizer-tooltip">Criação de nome liberado após escolher a espécie</span>
+                  </span>
+                  <span class="name-randomizer-option is-disabled">
+                    <button id="nomeRandomFeminino2024" type="button" class="secondary-button name-randomizer-button" aria-label="Gerar nome feminino" title="Feminino" disabled>♀</button>
+                    <span class="name-randomizer-tooltip">Criação de nome liberado após escolher a espécie</span>
+                  </span>
+                  <span class="name-randomizer-option is-disabled">
+                    <button id="nomeRandomNeutro2024" type="button" class="secondary-button name-randomizer-button" aria-label="Gerar nome neutro" title="Neutro" disabled>◈</button>
+                    <span class="name-randomizer-tooltip">Criação de nome liberado após escolher a espécie</span>
+                  </span>
+                </div>
+              </label>
+            </div>
+
+            <div class="row-inline">
+              <label class="row generic-dropdown-field">
+                <span>Classe</span>
+                <input id="classeInput2024" type="text" autocomplete="off" placeholder="Selecione a classe..." />
+                <div id="classeSuggestions2024" class="dropdown-suggestions" hidden></div>
+                <div id="classeHoverCard2024" class="dropdown-hover-card" hidden></div>
+                <select id="classe2024" class="native-select-hidden" tabindex="-1" aria-hidden="true"></select>
+              </label>
+
+              <label class="row generic-dropdown-field">
+                <span>Subclasse</span>
+                <input id="subclasseInput2024" type="text" autocomplete="off" placeholder="Selecione a subclasse..." />
+                <div id="subclasseSuggestions2024" class="dropdown-suggestions" hidden></div>
+                <div id="subclasseHoverCard2024" class="dropdown-hover-card" hidden></div>
+                <select id="subclasse2024" class="native-select-hidden" tabindex="-1" aria-hidden="true"></select>
+              </label>
+            </div>
+
+            <div class="row-inline">
+              <label class="row generic-dropdown-field">
+                <span>Antecedente</span>
+                <input id="antecedenteInput2024" type="text" autocomplete="off" placeholder="Selecione o antecedente..." />
+                <div id="antecedenteSuggestions2024" class="dropdown-suggestions" hidden></div>
+                <div id="antecedenteHoverCard2024" class="dropdown-hover-card" hidden></div>
+                <select id="antecedente2024" class="native-select-hidden" tabindex="-1" aria-hidden="true"></select>
+              </label>
+
+              <label class="row">
+                <span>Nível total</span>
+                <input id="nivel2024" type="number" min="1" max="20" value="1" />
+              </label>
+            </div>
+
+            <div class="row-inline">
+              <label class="row generic-dropdown-field">
+                <span>Espécie</span>
+                <input id="racaInput2024" type="text" autocomplete="off" placeholder="Selecione a espécie..." />
+                <div id="racaSuggestions2024" class="dropdown-suggestions" hidden></div>
+                <div id="racaHoverCard2024" class="dropdown-hover-card" hidden></div>
+                <select id="raca2024" class="native-select-hidden" tabindex="-1" aria-hidden="true"></select>
+              </label>
+
+              <label class="row generic-dropdown-field">
+                <span>Linhagem / variação</span>
+                <input id="subracaInput2024" type="text" autocomplete="off" placeholder="Selecione a linhagem..." />
+                <div id="subracaSuggestions2024" class="dropdown-suggestions" hidden></div>
+                <div id="subracaHoverCard2024" class="dropdown-hover-card" hidden></div>
+                <select id="subraca2024" class="native-select-hidden" tabindex="-1" aria-hidden="true"></select>
+              </label>
+            </div>
+
+            <fieldset id="multiclassPanel2024" class="multiclass-fieldset" hidden>
+              <legend>Multiclasse</legend>
+
+              <div class="multiclass-toolbar">
+                <p class="note subtle">Distribua os níveis entre a classe principal e classes adicionais seguindo as regras oficiais de multiclasse do PHB 2024.</p>
+                <button id="btnAddMulticlass2024" type="button">Adicionar multiclasse</button>
+              </div>
+
+              <div class="row-inline">
+                <label class="row">
+                  <span>Nível na classe principal</span>
+                  <input id="classeNivelPrincipal2024" type="number" min="1" max="20" value="1" readonly />
+                </label>
+              </div>
+
+              <div id="multiclassSummary2024" class="note subtle"></div>
+              <div id="multiclassRows2024" class="multiclass-rows"></div>
+            </fieldset>
+
+            <div id="classInfo2024" class="note subtle"></div>
+            <div id="raceInfo2024" class="note subtle"></div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Características</legend>
+
+            <div class="row-inline">
+              <label class="row generic-dropdown-field">
+                <span>Alinhamento</span>
+                <input id="alignmentInput2024" type="text" autocomplete="off" placeholder="Selecione o alinhamento..." />
+                <div id="alignmentSuggestions2024" class="dropdown-suggestions" hidden></div>
+                <div id="alignmentHoverCard2024" class="dropdown-hover-card" hidden></div>
+                <select id="alignment2024" class="native-select-hidden" tabindex="-1" aria-hidden="true"></select>
+              </label>
+
+              <label class="row">
+                <span>XP</span>
+                <input id="xp2024" type="number" min="0" step="1" placeholder="Ex.: 6500" />
+                <small class="field-help subtle">Preenchido automaticamente com o XP mínimo do nível atual.</small>
+              </label>
+            </div>
+
+            <div id="alignmentInfo2024" class="note subtle"></div>
+
+            <div class="row-inline">
+              <label class="row generic-dropdown-field">
+                <span>Divindade</span>
+                <input id="divindadeInput2024" type="text" autocomplete="off" placeholder="Selecione a divindade..." />
+                <div id="divindadeSuggestions2024" class="dropdown-suggestions" hidden></div>
+                <div id="divindadeHoverCard2024" class="dropdown-hover-card" hidden></div>
+                <input id="divindade2024" type="hidden" />
+              </label>
+            </div>
+
+            <div id="divindadeInfo2024" class="note subtle"></div>
+
+            <div class="row-inline">
+              <label class="row">
+                <span>Classe de Armadura</span>
+                <input id="armorClass2024" type="number" min="0" step="1" placeholder="Ex.: 16" />
+              </label>
+
+              <label class="row">
+                <span>HP máximo</span>
+                <input id="maxHp2024" type="number" min="0" step="1" placeholder="Ex.: 31" />
+              </label>
+            </div>
+
+            <div class="row-inline">
+              <label class="row">
+                <span>HP atual</span>
+                <input id="currentHp2024" type="number" min="0" step="1" placeholder="Ex.: 27" />
+              </label>
+
+              <label class="row">
+                <span>HP temporário</span>
+                <input id="tempHp2024" type="number" min="0" step="1" placeholder="Ex.: 5" />
+              </label>
+
+              <label class="row">
+                <span>Dados de Vida gastos</span>
+                <input id="spentHd2024" type="number" min="0" step="1" placeholder="Ex.: 1" />
+              </label>
+            </div>
+
+            <p class="note subtle">HP atual e Dados de Vida gastos devem ser preenchidos conforme o jogo avança. Se você deixar em branco, a ficha exportada mantém esses campos vazios.</p>
+          </fieldset>
+
+          <fieldset>
+            <legend>Origem 2024</legend>
+            <div class="attribute-methods">
+              <label class="method-option">
+                <input id="attr-method-free-2024" name="attr-method-2024" type="radio" value="free" checked />
+                <div>
+                  <strong>Livre</strong>
+                  <small>Preencha os seis atributos manualmente.</small>
+                </div>
+              </label>
+
+              <label class="method-option">
+                <input id="attr-method-roll-2024" name="attr-method-2024" type="radio" value="roll" />
+                <div>
+                  <strong>Rolagem</strong>
+                  <small>Role 4d6, descarte o menor e aplique os 6 resultados na ordem.</small>
+                </div>
+              </label>
+
+              <label class="method-option">
+                <input id="attr-method-standard-2024" name="attr-method-2024" type="radio" value="standard" />
+                <div>
+                  <strong>Conjunto padrão</strong>
+                  <small>Distribua 15, 14, 13, 12, 10 e 8 entre os atributos.</small>
+                </div>
+              </label>
+
+              <label class="method-option">
+                <input id="attr-method-pointbuy-2024" name="attr-method-2024" type="radio" value="pointbuy" />
+                <div>
+                  <strong>Compra de Pontos</strong>
+                  <small>Use 27 pontos para comprar valores entre 8 e 15.</small>
+                </div>
+              </label>
+            </div>
+
+            <div class="attribute-tools">
+              <button id="attrRollBtn2024" type="button">Rolar 6 valores</button>
+              <button id="attrStandardShuffleBtn2024" type="button">Aleatorizar conjunto padrão</button>
+              <div id="attrMethodInfo2024" class="note subtle"></div>
+            </div>
+            <div id="attrRollVisuals2024" class="attr-roll-visuals" hidden></div>
+
+            <div class="row-inline">
+              <label class="row">
+                <span>Distribuição dos bônus de atributo</span>
+                <select id="abilityMode2024">
+                  <option value="plus2plus1">+2 em um atributo e +1 em outro</option>
+                  <option value="plus1plus1plus1">+1 em três atributos</option>
+                </select>
+              </label>
+            </div>
+
+            <p class="note subtle">
+              Informe também os valores base dos atributos para que a prévia consiga validar pré-requisitos de talentos como Força 13+, Destreza 13+ ou cadeias de treinamento com armadura.
+            </p>
+
+            <div id="abilityScoreInputs2024" class="attrs"></div>
+            <div id="abilityChoices2024" class="beta-choice-grid"></div>
+            <div id="abilityScoreInfo2024" class="note subtle"></div>
+            <div id="backgroundInfo2024" class="note subtle"></div>
+          </fieldset>
+
+          <fieldset id="speciesChoicesPanel2024" class="feat-choices-fieldset" hidden>
+            <legend>Escolhas da espécie</legend>
+            <p class="note subtle">
+              Algumas espécies do livro de 2024 pedem escolhas adicionais logo na criação.
+            </p>
+            <div id="speciesChoices2024" class="beta-choice-grid"></div>
+            <div id="speciesInfo2024" class="note subtle"></div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Perícias e proficiências</legend>
+            <p class="note subtle">
+              As concessões automáticas já entram marcadas. Complete aqui apenas as escolhas liberadas pela classe e pelas opções ativas da build.
+            </p>
+            <div id="proficiencySummary2024" class="proficiency-summary-grid"></div>
+            <div class="row">
+              <span>Idiomas</span>
+              <p id="languagesRuleHint2024" class="note subtle"></p>
+              <p id="languagesRuleWarning2024" class="note warning-note" hidden></p>
+              <div id="languageChoices2024" class="beta-choice-grid"></div>
+            </div>
+            <div class="row">
+              <span>Perícias proficientes</span>
+              <p id="skillsRuleHint2024" class="note subtle"></p>
+              <p id="skillsRuleWarning2024" class="note warning-note" hidden></p>
+              <div id="skillsExtra2024" class="skills"></div>
+            </div>
+          </fieldset>
+
+          <fieldset id="expertisePanel2024" class="feat-choices-fieldset" hidden>
+            <legend>Expertise</legend>
+            <div id="expertiseSummary2024" class="note subtle"></div>
+            <div id="expertiseChoices2024" class="feat-choice-list"></div>
+            <div id="expertiseInfo2024" class="note subtle"></div>
+          </fieldset>
+
+          <fieldset id="featPanel2024" class="feat-choices-fieldset">
+            <legend>Talentos e progressão</legend>
+            <div id="featInfo2024" class="note subtle"></div>
+            <div id="featChoices2024" class="beta-choice-grid"></div>
+          </fieldset>
+
+          <fieldset id="equipmentPanel2024" class="equipment-choice-panel">
+            <legend>Equipamento inicial oficial</legend>
+            <p class="note subtle">
+              Os pacotes abaixo seguem os conjuntos oficiais cadastrados para classe e antecedente no PHB 2024.
+            </p>
+            <div id="equipmentChoices2024" class="beta-equipment-stack"></div>
+          </fieldset>
+
+          <fieldset id="magicSection2024" class="magic-fieldset" style="display:none;">
+            <legend>Conjuração</legend>
+
+            <div class="magic-workspace">
+              <section class="spellbook-panel magic-hero-panel">
+                <div class="magic-hero-copy">
+                  <p class="magic-panel-kicker">Grimório</p>
+                  <h3>Painel de preparação e consulta</h3>
+                  <p id="magicSummary2024" class="magic-hero-summary"></p>
+                </div>
+              </section>
+
+              <div class="magic-layout">
+                <div class="magic-main-column">
+                  <div id="selectedSpellBook2024" class="spellbook-panel magic-panel"></div>
+
+                  <div id="magicSlotsPanel2024" class="spellbook-panel magic-panel" hidden>
+                    <h3>Espaços utilizados</h3>
+                    <div id="magicSlotsGrid2024" class="magic-slot-grid"></div>
+                    <div class="note subtle">Os espaços totais são calculados automaticamente. Preencha apenas os que já foram gastos.</div>
+                  </div>
+                </div>
+
+                <div id="availableSpellPanel2024" class="spellbook-panel magic-panel magic-sources-panel">
+                  <div class="magic-panel-heading">
+                    <div>
+                      <p class="magic-panel-kicker">Fontes</p>
+                      <h3>Escolha de magias por classe</h3>
+                    </div>
+                    <div id="spellPickerHelp2024" class="note subtle"></div>
+                  </div>
+                  <div id="magicSourcesList2024" class="magic-sources-list"></div>
+                </div>
+              </div>
+            </div>
+
+            <div id="magicSpellHoverCard2024" class="dropdown-hover-card magic-spell-hover-card" hidden></div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Aparência, História e Personalidade</legend>
+            <div class="story-text-grid">
+              <label class="row">
+                <span>Aparência</span>
+                <textarea
+                  id="appearance2024"
+                  rows="4"
+                  placeholder="Ex.: cicatriz no rosto, olhos cinzentos, cabelos curtos, manto gasto."
+                ></textarea>
+              </label>
+
+              <label class="row">
+                <span>História e personalidade</span>
+                <textarea
+                  id="notes2024"
+                  rows="4"
+                  placeholder="Espaço para história e personalidade."
+                ></textarea>
+              </label>
+            </div>
+          </fieldset>
+        </form>
+      </section>
+
+      <section class="card preview-panel preview-panel-2024">
+        <h2>Resumo oficial 2024</h2>
+
+        <div id="preview2024" class="preview-box preview-box-2024 edition-preview-stack"></div>
+
+        <div id="floatingSubmitBar2024" class="floating-submit-bar beta-submit-bar" role="region" aria-label="Ação principal da ficha 5.5e">
+          <button id="btnGerar2024" type="submit" form="sheetForm2024" class="primary floating-submit-button d20-submit-button">
+            <span class="d20-submit-icon" aria-hidden="true">
+              <svg class="d20-submit-svg" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg" focusable="false">
+                <g transform="rotate(-8 500 500)">
+                  <polygon class="d20-face" points="500,90 160,255 500,195"></polygon>
+                  <polygon class="d20-face" points="500,90 850,255 500,195"></polygon>
+                  <polygon class="d20-face d20-face-center" points="500,195 255,650 745,650"></polygon>
+                  <polygon class="d20-face" points="160,255 255,650 145,705"></polygon>
+                  <polygon class="d20-face" points="850,255 855,705 745,650"></polygon>
+                  <polygon class="d20-face" points="160,255 500,195 255,650"></polygon>
+                  <polygon class="d20-face" points="850,255 500,195 745,650"></polygon>
+                  <polygon class="d20-face" points="255,650 145,705 500,920"></polygon>
+                  <polygon class="d20-face" points="745,650 855,705 500,920"></polygon>
+                  <polygon class="d20-face" points="255,650 500,920 745,650"></polygon>
+                  <text class="d20-num d20-num-small" x="390" y="170" transform="rotate(-12 390 170)">18</text>
+                  <text class="d20-num d20-num-small" x="610" y="170" transform="rotate(12 610 170)">4</text>
+                  <text class="d20-num d20-num-big" x="500" y="520">20</text>
+                  <text class="d20-num d20-num-mid" x="310" y="395" transform="rotate(-58 310 395)">2</text>
+                  <text class="d20-num d20-num-mid" x="690" y="395" transform="rotate(58 690 395)">14</text>
+                  <text class="d20-num d20-num-small" x="180" y="575" transform="rotate(-75 180 575)">12</text>
+                  <text class="d20-num d20-num-small" x="820" y="575" transform="rotate(75 820 575)">9</text>
+                  <text class="d20-num d20-num-small" x="280" y="740" transform="rotate(-55 280 740)">10</text>
+                  <text class="d20-num d20-num-mid d20-num-bottom" x="500" y="800">8</text>
+                  <text class="d20-num d20-num-small" x="720" y="740" transform="rotate(55 720 740)">16</text>
+                </g>
+              </svg>
+            </span>
+            <span class="d20-submit-copy">
+              <strong>Gerar ficha 5.5e</strong>
+              <small>Abre o PDF em uma nova aba</small>
+            </span>
+          </button>
+
+          <div class="floating-submit-actions" role="group" aria-label="Atalhos de aleatorização da ficha 5.5e">
+            <button id="btnRandomizeAll2024" type="button" class="floating-quick-button">
+              <strong>Aleatorizar tudo</strong>
+              <small>Sobrescreve as escolhas atuais</small>
+            </button>
+            <button id="btnRandomizeRemaining2024" type="button" class="floating-quick-button">
+              <strong>Aleatorizar restante</strong>
+              <small>Preserva o que já foi definido</small>
+            </button>
+          </div>
+          <p id="status2024" class="note floating-submit-status" aria-live="polite"></p>
+        </div>
+      </section>
+    </main>
+  </section>
+</body>
+</html>
