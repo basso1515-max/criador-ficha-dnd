@@ -1,0 +1,586 @@
+export const DATASET_VERSION = "1.0.0";
+
+export const META_CLASSES = {
+  dataset: "dnd5e-2024-ptbr",
+  version: DATASET_VERSION,
+  locale: "pt-BR",
+  builtAt: "2026-04-16",
+  sources: {
+    phb2024: "Player's Handbook (2024)",
+    referenciaLocal: "src/data/5.5e/DnD 5.5 - Livro do Jogador (2024).pdf",
+  },
+  changelog: [
+    "1.0.0: Reescrita do dataset de classes para o PHB 2024/5.5e, removendo opções legadas e alinhando proficiências, equipamentos iniciais, progressão e subclasses oficiais do livro base.",
+  ],
+};
+
+const feature = (nome, descricao, detalhes = []) => ({ nome, descricao, detalhes });
+
+const FIGHTING_STYLE_CHOICES = [
+  "arquearia",
+  "armas-arremesso",
+  "armas-grandes",
+  "duas-armas",
+  "combate-desarmado",
+  "defesa",
+  "duelismo",
+  "interceptacao",
+  "luta-as-cegas",
+  "protetivo",
+];
+
+export const CLASSES = {
+  barbaro: {
+    id: "barbaro",
+    nome: "Bárbaro",
+    descricao: "Combatente primal que canaliza a Fúria para resistir mais, golpear com violência e proteger seus aliados.",
+    dadoVida: 12,
+    atributoPrincipal: ["for"],
+    salvaguardas: ["for", "con"],
+    proficiencias: {
+      armaduras: ["leve", "media", "escudo"],
+      armas: ["simples", "marcial"],
+      ferramentas: [],
+      periciasEscolha: {
+        picks: 2,
+        from: ["atletismo", "intimidacao", "adestrarAnimais", "natureza", "percepcao", "sobrevivencia"],
+      },
+    },
+    equipamentoInicial: [
+      { grupo: "A", descr: "4 machadinhas, machado grande, kit de aventureiro e 15 PO", armas: ["machadinha", "machadinha", "machadinha", "machadinha", "machado-grande"] },
+      { grupo: "B", descr: "75 PO", armas: [] },
+    ],
+    escolhas: { estilosLuta: [], talentosSugestao: ["vigoroso", "atacante-selvagem"] },
+    features: {
+      1: [
+        feature("Fúria", "Entra em fúria para ganhar resistência, dano extra e vantagem em testes e salvaguardas de Força."),
+        feature("Defesa sem Armadura", "Sem armadura, sua CA usa Destreza e Constituição; você ainda pode usar escudo."),
+        feature("Maestria em Arma", "Escolhe tipos de armas corpo a corpo simples ou marciais para usar propriedades de maestria."),
+      ],
+      2: [
+        feature("Ataque Imprudente", "Pode atacar com agressividade extrema para ganhar Vantagem nos ataques de Força."),
+        feature("Sentido de Perigo", "Seus instintos ajudam a evitar perigos que você percebe."),
+      ],
+      3: [
+        feature("Conhecimento Primordial", "Desenvolve percepção e utilidade fora de combate ligadas à vida selvagem."),
+        feature("Subclasse de Bárbaro", "Escolhe um caminho bárbaro que expande sua Fúria."),
+      ],
+      4: [feature("Aumento no Valor de Atributo", "Recebe Aumento no Valor de Atributo ou outro talento para o qual se qualifique.")],
+      5: [
+        feature("Ataque Extra", "Ataca duas vezes ao usar a ação Atacar."),
+        feature("Movimento Rápido", "Seu deslocamento aumenta enquanto não estiver usando armadura pesada."),
+      ],
+      7: [
+        feature("Bote Instintivo", "Move-se e salta com agressividade ainda maior ao entrar em combate."),
+        feature("Instintos Primitivos", "Seus sentidos ampliados o ajudam a agir cedo e a evitar ser surpreendido."),
+      ],
+      9: [feature("Golpe Brutal", "Converte sua força em efeitos extras quando acerta ataques corpo a corpo pesados.")],
+      11: [feature("Fúria Implacável", "Sua Fúria o mantém lutando mesmo ao ser derrubado.")],
+      13: [feature("Golpe Brutal Fortalecido", "Sua técnica brutal ganha efeitos aprimorados.")],
+      15: [feature("Fúria Persistente", "Sua Fúria torna-se ainda mais fácil de manter em combate.")],
+      17: [feature("Golpe Brutal Fortalecido", "O poder do Golpe Brutal melhora novamente.")],
+      18: [feature("Força Indomável", "Sua força física ultrapassa limites normais.")],
+      19: [feature("Dádiva Épica", "Recebe uma Dádiva Épica ou outro talento elegível.")],
+      20: [feature("Campeão Primitivo", "Eleva seus atributos físicos ao ápice bárbaro.")],
+    },
+    subclasses: ["barbaro-arvore-mundo", "barbaro-berserker", "barbaro-coracao-selvagem", "barbaro-fanatico"],
+  },
+
+  bardo: {
+    id: "bardo",
+    nome: "Bardo",
+    descricao: "Artista arcano que inspira aliados, domina perícias e molda a realidade com palavras, música e performance.",
+    dadoVida: 8,
+    atributoPrincipal: ["car"],
+    salvaguardas: ["des", "car"],
+    proficiencias: {
+      armaduras: ["leve"],
+      armas: ["simples"],
+      ferramentas: ["instrumentos-musicais"],
+      periciasEscolha: {
+        picks: 3,
+        from: ["acrobacia", "adestrarAnimais", "arcanismo", "atletismo", "atuacao", "enganacao", "furtividade", "historia", "intimidacao", "intuicao", "investigacao", "medicina", "natureza", "percepcao", "persuasao", "prestidigitacao", "religiao", "sobrevivencia"],
+      },
+    },
+    equipamentoInicial: [
+      { grupo: "A", descr: "Armadura de couro, 2 adagas, um instrumento musical, kit de artista e 19 PO", armaduras: ["couro"], armas: ["adaga", "adaga"] },
+      { grupo: "B", descr: "90 PO", armas: [] },
+    ],
+    escolhas: { estilosLuta: [], talentosSugestao: ["musico", "lider-inspirador"] },
+    features: {
+      1: [
+        feature("Inspiração de Bardo", "Concede dados de inspiração que aliados podem gastar para transformar falhas em sucessos."),
+        feature("Conjuração", "Conjura magias usando Carisma e uma lista preparada de magias de bardo."),
+      ],
+      2: [
+        feature("Especialista", "Recebe Especialização em perícias selecionadas."),
+        feature("Pau pra Toda Obra", "Adiciona metade da proficiência em testes sem proficiência."),
+      ],
+      3: [feature("Subclasse de Bardo", "Escolhe um colégio bárdico que define seu estilo de atuação e combate.")],
+      4: [feature("Aumento no Valor de Atributo", "Recebe Aumento no Valor de Atributo ou outro talento para o qual se qualifique.")],
+      5: [feature("Fonte de Inspiração", "Recupera Inspiração de Bardo com mais facilidade.")],
+      7: [feature("Contra-Encantamento", "Usa sua arte para resistir a manipulações sobrenaturais.")],
+      10: [feature("Segredos Mágicos", "Aprende magias adicionais que ampliam sua versatilidade mágica.")],
+      18: [feature("Inspiração Superior", "Sua inspiração se torna ainda mais constante.")],
+      19: [feature("Dádiva Épica", "Recebe uma Dádiva Épica ou outro talento elegível.")],
+      20: [feature("Palavras de Criação", "Sua conexão com a música das origens alcança o auge.")],
+    },
+    subclasses: ["bardo-bravura", "bardo-danca", "bardo-conhecimento", "bardo-glamour"],
+  },
+
+  bruxo: {
+    id: "bruxo",
+    nome: "Bruxo",
+    descricao: "Conjurador de pacto que recebe magia e poderes duradouros de um patrono sobrenatural.",
+    dadoVida: 8,
+    atributoPrincipal: ["car"],
+    salvaguardas: ["sab", "car"],
+    proficiencias: {
+      armaduras: ["leve"],
+      armas: ["simples"],
+      ferramentas: [],
+      periciasEscolha: {
+        picks: 2,
+        from: ["arcanismo", "enganacao", "historia", "intimidacao", "investigacao", "natureza", "religiao"],
+      },
+    },
+    equipamentoInicial: [
+      { grupo: "A", descr: "Armadura de couro, foice, 2 adagas, foco arcano (orbe), livro de conhecimento oculto, kit de erudito e 15 PO", armaduras: ["couro"], armas: ["foice", "adaga", "adaga"] },
+      { grupo: "B", descr: "100 PO", armas: [] },
+    ],
+    escolhas: { estilosLuta: [], talentosSugestao: ["atirador-arcano", "telepatico"] },
+    features: {
+      1: [
+        feature("Invocações Místicas", "Aprende invocações permanentes que personalizam profundamente sua magia."),
+        feature("Magia de Pacto", "Conjura magias com espaços de pacto que retornam rapidamente."),
+      ],
+      2: [feature("Astúcia Mágica", "Manipula seus recursos mágicos com mais flexibilidade e eficiência.")],
+      3: [feature("Subclasse de Bruxo", "Escolhe um patrono que expande suas magias e poderes.")],
+      4: [feature("Aumento no Valor de Atributo", "Recebe Aumento no Valor de Atributo ou outro talento para o qual se qualifique.")],
+      9: [feature("Contatar Patrono", "Aprofunda seu vínculo e acessa o conhecimento do patrono.")],
+      11: [feature("Arcana Mística", "Recebe magias poderosas de alto círculo concedidas por seu patrono.")],
+      19: [feature("Dádiva Épica", "Recebe uma Dádiva Épica ou outro talento elegível.")],
+      20: [feature("Mestre Místico", "Extrai o máximo de suas invocações e da Magia de Pacto.")],
+    },
+    subclasses: ["bruxo-arquifada", "bruxo-celestial", "bruxo-grande-antigo", "bruxo-infernal"],
+  },
+
+  clerigo: {
+    id: "clerigo",
+    nome: "Clérigo",
+    descricao: "Canalizador de poder divino que conjura milagres, protege aliados e manifesta a vontade do sagrado.",
+    dadoVida: 8,
+    atributoPrincipal: ["sab"],
+    salvaguardas: ["sab", "car"],
+    proficiencias: {
+      armaduras: ["leve", "media", "escudo"],
+      armas: ["simples"],
+      ferramentas: [],
+      periciasEscolha: {
+        picks: 2,
+        from: ["historia", "intuicao", "medicina", "persuasao", "religiao"],
+      },
+    },
+    equipamentoInicial: [
+      { grupo: "A", descr: "Meia-armadura, escudo, maça, símbolo sagrado, kit de sacerdote e 7 PO", armaduras: ["meia-armadura", "escudo"], armas: ["maca"] },
+      { grupo: "B", descr: "110 PO", armas: [] },
+    ],
+    escolhas: { estilosLuta: [], talentosSugestao: ["curandeiro", "lider-inspirador"] },
+    features: {
+      1: [
+        feature("Conjuração", "Conjura magias divinas usando Sabedoria e prepara milagres diariamente."),
+        feature("Ordem Divina", "Escolhe uma ordem que orienta seu papel entre devoção, erudição e combate."),
+      ],
+      2: [feature("Canalizar Divindade", "Canaliza energia sagrada para efeitos únicos de classe e subclasse.")],
+      3: [feature("Subclasse de Clérigo", "Escolhe um domínio divino que amplia suas magias e poderes.")],
+      4: [feature("Aumento no Valor de Atributo", "Recebe Aumento no Valor de Atributo ou outro talento para o qual se qualifique.")],
+      5: [feature("Fulminar Mortos-Vivos", "Sua energia sagrada passa a destruir mortos-vivos debilitados.")],
+      7: [feature("Golpes Abençoados", "Seus ataques e truques recebem reforço divino.")],
+      10: [feature("Intervenção Divina", "Implora assistência direta da sua divindade ou força sagrada.")],
+      14: [feature("Golpes Abençoados Aprimorados", "Seu reforço ofensivo divino fica mais poderoso.")],
+      19: [feature("Dádiva Épica", "Recebe uma Dádiva Épica ou outro talento elegível.")],
+      20: [feature("Intervenção Divina Maior", "Sua capacidade de pedir milagres alcança o auge.")],
+    },
+    subclasses: ["clerigo-guerra", "clerigo-luz", "clerigo-enganacao", "clerigo-vida"],
+  },
+  druida: {
+    id: "druida",
+    nome: "Druida",
+    descricao: "Guardião da magia primal que assume formas animais, convoca forças naturais e restaura o equilíbrio.",
+    dadoVida: 8,
+    atributoPrincipal: ["sab"],
+    salvaguardas: ["int", "sab"],
+    proficiencias: {
+      armaduras: ["leve", "escudo"],
+      armas: ["simples"],
+      ferramentas: ["kit-de-herborismo"],
+      periciasEscolha: {
+        picks: 2,
+        from: ["arcanismo", "adestrarAnimais", "intuicao", "medicina", "natureza", "percepcao", "religiao", "sobrevivencia"],
+      },
+    },
+    equipamentoInicial: [
+      { grupo: "A", descr: "Armadura de couro, escudo, foice, foco druídico (cajado), kit de explorador, kit de herborismo e 9 PO", armaduras: ["couro", "escudo"], armas: ["foice"] },
+      { grupo: "B", descr: "50 PO", armas: [] },
+    ],
+    escolhas: { estilosLuta: [], talentosSugestao: ["curandeiro", "iniciado-magico"] },
+    features: {
+      1: [
+        feature("Conjuração", "Conjura magias primais usando Sabedoria."),
+        feature("Idioma Druídico", "Conhece a linguagem secreta dos druidas."),
+        feature("Ordem Primal", "Escolhe uma ordem que molda como você usa a magia e a Forma Selvagem."),
+      ],
+      2: [
+        feature("Companheiro Selvagem", "Invoca ajuda animal por meio de magia primal."),
+        feature("Forma Selvagem", "Assume formas animais para exploração e combate."),
+      ],
+      3: [feature("Subclasse de Druida", "Escolhe um círculo druídico que amplia sua conexão natural.")],
+      4: [feature("Aumento no Valor de Atributo", "Recebe Aumento no Valor de Atributo ou outro talento para o qual se qualifique.")],
+      5: [feature("Ressurgimento Selvagem", "Sua Forma Selvagem e magia tornam-se mais eficientes.")],
+      7: [feature("Fúria Elemental", "Passa a carregar poder elemental em suas formas e feitiços.")],
+      15: [feature("Fúria Elemental Aprimorada", "Seu domínio elemental evolui novamente.")],
+      18: [feature("Magias Bestiais", "Conjura magias mesmo em formas bestiais com maior naturalidade.")],
+      19: [feature("Dádiva Épica", "Recebe uma Dádiva Épica ou outro talento elegível.")],
+      20: [feature("Arquidruida", "Alcança a expressão máxima do poder primal e da Forma Selvagem.")],
+    },
+    subclasses: ["druida-lua", "druida-terra", "druida-estrelas", "druida-mar"],
+  },
+
+  feiticeiro: {
+    id: "feiticeiro",
+    nome: "Feiticeiro",
+    descricao: "Conjurador de magia inata que remodela feitiços com Metamagia e manifesta sua origem sobrenatural.",
+    dadoVida: 6,
+    atributoPrincipal: ["car"],
+    salvaguardas: ["con", "car"],
+    proficiencias: {
+      armaduras: [],
+      armas: ["simples"],
+      ferramentas: [],
+      periciasEscolha: {
+        picks: 2,
+        from: ["arcanismo", "enganacao", "intimidacao", "intuicao", "persuasao", "religiao"],
+      },
+    },
+    equipamentoInicial: [
+      { grupo: "A", descr: "Lança, 2 adagas, foco arcano (cristal), kit de explorador de masmorras e 28 PO", armas: ["lanca", "adaga", "adaga"] },
+      { grupo: "B", descr: "50 PO", armas: [] },
+    ],
+    escolhas: { estilosLuta: [], talentosSugestao: ["telecinetico", "toque-feerico"] },
+    features: {
+      1: [
+        feature("Conjuração", "Conjura magias por meio de uma lista preparada alimentada por magia inata."),
+        feature("Feitiçaria Inata", "Ativa um estado mágico que impulsiona seu potencial arcano."),
+      ],
+      2: [
+        feature("Fonte de Magia", "Converte energia arcana em pontos e espaços de magia."),
+        feature("Metamagia", "Modifica suas magias para ampliar alcance, precisão ou efeito."),
+      ],
+      3: [feature("Subclasse de Feiticeiro", "Escolhe uma origem sobrenatural que molda seus poderes.")],
+      4: [feature("Aumento no Valor de Atributo", "Recebe Aumento no Valor de Atributo ou outro talento para o qual se qualifique.")],
+      5: [feature("Restauração Feiticeira", "Recupera recursos mágicos com mais consistência.")],
+      7: [feature("Feitiçaria Encarnada", "Sua magia passa a se manifestar de forma mais intensa e constante.")],
+      19: [feature("Dádiva Épica", "Recebe uma Dádiva Épica ou outro talento elegível.")],
+      20: [feature("Apoteose Arcana", "Seu corpo e sua magia atingem o ápice feiticeiro.")],
+    },
+    subclasses: ["feiticeiro-mente-aberrante", "feiticeiro-draconico", "feiticeiro-alma-mecanica", "feiticeiro-magia-selvagem"],
+  },
+
+  guerreiro: {
+    id: "guerreiro",
+    nome: "Guerreiro",
+    descricao: "Especialista marcial completo que combina disciplina, estilos de luta, maestria com armas e tática refinada.",
+    dadoVida: 10,
+    atributoPrincipal: ["for", "des"],
+    salvaguardas: ["for", "con"],
+    proficiencias: {
+      armaduras: ["leve", "media", "pesada", "escudo"],
+      armas: ["simples", "marcial"],
+      ferramentas: [],
+      periciasEscolha: {
+        picks: 2,
+        from: ["acrobacia", "atletismo", "historia", "intimidacao", "intuicao", "adestrarAnimais", "percepcao", "persuasao", "sobrevivencia"],
+      },
+    },
+    equipamentoInicial: [
+      { grupo: "A", descr: "Cota de malha, espada grande, mangual, 8 azagaias, kit de explorador de masmorras e 4 PO", armaduras: ["cota-de-malha"], armas: ["espada-grande", "mangual", "azagaia", "azagaia", "azagaia", "azagaia", "azagaia", "azagaia", "azagaia", "azagaia"] },
+      { grupo: "B", descr: "Armadura de couro batido, cimitarra, espada curta, arco longo, 20 flechas, aljava, kit de explorador de masmorras e 11 PO", armaduras: ["couro-batido"], armas: ["cimitarra", "espada-curta", "arco-longo"] },
+      { grupo: "C", descr: "155 PO", armas: [] },
+    ],
+    escolhas: { estilosLuta: FIGHTING_STYLE_CHOICES, talentosSugestao: ["mestre-de-armas", "mestre-atirador"] },
+    features: {
+      1: [
+        feature("Estilo de Luta", "Escolhe um talento de Estilo de Luta."),
+        feature("Maestria em Arma", "Domina propriedades de maestria com vários tipos de armas."),
+        feature("Recuperar Fôlego", "Recupera fôlego físico e mental para se curar no calor do combate."),
+      ],
+      2: [
+        feature("Mente Tática", "Usa sua disciplina para transformar quase sucessos em vitórias."),
+        feature("Surto de Ação", "Recebe explosões de ação extra em momentos decisivos."),
+      ],
+      3: [feature("Subclasse de Guerreiro", "Escolhe um arquétipo marcial que especializa seu combate.")],
+      4: [feature("Aumento no Valor de Atributo", "Recebe Aumento no Valor de Atributo ou outro talento para o qual se qualifique.")],
+      5: [
+        feature("Ajuste Tático", "Refina sua leitura tática de cada confronto."),
+        feature("Ataque Extra", "Ataca duas vezes ao usar a ação Atacar."),
+      ],
+      9: [
+        feature("Indomável", "Recusa-se a ceder diante de testes cruciais."),
+        feature("Mestre Tático", "Sua visão de combate sobe para outro patamar."),
+      ],
+      11: [feature("Dois Ataques Extras", "Sua ação Atacar passa a incluir três ataques.")],
+      13: [feature("Ataques Estudados", "Seus ataques refletem observação e adaptação constantes.")],
+      19: [feature("Dádiva Épica", "Recebe uma Dádiva Épica ou outro talento elegível.")],
+      20: [feature("Três Ataques Extras", "Sua ação Atacar alcança o auge guerreiro.")],
+    },
+    subclasses: ["guerreiro-campeao", "guerreiro-cavaleiro-arcano", "guerreiro-guerreiro-psiquico", "guerreiro-mestre-de-batalha"],
+  },
+
+  ladino: {
+    id: "ladino",
+    nome: "Ladino",
+    descricao: "Especialista em precisão, infiltração e truques, capaz de desequilibrar um combate com um único golpe certeiro.",
+    dadoVida: 8,
+    atributoPrincipal: ["des"],
+    salvaguardas: ["des", "int"],
+    proficiencias: {
+      armaduras: ["leve"],
+      armas: ["simples", "marcial-leve-ou-acuidade"],
+      ferramentas: ["ferramentas-de-ladrao"],
+      periciasEscolha: {
+        picks: 4,
+        from: ["acrobacia", "atletismo", "enganacao", "furtividade", "intimidacao", "intuicao", "investigacao", "percepcao", "persuasao", "prestidigitacao"],
+      },
+    },
+    equipamentoInicial: [
+      { grupo: "A", descr: "Armadura de couro, 2 adagas, espada curta, arco curto, 20 flechas, aljava, ferramentas de ladrão, kit de assaltante e 8 PO", armaduras: ["couro"], armas: ["adaga", "adaga", "espada-curta", "arco-curto"] },
+      { grupo: "B", descr: "100 PO", armas: [] },
+    ],
+    escolhas: { estilosLuta: [], talentosSugestao: ["alerta", "sorrateiro"] },
+    features: {
+      1: [
+        feature("Ataque Furtivo", "Inflige dano adicional quando explora distrações ou vantagem posicional."),
+        feature("Especialista", "Recebe Especialização em perícias selecionadas."),
+        feature("Gíria do Ladrão", "Aprende a linguagem secreta do submundo e um idioma extra."),
+        feature("Maestria em Arma", "Domina propriedades de maestria com armas apropriadas ao estilo ladino."),
+      ],
+      2: [feature("Ação Ardilosa", "Usa Correr, Desengajar ou Esconder como Ação Bônus.")],
+      3: [
+        feature("Mira Firme", "Compensa mobilidade por precisão letal."),
+        feature("Subclasse de Ladino", "Escolhe uma especialização de furtividade, magia ou assassinato."),
+      ],
+      4: [feature("Aumento no Valor de Atributo", "Recebe Aumento no Valor de Atributo ou outro talento para o qual se qualifique.")],
+      5: [
+        feature("Golpe Astuto", "Acrescenta efeitos especiais ao Ataque Furtivo."),
+        feature("Esquiva Sobrenatural", "Reduz dano de golpes que consegue perceber."),
+      ],
+      7: [
+        feature("Evasão", "Evita parte do dano de efeitos em área."),
+        feature("Talento Confiável", "Trata resultados baixos como desempenho consistente em perícias."),
+      ],
+      11: [feature("Golpe Astuto Aprimorado", "Seu Ataque Furtivo passa a aplicar efeitos mais fortes.")],
+      14: [feature("Golpes Sujos", "Explora aberturas com ainda mais crueldade tática.")],
+      15: [feature("Mente Escorregadia", "Sua mente torna-se difícil de dominar ou desviar.")],
+      18: [feature("Elusivo", "Torna-se excepcionalmente difícil de acertar ou prender.")],
+      19: [feature("Dádiva Épica", "Recebe uma Dádiva Épica ou outro talento elegível.")],
+      20: [feature("Golpe de Sorte", "Dobra sua capacidade de converter fracassos em sucesso.")],
+    },
+    subclasses: ["ladino-faca-alma", "ladino-assassino", "ladino-ladrao", "ladino-trapaceiro-arcano"],
+  },
+
+  mago: {
+    id: "mago",
+    nome: "Mago",
+    descricao: "Acadêmico arcano que domina rituais, grimórios e escolas de magia por estudo disciplinado.",
+    dadoVida: 6,
+    atributoPrincipal: ["int"],
+    salvaguardas: ["int", "sab"],
+    proficiencias: {
+      armaduras: [],
+      armas: ["simples"],
+      ferramentas: [],
+      periciasEscolha: {
+        picks: 2,
+        from: ["arcanismo", "historia", "intuicao", "investigacao", "medicina", "natureza", "religiao"],
+      },
+    },
+    equipamentoInicial: [
+      { grupo: "A", descr: "2 adagas, foco arcano (cajado), kit de erudito, livro de magias, túnica e 5 PO", armas: ["adaga", "adaga"] },
+      { grupo: "B", descr: "55 PO", armas: [] },
+    ],
+    escolhas: { estilosLuta: [], talentosSugestao: ["mente-agucada", "conjurador-de-rituais"] },
+    features: {
+      1: [
+        feature("Adepto de Ritual", "Conjura magias rituais a partir do livro de magias sem prepará-las."),
+        feature("Conjuração", "Conjura magias arcanas usando Inteligência e um grimório pessoal."),
+        feature("Recuperação Arcana", "Recupera parte dos espaços de magia após descansar."),
+      ],
+      2: [feature("Acadêmico", "Expande sua formação arcana com estudo especializado.")],
+      3: [feature("Subclasse de Mago", "Escolhe uma escola de magia para especialização.")],
+      4: [feature("Aumento no Valor de Atributo", "Recebe Aumento no Valor de Atributo ou outro talento para o qual se qualifique.")],
+      5: [feature("Memorizar Magia", "Reconfigura seu preparo mágico com mais agilidade.")],
+      18: [feature("Maestria de Magias", "Domina certas magias a ponto de torná-las triviais.")],
+      19: [feature("Dádiva Épica", "Recebe uma Dádiva Épica ou outro talento elegível.")],
+      20: [feature("Assinatura Mágica", "Sua magia pessoal torna-se instantaneamente reconhecível e excepcional.")],
+    },
+    subclasses: ["mago-abjuracao", "mago-adivinhacao", "mago-evocacao", "mago-ilusao"],
+  },
+
+  monge: {
+    id: "monge",
+    nome: "Monge",
+    descricao: "Discípulo marcial que usa foco interior, mobilidade e golpes desarmados para superar qualquer inimigo.",
+    dadoVida: 8,
+    atributoPrincipal: ["des", "sab"],
+    salvaguardas: ["for", "des"],
+    proficiencias: {
+      armaduras: [],
+      armas: ["simples", "marcial-leve"],
+      ferramentas: ["ferramentas-de-artesao-ou-instrumento"],
+      periciasEscolha: {
+        picks: 2,
+        from: ["acrobacia", "atletismo", "furtividade", "historia", "intuicao", "religiao"],
+      },
+    },
+    equipamentoInicial: [
+      { grupo: "A", descr: "Lança, 5 adagas, uma ferramenta de artesão ou instrumento musical, kit de aventureiro e 11 PO", armas: ["lanca", "adaga", "adaga", "adaga", "adaga", "adaga"] },
+      { grupo: "B", descr: "50 PO", armas: [] },
+    ],
+    escolhas: { estilosLuta: [], talentosSugestao: ["velocista", "combate-desarmado"] },
+    features: {
+      1: [
+        feature("Artes Marciais", "Aprimora ataques desarmados e armas de monge com Destreza e dado marcial."),
+        feature("Defesa sem Armadura", "Sem armadura nem escudo, sua CA usa Destreza e Sabedoria."),
+      ],
+      2: [
+        feature("Foco do Monge", "Gasta pontos de foco para técnicas marciais especiais."),
+        feature("Metabolismo Incomum", "Seu corpo recupera energia e resistência de modo extraordinário."),
+        feature("Movimento sem Armadura", "Seu deslocamento aumenta enquanto luta sem armadura."),
+      ],
+      3: [
+        feature("Defletir Ataques", "Desvia ou redireciona ataques que conseguir interceptar."),
+        feature("Subclasse de Monge", "Escolhe uma tradição que define o uso do seu foco."),
+      ],
+      4: [
+        feature("Aumento no Valor de Atributo", "Recebe Aumento no Valor de Atributo ou outro talento para o qual se qualifique."),
+        feature("Queda Lenta", "Reduz fortemente o dano recebido por quedas."),
+      ],
+      5: [
+        feature("Ataque Extra", "Ataca duas vezes ao usar a ação Atacar."),
+        feature("Golpe Atordoante", "Canaliza foco em um golpe que desestabiliza o alvo."),
+      ],
+      6: [feature("Golpes Potencializados", "Seus ataques desarmados passam a romper resistências com mais facilidade.")],
+      7: [feature("Evasão", "Minimiza dano de explosões e efeitos similares.")],
+      9: [feature("Movimento Acrobático", "Corre por paredes e líquidos durante seu deslocamento.")],
+      10: [
+        feature("Foco Aprimorado", "Suas técnicas de foco ficam mais eficientes."),
+        feature("Restauro Pessoal", "Remove certos estados negativos com disciplina interior."),
+      ],
+      13: [feature("Defletir Energia", "Passa a desviar ataques energéticos, não apenas físicos.")],
+      14: [feature("Sobrevivente Disciplinado", "Adquire proficiência em todas as salvaguardas.")],
+      15: [feature("Foco Perfeito", "Recupera foco com consistência quando a batalha começa.")],
+      18: [feature("Defesa Superior", "Investe foco para resistir a quase todo tipo de dano.")],
+      19: [feature("Dádiva Épica", "Recebe uma Dádiva Épica ou outro talento elegível.")],
+      20: [feature("Corpo e Mente", "Eleva Destreza e Sabedoria além dos limites normais.")],
+    },
+    subclasses: ["monge-palma-aberta", "monge-misericordia", "monge-sombras", "monge-quatro-elementos"],
+  },
+
+  paladino: {
+    id: "paladino",
+    nome: "Paladino",
+    descricao: "Campeão sagrado cuja magia, aura e destruição divina brotam de um juramento solene.",
+    dadoVida: 10,
+    atributoPrincipal: ["for", "car"],
+    salvaguardas: ["sab", "car"],
+    proficiencias: {
+      armaduras: ["leve", "media", "pesada", "escudo"],
+      armas: ["simples", "marcial"],
+      ferramentas: [],
+      periciasEscolha: {
+        picks: 2,
+        from: ["atletismo", "intimidacao", "intuicao", "medicina", "persuasao", "religiao"],
+      },
+    },
+    equipamentoInicial: [
+      { grupo: "A", descr: "Cota de malha, escudo, espada longa, 6 azagaias, símbolo sagrado, kit de sacerdote e 9 PO", armaduras: ["cota-de-malha", "escudo"], armas: ["espada-longa", "azagaia", "azagaia", "azagaia", "azagaia", "azagaia", "azagaia"] },
+      { grupo: "B", descr: "150 PO", armas: [] },
+    ],
+    escolhas: { estilosLuta: FIGHTING_STYLE_CHOICES, talentosSugestao: ["mestre-em-escudos", "lider-inspirador"] },
+    features: {
+      1: [
+        feature("Conjuração", "Conjura magias sagradas usando Carisma."),
+        feature("Maestria em Arma", "Domina propriedades de maestria com armas de sua escolha."),
+        feature("Mãos Consagradas", "Canaliza poder restaurador e purificador pelo toque."),
+      ],
+      2: [
+        feature("Destruição do Paladino", "Converte espaços de magia em dano radiante devastador."),
+        feature("Estilo de Luta", "Escolhe um talento de Estilo de Luta."),
+      ],
+      3: [
+        feature("Canalizar Divindade", "Usa seu juramento para efeitos sagrados marcantes."),
+        feature("Subclasse de Paladino", "Escolhe um juramento que amplia suas magias e auras."),
+      ],
+      4: [feature("Aumento no Valor de Atributo", "Recebe Aumento no Valor de Atributo ou outro talento para o qual se qualifique.")],
+      5: [
+        feature("Ataque Extra", "Ataca duas vezes ao usar a ação Atacar."),
+        feature("Montaria Fiel", "Consegue invocar ou manter uma montaria sobrenatural."),
+      ],
+      6: [feature("Aura de Proteção", "Aliados próximos recebem sua força espiritual nas salvaguardas.")],
+      9: [feature("Repudiar Inimigos", "Afasta e enfraquece adversários com autoridade sagrada.")],
+      10: [feature("Aura de Coragem", "Você e aliados próximos resistem ao medo.")],
+      11: [feature("Golpes Radiantes", "Seus ataques corpo a corpo irradiam dano sagrado constante.")],
+      14: [feature("Toque Restaurador", "Seu toque remove males e restaura a vitalidade.")],
+      18: [feature("Aura Expandida", "O alcance das suas auras aumenta.")],
+      19: [feature("Dádiva Épica", "Recebe uma Dádiva Épica ou outro talento elegível.")],
+    },
+    subclasses: ["paladino-devocao", "paladino-gloria", "paladino-vinganca", "paladino-ancioes"],
+  },
+
+  patrulheiro: {
+    id: "patrulheiro",
+    nome: "Guardião",
+    descricao: "Caçador dos ermos que combina armas, rastreamento e magia primal para eliminar ameaças do mundo selvagem.",
+    dadoVida: 10,
+    atributoPrincipal: ["des", "sab"],
+    salvaguardas: ["for", "des"],
+    proficiencias: {
+      armaduras: ["leve", "media", "escudo"],
+      armas: ["simples", "marcial"],
+      ferramentas: [],
+      periciasEscolha: {
+        picks: 3,
+        from: ["atletismo", "furtividade", "intuicao", "investigacao", "adestrarAnimais", "natureza", "percepcao", "sobrevivencia"],
+      },
+    },
+    equipamentoInicial: [
+      { grupo: "A", descr: "Armadura de couro batido, cimitarra, espada curta, arco longo, 20 flechas, aljava, foco druídico (ramo de visco), kit de aventureiro e 7 PO", armaduras: ["couro-batido"], armas: ["cimitarra", "espada-curta", "arco-longo"] },
+      { grupo: "B", descr: "150 PO", armas: [] },
+    ],
+    escolhas: { estilosLuta: FIGHTING_STYLE_CHOICES, talentosSugestao: ["alerta", "mestre-atirador"] },
+    features: {
+      1: [
+        feature("Conjuração", "Conjura magias primais ligadas à exploração e à caça."),
+        feature("Inimigo Favorito", "Marca e persegue alvos com magia e precisão."),
+        feature("Maestria em Arma", "Domina propriedades de maestria com armas escolhidas."),
+      ],
+      2: [
+        feature("Estilo de Luta", "Escolhe um talento de Estilo de Luta."),
+        feature("Explorador Hábil", "Aprimora movimentação, sobrevivência e exploração."),
+      ],
+      3: [feature("Subclasse de Guardião", "Escolhe um arquétipo de vigília, caça ou vínculo animal.")],
+      4: [feature("Aumento no Valor de Atributo", "Recebe Aumento no Valor de Atributo ou outro talento para o qual se qualifique.")],
+      5: [feature("Ataque Extra", "Ataca duas vezes ao usar a ação Atacar.")],
+      6: [feature("Errante", "Sua experiência de viagem aumenta mobilidade e resistência.")],
+      9: [feature("Especialista", "Aprofunda o domínio de perícias e táticas de campo.")],
+      10: [feature("Incansável", "Recupera-se com rapidez e segue em frente.")],
+      13: [feature("Predador Implacável", "Mantém pressão constante sobre o alvo marcado.")],
+      14: [feature("Véu da Natureza", "Usa o mundo natural para se ocultar ou reposicionar.")],
+      17: [feature("Caçador Preciso", "Eleva a eficiência dos ataques contra sua presa.")],
+      18: [feature("Sentidos Selvagens", "Seus sentidos detectam ameaças ocultas com facilidade.")],
+      19: [feature("Dádiva Épica", "Recebe uma Dádiva Épica ou outro talento elegível.")],
+      20: [feature("Matador de Inimigos Favoritos", "Sua marca culmina em eficiência letal máxima.")],
+    },
+    subclasses: ["patrulheiro-andarilho-feerico", "patrulheiro-cacador", "patrulheiro-mestre-feras", "patrulheiro-perseguidor"],
+  },
+};
