@@ -2044,6 +2044,41 @@ select[multiple] option {
   color: var(--text);
 }
 
+.hp-progression-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(168px, 230px);
+  align-items: center;
+  gap: 10px;
+}
+
+.hp-max-highlight {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid rgba(139, 94, 52, 0.34);
+  border-radius: 8px;
+  background: rgba(253, 246, 227, 0.82);
+}
+
+.hp-max-highlight span {
+  color: #5f4329;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.hp-max-highlight input {
+  width: 100%;
+  min-height: 52px;
+  padding: 8px 10px;
+  border-width: 2px;
+  background: rgba(255, 250, 238, 0.98);
+  font-size: 1.55rem;
+  font-weight: 700;
+  text-align: center;
+}
+
 .hp-method-options {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -2123,6 +2158,10 @@ select[multiple] option {
 }
 
 @media (max-width: 640px) {
+  .hp-progression-heading {
+    grid-template-columns: 1fr;
+  }
+
   .hp-roll-row {
     grid-template-columns: 1fr;
   }

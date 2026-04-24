@@ -190,15 +190,16 @@
                 <span>Classe de Armadura</span>
                 <input id="armorClass2024" type="number" min="0" step="1" placeholder="Ex.: 16" />
               </label>
-
-              <label class="row">
-                <span>HP máximo</span>
-                <input id="maxHp2024" type="number" min="0" step="1" placeholder="Ex.: 31" />
-              </label>
             </div>
 
             <div class="hp-progression-panel">
-              <span class="hp-progression-title">Progressão de HP</span>
+              <div class="hp-progression-heading">
+                <span class="hp-progression-title">Progressão de HP</span>
+                <label class="hp-max-highlight">
+                  <span>HP máximo</span>
+                  <input id="maxHp2024" type="number" min="0" step="1" placeholder="Auto" />
+                </label>
+              </div>
               <div class="hp-method-options">
                 <label class="method-option hp-method-option">
                   <input id="hp-method-fixed-2024" name="hp-method-2024" type="radio" value="fixed" checked />

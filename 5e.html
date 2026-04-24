@@ -405,25 +405,16 @@
               <span>Deslocamento</span>
               <input id="deslocamento" type="number" min="0" value="30" />
             </label>
-
-            <label class="row">
-              <span>HP máximo</span>
-              <input id="hpMax" type="number" min="1" step="1" placeholder="Calculado automaticamente" />
-            </label>
-
-            <label class="row">
-              <span>HP atual</span>
-              <input id="hpAtual" type="number" min="0" />
-            </label>
-
-            <label class="row">
-              <span>HP temporário</span>
-              <input id="hpTemp" type="number" min="0" />
-            </label>
           </div>
 
           <div class="hp-progression-panel">
-            <span class="hp-progression-title">Progressão de HP</span>
+            <div class="hp-progression-heading">
+              <span class="hp-progression-title">Progressão de HP</span>
+              <label class="hp-max-highlight">
+                <span>HP máximo</span>
+                <input id="hpMax" type="number" min="1" step="1" placeholder="Auto" />
+              </label>
+            </div>
             <div class="hp-method-options">
               <label class="method-option hp-method-option">
                 <input id="hp-method-fixed" name="hp-method" type="radio" value="fixed" checked />
@@ -445,7 +436,7 @@
             <p id="hpRuleHint" class="note subtle"></p>
           </div>
 
-          <p class="note subtle">Na ficha, os campos HP atual, HP temporário e Dados de Vida gastos ficam em branco se você não preencher manualmente. Esses campos costumam ser atualizados durante a sessão.</p>
+          <p class="note subtle">Na ficha, HP atual, HP temporário e Dados de Vida gastos ficam em branco. Esses campos costumam ser atualizados durante a sessão.</p>
 
           <div class="row">
             <span>Perícias proficientes</span>

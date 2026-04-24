@@ -15106,8 +15106,8 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
         999
       ),
       hpMaxManual: getAutoNumericManualValue(el.hpMax, 1, 9999),
-      hpAtualManual: el.hpAtual.value !== "" ? clampInt(el.hpAtual.value, 0, 9999) : null,
-      hpTempManual: el.hpTemp.value !== "" ? clampInt(el.hpTemp.value, 0, 9999) : null,
+      hpAtualManual: el.hpAtual && el.hpAtual.value !== "" ? clampInt(el.hpAtual.value, 0, 9999) : null,
+      hpTempManual: el.hpTemp && el.hpTemp.value !== "" ? clampInt(el.hpTemp.value, 0, 9999) : null,
       hpProgressionMode: getHitPointProgressionMode(),
       hpRolls: collectHitPointRollValues(),
       units: {
@@ -16700,7 +16700,7 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
 
       <hr>
 
-      <p><strong>HP:</strong> ${(ficha.texto.hpAtual || "—")}/${ficha.texto.hpMax}</p>
+      <p><strong>HP máximo:</strong> ${ficha.texto.hpMax}</p>
       <p><strong>CA:</strong> ${ficha.texto.CA}</p>
       <p><strong>Iniciativa:</strong> ${ficha.texto.iniciativa}</p>
       <p><strong>Deslocamento:</strong> ${ficha.texto.deslocamento}</p>
