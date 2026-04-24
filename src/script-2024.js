@@ -1362,7 +1362,7 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     const unlockLevel = getSubclassUnlockLevel2024(cls);
     if (!unlockLevel) return "(sem subclasses cadastradas)";
     return classLevel < unlockLevel
-      ? `Subclasse liberada no nÃ­vel ${unlockLevel}`
+      ? `Subclasse liberada no ní­vel ${unlockLevel}`
       : "(sem subclasses cadastradas)";
   }
 
@@ -1402,7 +1402,7 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
           <select data-multiclass-class></select>
         </label>
         <label class="row">
-          <span>NÃ­vel na classe</span>
+          <span>Ní­vel na classe</span>
           <input type="number" min="1" max="20" value="1" data-multiclass-level />
         </label>
         <label class="row">
