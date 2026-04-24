@@ -3726,10 +3726,19 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
         node.classList.remove("is-active");
         hideCustomSelectHoverCard(field);
       });
-      node.addEventListener("mousedown", (event) => {
+      let committedFromPointer = false;
+      const commitFromPointer = (event) => {
+        if (committedFromPointer) return;
+        committedFromPointer = true;
         event.preventDefault();
         commitCustomSelectValue(field, node.getAttribute("data-value"));
-      });
+        window.setTimeout(() => {
+          committedFromPointer = false;
+        }, 0);
+      };
+      node.addEventListener("pointerdown", commitFromPointer);
+      node.addEventListener("mousedown", commitFromPointer);
+      node.addEventListener("touchstart", commitFromPointer, { passive: false });
     });
   }
 

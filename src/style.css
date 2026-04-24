@@ -1958,6 +1958,21 @@ select[multiple] option {
   font-size: 0.95rem;
 }
 
+.equipment-shopping-detail {
+  grid-column: 1 / -1;
+  margin: -2px 0 0;
+  padding-top: 8px;
+  border-top: 1px solid rgba(139,94,52,0.14);
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.equipment-shopping-detail.is-warning {
+  color: #8b2f2f;
+  font-weight: 600;
+}
+
 @media (max-width: 860px) {
   .equipment-shopping-row {
     grid-template-columns: 1fr;

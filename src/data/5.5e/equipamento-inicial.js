@@ -31,6 +31,11 @@ const MUSICAL_INSTRUMENT_OPTIONS = [
   { id: "viola", label: "Viola" },
 ];
 
+const ARTISAN_TOOL_OR_MUSICAL_INSTRUMENT_OPTIONS = [
+  ...ARTISAN_TOOL_OPTIONS,
+  ...MUSICAL_INSTRUMENT_OPTIONS,
+];
+
 const GAMING_SET_OPTIONS = [
   { id: "dados", label: "Jogo de dados" },
   { id: "cartas", label: "Baralho" },
@@ -74,6 +79,7 @@ const chooseToolGroup = (id, label, selectionId, optionsList, placeholderKey) =>
 export const EQUIPMENT_OPTION_LISTS = {
   artisanTools: ARTISAN_TOOL_OPTIONS,
   musicalInstruments: MUSICAL_INSTRUMENT_OPTIONS,
+  artisanToolsOrMusicalInstruments: ARTISAN_TOOL_OR_MUSICAL_INSTRUMENT_OPTIONS,
   gamingSets: GAMING_SET_OPTIONS,
 };
 
@@ -115,10 +121,30 @@ export const CLASS_EQUIPMENT_RULES = {
     packageOption("a", "Pacote A", "2 adagas, foco arcano (cajado), kit de erudito, livro de magias, túnica e 5 PO"),
     packageOption("b", "Pacote B", "55 PO")
   ),
-  monge: packageOptions(
-    packageOption("a", "Pacote A", "Lança, 5 adagas, uma ferramenta de artesão ou instrumento musical, kit de aventureiro e 11 PO"),
-    packageOption("b", "Pacote B", "50 PO")
-  ),
+  monge: {
+    groups: [
+      ...packageOptions(
+        packageOption("a", "Pacote A", "Lança, 5 adagas, uma ferramenta de artesão ou instrumento musical, kit de aventureiro e 11 PO"),
+        packageOption("b", "Pacote B", "50 PO")
+      ).groups,
+      {
+        id: "pacote-a-ferramenta",
+        label: "Ferramenta ou instrumento",
+        description: "Escolha o item variável do Pacote A.",
+        requires: { groupId: "pacote", optionId: "a" },
+        grants: [
+          {
+            type: "textSelect",
+            selectionId: "item",
+            label: "Item do Pacote A",
+            optionsList: "artisanToolsOrMusicalInstruments",
+            targets: ["equipment", "proficiency"],
+            placeholderKey: "ferramenta-de-artesao-ou-instrumento-musical",
+          },
+        ],
+      },
+    ],
+  },
   paladino: packageOptions(
     packageOption("a", "Pacote A", "Cota de malha, escudo, espada longa, 6 azagaias, símbolo sagrado, kit de sacerdote e 9 PO"),
     packageOption("b", "Pacote B", "150 PO")

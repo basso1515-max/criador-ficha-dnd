@@ -5,7 +5,7 @@ import { ANTECEDENTES, META_ANTECEDENTES } from "./data/5.5e/antecedentes.js";
 import { DIVINDADES } from "./data/5.5e/divindades.js";
 import { TALENTOS, META_TALENTOS } from "./data/5.5e/talentos.js";
 import { ARMADURAS } from "./data/5.5e/armaduras.js";
-import { ARMAS, PROPRIEDADES_MAESTRIA_ARMA } from "./data/5.5e/armas.js";
+import { ARMAS, PROPRIEDADES_ARMA, PROPRIEDADES_MAESTRIA_ARMA } from "./data/5.5e/armas.js";
 import { MAGIAS, ESCOLAS } from "./data/5.5e/magias.js";
 import { FEATURE_SUMMARIES_2024 } from "./data/5.5e/feature-summaries.js";
 import { EQUIPMENT_OPTION_LISTS, CLASS_EQUIPMENT_RULES, BACKGROUND_EQUIPMENT_RULES } from "./data/5.5e/equipamento-inicial.js";
@@ -223,27 +223,30 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
       [4, 3, 2], [4, 3, 2], [4, 3, 3], [4, 3, 3], [4, 3, 3], [4, 3, 3, 1], [4, 3, 3, 1],
     ],
   };
+  const PREPARED_FULL_SPELLS_2024 = [0, 4, 5, 6, 7, 9, 10, 11, 12, 14, 15, 16, 16, 17, 17, 18, 18, 19, 20, 21, 22];
+  const PREPARED_WIZARD_SPELLS_2024 = [0, 4, 5, 6, 7, 9, 10, 11, 12, 14, 15, 16, 16, 17, 18, 19, 21, 22, 23, 24, 26];
+  const PREPARED_HALF_SPELLS_2024 = [0, 2, 3, 4, 5, 6, 6, 7, 7, 9, 9, 10, 10, 11, 11, 12, 12, 14, 14, 15, 15];
   const SPELLCASTING_RULES_2024 = {
     bardo: {
-      kind: "known",
+      kind: "prepared",
       sourceClassId: "bardo",
       ability: "car",
       multiclassProgression: "full",
       slotTable: SLOT_TABLES_2024.full,
       cantripsByLevel: [0, 2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
-      spellsKnownByLevel: [0, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 15, 16, 18, 19, 19, 20, 22, 22, 22],
-      selectionLabel: "Magias conhecidas",
+      preparedByLevel: PREPARED_FULL_SPELLS_2024,
+      selectionLabel: "Magias preparadas",
     },
     bruxo: {
-      kind: "known",
+      kind: "prepared",
       sourceClassId: "bruxo",
       ability: "car",
       multiclassProgression: "pact",
       cantripsByLevel: [0, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
-      spellsKnownByLevel: [0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14, 15, 15],
+      preparedByLevel: [0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14, 15, 15],
       pactSlotsByLevel: [0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4],
       pactSlotLevelByLevel: [0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5],
-      selectionLabel: "Magias conhecidas",
+      selectionLabel: "Magias preparadas",
     },
     clerigo: {
       kind: "prepared",
@@ -252,7 +255,7 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
       multiclassProgression: "full",
       slotTable: SLOT_TABLES_2024.full,
       cantripsByLevel: [0, 3, 3, 3, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5],
-      preparedCount: ({ level, mod }) => Math.max(1, level + mod),
+      preparedByLevel: PREPARED_FULL_SPELLS_2024,
       selectionLabel: "Magias preparadas",
     },
     druida: {
@@ -262,18 +265,18 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
       multiclassProgression: "full",
       slotTable: SLOT_TABLES_2024.full,
       cantripsByLevel: [0, 2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
-      preparedCount: ({ level, mod }) => Math.max(1, level + mod),
+      preparedByLevel: PREPARED_FULL_SPELLS_2024,
       selectionLabel: "Magias preparadas",
     },
     feiticeiro: {
-      kind: "known",
+      kind: "prepared",
       sourceClassId: "feiticeiro",
       ability: "car",
       multiclassProgression: "full",
       slotTable: SLOT_TABLES_2024.full,
       cantripsByLevel: [0, 4, 4, 4, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
-      spellsKnownByLevel: [0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 12, 13, 13, 14, 14, 15, 15, 15, 15],
-      selectionLabel: "Magias conhecidas",
+      preparedByLevel: PREPARED_FULL_SPELLS_2024,
+      selectionLabel: "Magias preparadas",
     },
     mago: {
       kind: "prepared",
@@ -282,7 +285,7 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
       multiclassProgression: "full",
       slotTable: SLOT_TABLES_2024.full,
       cantripsByLevel: [0, 3, 3, 3, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5],
-      preparedCount: ({ level, mod }) => Math.max(1, level + mod),
+      preparedByLevel: PREPARED_WIZARD_SPELLS_2024,
       selectionLabel: "Magias preparadas",
     },
     paladino: {
@@ -292,7 +295,7 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
       multiclassProgression: "half-up",
       slotTable: SLOT_TABLES_2024.artificer,
       cantripsByLevel: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-      preparedCount: ({ level, mod }) => Math.max(1, Math.floor(level / 2) + mod),
+      preparedByLevel: PREPARED_HALF_SPELLS_2024,
       selectionLabel: "Magias preparadas",
     },
     patrulheiro: {
@@ -302,7 +305,7 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
       multiclassProgression: "half-up",
       slotTable: SLOT_TABLES_2024.artificer,
       cantripsByLevel: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-      preparedCount: ({ level, mod }) => Math.max(1, Math.floor(level / 2) + mod),
+      preparedByLevel: PREPARED_HALF_SPELLS_2024,
       selectionLabel: "Magias preparadas",
     },
   };
@@ -506,8 +509,7 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     "pequenino",
     "orc",
   ];
-  const CHAPTER_TWO_LANGUAGE_CHOICE_IDS_2024 = [
-    ...COMMON_LANGUAGE_CHOICE_IDS_2024,
+  const RARE_LANGUAGE_CHOICE_IDS_2024 = [
     "abissal",
     "celestial",
     "dialeto-obscuro",
@@ -518,6 +520,32 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     "silvestre",
     "subcomum",
   ];
+  const CHAPTER_TWO_LANGUAGE_CHOICE_IDS_2024 = [
+    ...COMMON_LANGUAGE_CHOICE_IDS_2024,
+    ...RARE_LANGUAGE_CHOICE_IDS_2024,
+  ];
+  const LANGUAGE_ORIGINS_2024 = {
+    comum: "Sigil",
+    "lingua-de-sinais-comum": "Sigil",
+    draconico: "Dragões",
+    anao: "Anões",
+    elfico: "Elfos",
+    gigante: "Gigantes",
+    gnomico: "Gnomos",
+    goblin: "Goblinoides",
+    halfling: "Pequeninos",
+    pequenino: "Pequeninos",
+    orc: "Orcs",
+    abissal: "Demônios do Abismo",
+    celestial: "Celestiais",
+    "dialeto-obscuro": "Aberrações",
+    druidico: "Círculos druídicos",
+    "giria-dos-ladroes": "Várias guildas criminosas",
+    infernal: "Diabos dos Nove Infernos",
+    primordial: "Elementais",
+    silvestre: "A Faéria",
+    subcomum: "A Umbraeterna",
+  };
   const CURRENCY_KEYS_2024 = ["pc", "pp", "pe", "po", "pl"];
   const CURRENCY_TO_COPPER_FACTORS_2024 = {
     pc: 1,
@@ -1362,7 +1390,7 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     const unlockLevel = getSubclassUnlockLevel2024(cls);
     if (!unlockLevel) return "(sem subclasses cadastradas)";
     return classLevel < unlockLevel
-      ? `Subclasse liberada no ní­vel ${unlockLevel}`
+      ? `Subclasse liberada no nível ${unlockLevel}`
       : "(sem subclasses cadastradas)";
   }
 
@@ -1373,8 +1401,8 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
       cls.dadoVida ? `Dado de Vida d${cls.dadoVida}.` : "",
       cls.atributoPrincipal?.length ? `Atributos principais: ${formatList(cls.atributoPrincipal.map(formatAbilityLabel))}.` : "",
       cls.salvaguardas?.length ? `Salvaguardas: ${formatList(cls.salvaguardas.map(formatAbilityLabel))}.` : "",
-      `Nivel atual na classe: ${classLevel}.`,
-      unlockLevel ? `Subclasse liberada no nivel ${unlockLevel}.` : "Sem subclasses cadastradas.",
+      `Nível atual na classe: ${classLevel}.`,
+      unlockLevel ? `Subclasse liberada no nível ${unlockLevel}.` : "Sem subclasses cadastradas.",
     ].filter(Boolean).join(" ");
   }
 
@@ -1402,7 +1430,7 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
           <select data-multiclass-class></select>
         </label>
         <label class="row">
-          <span>Ní­vel na classe</span>
+          <span>Nível na classe</span>
           <input type="number" min="1" max="20" value="1" data-multiclass-level />
         </label>
         <label class="row">
@@ -1910,10 +1938,19 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
         node.classList.remove("is-active");
         hideCustomSelectHoverCard2024(field);
       });
-      node.addEventListener("mousedown", (event) => {
+      let committedFromPointer = false;
+      const commitFromPointer = (event) => {
+        if (committedFromPointer) return;
+        committedFromPointer = true;
         event.preventDefault();
         commitCustomSelectValue2024(field, node.getAttribute("data-value"));
-      });
+        window.setTimeout(() => {
+          committedFromPointer = false;
+        }, 0);
+      };
+      node.addEventListener("pointerdown", commitFromPointer);
+      node.addEventListener("mousedown", commitFromPointer);
+      node.addEventListener("touchstart", commitFromPointer, { passive: false });
     });
   }
 
@@ -4032,9 +4069,15 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     subtotal.dataset.shoppingSubtotal = String(index);
     subtotal.textContent = "—";
 
+    const detail = document.createElement("p");
+    detail.className = "equipment-shopping-detail";
+    detail.dataset.shoppingDetail = String(index);
+    detail.hidden = true;
+
     row.appendChild(itemField);
     row.appendChild(quantityField);
     row.appendChild(subtotal);
+    row.appendChild(detail);
     rowsContainer.appendChild(row);
   }
 
@@ -4045,6 +4088,7 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
       select: row.querySelector('select[name^="shopping-item-"]'),
       quantity: row.querySelector('input[name^="shopping-qty-"]'),
       subtotal: row.querySelector("[data-shopping-subtotal]"),
+      detail: row.querySelector("[data-shopping-detail]"),
     };
   }
 
@@ -4077,7 +4121,10 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
 
       const item = EQUIPMENT_PURCHASE_BY_ID_2024.get(option.value);
       const staysSelected = option.value === select.value;
-      option.disabled = !staysSelected && (!canShop || ((item?.costCopper || 0) > allowanceCopper));
+      const requirementState = getEquipmentRequirementState2024(item);
+      const requirementBlocked = Boolean(requirementState.requirement && !requirementState.met);
+      option.title = describeEquipmentPurchaseItem2024(item, requirementState);
+      option.disabled = !staysSelected && (!canShop || ((item?.costCopper || 0) > allowanceCopper) || requirementBlocked);
     });
   }
 
@@ -4097,6 +4144,15 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     if (!item) {
       controls.quantity.value = "1";
       return false;
+    }
+
+    const requirementState = getEquipmentRequirementState2024(item);
+    if (requirementState.requirement && !requirementState.met) {
+      controls.select.value = "";
+      controls.quantity.value = "1";
+      updateEquipmentShoppingDetail2024(controls.detail, item, requirementState);
+      setStatus2024(`${item.label}: ${requirementState.message}.`, "warning");
+      return true;
     }
 
     if (!(item.costCopper > 0)) return false;
@@ -4190,7 +4246,9 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     const list = document.createElement("div");
     list.className = "equipment-choice-list";
 
-    rules.groups.forEach((group) => {
+    rules.groups
+      .filter((group) => isEquipmentChoiceGroupActive2024(prefix, group, previousValues))
+      .forEach((group) => {
       const card = document.createElement("div");
       card.className = "equipment-choice-card";
 
@@ -4276,8 +4334,18 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
       list.appendChild(card);
     });
 
+    if (!list.childElementCount) return null;
+
     article.appendChild(list);
     return article;
+  }
+
+  function isEquipmentChoiceGroupActive2024(scope, group, selections) {
+    if (!group?.requires) return true;
+    const requiredGroupId = String(group.requires.groupId || "").trim();
+    const requiredOptionId = String(group.requires.optionId || "").trim();
+    if (!requiredGroupId || !requiredOptionId) return true;
+    return String(selections?.get?.(`${scope}-${requiredGroupId}`) || "").trim() === requiredOptionId;
   }
 
   function buildEquipmentShoppingCard({ cls, background, previousValues }) {
@@ -4391,6 +4459,7 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
         const option = document.createElement("option");
         option.value = entry.id;
         option.textContent = `${entry.label} (${formatCurrencyFromCopper2024(entry.costCopper)})`;
+        option.title = describeEquipmentPurchaseItem2024(entry);
         optgroup.appendChild(option);
       });
 
@@ -4483,6 +4552,7 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
       const select = controls?.select;
       const quantity = controls?.quantity;
       const subtotal = controls?.subtotal;
+      const detail = controls?.detail;
       if (!select || !quantity || !subtotal) return;
 
       const allowanceCopper = canShop ? getShoppingBudgetAllowanceForRow2024(row, cls, background) : 0;
@@ -4490,6 +4560,7 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
       select.disabled = !canShop;
 
       const item = EQUIPMENT_PURCHASE_BY_ID_2024.get(select.value);
+      const requirementState = getEquipmentRequirementState2024(item);
       quantity.disabled = !item || !canShop;
       quantity.max = item?.costCopper > 0
         ? String(Math.max(1, Math.floor(allowanceCopper / item.costCopper)))
@@ -4497,6 +4568,24 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
 
       if (!item) {
         subtotal.textContent = "—";
+        if (detail) {
+          detail.hidden = true;
+          detail.textContent = "";
+          detail.classList.remove("is-warning");
+        }
+        select.title = "";
+        return;
+      }
+
+      updateEquipmentShoppingDetail2024(detail, item, requirementState);
+      select.title = describeEquipmentPurchaseItem2024(item, requirementState);
+
+      if (requirementState.requirement && !requirementState.met) {
+        select.value = "";
+        quantity.value = "1";
+        quantity.disabled = true;
+        subtotal.textContent = "—";
+        setStatus2024(`${item.label}: ${requirementState.message}.`, "warning");
         return;
       }
 
@@ -4836,10 +4925,14 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
 
     const equipmentGroups = [];
     if (cls?.id && CLASS_EQUIPMENT_RULES?.[cls.id]?.groups) {
-      CLASS_EQUIPMENT_RULES[cls.id].groups.forEach((group) => equipmentGroups.push({ scope: "class", group }));
+      CLASS_EQUIPMENT_RULES[cls.id].groups
+        .filter((group) => isEquipmentChoiceGroupActive2024("class", group, equipmentSelections))
+        .forEach((group) => equipmentGroups.push({ scope: "class", group }));
     }
     if (background?.id && BACKGROUND_EQUIPMENT_RULES?.[background.id]?.groups) {
-      BACKGROUND_EQUIPMENT_RULES[background.id].groups.forEach((group) => equipmentGroups.push({ scope: "background", group }));
+      BACKGROUND_EQUIPMENT_RULES[background.id].groups
+        .filter((group) => isEquipmentChoiceGroupActive2024("background", group, equipmentSelections))
+        .forEach((group) => equipmentGroups.push({ scope: "background", group }));
     }
 
     equipmentGroups.forEach(({ scope, group }) => {
@@ -5999,45 +6092,127 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     return summaries.join(" • ");
   }
 
+  function appendEquipmentSummaryDescription2024(planMap, residualLabels, description, { explicitWeaponIds = [], explicitArmorIds = [] } = {}) {
+    const explicitWeapons = new Set(explicitWeaponIds);
+    const explicitArmor = new Set(explicitArmorIds);
+
+    splitEquipmentDescriptionEntries2024(description).forEach((entry) => {
+      const normalized = normalizeEquipmentPurchaseReference2024(entry);
+      if (!normalized) return;
+      if (normalized.includes("ferramenta de artesao ou instrumento musical")) return;
+
+      const itemId = matchEquipmentPurchaseItemId2024(entry);
+      if (itemId) {
+        const item = EQUIPMENT_PURCHASE_BY_ID_2024.get(itemId);
+        if (!item) return;
+        if (item.type === "weapon" && explicitWeapons.has(item.sourceId)) return;
+        if (item.type === "armor" && explicitArmor.has(item.sourceId)) return;
+        addPurchasePlanEntry2024(planMap, itemId, extractPurchaseQuantityFromText2024(entry));
+        return;
+      }
+
+      if (/(pc|pp|pe|po|pl|gp|peca(?:s)? de)/.test(normalized)) return;
+      const label = entry
+        .replace(/\s+e\s+\d+\s*(pc|pp|pe|po|pl|gp)\b/gi, "")
+        .trim();
+      if (label) residualLabels.push(label);
+    });
+  }
+
+  function addSelectedClassEquipmentToSummary2024(planMap, residualLabels, cls, selections) {
+    const packageEntry = getStrictSelectedClassEquipmentPackage2024(cls);
+    if (!packageEntry || isCurrencyOnlyPackage2024(packageEntry)) return;
+
+    const explicitWeaponCounts = new Map();
+    (packageEntry.armas || []).forEach((weaponId) => {
+      explicitWeaponCounts.set(weaponId, Number(explicitWeaponCounts.get(weaponId) || 0) + 1);
+    });
+    explicitWeaponCounts.forEach((quantity, weaponId) => addPurchasePlanEntry2024(planMap, `weapon-${weaponId}`, quantity));
+    (packageEntry.armaduras || []).forEach((armorId) => addPurchasePlanEntry2024(planMap, `armor-${armorId}`, 1));
+
+    appendEquipmentSummaryDescription2024(planMap, residualLabels, resolveEquipmentText(packageEntry.descr, selections), {
+      explicitWeaponIds: packageEntry.armas || [],
+      explicitArmorIds: packageEntry.armaduras || [],
+    });
+  }
+
+  function addSelectedBackgroundEquipmentToSummary2024(planMap, residualLabels, background, selections) {
+    const bundle = getSelectedBackgroundEquipmentBundle2024(background);
+    if (!bundle?.itens?.length) return;
+
+    bundle.itens.forEach((entry) => {
+      appendEquipmentSummaryDescription2024(planMap, residualLabels, resolveEquipmentText(entry, selections));
+    });
+  }
+
+  function addPurchasedEquipmentToSummary2024(planMap, purchasedItems) {
+    (purchasedItems || []).forEach((entry) => {
+      if (!entry?.item?.id) return;
+      addPurchasePlanEntry2024(planMap, entry.item.id, entry.quantity);
+    });
+  }
+
+  function formatEquipmentQuantityLabel2024(label, quantity = 1) {
+    const count = clampInt(quantity, 1, 999);
+    const cleanLabel = String(label || "").trim();
+    if (count <= 1 || !cleanLabel) return cleanLabel;
+
+    const lower = cleanLabel.charAt(0).toLowerCase() + cleanLabel.slice(1);
+    if (lower.endsWith("s")) return `${count} ${lower}`;
+    if (lower.endsWith("a") || lower.endsWith("o")) return `${count} ${lower}s`;
+    return `${cleanLabel} x${count}`;
+  }
+
+  function formatEquipmentSummaryEntry2024(item, quantity) {
+    if (!item) return "";
+    const label = formatEquipmentQuantityLabel2024(item.label, quantity);
+
+    if (item.type === "weapon") {
+      const damage = formatWeaponDamageBrief2024(WEAPON_BY_ID_2024.get(item.sourceId));
+      return damage ? `${label} ${damage}` : label;
+    }
+
+    if (item.type === "armor") {
+      const armorClass = formatArmorClassRule2024(ARMOR_BY_ID_2024.get(item.sourceId));
+      return armorClass ? `${label} CA ${armorClass}` : label;
+    }
+
+    return label;
+  }
+
+  function buildCleanEquipmentSummaryParts2024(cls, background, selections, shoppingState) {
+    const planMap = new Map();
+    const residualLabels = [];
+
+    addSelectedClassEquipmentToSummary2024(planMap, residualLabels, cls, selections);
+    addSelectedBackgroundEquipmentToSummary2024(planMap, residualLabels, background, selections);
+    addPurchasedEquipmentToSummary2024(planMap, shoppingState.purchasedItems);
+
+    return [
+      ...Array.from(planMap.values()).map((entry) => {
+        const item = EQUIPMENT_PURCHASE_BY_ID_2024.get(entry.itemId);
+        return formatEquipmentSummaryEntry2024(item, entry.quantity);
+      }),
+      ...residualLabels,
+    ].filter(Boolean);
+  }
+
   function formatEquipmentSummary(cls, background) {
     const selections = readNamedFieldValues(el.equipmentChoices);
     const items = [];
-
-    if (cls?.id && CLASS_EQUIPMENT_RULES?.[cls.id]) {
-      const text = summarizeEquipmentRule("class", CLASS_EQUIPMENT_RULES[cls.id], selections);
-      if (text.length) {
-        items.push({
-          label: `Classe (${cls.nome})`,
-          value: formatList(text),
-        });
-      }
-    }
-
-    if (background?.id && BACKGROUND_EQUIPMENT_RULES?.[background.id]) {
-      const text = summarizeEquipmentRule("background", BACKGROUND_EQUIPMENT_RULES[background.id], selections);
-      if (text.length) {
-        items.push({
-          label: `Antecedente (${background.nome})`,
-          value: formatList(text),
-        });
-      }
-    }
-
     const shoppingState = getEquipmentShoppingState2024(cls, background);
-    if (shoppingState.summaryLines.length) {
+    const equipmentParts = buildCleanEquipmentSummaryParts2024(cls, background, selections, shoppingState);
+
+    if (equipmentParts.length) {
       items.push({
-        label: "Compras com PO",
-        value: shoppingState.summaryLines.join(" • "),
+        label: "Equipamento",
+        value: equipmentParts.join(", "),
       });
     }
 
     if (shoppingState.hasSelectedPackage) {
       items.push({
-        label: "Orcamento em moedas",
-        value: `Disponivel ${formatCurrencyFromCopper2024(shoppingState.budgetCopper)} • Gasto ${formatCurrencyFromCopper2024(shoppingState.spentCopper)} • Saldo ${formatSignedCurrencyFromCopper2024(shoppingState.remainingCopper)}`,
-      });
-      items.push({
-        label: "Peso conhecido das compras",
+        label: "Peso atual",
         value: `${formatWeightFromPounds2024(shoppingState.weightKnownLb)} • Limite sugerido ${shoppingState.carryLimitLb > 0 ? formatWeightFromPounds2024(shoppingState.carryLimitLb) : "Defina FOR"}`,
       });
     }
@@ -6767,15 +6942,11 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
           .filter(([choiceId, value]) => choiceId !== definition.id && value)
           .map(([, value]) => value)
       );
-      const allowedOptions = (definition.options || [])
+      const allowedLanguageIds = (definition.options || [])
         .filter((languageId) => !fixedLanguageIds.has(languageId))
-        .filter((languageId) => !blockedByOtherChoices.has(languageId) || languageId === currentValue)
-        .map((languageId) => ({
-          value: languageId,
-          label: formatLanguageLabel(languageId),
-        }));
+        .filter((languageId) => !blockedByOtherChoices.has(languageId) || languageId === currentValue);
 
-      populateSelect(select, allowedOptions, "Selecione...");
+      populateLanguageSelect2024(select, allowedLanguageIds, "Selecione...");
       if (currentValue && listOptionValues2024(select).includes(currentValue)) {
         select.value = currentValue;
       }
@@ -6799,6 +6970,7 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
 
     const hintParts = [
       "<strong>Criação</strong>: Comum + 2 idiomas comuns à escolha.",
+      "<strong>Primordial</strong>: inclui os dialetos Aquan, Auran, Ignan e Terran; criaturas com qualquer um desses dialetos podem se comunicar entre si.",
     ];
 
     const speciesLanguages = (race?.idiomas || []).filter((languageId) => languageId && languageId !== "comum");
@@ -7526,6 +7698,126 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     };
   }
 
+  function formatDamageTypeShort2024(id) {
+    const labels = {
+      concussao: "conc",
+      cortante: "cort",
+      perfurante: "perf",
+    };
+    return labels[id] || normalizePt(formatDamageTypeLabel2024(id)).slice(0, 4);
+  }
+
+  function formatWeaponDamageBrief2024(weapon) {
+    if (!weapon?.dano?.dado) return "";
+    return `${weapon.dano.dado} ${formatDamageTypeShort2024(weapon.dano.tipo)}`.trim();
+  }
+
+  function formatArmorClassRule2024(armor) {
+    if (!armor) return "";
+    if (Number.isFinite(Number(armor.bonusCA)) && Number(armor.bonusCA) > 0) return `+${Number(armor.bonusCA)}`;
+    if (!Number.isFinite(Number(armor.baseCA))) return "";
+    if (!armor.somaDex) return `${armor.baseCA}`;
+    if (Number.isFinite(Number(armor.maxDex))) return `${armor.baseCA} + DES (máx. ${armor.maxDex})`;
+    return `${armor.baseCA} + DES`;
+  }
+
+  function getEquipmentUseRequirement2024(item) {
+    if (!item) return null;
+
+    if (item.type === "weapon") {
+      const weapon = WEAPON_BY_ID_2024.get(item.sourceId);
+      if (weapon?.propriedades?.includes("heavy")) {
+        const ability = weapon.tipo === "distancia" ? "des" : "for";
+        return {
+          ability,
+          min: 13,
+          label: `Requisito para uso: ${formatAbilityLabel(ability)} 13`,
+        };
+      }
+    }
+
+    if (item.type === "armor") {
+      const armor = ARMOR_BY_ID_2024.get(item.sourceId);
+      const requiredStrength = Number(armor?.reqFor || 0);
+      if (requiredStrength > 0) {
+        return {
+          ability: "for",
+          min: requiredStrength,
+          label: `Requisito para uso: Força ${requiredStrength}`,
+        };
+      }
+    }
+
+    return null;
+  }
+
+  function getEquipmentRequirementState2024(item, abilityScores = getEffectiveAbilityScores().scores) {
+    const requirement = getEquipmentUseRequirement2024(item);
+    if (!requirement) {
+      return {
+        requirement: null,
+        met: true,
+        known: true,
+        message: "",
+      };
+    }
+
+    const score = Number(abilityScores?.[requirement.ability]);
+    const known = Number.isFinite(score) && score > 0;
+    const met = !known || score >= requirement.min;
+    return {
+      requirement,
+      score: known ? score : null,
+      known,
+      met,
+      message: known
+        ? `${requirement.label} (atual: ${score})`
+        : `${requirement.label} (preencha os atributos para validar)`,
+    };
+  }
+
+  function describeEquipmentPurchaseItem2024(item, requirementState = getEquipmentRequirementState2024(item)) {
+    if (!item) return "";
+    const parts = [];
+
+    if (item.type === "weapon") {
+      const weapon = WEAPON_BY_ID_2024.get(item.sourceId);
+      const damage = formatWeaponDamageBrief2024(weapon);
+      if (damage) parts.push(`Dano ${damage}`);
+      const properties = (weapon?.propriedades || [])
+        .map((propertyId) => PROPRIEDADES_ARMA?.[propertyId]?.nome || labelFromSlug(propertyId))
+        .filter(Boolean);
+      if (properties.length) parts.push(`Propriedades: ${formatList(properties)}`);
+      if (weapon?.alcance?.normal) {
+        parts.push(`Alcance ${formatDistanceFromFeet2024(weapon.alcance.normal)}${weapon.alcance.longo ? `/${formatDistanceFromFeet2024(weapon.alcance.longo)}` : ""}`);
+      }
+      if (weapon?.maestria) {
+        parts.push(`Maestria: ${PROPRIEDADES_MAESTRIA_ARMA?.[weapon.maestria]?.nome || labelFromSlug(weapon.maestria)}`);
+      }
+    } else if (item.type === "armor") {
+      const armor = ARMOR_BY_ID_2024.get(item.sourceId);
+      const armorClass = formatArmorClassRule2024(armor);
+      if (armorClass) parts.push(`CA ${armorClass}`);
+      if (armor?.stealthDesv) parts.push("Desvantagem em Furtividade");
+    } else {
+      parts.push(EQUIPMENT_PURCHASE_GROUP_LABELS_2024[item.group] || "Equipamento");
+    }
+
+    if (requirementState?.requirement) parts.push(requirementState.message);
+    if (Number.isFinite(item.weightLb)) parts.push(`Peso ${formatWeightFromPounds2024(item.weightLb)}`);
+    parts.push(`Custo ${formatCurrencyFromCopper2024(item.costCopper)}`);
+
+    return parts.join(" • ");
+  }
+
+  function updateEquipmentShoppingDetail2024(node, item, requirementState = getEquipmentRequirementState2024(item)) {
+    if (!node) return;
+    const text = describeEquipmentPurchaseItem2024(item, requirementState);
+    node.hidden = !text;
+    node.textContent = text;
+    node.classList.toggle("is-warning", Boolean(requirementState?.requirement && !requirementState.met));
+  }
+
   function isCurrencyOnlyPackage2024(entry) {
     if (!entry) return false;
     return !(entry?.armaduras?.length || entry?.armas?.length);
@@ -8145,6 +8437,7 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     const maxSpellLevel = config.pactSlotLevelByLevel
       ? Number(config.pactSlotLevelByLevel[spellcastingLevel] || 0)
       : slots.reduce((highest, count, index) => (count > 0 ? index + 1 : highest), 0);
+    const fixedSpellLimit = config.preparedByLevel || config.spellsKnownByLevel;
 
     return {
       level: spellcastingLevel,
@@ -8154,8 +8447,8 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
       kind: config.kind,
       selectionLabel: config.selectionLabel || "Magias",
       cantripLimit: config.cantripsByLevel ? Number(config.cantripsByLevel[spellcastingLevel] || 0) : 0,
-      spellLimit: config.spellsKnownByLevel
-        ? Number(config.spellsKnownByLevel[spellcastingLevel] || 0)
+      spellLimit: fixedSpellLimit
+        ? Number(fixedSpellLimit[spellcastingLevel] || 0)
         : Math.max(1, Number(config.preparedCount?.({ level: spellcastingLevel, mod: abilityMod }) || 0)),
       restrictedSchools: (config.restrictedSchools || []).map((item) => normalizeSchoolKey2024(item)).filter(Boolean),
       flexibleSpellAllowance: Array.isArray(config.flexibleSpellLevels)
@@ -9980,6 +10273,8 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
   function summarizeEquipmentRule(scope, rules, selections) {
     const summaries = [];
     (rules?.groups || []).forEach((group) => {
+      if (!isEquipmentChoiceGroupActive2024(scope, group, selections)) return;
+
       if (Array.isArray(group.options) && group.options.length) {
         const chosenId = selections.get(`${scope}-${group.id}`);
         const chosen = group.options.find((option) => option.id === chosenId);
@@ -10108,6 +10403,48 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     return LANGUAGE_LABELS_2024[id] || labelFromSlug(id);
   }
 
+  function formatLanguageOptionLabel2024(id) {
+    const origin = LANGUAGE_ORIGINS_2024[id];
+    return origin ? `${formatLanguageLabel(id)} (${origin})` : formatLanguageLabel(id);
+  }
+
+  function populateLanguageSelect2024(select, allowedLanguageIds, placeholder = "Selecione...") {
+    if (!select) return;
+    const currentValue = select.value;
+    const allowed = new Set((allowedLanguageIds || []).filter(Boolean));
+
+    select.innerHTML = "";
+
+    const placeholderOption = document.createElement("option");
+    placeholderOption.value = "";
+    placeholderOption.textContent = placeholder;
+    placeholderOption.disabled = true;
+    placeholderOption.selected = true;
+    select.appendChild(placeholderOption);
+
+    [
+      { label: "Idiomas comuns", ids: COMMON_LANGUAGE_CHOICE_IDS_2024 },
+      { label: "Idiomas raros", ids: RARE_LANGUAGE_CHOICE_IDS_2024 },
+    ].forEach((group) => {
+      const ids = group.ids.filter((languageId) => allowed.has(languageId));
+      if (!ids.length) return;
+
+      const optgroup = document.createElement("optgroup");
+      optgroup.label = group.label;
+      ids.forEach((languageId) => {
+        const option = document.createElement("option");
+        option.value = languageId;
+        option.textContent = formatLanguageOptionLabel2024(languageId);
+        optgroup.appendChild(option);
+      });
+      select.appendChild(optgroup);
+    });
+
+    if (currentValue && Array.from(select.options).some((option) => option.value === currentValue && !option.disabled)) {
+      select.value = currentValue;
+    }
+  }
+
   function formatDamageTypeLabel2024(id) {
     return DAMAGE_TYPE_LABELS_2024[id] || labelFromSlug(id);
   }
@@ -10192,10 +10529,12 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     const artisan = selections.get("background-ferramenta-ferramenta");
     const instrument = selections.get("background-instrumento-instrumento");
     const gamingSet = selections.get("background-jogo-jogo");
+    const monkToolOrInstrument = selections.get("class-pacote-a-ferramenta-item");
 
     return text
       .replace("Ferramentas de artesão escolhidas", artisan ? formatToolLabel(artisan) : "ferramentas de artesão escolhidas")
       .replace("Instrumento musical escolhido", instrument ? formatToolLabel(instrument) : "instrumento musical escolhido")
+      .replace("uma ferramenta de artesão ou instrumento musical", monkToolOrInstrument ? formatToolLabel(monkToolOrInstrument) : "uma ferramenta de artesão ou instrumento musical")
       .replace("jogo escolhido", gamingSet ? formatToolLabel(gamingSet) : "jogo escolhido");
   }
 
