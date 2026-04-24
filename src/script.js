@@ -6,9 +6,10 @@ import { SUBCLASSES } from "./data/5e/subclasses.js";
 import { ANTECEDENTES } from "./data/5e/antecedentes.js";
 import { DIVINDADES } from "./data/5e/divindades.js";
 import { MAGIAS, ESCOLAS } from "./data/5e/magias.js";
-import { ARMAS } from "./data/5e/armas.js";
+import { ARMAS, PROPRIEDADES_ARMA } from "./data/5e/armas.js";
 import { ARMADURAS } from "./data/5e/armaduras.js";
 import { EQUIPMENT_OPTION_LISTS, CLASS_EQUIPMENT_RULES, BACKGROUND_EQUIPMENT_RULES } from "./data/5e/equipamento-inicial.js";
+import { EXTRA_EQUIPMENT_CATALOG_2024, EXTRA_EQUIPMENT_GROUP_LABELS_2024 } from "./data/5.5e/equipment-compendium.js";
 import { TALENTOS } from "./data/5e/talentos.js";
 
 const DEFAULT_TEMPLATE_URL = "./assets/pdf/5e/ficha5e.pdf";
@@ -1249,6 +1250,9 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
   };
   const WEAPON_DATASET = Object.entries(ARMAS).map(([datasetKey, weapon]) => ({ ...weapon, datasetKey }));
   const ARMOR_DATASET = Object.entries(ARMADURAS).map(([datasetKey, armor]) => ({ ...armor, datasetKey }));
+  const EXTRA_EQUIPMENT_CATALOG = EXTRA_EQUIPMENT_CATALOG_2024 || [];
+  const EXTRA_EQUIPMENT_GROUP_LABELS = EXTRA_EQUIPMENT_GROUP_LABELS_2024 || {};
+  const EXTRA_EQUIPMENT_BY_ID = new Map(EXTRA_EQUIPMENT_CATALOG.map((item) => [item.id, item]));
   const SPELL_LEVEL_LABELS = ["Truque", "1º círculo", "2º círculo", "3º círculo", "4º círculo", "5º círculo", "6º círculo", "7º círculo", "8º círculo", "9º círculo"];
   const STANDARD_ABILITY_SET = [15, 14, 13, 12, 10, 8];
   const POINT_BUY_COSTS = {
@@ -2046,8 +2050,13 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     distanceUnit: $("distanceUnit"),
     weightUnit: $("weightUnit"),
     deslocamento: $("deslocamento"),
+    hpMax: $("hpMax"),
     hpAtual: $("hpAtual"),
     hpTemp: $("hpTemp"),
+    hpMethodFixed: $("hp-method-fixed"),
+    hpMethodRolled: $("hp-method-rolled"),
+    hpRollsPanel: $("hpRollsPanel"),
+    hpRuleHint: $("hpRuleHint"),
 
     skillsExtra: $("skillsExtra"),
     skillsRuleHint: $("skillsRuleHint"),
@@ -2125,8 +2134,11 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
   const CUSTOM_SELECT_FIELDS = {};
   const FEAT_CUSTOM_SELECT_PREFIX = "feat-slot:";
   const LANGUAGE_CUSTOM_SELECT_PREFIX = "language-slot:";
+  const EQUIPMENT_CUSTOM_SELECT_PREFIX = "equipment-choice:";
   let featCustomSelectKeys = [];
   let languageCustomSelectKeys = [];
+  let equipmentCustomSelectKeys = [];
+  let hitPointRollControlsSignature = "";
   let previousDistanceUnit = "ft";
   let previousWeightUnit = "lb";
   let lastPhysicalAutofill = Object.fromEntries(PHYSICAL_FIELDS.map((key) => [key, ""]));
@@ -2240,6 +2252,13 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       el.equipmentChoicesPanel.addEventListener("change", onEquipmentChoicesChanged);
       el.equipmentChoicesPanel.addEventListener("input", onEquipmentChoicesInput);
     }
+    [el.hpMethodFixed, el.hpMethodRolled].forEach((input) => {
+      if (input) input.addEventListener("change", onHitPointProgressionChanged);
+    });
+    if (el.hpRollsPanel) {
+      el.hpRollsPanel.addEventListener("input", onHitPointRollsInput);
+      el.hpRollsPanel.addEventListener("change", onHitPointRollsInput);
+    }
     el.distanceUnit.addEventListener("change", onDistanceUnitChanged);
     el.weightUnit.addEventListener("change", onWeightUnitChanged);
     [el.idade, el.altura, el.peso, el.olhos, el.pele, el.cabelo].forEach((input) => {
@@ -2332,6 +2351,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
 
     restoreFromLocalStorage();
     renderEquipmentChoices();
+    renderHitPointRollControls({ force: true });
     initializeUnitToggleGroups();
     onAttributeMethodChanged();
     onRaceChanged();
@@ -10003,6 +10023,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       if (control.tagName === "SELECT") {
         const selectedValue = pickRandom(listOptionValues(control));
         if (selectedValue) control.value = selectedValue;
+        syncCustomSelectField(`${EQUIPMENT_CUSTOM_SELECT_PREFIX}${key}`);
         if (control.hasAttribute("data-equipment-option-select")) {
           renderEquipmentChoices(collectEquipmentSelectionState());
         }
@@ -10892,6 +10913,148 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     return Math.ceil((n + 1) / 2);
   }
 
+  function syncAutoNumericField(field, nextValue) {
+    if (!field) return;
+    const normalizedNext = String(nextValue ?? "").trim();
+    const previousAuto = String(field.dataset.autoValue || "").trim();
+    const current = String(field.value || "").trim();
+    field.dataset.autoValue = normalizedNext;
+    if (!current || current === previousAuto || current === normalizedNext) {
+      field.value = normalizedNext;
+    }
+  }
+
+  function getAutoNumericManualValue(field, min = 0, max = 9999) {
+    if (!field) return null;
+    const current = String(field.value || "").trim();
+    const auto = String(field.dataset.autoValue || "").trim();
+    if (!current || current === auto) return null;
+    return clampInt(current, min, max);
+  }
+
+  function getHitPointProgressionMode() {
+    return el.hpMethodRolled?.checked ? "rolled" : "fixed";
+  }
+
+  function getCurrentClassEntriesForHitPoints() {
+    const cls = getSelectedClassData();
+    const subclass = getSelectedSubclassData();
+    const totalLevel = clampInt(el.nivel?.value || 1, 1, 20);
+    return collectClassEntries(cls, subclass, totalLevel).filter((entry) => entry?.classData && entry.level > 0);
+  }
+
+  function buildHitPointLevelEntries(entries = []) {
+    const levels = [];
+    let characterLevel = 0;
+
+    (entries || []).forEach((entry) => {
+      const hitDie = Number(entry.hitDie || entry.classData?.dadoVida || 0);
+      const className = entry.classe || entry.classData?.nome || labelFromSlug(entry.classId || "");
+      for (let classLevel = 1; classLevel <= Number(entry.level || 0); classLevel += 1) {
+        characterLevel += 1;
+        levels.push({
+          key: `${entry.uid || entry.classId || "classe"}:${classLevel}:${characterLevel}:d${hitDie}`,
+          characterLevel,
+          classLevel,
+          className,
+          hitDie,
+        });
+      }
+    });
+
+    return levels;
+  }
+
+  function collectHitPointRollValues({ includeEmpty = false } = {}) {
+    const values = {};
+    if (!el.hpRollsPanel) return values;
+
+    el.hpRollsPanel.querySelectorAll("input[data-hp-roll-key]").forEach((input) => {
+      const key = input.getAttribute("data-hp-roll-key") || "";
+      if (!key) return;
+      const raw = String(input.value || "").trim();
+      if (!raw) {
+        if (includeEmpty) values[key] = "";
+        return;
+      }
+      values[key] = clampInt(raw, 1, clampInt(input.getAttribute("max") || 20, 1, 20));
+    });
+
+    return values;
+  }
+
+  function updateHitPointRuleHint(entries, mode, missingRolls = 0) {
+    if (!el.hpRuleHint) return;
+    if (!entries.length) {
+      el.hpRuleHint.textContent = "Escolha uma classe para calcular HP máximo.";
+      return;
+    }
+
+    const first = entries[0];
+    const base = `Nível 1: d${first.hitDie} cheio + mod. de CON.`;
+    if (mode === "rolled") {
+      el.hpRuleHint.textContent = `${base} Níveis acima: resultado do dado de vida + mod. de CON.${missingRolls ? ` ${missingRolls} rolagem(ns) vazia(s) usam o valor fixo até você preencher.` : ""}`;
+      return;
+    }
+
+    el.hpRuleHint.textContent = `${base} Níveis acima: valor fixo médio do dado de vida + mod. de CON.`;
+  }
+
+  function renderHitPointRollControls({ force = false } = {}) {
+    if (!el.hpRollsPanel) return;
+
+    const mode = getHitPointProgressionMode();
+    const entries = buildHitPointLevelEntries(getCurrentClassEntriesForHitPoints());
+    const rollEntries = entries.filter((entry) => entry.characterLevel > 1);
+    const signature = `${mode}|${rollEntries.map((entry) => entry.key).join(",")}`;
+    const currentValues = collectHitPointRollValues({ includeEmpty: true });
+    const missingRolls = rollEntries.filter((entry) => !String(currentValues[entry.key] || "").trim()).length;
+
+    updateHitPointRuleHint(entries, mode, mode === "rolled" ? missingRolls : 0);
+
+    if (!force && signature === hitPointRollControlsSignature) return;
+    hitPointRollControlsSignature = signature;
+
+    if (mode !== "rolled" || !rollEntries.length) {
+      el.hpRollsPanel.hidden = true;
+      return;
+    }
+
+    el.hpRollsPanel.hidden = false;
+    el.hpRollsPanel.innerHTML = rollEntries.map((entry) => {
+      const fixedValue = averageHitDieRoundedUp(entry.hitDie);
+      const current = currentValues[entry.key] ?? "";
+      return `
+        <label class="hp-roll-row">
+          <span>Nível ${entry.characterLevel}: ${escapeHtml(entry.className)} ${entry.classLevel} (d${entry.hitDie} + CON)</span>
+          <input
+            type="number"
+            min="1"
+            max="${entry.hitDie}"
+            step="1"
+            data-hp-roll-key="${escapeHtml(entry.key)}"
+            placeholder="${fixedValue}"
+            value="${escapeHtml(current)}"
+          />
+        </label>
+      `;
+    }).join("");
+  }
+
+  function onHitPointProgressionChanged() {
+    renderHitPointRollControls({ force: true });
+    atualizarPreview();
+  }
+
+  function onHitPointRollsInput() {
+    updateHitPointRuleHint(
+      buildHitPointLevelEntries(getCurrentClassEntriesForHitPoints()),
+      getHitPointProgressionMode(),
+      Object.values(collectHitPointRollValues({ includeEmpty: true })).filter((value) => !String(value || "").trim()).length
+    );
+    atualizarPreview();
+  }
+
   function clampInt(v, min, max) {
     const n = Math.floor(Number(v));
     if (Number.isNaN(n)) return min;
@@ -11414,6 +11577,167 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     return findCatalogItemByText(value, ARMOR_LOOKUP);
   }
 
+  function currencyBreakdownToCopper(cost = {}) {
+    const factors = {
+      pc: 1,
+      cp: 1,
+      pp: 10,
+      sp: 10,
+      pe: 50,
+      ep: 50,
+      po: 100,
+      gp: 100,
+      pl: 1000,
+    };
+
+    return Object.entries(cost || {}).reduce((total, [currency, amount]) => {
+      const factor = factors[currency] || 0;
+      return total + Math.round(Number(amount || 0) * factor);
+    }, 0);
+  }
+
+  function formatCurrencyFromCopper(totalCopper) {
+    let remaining = Math.max(0, Math.round(Number(totalCopper || 0)));
+    if (!remaining) return "0 PO";
+
+    const parts = [];
+    [
+      ["PL", 1000],
+      ["PO", 100],
+      ["PE", 50],
+      ["PP", 10],
+      ["PC", 1],
+    ].forEach(([label, factor]) => {
+      const quantity = Math.floor(remaining / factor);
+      if (!quantity) return;
+      parts.push(`${quantity} ${label}`);
+      remaining -= quantity * factor;
+    });
+
+    return parts.join(" • ");
+  }
+
+  function formatWeightFromPounds(totalLb) {
+    const unit = getPreferredWeightUnit();
+    return formatMeasurement(convertWeight(totalLb, "lb", unit), WEIGHT_UNITS[unit]);
+  }
+
+  function formatDamageTypeShort(value) {
+    const labels = {
+      concussao: "conc",
+      cortante: "cort",
+      perfurante: "perf",
+    };
+    const normalized = normalizePt(value).replaceAll(" ", "");
+    return labels[normalized] || getDamageTypeLabel(value).slice(0, 4);
+  }
+
+  function formatWeaponDamageBrief(weapon) {
+    if (!weapon?.dano?.dado) return "";
+    return `${weapon.dano.dado} ${formatDamageTypeShort(weapon.dano.tipo)}`.trim();
+  }
+
+  function formatArmorClassRule(armor) {
+    if (!armor) return "";
+    if (Number.isFinite(Number(armor.bonusCA)) && Number(armor.bonusCA) > 0) return `+${Number(armor.bonusCA)}`;
+    if (!Number.isFinite(Number(armor.baseCA))) return "";
+    if (!armor.somaDex) return `${armor.baseCA}`;
+    if (Number.isFinite(Number(armor.maxDex))) return `${armor.baseCA} + DES (máx. ${armor.maxDex})`;
+    return `${armor.baseCA} + DES`;
+  }
+
+  function findExtraEquipmentByOption(value, label = "") {
+    const normalizedValue = normalizeEquipmentSearchToken(value);
+    const normalizedLabel = normalizeEquipmentSearchToken(label);
+    if (!normalizedValue && !normalizedLabel) return null;
+
+    const direct = EXTRA_EQUIPMENT_BY_ID.get(String(value || ""));
+    if (direct) return direct;
+
+    return EXTRA_EQUIPMENT_CATALOG.find((item) => {
+      const itemName = normalizeEquipmentSearchToken(item?.nome);
+      const itemId = normalizeEquipmentSearchToken(item?.id);
+      return [normalizedValue, normalizedLabel].some((candidate) => {
+        if (!candidate) return false;
+        return itemName === candidate
+          || itemId === candidate
+          || itemName.endsWith(` ${candidate}`)
+          || itemName.includes(` ${candidate} `)
+          || candidate.endsWith(` ${itemName}`)
+          || candidate.includes(` ${itemName} `);
+      });
+    }) || null;
+  }
+
+  function describeEquipmentSelectOption(value, label = "") {
+    const weapon = findWeaponByIdOrName(value) || findWeaponByIdOrName(label);
+    if (weapon) {
+      const damage = formatWeaponDamageBrief(weapon);
+      const properties = (weapon.propriedades || [])
+        .map((propertyId) => PROPRIEDADES_ARMA?.[propertyId]?.nome || labelFromSlug(propertyId))
+        .filter(Boolean);
+      const lines = [
+        damage ? `Dano: ${damage}` : "",
+        properties.length ? `Propriedades: ${formatList(properties)}` : "",
+        weapon?.alcance?.normal
+          ? `Alcance: ${formatDistanceFromFeet(weapon.alcance.normal)}${weapon.alcance.longo ? `/${formatDistanceFromFeet(weapon.alcance.longo)}` : ""}`
+          : "",
+        weapon.propriedades?.includes("heavy")
+          ? `Requisito para uso: ${weapon.tipo === "distancia" ? "DES" : "FOR"} 13`
+          : "",
+        Number.isFinite(Number(weapon?.peso?.lb)) ? `Peso: ${formatWeightFromPounds(weapon.peso.lb)}` : "",
+        `Custo: ${formatCurrencyFromCopper(currencyBreakdownToCopper(weapon.custo))}`,
+      ].filter(Boolean);
+      return {
+        group: "Armas",
+        summary: [damage, properties.length ? formatList(properties) : ""].filter(Boolean).join(" • "),
+        lines,
+        search: `${weapon.nome} ${weapon.categoria || ""} ${weapon.tipo || ""} ${properties.join(" ")}`,
+      };
+    }
+
+    const armor = findArmorByIdOrName(value) || findArmorByIdOrName(label);
+    if (armor) {
+      const armorClass = formatArmorClassRule(armor);
+      const lines = [
+        armorClass ? `CA: ${armorClass}` : "",
+        armor.stealthDesv ? "Desvantagem em Furtividade" : "",
+        Number(armor.reqFor || 0) > 0 ? `Requisito para uso: Força ${armor.reqFor}` : "",
+        Number.isFinite(Number(armor?.peso?.lb)) ? `Peso: ${formatWeightFromPounds(armor.peso.lb)}` : "",
+        `Custo: ${formatCurrencyFromCopper(currencyBreakdownToCopper(armor.custo))}`,
+      ].filter(Boolean);
+      return {
+        group: "Armaduras",
+        summary: [armorClass ? `CA ${armorClass}` : "", armor.stealthDesv ? "Furtividade com desvantagem" : ""].filter(Boolean).join(" • "),
+        lines,
+        search: `${armor.nome} ${armor.categoria || ""} ${lines.join(" ")}`,
+      };
+    }
+
+    const extra = findExtraEquipmentByOption(value, label);
+    if (extra) {
+      const group = EXTRA_EQUIPMENT_GROUP_LABELS[extra.grupo] || "Equipamento";
+      const lines = [
+        group,
+        Number.isFinite(Number(extra?.peso?.lb)) ? `Peso: ${formatWeightFromPounds(extra.peso.lb)}` : "",
+        `Custo: ${formatCurrencyFromCopper(currencyBreakdownToCopper(extra.custo))}`,
+      ].filter(Boolean);
+      return {
+        group,
+        summary: lines.join(" • "),
+        lines,
+        search: `${extra.nome} ${group}`,
+      };
+    }
+
+    return {
+      group: "Opções",
+      summary: "",
+      lines: [],
+      search: `${value} ${label}`,
+    };
+  }
+
   function dedupeEquipmentById(items) {
     const seen = new Set();
     return items.filter((item) => {
@@ -11670,6 +11994,28 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     return bucket;
   }
 
+  function getEquipmentGroupSelectedOption(ruleSource, scopeKey, groupId, selectionMap = {}) {
+    const group = (ruleSource?.groups || []).find((entry) => entry?.id === groupId);
+    if (!group?.options?.length) return null;
+    const optionKey = buildEquipmentSelectionKey(scopeKey, group.id, "option");
+    return resolveSelectedEquipmentOption(group.options, selectionMap[optionKey]);
+  }
+
+  function isEquipmentChoiceGroupActive(ruleSource, scopeKey, group, selectionMap = {}) {
+    if (!group?.requires) return true;
+
+    const requiredGroupId = String(group.requires.groupId || "").trim();
+    const requiredOptionId = String(group.requires.optionId || "").trim();
+    if (!requiredGroupId || !requiredOptionId) return true;
+
+    const selectedOption = getEquipmentGroupSelectedOption(ruleSource, scopeKey, requiredGroupId, selectionMap);
+    return String(selectedOption?.id || "").trim() === requiredOptionId;
+  }
+
+  function getActiveEquipmentGroups(ruleSource, scopeKey, selectionMap = {}) {
+    return (ruleSource?.groups || []).filter((group) => isEquipmentChoiceGroupActive(ruleSource, scopeKey, group, selectionMap));
+  }
+
   function resolveEquipmentSourceRule(ruleSource, scopeKey, selectionMap = {}) {
     const bucket = createResolvedEquipmentBucket();
     if (!ruleSource?.groups?.length) {
@@ -11680,9 +12026,9 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       };
     }
 
-    ruleSource.groups.forEach((group) => {
+    getActiveEquipmentGroups(ruleSource, scopeKey, selectionMap).forEach((group) => {
       const groupBucket = resolveEquipmentGroupOutputs(group, scopeKey, selectionMap);
-      bucket.equipmentLabels.push(...groupBucket.equipmentLabels);
+      if (!group.omitSummary) bucket.equipmentLabels.push(...groupBucket.equipmentLabels);
       bucket.weapons.push(...groupBucket.weapons);
       bucket.armors.push(...groupBucket.armors);
       bucket.proficiencyLabels.push(...groupBucket.proficiencyLabels);
@@ -11711,9 +12057,12 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       .join("");
 
     return `
-      <label class="row">
+      <label class="row generic-dropdown-field equipment-choice-select" data-equipment-custom-select="1">
         <span>${escapeHtml(label)}</span>
-        <select data-equipment-selection-key="${escapeHtml(selectionKey)}"${isOptionSelector ? ' data-equipment-option-select="1"' : ""}>
+        <input type="text" data-equipment-choice-input="1" autocomplete="off" placeholder="Escolha..." />
+        <div class="dropdown-suggestions equipment-item-suggestions" data-equipment-choice-suggestions="1" hidden></div>
+        <div class="dropdown-hover-card equipment-item-hover-card" data-equipment-choice-hover-card="1" hidden></div>
+        <select class="native-select-hidden" tabindex="-1" aria-hidden="true" data-equipment-selection-key="${escapeHtml(selectionKey)}"${isOptionSelector ? ' data-equipment-option-select="1"' : ""}>
           ${optionMarkup}
         </select>
       </label>
@@ -11804,7 +12153,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
   }
 
   function buildEquipmentSourceMarkup(title, description, ruleSource, scopeKey, selectionMap) {
-    const groupsMarkup = (ruleSource?.groups || [])
+    const groupsMarkup = getActiveEquipmentGroups(ruleSource, scopeKey, selectionMap)
       .map((group) => buildEquipmentChoiceCardMarkup(group, scopeKey, selectionMap))
       .join("");
 
@@ -11864,6 +12213,50 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     el.antecedenteInfo.textContent = buildBackgroundInfoSummary(background, selectionMap);
   }
 
+  function cleanupEquipmentChoiceDropdowns() {
+    equipmentCustomSelectKeys.forEach((key) => {
+      delete CUSTOM_SELECT_FIELDS[key];
+    });
+    equipmentCustomSelectKeys = [];
+  }
+
+  function initializeEquipmentChoiceDropdowns() {
+    cleanupEquipmentChoiceDropdowns();
+    if (!el.equipmentChoicesPanel) return;
+
+    el.equipmentChoicesPanel.querySelectorAll("[data-equipment-custom-select]").forEach((fieldRoot) => {
+      const input = fieldRoot.querySelector("[data-equipment-choice-input]");
+      const select = fieldRoot.querySelector("select[data-equipment-selection-key]");
+      const suggestions = fieldRoot.querySelector("[data-equipment-choice-suggestions]");
+      const hoverCard = fieldRoot.querySelector("[data-equipment-choice-hover-card]");
+      const selectionKey = select?.getAttribute("data-equipment-selection-key") || "";
+      if (!input || !select || !suggestions || !hoverCard || !selectionKey) return;
+
+      const fieldKey = `${EQUIPMENT_CUSTOM_SELECT_PREFIX}${selectionKey}`;
+      equipmentCustomSelectKeys.push(fieldKey);
+      CUSTOM_SELECT_FIELDS[fieldKey] = createCustomSelectField({
+        key: fieldKey,
+        input,
+        select,
+        suggestions,
+        hoverCard,
+        placeholder: "Escolha...",
+        describeOption: describeEquipmentSelectOption,
+        onCommit: () => {
+          const selectionMap = collectEquipmentSelectionState();
+          if (select.hasAttribute("data-equipment-option-select")) {
+            renderEquipmentChoices(selectionMap);
+            atualizarPreview();
+          } else {
+            refreshBackgroundInfoSummary(selectionMap);
+            atualizarPreview();
+          }
+        },
+      });
+      syncCustomSelectField(fieldKey);
+    });
+  }
+
   function renderEquipmentChoices(selectionMap = collectEquipmentSelectionState()) {
     if (!el.equipmentChoicesPanel) return;
 
@@ -11903,6 +12296,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       ${blocks.length ? blocks.join("") : emptyState}
     `;
 
+    initializeEquipmentChoiceDropdowns();
     refreshBackgroundInfoSummary(selectionMap);
   }
 
@@ -14666,8 +15060,11 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
         0,
         999
       ),
+      hpMaxManual: getAutoNumericManualValue(el.hpMax, 1, 9999),
       hpAtualManual: el.hpAtual.value !== "" ? clampInt(el.hpAtual.value, 0, 9999) : null,
       hpTempManual: el.hpTemp.value !== "" ? clampInt(el.hpTemp.value, 0, 9999) : null,
+      hpProgressionMode: getHitPointProgressionMode(),
+      hpRolls: collectHitPointRollValues(),
       units: {
         distance: getPreferredDistanceUnit(),
         weight: getPreferredWeightUnit(),
@@ -14731,20 +15128,21 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
     return (state.classEntries || []).filter((entry) => entry?.classData && entry.level > 0);
   }
 
-  function calculateHitPointsFromClasses(entries, conMod) {
+  function calculateHitPointsFromClasses(entries, conMod, { mode = "fixed", rolls = {} } = {}) {
     let hpTotal = 0;
-    let isFirstCharacterLevel = true;
+    const levelEntries = buildHitPointLevelEntries(entries);
 
-    entries.forEach((entry) => {
-      const hitDie = Number(entry.hitDie || entry.classData?.dadoVida || 0);
-      for (let index = 0; index < entry.level; index += 1) {
-        if (isFirstCharacterLevel) {
-          hpTotal += hitDie + conMod;
-          isFirstCharacterLevel = false;
-        } else {
-          hpTotal += averageHitDieRoundedUp(hitDie) + conMod;
-        }
+    levelEntries.forEach((entry) => {
+      if (entry.characterLevel === 1) {
+        hpTotal += entry.hitDie + conMod;
+        return;
       }
+
+      const rolledValue = clampInt(rolls?.[entry.key], 1, entry.hitDie);
+      const levelValue = mode === "rolled" && Number.isFinite(Number(rolls?.[entry.key]))
+        ? rolledValue
+        : averageHitDieRoundedUp(entry.hitDie);
+      hpTotal += levelValue + conMod;
     });
 
     return Math.max(1, hpTotal || (1 + conMod));
@@ -14782,7 +15180,12 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
     const ataques = buildAttackSectionData(state, mods, pb, spellPageData, spellcastingContext, equipmentLoadout, resolvedClassEntries);
     const ca = calculateArmorClass(state, mods, equipmentLoadout, resolvedClassEntries);
     const iniciativa = mods.des + getInitiativeBonusFromFeatures(state, pb);
-    const hpMax = calculateHitPointsFromClasses(resolvedClassEntries, mods.con) + getBonusHitPointsFromFeatures(state, resolvedClassEntries);
+    const hpMaxAuto = calculateHitPointsFromClasses(
+      resolvedClassEntries,
+      mods.con,
+      { mode: state.hpProgressionMode, rolls: state.hpRolls }
+    ) + getBonusHitPointsFromFeatures(state, resolvedClassEntries);
+    const hpMax = state.hpMaxManual !== null ? state.hpMaxManual : hpMaxAuto;
     const deslocamento = state.deslocamentoManual
       ? state.deslocamento
       : state.deslocamento + getMovementBonusFromFeatures(state, equipmentLoadout, resolvedClassEntries);
@@ -14838,6 +15241,9 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
     const racaLine = buildRaceLine(state);
 
     return {
+      derivado: {
+        hpMaxAuto: String(hpMaxAuto),
+      },
       texto: {
         nome: state.nome,
         classeENivel,
@@ -16225,8 +16631,10 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
       deferHeavyUiRefresh("preview");
       return;
     }
+    renderHitPointRollControls();
     const state = collectState();
     const ficha = computeFicha(state);
+    syncAutoNumericField(el.hpMax, ficha.derivado?.hpMaxAuto || ficha.texto.hpMax);
     renderAbilityTotalPreviews5e(state);
 
     const preview = document.getElementById("preview");

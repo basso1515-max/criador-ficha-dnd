@@ -407,6 +407,11 @@
             </label>
 
             <label class="row">
+              <span>HP máximo</span>
+              <input id="hpMax" type="number" min="1" step="1" placeholder="Calculado automaticamente" />
+            </label>
+
+            <label class="row">
               <span>HP atual</span>
               <input id="hpAtual" type="number" min="0" />
             </label>
@@ -415,6 +420,29 @@
               <span>HP temporário</span>
               <input id="hpTemp" type="number" min="0" />
             </label>
+          </div>
+
+          <div class="hp-progression-panel">
+            <span class="hp-progression-title">Progressão de HP</span>
+            <div class="hp-method-options">
+              <label class="method-option hp-method-option">
+                <input id="hp-method-fixed" name="hp-method" type="radio" value="fixed" checked />
+                <div>
+                  <strong>Valor fixo</strong>
+                  <small>Usa a média oficial do dado de vida em níveis acima do 1.</small>
+                </div>
+              </label>
+
+              <label class="method-option hp-method-option">
+                <input id="hp-method-rolled" name="hp-method" type="radio" value="rolled" />
+                <div>
+                  <strong>Rolagem</strong>
+                  <small>Preencha o resultado do dado de vida para cada nível acima do 1.</small>
+                </div>
+              </label>
+            </div>
+            <div id="hpRollsPanel" class="hp-rolls-panel" hidden></div>
+            <p id="hpRuleHint" class="note subtle"></p>
           </div>
 
           <p class="note subtle">Na ficha, os campos HP atual, HP temporário e Dados de Vida gastos ficam em branco se você não preencher manualmente. Esses campos costumam ser atualizados durante a sessão.</p>

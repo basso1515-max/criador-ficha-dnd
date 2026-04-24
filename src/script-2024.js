@@ -890,6 +890,7 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
   const CUSTOM_SELECT_FIELDS_2024 = {};
   const FEAT_CUSTOM_SELECT_PREFIX_2024 = "feat-choice-2024:";
   let featCustomSelectKeys2024 = [];
+  let hitPointRollControlsSignature2024 = "";
   let deferredHeavyUiDepth2024 = 0;
   const pendingHeavyUiRefresh2024 = {
     magic: false,
@@ -985,6 +986,10 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     hpMax: document.getElementById("maxHp2024"),
     hpTemp: document.getElementById("tempHp2024"),
     hdGastos: document.getElementById("spentHd2024"),
+    hpMethodFixed: document.getElementById("hp-method-fixed-2024"),
+    hpMethodRolled: document.getElementById("hp-method-rolled-2024"),
+    hpRollsPanel: document.getElementById("hpRollsPanel2024"),
+    hpRuleHint: document.getElementById("hpRuleHint2024"),
     abilityMode: document.getElementById("abilityMode2024"),
     attrMethodFree: document.getElementById("attr-method-free-2024"),
     attrMethodRoll: document.getElementById("attr-method-roll-2024"),
@@ -1098,6 +1103,9 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
 
     [el.nome, el.alinhamento, el.ca, el.hpAtual, el.hpMax, el.hpTemp, el.hdGastos, el.appearance, el.notes]
       .forEach((field) => field?.addEventListener("input", updatePreview));
+    [el.hpMethodFixed, el.hpMethodRolled].forEach((field) => field?.addEventListener("change", onHitPointProgressionChanged2024));
+    el.hpRollsPanel?.addEventListener("input", onHitPointRollsInput2024);
+    el.hpRollsPanel?.addEventListener("change", onHitPointRollsInput2024);
     el.divindadeInput?.addEventListener("input", () => onDivinityChanged2024({ showSuggestions: true }));
     el.divindadeInput?.addEventListener("focus", () => onDivinityChanged2024({ showSuggestions: true, allowEmptySuggestions: true, showAllOnFocus: true }));
     el.divindadeInput?.addEventListener("click", () => onDivinityChanged2024({ showSuggestions: true, allowEmptySuggestions: true, showAllOnFocus: true }));
@@ -1149,6 +1157,7 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     renderSkillChoices2024();
     renderExpertiseChoices2024();
     renderEquipmentChoices();
+    renderHitPointRollControls2024();
     syncAlignmentInfo2024();
     renderMagicSection2024();
     updatePreview();
@@ -7577,20 +7586,139 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     return value > 0 ? Math.floor(value / 2) + 1 : 1;
   }
 
-  function calculateHitPointsFromClassEntries2024(entries = [], conMod = 0) {
-    let hpTotal = 0;
-    let firstCharacterLevel = true;
+  function getHitPointProgressionMode2024() {
+    return el.hpMethodRolled?.checked ? "rolled" : "fixed";
+  }
+
+  function buildHitPointLevelEntries2024(entries = []) {
+    const levels = [];
+    let characterLevel = 0;
 
     (entries || []).forEach((entry) => {
       const hitDie = Number(entry?.hitDie || entry?.classData?.dadoVida || 0);
-      for (let index = 0; index < Number(entry?.level || 0); index += 1) {
-        if (firstCharacterLevel) {
-          hpTotal += hitDie + conMod;
-          firstCharacterLevel = false;
-        } else {
-          hpTotal += averageHitDieRoundedUp2024(hitDie) + conMod;
-        }
+      const className = entry?.classe || entry?.classData?.nome || labelFromSlug(entry?.classId || "");
+      for (let classLevel = 1; classLevel <= Number(entry?.level || 0); classLevel += 1) {
+        characterLevel += 1;
+        levels.push({
+          key: `${entry?.uid || entry?.classId || "classe"}:${classLevel}:${characterLevel}:d${hitDie}`,
+          characterLevel,
+          classLevel,
+          className,
+          hitDie,
+        });
       }
+    });
+
+    return levels;
+  }
+
+  function collectHitPointRollValues2024({ includeEmpty = false } = {}) {
+    const values = {};
+    if (!el.hpRollsPanel) return values;
+
+    el.hpRollsPanel.querySelectorAll("input[data-hp-roll-key]").forEach((input) => {
+      const key = input.getAttribute("data-hp-roll-key") || "";
+      if (!key) return;
+      const raw = String(input.value || "").trim();
+      if (!raw) {
+        if (includeEmpty) values[key] = "";
+        return;
+      }
+      values[key] = clampInt(raw, 1, clampInt(input.getAttribute("max") || 20, 1, 20));
+    });
+
+    return values;
+  }
+
+  function updateHitPointRuleHint2024(entries, mode, missingRolls = 0) {
+    if (!el.hpRuleHint) return;
+    if (!entries.length) {
+      el.hpRuleHint.textContent = "Escolha uma classe para calcular HP máximo.";
+      return;
+    }
+
+    const first = entries[0];
+    const base = `Nível 1: d${first.hitDie} cheio + mod. de CON.`;
+    if (mode === "rolled") {
+      el.hpRuleHint.textContent = `${base} Níveis acima: resultado do dado de vida + mod. de CON.${missingRolls ? ` ${missingRolls} rolagem(ns) vazia(s) usam o valor fixo até você preencher.` : ""}`;
+      return;
+    }
+
+    el.hpRuleHint.textContent = `${base} Níveis acima: valor fixo médio do dado de vida + mod. de CON.`;
+  }
+
+  function renderHitPointRollControls2024({ force = false } = {}) {
+    if (!el.hpRollsPanel) return;
+
+    const mode = getHitPointProgressionMode2024();
+    const entries = buildHitPointLevelEntries2024(getResolvedClassEntries2024());
+    const rollEntries = entries.filter((entry) => entry.characterLevel > 1);
+    const signature = `${mode}|${rollEntries.map((entry) => entry.key).join(",")}`;
+    const currentValues = collectHitPointRollValues2024({ includeEmpty: true });
+    const missingRolls = rollEntries.filter((entry) => !String(currentValues[entry.key] || "").trim()).length;
+
+    updateHitPointRuleHint2024(entries, mode, mode === "rolled" ? missingRolls : 0);
+
+    if (!force && signature === hitPointRollControlsSignature2024) return;
+    hitPointRollControlsSignature2024 = signature;
+
+    if (mode !== "rolled" || !rollEntries.length) {
+      el.hpRollsPanel.hidden = true;
+      return;
+    }
+
+    el.hpRollsPanel.hidden = false;
+    el.hpRollsPanel.innerHTML = rollEntries.map((entry) => {
+      const fixedValue = averageHitDieRoundedUp2024(entry.hitDie);
+      const current = currentValues[entry.key] ?? "";
+      return `
+        <label class="hp-roll-row">
+          <span>Nível ${entry.characterLevel}: ${escapeHtml(entry.className)} ${entry.classLevel} (d${entry.hitDie} + CON)</span>
+          <input
+            type="number"
+            min="1"
+            max="${entry.hitDie}"
+            step="1"
+            data-hp-roll-key="${escapeHtml(entry.key)}"
+            placeholder="${fixedValue}"
+            value="${escapeHtml(current)}"
+          />
+        </label>
+      `;
+    }).join("");
+  }
+
+  function onHitPointProgressionChanged2024() {
+    renderHitPointRollControls2024({ force: true });
+    syncDerivedQuickSheetFields2024();
+    updatePreview();
+  }
+
+  function onHitPointRollsInput2024() {
+    updateHitPointRuleHint2024(
+      buildHitPointLevelEntries2024(getResolvedClassEntries2024()),
+      getHitPointProgressionMode2024(),
+      Object.values(collectHitPointRollValues2024({ includeEmpty: true })).filter((value) => !String(value || "").trim()).length
+    );
+    syncDerivedQuickSheetFields2024();
+    updatePreview();
+  }
+
+  function calculateHitPointsFromClassEntries2024(entries = [], conMod = 0, { mode = "fixed", rolls = {} } = {}) {
+    let hpTotal = 0;
+    const levelEntries = buildHitPointLevelEntries2024(entries);
+
+    levelEntries.forEach((entry) => {
+      if (entry.characterLevel === 1) {
+        hpTotal += entry.hitDie + conMod;
+        return;
+      }
+
+      const rolledValue = clampInt(rolls?.[entry.key], 1, entry.hitDie);
+      const levelValue = mode === "rolled" && Number.isFinite(Number(rolls?.[entry.key]))
+        ? rolledValue
+        : averageHitDieRoundedUp2024(entry.hitDie);
+      hpTotal += levelValue + conMod;
     });
 
     return Math.max(1, hpTotal || (1 + conMod));
@@ -8619,7 +8747,13 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     const defenseStyleBonus = chosenFeatIds.has("defesa") && isWearingArmor ? 1 : 0;
     const armorClass = Math.max(...baseArmorOptions) + shieldBonus + defenseStyleBonus;
 
-    const hpMax = classEntries.length ? String(calculateHitPointsFromClassEntries2024(classEntries, conMod)) : "";
+    const hpMax = classEntries.length
+      ? String(calculateHitPointsFromClassEntries2024(
+          classEntries,
+          conMod,
+          { mode: getHitPointProgressionMode2024(), rolls: collectHitPointRollValues2024() }
+        ))
+      : "";
     const hitDicePool = formatHitDicePool2024(classEntries);
     const movement = getDerivedMovementState2024(classEntries, cls);
 

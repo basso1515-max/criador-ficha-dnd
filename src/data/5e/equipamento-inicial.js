@@ -615,16 +615,43 @@ export const CLASS_EQUIPMENT_RULES = {
   monge: {
     groups: [
       {
-        id: "ferramenta-da-classe",
+        id: "ferramenta-da-classe-tipo",
         label: "Ferramenta da classe",
-        description: "Escolha um tipo de ferramenta de artesão ou um instrumento musical.",
+        description: "Escolha primeiro o tipo de proficiência; a lista específica abre em seguida.",
+        options: [
+          { id: "artisanTools", label: "Ferramenta de artesão", grants: [] },
+          { id: "musicalInstruments", label: "Instrumento musical", grants: [] },
+        ],
+      },
+      {
+        id: "ferramenta-da-classe-artesao",
+        label: "Ferramenta de artesão",
+        description: "Escolha a ferramenta de artesão da proficiência de monge.",
+        requires: { groupId: "ferramenta-da-classe-tipo", optionId: "artisanTools" },
         grants: [
           {
             type: "textSelect",
             selectionId: "ferramenta",
-            label: "Ferramenta ou instrumento",
-            optionsList: "monkTools",
+            label: "Ferramenta escolhida",
+            optionsList: "artisanTools",
             targets: ["proficiency"],
+            placeholderKey: "ferramentas-de-artesao-um",
+          },
+        ],
+      },
+      {
+        id: "ferramenta-da-classe-instrumento",
+        label: "Instrumento musical",
+        description: "Escolha o instrumento musical da proficiência de monge.",
+        requires: { groupId: "ferramenta-da-classe-tipo", optionId: "musicalInstruments" },
+        grants: [
+          {
+            type: "textSelect",
+            selectionId: "instrumento",
+            label: "Instrumento escolhido",
+            optionsList: "musicalInstruments",
+            targets: ["proficiency"],
+            placeholderKey: "instrumento-musical-um",
           },
         ],
       },

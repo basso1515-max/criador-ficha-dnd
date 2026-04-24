@@ -1888,6 +1888,10 @@ select[multiple] option {
   gap: 8px;
 }
 
+.equipment-choice-select {
+  min-width: 0;
+}
+
 .equipment-choice-summary {
   margin: 10px 0 0;
   padding-top: 10px;
@@ -2022,6 +2026,58 @@ select[multiple] option {
 
   .equipment-shopping-subtotal {
     min-height: 0;
+  }
+}
+
+.hp-progression-panel {
+  display: grid;
+  gap: 10px;
+  margin: 12px 0;
+  padding: 12px;
+  border: 1px solid rgba(139, 94, 52, 0.22);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.34);
+}
+
+.hp-progression-title {
+  font-weight: 700;
+  color: var(--text);
+}
+
+.hp-method-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.hp-method-option {
+  margin: 0;
+}
+
+.hp-rolls-panel {
+  display: grid;
+  gap: 8px;
+}
+
+.hp-roll-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(72px, 96px);
+  align-items: center;
+  gap: 10px;
+}
+
+.hp-roll-row span {
+  color: var(--text);
+  font-size: 0.94rem;
+}
+
+.hp-roll-row input {
+  width: 100%;
+}
+
+@media (max-width: 640px) {
+  .hp-roll-row {
+    grid-template-columns: 1fr;
   }
 }
 

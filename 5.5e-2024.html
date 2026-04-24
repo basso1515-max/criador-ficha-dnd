@@ -197,6 +197,29 @@
               </label>
             </div>
 
+            <div class="hp-progression-panel">
+              <span class="hp-progression-title">Progressão de HP</span>
+              <div class="hp-method-options">
+                <label class="method-option hp-method-option">
+                  <input id="hp-method-fixed-2024" name="hp-method-2024" type="radio" value="fixed" checked />
+                  <div>
+                    <strong>Valor fixo</strong>
+                    <small>Usa a média oficial do dado de vida em níveis acima do 1.</small>
+                  </div>
+                </label>
+
+                <label class="method-option hp-method-option">
+                  <input id="hp-method-rolled-2024" name="hp-method-2024" type="radio" value="rolled" />
+                  <div>
+                    <strong>Rolagem</strong>
+                    <small>Preencha o resultado do dado de vida para cada nível acima do 1.</small>
+                  </div>
+                </label>
+              </div>
+              <div id="hpRollsPanel2024" class="hp-rolls-panel" hidden></div>
+              <p id="hpRuleHint2024" class="note subtle"></p>
+            </div>
+
             <div class="row-inline">
               <label class="row">
                 <span>HP atual</span>
