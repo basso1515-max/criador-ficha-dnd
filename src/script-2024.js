@@ -7833,7 +7833,7 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
 
   function getSelectedArmorItems2024(cls) {
     const items = [];
-    const packageEntry = getSelectedClassEquipmentPackage2024(cls);
+    const packageEntry = getStrictSelectedClassEquipmentPackage2024(cls);
 
     (packageEntry?.armaduras || []).forEach((armorId) => {
       const armor = ARMOR_BY_ID_2024.get(armorId);
