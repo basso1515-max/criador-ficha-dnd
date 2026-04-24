@@ -9081,7 +9081,14 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
 
     [el.asiPlus2, el.asiPlus1, el.asiPlusA, el.asiPlusB, el.asiPlusC].forEach(sel => {
       sel.innerHTML = "";
+      // add an empty placeholder so nothing is selected by default
+      const placeholder = document.createElement("option");
+      placeholder.value = "";
+      placeholder.textContent = "";
+      sel.appendChild(placeholder);
       ABILITIES.forEach(a => addOption(sel, a.key));
+      // ensure no default selection
+      try { sel.value = ""; } catch (e) { /* noop */ }
     });
 
     onAsiMethodChanged();
@@ -9146,7 +9153,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     const visibleSelects = getVisibleAsiPickSelects(maxVisible);
     const allEmpty = visibleSelects.length && visibleSelects.every((s) => !s.value);
     if (allEmpty) return;
-    
+
     const used = new Set();
 
     visibleSelects.forEach((select) => {
@@ -15037,6 +15044,7 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
     const bg = BACKGROUND_BY_NAME.get(el.antecedente.value) || null;
     const skillRuleContext = collectSkillRuleContext();
     const flexibleAbilitySource = getFlexibleAbilitySource(race, subrace);
+    const asiEnabled = Boolean(flexibleAbilitySource);
     const totalLevel = clampInt(el.nivel.value, 1, 20);
     const classEntries = collectClassEntries(cls, subclass, totalLevel);
     const featGrants = collectFeatChoiceSources({ race, subrace, background: bg, classEntries });
@@ -15120,15 +15128,15 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
 
       attrs,
       asi: {
-        method: flexibleAbilitySource?.picks ? "picks" : (el.asi21.checked ? "2+1" : "1+1+1"),
-        picks: flexibleAbilitySource?.picks || 0,
-        bonus: flexibleAbilitySource?.bonus || 1,
-        plus2: el.asiPlus2.value || "for",
-        plus1: el.asiPlus1.value || "des",
-        plusA: el.asiPlusA.value || "for",
-        plusB: el.asiPlusB.value || "des",
-        plusC: el.asiPlusC.value || "con",
-        from: flexibleAbilitySource?.from || ABILITIES.map((ability) => ability.key),
+        method: asiEnabled ? (flexibleAbilitySource?.picks ? "picks" : (el.asi21.checked ? "2+1" : "1+1+1")) : null,
+        picks: asiEnabled ? (flexibleAbilitySource?.picks || 0) : 0,
+        bonus: asiEnabled ? (flexibleAbilitySource?.bonus || 1) : 0,
+        plus2: asiEnabled ? (el.asiPlus2.value || "") : "",
+        plus1: asiEnabled ? (el.asiPlus1.value || "") : "",
+        plusA: asiEnabled ? (el.asiPlusA.value || "") : "",
+        plusB: asiEnabled ? (el.asiPlusB.value || "") : "",
+        plusC: asiEnabled ? (el.asiPlusC.value || "") : "",
+        from: asiEnabled ? (flexibleAbilitySource?.from || ABILITIES.map((ability) => ability.key)) : [],
       },
       skillsExtra: extras,
       skillFixed: Array.from(skillRuleContext.fixedSkills),
