@@ -31,11 +31,6 @@ const MUSICAL_INSTRUMENT_OPTIONS = [
   { id: "viola", label: "Viola" },
 ];
 
-const ARTISAN_TOOL_OR_MUSICAL_INSTRUMENT_OPTIONS = [
-  ...ARTISAN_TOOL_OPTIONS,
-  ...MUSICAL_INSTRUMENT_OPTIONS,
-];
-
 const GAMING_SET_OPTIONS = [
   { id: "dados", label: "Jogo de dados" },
   { id: "cartas", label: "Baralho" },
@@ -79,7 +74,6 @@ const chooseToolGroup = (id, label, selectionId, optionsList, placeholderKey) =>
 export const EQUIPMENT_OPTION_LISTS = {
   artisanTools: ARTISAN_TOOL_OPTIONS,
   musicalInstruments: MUSICAL_INSTRUMENT_OPTIONS,
-  artisanToolsOrMusicalInstruments: ARTISAN_TOOL_OR_MUSICAL_INSTRUMENT_OPTIONS,
   gamingSets: GAMING_SET_OPTIONS,
 };
 
@@ -128,16 +122,51 @@ export const CLASS_EQUIPMENT_RULES = {
         packageOption("b", "Pacote B", "50 PO")
       ).groups,
       {
-        id: "pacote-a-ferramenta",
+        id: "pacote-a-tipo-item",
         label: "Ferramenta ou instrumento",
-        description: "Escolha o item variável do Pacote A.",
+        description: "Escolha qual tipo de item variável o Pacote A concede.",
         requires: { groupId: "pacote", optionId: "a" },
+        omitSummary: true,
+        options: [
+          {
+            id: "artisanTools",
+            label: "Ferramenta de artesão",
+            grants: [{ type: "text", value: "Ferramenta de artesão" }],
+          },
+          {
+            id: "musicalInstruments",
+            label: "Instrumento musical",
+            grants: [{ type: "text", value: "Instrumento musical" }],
+          },
+        ],
+      },
+      {
+        id: "pacote-a-ferramenta",
+        label: "Ferramenta de artesão",
+        description: "Escolha a ferramenta de artesão recebida pelo Pacote A.",
+        requires: { groupId: "pacote-a-tipo-item", optionId: "artisanTools" },
         grants: [
           {
             type: "textSelect",
             selectionId: "item",
-            label: "Item do Pacote A",
-            optionsList: "artisanToolsOrMusicalInstruments",
+            label: "Ferramenta escolhida",
+            optionsList: "artisanTools",
+            targets: ["equipment", "proficiency"],
+            placeholderKey: "ferramenta-de-artesao-ou-instrumento-musical",
+          },
+        ],
+      },
+      {
+        id: "pacote-a-instrumento",
+        label: "Instrumento musical",
+        description: "Escolha o instrumento musical recebido pelo Pacote A.",
+        requires: { groupId: "pacote-a-tipo-item", optionId: "musicalInstruments" },
+        grants: [
+          {
+            type: "textSelect",
+            selectionId: "item",
+            label: "Instrumento escolhido",
+            optionsList: "musicalInstruments",
             targets: ["equipment", "proficiency"],
             placeholderKey: "ferramenta-de-artesao-ou-instrumento-musical",
           },

@@ -1178,13 +1178,23 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
   }
 
   function onEquipmentChoicesChanged2024(event) {
-    enforceShoppingBudgetLimit2024(event?.target || null);
+    const target = event?.target || null;
+    if (target?.matches?.('input[type="radio"][name]')) {
+      renderEquipmentChoices(readNamedFieldValues(el.equipmentChoices));
+      updatePreview();
+      return;
+    }
+
+    enforceShoppingBudgetLimit2024(target);
     syncEquipmentShoppingPanel2024();
     updatePreview();
   }
 
   function onEquipmentChoicesInput2024(event) {
-    enforceShoppingBudgetLimit2024(event?.target || null);
+    const target = event?.target || null;
+    if (target?.matches?.("[data-shopping-item-input]")) return;
+
+    enforceShoppingBudgetLimit2024(target);
     syncEquipmentShoppingPanel2024();
     updatePreview();
   }
@@ -4033,16 +4043,48 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     row.className = "equipment-shopping-row";
 
     const itemField = document.createElement("label");
-    itemField.className = "row equipment-shopping-field equipment-shopping-field--item";
+    itemField.className = "row generic-dropdown-field equipment-shopping-field equipment-shopping-field--item";
 
     const itemLabel = document.createElement("span");
     itemLabel.textContent = `Item ${index + 1}`;
     itemField.appendChild(itemLabel);
 
     const select = document.createElement("select");
+    select.className = "native-select-hidden";
     select.name = `shopping-item-${index}`;
     select.dataset.randomizeIgnore = "true";
     populateEquipmentPurchaseSelect2024(select, previousValues.get(select.name) || "");
+
+    const itemInput = document.createElement("input");
+    itemInput.type = "text";
+    itemInput.autocomplete = "off";
+    itemInput.placeholder = "Buscar item...";
+    itemInput.dataset.shoppingItemInput = String(index);
+    itemInput.dataset.randomizeIgnore = "true";
+    itemInput.value = formatEquipmentShoppingInputLabel2024(EQUIPMENT_PURCHASE_BY_ID_2024.get(select.value));
+    itemInput.addEventListener("input", () => renderEquipmentShoppingSuggestions2024(row, normalizePt(itemInput.value), { allowEmpty: false }));
+    itemInput.addEventListener("focus", () => renderEquipmentShoppingSuggestions2024(row, "", { allowEmpty: true }));
+    itemInput.addEventListener("click", () => renderEquipmentShoppingSuggestions2024(row, "", { allowEmpty: true }));
+    itemInput.addEventListener("keydown", (event) => handleEquipmentShoppingInputKeydown2024(event, row));
+    itemInput.addEventListener("blur", () => {
+      window.setTimeout(() => hideEquipmentShoppingSuggestions2024(row), 120);
+      window.setTimeout(() => hideEquipmentShoppingHoverCard2024(row), 140);
+      window.setTimeout(() => syncEquipmentShoppingInput2024(getShoppingRowControls2024(row), EQUIPMENT_PURCHASE_BY_ID_2024.get(select.value), { canShop: !select.disabled }), 150);
+    });
+
+    const suggestions = document.createElement("div");
+    suggestions.className = "dropdown-suggestions equipment-item-suggestions";
+    suggestions.dataset.shoppingItemSuggestions = String(index);
+    suggestions.hidden = true;
+
+    const hoverCard = document.createElement("div");
+    hoverCard.className = "dropdown-hover-card equipment-item-hover-card";
+    hoverCard.dataset.shoppingItemHoverCard = String(index);
+    hoverCard.hidden = true;
+
+    itemField.appendChild(itemInput);
+    itemField.appendChild(suggestions);
+    itemField.appendChild(hoverCard);
     itemField.appendChild(select);
 
     const quantityField = document.createElement("label");
@@ -4086,10 +4128,243 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     return {
       row,
       select: row.querySelector('select[name^="shopping-item-"]'),
+      itemInput: row.querySelector("[data-shopping-item-input]"),
+      suggestions: row.querySelector("[data-shopping-item-suggestions]"),
+      hoverCard: row.querySelector("[data-shopping-item-hover-card]"),
       quantity: row.querySelector('input[name^="shopping-qty-"]'),
       subtotal: row.querySelector("[data-shopping-subtotal]"),
       detail: row.querySelector("[data-shopping-detail]"),
     };
+  }
+
+  function formatEquipmentShoppingInputLabel2024(item) {
+    return item?.label || "";
+  }
+
+  function getShoppingOptionNode2024(select, value) {
+    return Array.from(select?.options || []).find((option) => option.value === value) || null;
+  }
+
+  function getShoppingDisabledReason2024(item, allowanceCopper, { canShop = true } = {}) {
+    if (!item) return "";
+    if (!canShop) return "Escolha os pacotes acima para liberar compras.";
+
+    const requirementState = getEquipmentRequirementState2024(item);
+    if (requirementState.requirement && !requirementState.met) {
+      const message = String(requirementState.message || "").trim();
+      return normalizePt(message).startsWith("requisito para uso")
+        ? `${message}.`
+        : `Requisito para uso: ${message}.`;
+    }
+
+    if ((item.costCopper || 0) > allowanceCopper) {
+      return `Saldo insuficiente: custa ${formatCurrencyFromCopper2024(item.costCopper)} e restam ${formatCurrencyFromCopper2024(allowanceCopper)}.`;
+    }
+
+    return "";
+  }
+
+  function syncEquipmentShoppingInput2024(controls, item, { canShop = true } = {}) {
+    const input = controls?.itemInput;
+    if (!input) return;
+
+    const keepTyping = document.activeElement === input && !item;
+    if (!keepTyping) {
+      input.value = formatEquipmentShoppingInputLabel2024(item);
+    }
+    input.placeholder = canShop ? "Buscar item..." : "Escolha um pacote com moedas";
+    input.disabled = !canShop;
+
+    if (!canShop) {
+      hideEquipmentShoppingSuggestions2024(controls.row);
+      hideEquipmentShoppingHoverCard2024(controls.row);
+    }
+  }
+
+  function hideEquipmentShoppingSuggestions2024(row) {
+    const controls = getShoppingRowControls2024(row);
+    if (controls?.suggestions) controls.suggestions.hidden = true;
+  }
+
+  function hideEquipmentShoppingHoverCard2024(row) {
+    const controls = getShoppingRowControls2024(row);
+    if (controls?.hoverCard) controls.hoverCard.hidden = true;
+  }
+
+  function formatEquipmentSuggestionSummary2024(item, disabledReason = "") {
+    if (!item) return "";
+
+    const parts = [];
+    if (item.type === "weapon") {
+      const weapon = WEAPON_BY_ID_2024.get(item.sourceId);
+      const damage = formatWeaponDamageBrief2024(weapon);
+      if (damage) parts.push(`Dano ${damage}`);
+    } else if (item.type === "armor") {
+      const armorClass = formatArmorClassRule2024(ARMOR_BY_ID_2024.get(item.sourceId));
+      if (armorClass) parts.push(`CA ${armorClass}`);
+    } else {
+      parts.push(EQUIPMENT_PURCHASE_GROUP_LABELS_2024[item.group] || "Equipamento");
+    }
+
+    if (Number.isFinite(item.weightLb)) parts.push(formatWeightFromPounds2024(item.weightLb));
+    parts.push(formatCurrencyFromCopper2024(item.costCopper));
+    if (disabledReason) parts.push(disabledReason);
+    return parts.filter(Boolean).join(" • ");
+  }
+
+  function refreshShoppingOptionAvailabilityForRow2024(row) {
+    const controls = getShoppingRowControls2024(row);
+    if (!controls?.select) return { controls, canShop: false, allowanceCopper: 0 };
+
+    const cls = getSelectedClass();
+    const background = getSelectedBackground();
+    const state = getEquipmentShoppingState2024(cls, background);
+    const canShop = state.hasSelectedPackage && state.budgetCopper > 0;
+    const allowanceCopper = canShop ? getShoppingBudgetAllowanceForRow2024(row, cls, background) : 0;
+    updateShoppingOptionAvailability2024(controls.select, allowanceCopper, { canShop });
+    return { controls, canShop, allowanceCopper };
+  }
+
+  function renderEquipmentShoppingSuggestions2024(row, rawQuery, { allowEmpty = false } = {}) {
+    const { controls } = refreshShoppingOptionAvailabilityForRow2024(row);
+    if (!controls?.suggestions || !controls.itemInput || controls.itemInput.disabled) {
+      hideEquipmentShoppingSuggestions2024(row);
+      hideEquipmentShoppingHoverCard2024(row);
+      return;
+    }
+
+    const query = normalizePt(rawQuery || "");
+    if (!query && !allowEmpty) {
+      hideEquipmentShoppingSuggestions2024(row);
+      hideEquipmentShoppingHoverCard2024(row);
+      return;
+    }
+
+    const matches = EQUIPMENT_PURCHASE_CATALOG_2024.filter((item) => {
+      if (!query) return true;
+      const requirementState = getEquipmentRequirementState2024(item);
+      const searchable = [
+        item.label,
+        EQUIPMENT_PURCHASE_GROUP_LABELS_2024[item.group],
+        describeEquipmentPurchaseItem2024(item, requirementState),
+      ].join(" ");
+      return normalizePt(searchable).includes(query);
+    });
+
+    if (!matches.length) {
+      controls.suggestions.innerHTML = '<div class="dropdown-suggestion is-empty">Nenhum item encontrado.</div>';
+      controls.suggestions.hidden = false;
+      hideEquipmentShoppingHoverCard2024(row);
+      return;
+    }
+
+    let previousGroup = "";
+    controls.suggestions.innerHTML = matches.map((item) => {
+      const option = getShoppingOptionNode2024(controls.select, item.id);
+      const disabledReason = option?.dataset.disabledReason || "";
+      const isDisabled = Boolean(option?.disabled);
+      const group = EQUIPMENT_PURCHASE_GROUP_LABELS_2024[item.group] || "Equipamento";
+      const groupHeader = group !== previousGroup
+        ? `<div class="dropdown-suggestion-group">${escapeHtml(group)}</div>`
+        : "";
+      previousGroup = group;
+
+      return `
+        ${groupHeader}
+        <div class="dropdown-suggestion equipment-item-suggestion${isDisabled ? " is-disabled" : ""}" data-value="${escapeHtml(item.id)}" aria-disabled="${isDisabled ? "true" : "false"}">
+          <strong>${escapeHtml(item.label)}</strong>
+          <small>${escapeHtml(formatEquipmentSuggestionSummary2024(item, disabledReason))}</small>
+        </div>
+      `;
+    }).join("");
+    controls.suggestions.hidden = false;
+
+    controls.suggestions.querySelectorAll(".equipment-item-suggestion").forEach((node) => {
+      node.addEventListener("mouseenter", () => {
+        showEquipmentShoppingHoverCard2024(row, node.getAttribute("data-value"));
+        controls.suggestions.querySelectorAll(".equipment-item-suggestion").forEach((item) => item.classList.remove("is-active"));
+        node.classList.add("is-active");
+      });
+      node.addEventListener("mouseleave", () => {
+        node.classList.remove("is-active");
+        hideEquipmentShoppingHoverCard2024(row);
+      });
+
+      let committedFromPointer = false;
+      const commitFromPointer = (event) => {
+        if (committedFromPointer) return;
+        committedFromPointer = true;
+        event.preventDefault();
+        commitEquipmentShoppingItem2024(row, node.getAttribute("data-value"));
+        window.setTimeout(() => {
+          committedFromPointer = false;
+        }, 0);
+      };
+      node.addEventListener("pointerdown", commitFromPointer);
+      node.addEventListener("mousedown", commitFromPointer);
+      node.addEventListener("touchstart", commitFromPointer, { passive: false });
+    });
+  }
+
+  function showEquipmentShoppingHoverCard2024(row, value) {
+    const controls = getShoppingRowControls2024(row);
+    const item = EQUIPMENT_PURCHASE_BY_ID_2024.get(value);
+    if (!controls?.hoverCard || !item) {
+      hideEquipmentShoppingHoverCard2024(row);
+      return;
+    }
+
+    const option = getShoppingOptionNode2024(controls.select, item.id);
+    const requirementState = getEquipmentRequirementState2024(item);
+    const disabledReason = option?.dataset.disabledReason || "";
+    const description = describeEquipmentPurchaseItem2024(item, requirementState);
+    controls.hoverCard.innerHTML = `
+      <strong>${escapeHtml(item.label)}</strong>
+      ${description ? `<p>${escapeHtml(description)}</p>` : ""}
+      ${disabledReason ? `<p class="dropdown-hover-warning">${escapeHtml(disabledReason)}</p>` : ""}
+    `;
+    controls.hoverCard.hidden = false;
+  }
+
+  function commitEquipmentShoppingItem2024(row, value) {
+    const { controls } = refreshShoppingOptionAvailabilityForRow2024(row);
+    if (!controls?.select || !value) return;
+
+    const option = getShoppingOptionNode2024(controls.select, value);
+    const item = EQUIPMENT_PURCHASE_BY_ID_2024.get(value);
+    const disabledReason = option?.dataset.disabledReason || "";
+    if (option?.disabled || disabledReason) {
+      showEquipmentShoppingHoverCard2024(row, value);
+      setStatus2024(`${item?.label || "Item"}: ${disabledReason || "opcao indisponivel."}`, "warning");
+      return;
+    }
+
+    controls.select.value = value;
+    if (controls.itemInput) controls.itemInput.value = formatEquipmentShoppingInputLabel2024(item);
+    hideEquipmentShoppingSuggestions2024(row);
+    hideEquipmentShoppingHoverCard2024(row);
+    enforceShoppingBudgetLimit2024(controls.select);
+    syncEquipmentShoppingPanel2024();
+    updatePreview();
+  }
+
+  function handleEquipmentShoppingInputKeydown2024(event, row) {
+    if (!event || !row) return;
+    const controls = getShoppingRowControls2024(row);
+    if (!controls?.suggestions) return;
+
+    if (event.key === "Escape") {
+      hideEquipmentShoppingSuggestions2024(row);
+      hideEquipmentShoppingHoverCard2024(row);
+      return;
+    }
+
+    if (event.key !== "Enter") return;
+
+    const suggestion = controls.suggestions.querySelector(".equipment-item-suggestion:not(.is-disabled)");
+    if (!suggestion || controls.suggestions.hidden) return;
+    event.preventDefault();
+    commitEquipmentShoppingItem2024(row, suggestion.getAttribute("data-value"));
   }
 
   function getShoppingBudgetAllowanceForRow2024(targetRow, cls = getSelectedClass(), background = getSelectedBackground()) {
@@ -4116,15 +4391,17 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     Array.from(select.options || []).forEach((option) => {
       if (!option.value) {
         option.disabled = false;
+        option.dataset.disabledReason = "";
         return;
       }
 
       const item = EQUIPMENT_PURCHASE_BY_ID_2024.get(option.value);
       const staysSelected = option.value === select.value;
       const requirementState = getEquipmentRequirementState2024(item);
-      const requirementBlocked = Boolean(requirementState.requirement && !requirementState.met);
+      const disabledReason = getShoppingDisabledReason2024(item, allowanceCopper, { canShop });
       option.title = describeEquipmentPurchaseItem2024(item, requirementState);
-      option.disabled = !staysSelected && (!canShop || ((item?.costCopper || 0) > allowanceCopper) || requirementBlocked);
+      option.dataset.disabledReason = disabledReason;
+      option.disabled = !staysSelected && Boolean(disabledReason);
     });
   }
 
@@ -4143,6 +4420,7 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     const item = EQUIPMENT_PURCHASE_BY_ID_2024.get(controls.select.value);
     if (!item) {
       controls.quantity.value = "1";
+      syncEquipmentShoppingInput2024(controls, null, { canShop: hasSelectedPackage });
       return false;
     }
 
@@ -4150,6 +4428,7 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     if (requirementState.requirement && !requirementState.met) {
       controls.select.value = "";
       controls.quantity.value = "1";
+      syncEquipmentShoppingInput2024(controls, null, { canShop: hasSelectedPackage });
       updateEquipmentShoppingDetail2024(controls.detail, item, requirementState);
       setStatus2024(`${item.label}: ${requirementState.message}.`, "warning");
       return true;
@@ -4163,6 +4442,7 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     if (maxQuantity < 1) {
       controls.select.value = "";
       controls.quantity.value = "1";
+      syncEquipmentShoppingInput2024(controls, null, { canShop: hasSelectedPackage });
       setStatus2024(`${item.label} nao cabe no saldo restante de ${formatCurrencyFromCopper2024(allowanceCopper)}.`, "warning");
       return true;
     }
@@ -4567,6 +4847,7 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
         : "999";
 
       if (!item) {
+        syncEquipmentShoppingInput2024(controls, null, { canShop });
         subtotal.textContent = "—";
         if (detail) {
           detail.hidden = true;
@@ -4577,11 +4858,13 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
         return;
       }
 
+      syncEquipmentShoppingInput2024(controls, item, { canShop });
       updateEquipmentShoppingDetail2024(detail, item, requirementState);
       select.title = describeEquipmentPurchaseItem2024(item, requirementState);
 
       if (requirementState.requirement && !requirementState.met) {
         select.value = "";
+        syncEquipmentShoppingInput2024(controls, null, { canShop });
         quantity.value = "1";
         quantity.disabled = true;
         subtotal.textContent = "—";
@@ -4939,7 +5222,10 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
       if (Array.isArray(group.options) && group.options.length) {
         const key = `${scope}-${group.id}`;
         if (!equipmentSelections.get(key)) {
-          pending.push(`Escolha um pacote em ${scope === "class" ? "classe" : "antecedente"}: ${group.label}.`);
+          const sourceLabel = scope === "class" ? "classe" : "antecedente";
+          pending.push(group.id === "pacote"
+            ? `Escolha um pacote em ${sourceLabel}: ${group.label}.`
+            : `Escolha ${group.label} em ${sourceLabel}.`);
         }
       }
 
@@ -10278,7 +10564,7 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
       if (Array.isArray(group.options) && group.options.length) {
         const chosenId = selections.get(`${scope}-${group.id}`);
         const chosen = group.options.find((option) => option.id === chosenId);
-        if (chosen) {
+        if (chosen && !group.omitSummary) {
           summaries.push(resolveEquipmentText(extractOptionSummary(chosen), selections));
         }
       }
@@ -10495,7 +10781,19 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
   }
 
   function previewItem(label, value) {
-    return `<li><strong>${escapeHtml(label)}:</strong> ${escapeHtml(value)}</li>`;
+    const className = isPreviewPendingValue2024(value) ? ' class="is-pending"' : "";
+    return `<li${className}><strong>${escapeHtml(label)}:</strong> ${escapeHtml(value)}</li>`;
+  }
+
+  function isPreviewPendingValue2024(value) {
+    const text = normalizePt(String(value || "").trim());
+    if (!text) return false;
+    return (
+      /\bpendente\b/.test(text)
+      || /^(selecione|escolha|complete|preencha|revise|defina)\b/.test(text)
+      || /^(em branco|faltam|saldo negativo)\b/.test(text)
+      || /\b(nao escolhido|nao escolhida|nao preenchido|nao preenchida)\b/.test(text)
+    );
   }
 
   function previewBullet(value) {
@@ -10529,7 +10827,10 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     const artisan = selections.get("background-ferramenta-ferramenta");
     const instrument = selections.get("background-instrumento-instrumento");
     const gamingSet = selections.get("background-jogo-jogo");
-    const monkToolOrInstrument = selections.get("class-pacote-a-ferramenta-item");
+    const monkPackageItemType = selections.get("class-pacote-a-tipo-item");
+    const monkToolOrInstrument = monkPackageItemType === "artisanTools"
+      ? selections.get("class-pacote-a-ferramenta-item")
+      : selections.get("class-pacote-a-instrumento-item");
 
     return text
       .replace("Ferramentas de artesão escolhidas", artisan ? formatToolLabel(artisan) : "ferramentas de artesão escolhidas")
