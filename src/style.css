@@ -5,6 +5,15 @@
   --muted: #7a6a4f;
   --border: #c2a878;
   --accent: #8b5e34;
+  --body-font: 'EB Garamond', Georgia, serif;
+  --heading-font: 'Uncial Antiqua', 'Cinzel', Georgia, serif;
+  --ui-font: var(--body-font);
+  --input-bg: #fdf6e3;
+  --focus-ring: rgba(122, 162, 255, 0.2);
+  --page-background: url("https://www.transparenttextures.com/patterns/rice-paper.png"), var(--bg);
+  --primary-bg: linear-gradient(#a67c52, #6b4c2a);
+  --primary-border: #5a3e24;
+  --primary-text: #fff;
   --floating-submit-offset: 16px;
   --floating-submit-width: min(1200px, calc(100vw - 32px));
 }
@@ -17,7 +26,7 @@ header {
 header h1 {
   font-size: 26px;
   color: var(--accent);
-  font-family: 'Uncial Antiqua', cursive;  
+  font-family: var(--heading-font);
 }
 
 header p {
@@ -26,7 +35,7 @@ header p {
 
 input:focus, select:focus, textarea:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 2px rgba(122,162,255,0.2);
+  box-shadow: 0 0 0 2px var(--focus-ring);
 }
 
 * { box-sizing: border-box; }
@@ -39,9 +48,9 @@ html {
 body {
   margin: 0;
   padding: 0 0 calc(140px + env(safe-area-inset-bottom, 0px));
-  background: url("https://www.transparenttextures.com/patterns/rice-paper.png"), var(--bg);
+  background: var(--page-background);
   color: var(--text);
-  font-family: 'EB Garamond', serif;
+  font-family: var(--body-font);
 }
 
 body[data-active-screen="home"],
@@ -463,8 +472,8 @@ body[data-active-screen="5e-2024"] {
   box-shadow: 2px 2px 8px rgba(0,0,0,0.2);
 }
 
-h1 { margin: 0 0 10px; font-size: 22px; font-family: 'Uncial Antiqua', cursive;}
-h2 { margin: 0 0 10px; font-size: 16px; font-family: 'Uncial Antiqua', cursive;}
+h1 { margin: 0 0 10px; font-size: 22px; font-family: var(--heading-font);}
+h2 { margin: 0 0 10px; font-size: 16px; font-family: var(--heading-font);}
 
 fieldset {
   border: 1px solid var(--border);
@@ -690,12 +699,12 @@ label.row > span { color: var(--muted); font-size: 13px; }
 }
 
 input, select, textarea {
-  background: #fdf6e3;
-  color: #3b2f1b;
-  border: 1px solid #c2a878;
+  background: var(--input-bg);
+  color: var(--text);
+  border: 1px solid var(--border);
   border-radius: 8px;
   padding: 8px 10px;
-  font-family: 'EB Garamond', serif;
+  font-family: var(--ui-font);
 }
 
 input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
@@ -723,9 +732,9 @@ textarea { resize: vertical; }
   width: 100%;
   padding: 12px;
   border-radius: 10px;
-  border: 2px solid #5a3e24;
-  background: linear-gradient(#a67c52, #6b4c2a);
-  color: #fff;
+  border: 2px solid var(--primary-border);
+  background: var(--primary-bg);
+  color: var(--primary-text);
   font-weight: 700;
   cursor: pointer;
   text-decoration: none;
@@ -3231,4 +3240,382 @@ select[multiple] option {
   overflow: auto;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   font-size: 12px;
+}
+
+body[data-standalone-route="5e"] {
+  --bg: #eadcbf;
+  --card: #fff4d6;
+  --text: #33200f;
+  --muted: #6e5435;
+  --border: #a8783e;
+  --accent: #7f251f;
+  --body-font: 'EB Garamond', Georgia, serif;
+  --heading-font: 'Cinzel', 'Uncial Antiqua', Georgia, serif;
+  --ui-font: 'EB Garamond', Georgia, serif;
+  --input-bg: #fff9e9;
+  --focus-ring: rgba(127, 37, 31, 0.18);
+  --page-background:
+    radial-gradient(circle at 16% 0%, rgba(127, 37, 31, 0.14), transparent 30%),
+    radial-gradient(circle at 88% 10%, rgba(73, 42, 17, 0.12), transparent 28%),
+    linear-gradient(180deg, rgba(255, 249, 231, 0.55), rgba(215, 188, 139, 0.28)),
+    url("https://www.transparenttextures.com/patterns/rice-paper.png"),
+    var(--bg);
+  --primary-bg: linear-gradient(180deg, #9b3e2d, #5a231d);
+  --primary-border: #471a17;
+  --primary-text: #fff7e2;
+}
+
+body[data-active-screen="5e-2024"] {
+  --bg: #f4f1eb;
+  --card: #fffdfa;
+  --text: #24211d;
+  --muted: #625d55;
+  --border: #d7cec2;
+  --accent: #b4232f;
+  --body-font: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --heading-font: 'Libre Baskerville', Georgia, serif;
+  --ui-font: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --input-bg: #fff;
+  --focus-ring: rgba(180, 35, 47, 0.16);
+  --page-background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(244, 241, 235, 0.94)),
+    linear-gradient(90deg, rgba(180, 35, 47, 0.05), transparent 34%, rgba(45, 90, 82, 0.05)),
+    var(--bg);
+  --primary-bg: linear-gradient(180deg, #c8333f, #911a26);
+  --primary-border: #7b1520;
+  --primary-text: #fff;
+}
+
+body[data-active-screen="home"] {
+  --heading-font: 'Libre Baskerville', Georgia, serif;
+}
+
+body[data-active-screen="home"] .version-option:first-child {
+  border-color: rgba(93, 48, 29, 0.56);
+  background:
+    radial-gradient(circle at top left, rgba(255, 230, 176, 0.28), transparent 32%),
+    linear-gradient(180deg, #a56b3a 0%, #7d4026 48%, #4f2519 100%);
+}
+
+body[data-active-screen="home"] .version-option:last-child {
+  border-color: rgba(180, 35, 47, 0.26);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(246, 241, 233, 0.94));
+  color: #27231e;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.76),
+    0 18px 38px rgba(48, 43, 36, 0.12);
+}
+
+body[data-active-screen="home"] .version-option:last-child h2 {
+  color: #a51f2a;
+  text-shadow: none;
+}
+
+body[data-active-screen="home"] .version-option:last-child p,
+body[data-active-screen="home"] .version-option:last-child .version-feature-list {
+  color: #4e4942;
+}
+
+body[data-active-screen="home"] .version-option:last-child .version-option-tag {
+  border-color: rgba(180, 35, 47, 0.22);
+  background: #fff;
+  color: #a51f2a;
+}
+
+body[data-active-screen="home"] .version-option:last-child .version-feature-list li::before {
+  color: #2d5a52;
+}
+
+body[data-standalone-route="5e"] header {
+  position: relative;
+  border-bottom: 3px double rgba(127, 37, 31, 0.46);
+  background:
+    linear-gradient(90deg, rgba(127, 37, 31, 0.08), transparent 32%, rgba(168, 120, 62, 0.12));
+}
+
+body[data-standalone-route="5e"] header h1 {
+  color: #7f251f;
+  text-shadow: 0 1px 0 rgba(255, 246, 219, 0.8);
+}
+
+body[data-standalone-route="5e"] .card {
+  border-color: rgba(117, 75, 34, 0.82);
+  background:
+    linear-gradient(180deg, rgba(255, 249, 229, 0.96), rgba(242, 220, 178, 0.9)),
+    var(--card);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.46),
+    0 18px 38px rgba(64, 38, 18, 0.17);
+}
+
+body[data-standalone-route="5e"] fieldset {
+  border-color: rgba(117, 75, 34, 0.5);
+  background:
+    linear-gradient(180deg, rgba(255, 253, 244, 0.42), rgba(174, 125, 62, 0.08));
+  box-shadow: inset 0 0 0 1px rgba(255, 246, 219, 0.34);
+}
+
+body[data-standalone-route="5e"] legend,
+body[data-standalone-route="5e"] label.row > span {
+  color: #6c4325;
+  font-weight: 700;
+}
+
+body[data-standalone-route="5e"] .identification-name-row,
+body[data-standalone-route="5e"] .edition-summary-card,
+body[data-standalone-route="5e"] .feat-choice-card,
+body[data-standalone-route="5e"] .equipment-choice-card,
+body[data-standalone-route="5e"] .equipment-source,
+body[data-standalone-route="5e"] .spellbook-panel,
+body[data-standalone-route="5e"] .spell-source-card,
+body[data-standalone-route="5e"] .magic-level-card {
+  border-color: rgba(127, 37, 31, 0.24);
+  background:
+    linear-gradient(180deg, rgba(255, 250, 234, 0.94), rgba(241, 222, 182, 0.78));
+}
+
+body[data-standalone-route="5e"] .floating-submit-bar {
+  border-color: rgba(222, 176, 107, 0.32);
+  background:
+    radial-gradient(circle at top left, rgba(225, 166, 85, 0.22), transparent 42%),
+    linear-gradient(180deg, rgba(61, 31, 21, 0.96), rgba(34, 20, 15, 0.98));
+  box-shadow: 0 18px 34px rgba(46, 24, 15, 0.26);
+}
+
+body[data-standalone-route="5e"] .d20-submit-button {
+  border-color: rgba(235, 190, 116, 0.4);
+  background:
+    radial-gradient(circle at 22% 18%, rgba(222, 176, 107, 0.24), transparent 34%),
+    linear-gradient(180deg, rgba(116, 50, 32, 0.98), rgba(61, 25, 19, 0.98));
+}
+
+body[data-standalone-route="5e"] .floating-quick-button {
+  border-color: rgba(235, 190, 116, 0.24);
+  background:
+    linear-gradient(180deg, rgba(88, 47, 30, 0.98), rgba(51, 28, 20, 0.98));
+  color: #fff7e4;
+}
+
+body[data-standalone-route="5e"] .d20-face {
+  fill: #8a4a30;
+  stroke: rgba(255, 238, 197, 0.94);
+}
+
+body[data-standalone-route="5e"] .d20-face-center {
+  fill: #9f5a3b;
+}
+
+body[data-standalone-route="5e"] .unit-toggle-btn.is-active,
+body[data-standalone-route="5e"] .method-option.is-active,
+body[data-standalone-route="5e"] .asi-method-option.is-active,
+body[data-standalone-route="5e"] .magic-level-count {
+  background: linear-gradient(180deg, #9b3e2d, #5a231d);
+  border-color: #471a17;
+}
+
+body[data-active-screen="5e-2024"] header {
+  border-bottom: 1px solid rgba(36, 33, 29, 0.12);
+  background: linear-gradient(90deg, rgba(180, 35, 47, 0.05), transparent 42%, rgba(45, 90, 82, 0.06));
+}
+
+body[data-active-screen="5e-2024"] header h1,
+body[data-active-screen="5e-2024"] h1,
+body[data-active-screen="5e-2024"] h2 {
+  color: #9d1f2a;
+}
+
+body[data-active-screen="5e-2024"] :where(
+  h1,
+  h2,
+  h3,
+  h4,
+  .beta-status-banner strong,
+  .multiclass-row-title,
+  .attr-roll-head strong,
+  .asi-panel-header h3,
+  .equipment-source h3,
+  .spellbook-panel h3,
+  .spellbook-panel h4,
+  .available-spell-section h4,
+  .spell-check-group h4,
+  .d20-submit-copy strong,
+  .magic-hero-copy h3,
+  .magic-panel-heading h3,
+  .magic-detail-head h4
+) {
+  font-family: var(--heading-font);
+}
+
+body[data-active-screen="5e-2024"] .card {
+  border: 1px solid var(--border);
+  border-top: 4px solid rgba(180, 35, 47, 0.76);
+  border-radius: 8px;
+  background: var(--card);
+  box-shadow: 0 18px 42px rgba(41, 35, 28, 0.08);
+}
+
+body[data-active-screen="5e-2024"] fieldset {
+  border-color: rgba(36, 33, 29, 0.12);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+body[data-active-screen="5e-2024"] legend {
+  color: #9d1f2a;
+  font-family: var(--ui-font);
+  font-weight: 700;
+}
+
+body[data-active-screen="5e-2024"] label.row > span,
+body[data-active-screen="5e-2024"] .magic-level-field > span,
+body[data-active-screen="5e-2024"] .asi-meta-item span {
+  color: #5f5a52;
+  font-family: var(--ui-font);
+  font-weight: 600;
+}
+
+body[data-active-screen="5e-2024"] input,
+body[data-active-screen="5e-2024"] select,
+body[data-active-screen="5e-2024"] textarea {
+  border-color: #d8d0c6;
+  box-shadow: inset 0 1px 0 rgba(36, 33, 29, 0.03);
+}
+
+body[data-active-screen="5e-2024"] input::placeholder,
+body[data-active-screen="5e-2024"] textarea::placeholder {
+  color: #9a948b;
+}
+
+body[data-active-screen="5e-2024"] .identification-name-row,
+body[data-active-screen="5e-2024"] .beta-status-banner,
+body[data-active-screen="5e-2024"] .preview-box-2024,
+body[data-active-screen="5e-2024"] .edition-summary-card,
+body[data-active-screen="5e-2024"] .feat-choice-card,
+body[data-active-screen="5e-2024"] .equipment-choice-card,
+body[data-active-screen="5e-2024"] .equipment-source,
+body[data-active-screen="5e-2024"] .spellbook-panel,
+body[data-active-screen="5e-2024"] .spell-source-card,
+body[data-active-screen="5e-2024"] .magic-summary-card,
+body[data-active-screen="5e-2024"] .magic-level-card,
+body[data-active-screen="5e-2024"] .method-option,
+body[data-active-screen="5e-2024"] .asi-method-option,
+body[data-active-screen="5e-2024"] .asi-select-field,
+body[data-active-screen="5e-2024"] .hp-progression-panel,
+body[data-active-screen="5e-2024"] .hp-max-highlight,
+body[data-active-screen="5e-2024"] .magic-slot-field {
+  border-color: rgba(36, 33, 29, 0.12);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: none;
+}
+
+body[data-active-screen="5e-2024"] .preview-box-2024 {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(249, 246, 241, 0.92));
+}
+
+body[data-active-screen="5e-2024"] .dropdown-suggestions,
+body[data-active-screen="5e-2024"] .dropdown-hover-card,
+body[data-active-screen="5e-2024"] .magic-spell-hover-card {
+  border-color: rgba(36, 33, 29, 0.14);
+  background: #fffdfa;
+  box-shadow: 0 18px 34px rgba(36, 33, 29, 0.14);
+}
+
+body[data-active-screen="5e-2024"] .dropdown-suggestion-group {
+  background: linear-gradient(90deg, rgba(180, 35, 47, 0.09), rgba(45, 90, 82, 0.04));
+  color: #9d1f2a;
+}
+
+body[data-active-screen="5e-2024"] .dropdown-suggestion:hover,
+body[data-active-screen="5e-2024"] .dropdown-suggestion.is-active {
+  background: rgba(180, 35, 47, 0.08);
+}
+
+body[data-active-screen="5e-2024"] .unit-toggle-btn.is-active,
+body[data-active-screen="5e-2024"] .method-option.is-active,
+body[data-active-screen="5e-2024"] .asi-method-option.is-active,
+body[data-active-screen="5e-2024"] .magic-level-count {
+  border-color: #8b1823;
+  background: linear-gradient(180deg, #c8333f, #911a26);
+  color: #fff;
+}
+
+body[data-active-screen="5e-2024"] .spell-badge.selected,
+body[data-active-screen="5e-2024"] .skill-item.is-fixed {
+  border-color: rgba(45, 90, 82, 0.3);
+  background: rgba(45, 90, 82, 0.09);
+  color: #2d5a52;
+}
+
+body[data-active-screen="5e-2024"] .spell-card.is-selected,
+body[data-active-screen="5e-2024"] .magic-level-card.has-content {
+  border-color: rgba(180, 35, 47, 0.26);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(253, 247, 242, 0.94));
+}
+
+body[data-active-screen="5e-2024"] .magic-level-card {
+  position: relative;
+  overflow: hidden;
+}
+
+body[data-active-screen="5e-2024"] .magic-level-card::before {
+  width: 3px;
+  background: linear-gradient(180deg, rgba(180, 35, 47, 0.78), rgba(45, 90, 82, 0.22));
+}
+
+body[data-active-screen="5e-2024"] .floating-submit-bar {
+  border-color: rgba(36, 33, 29, 0.12);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(247, 243, 237, 0.96));
+  box-shadow: 0 18px 38px rgba(41, 35, 28, 0.12);
+}
+
+body[data-active-screen="5e-2024"] .d20-submit-button {
+  border-color: rgba(180, 35, 47, 0.32);
+  background:
+    radial-gradient(circle at 22% 18%, rgba(255, 255, 255, 0.2), transparent 34%),
+    linear-gradient(180deg, #c8333f, #8d1722);
+  color: #fff;
+}
+
+body[data-active-screen="5e-2024"] .floating-quick-button {
+  border-color: rgba(36, 33, 29, 0.14);
+  background: rgba(255, 255, 255, 0.86);
+  color: #2f2a25;
+  box-shadow: none;
+}
+
+body[data-active-screen="5e-2024"] .floating-quick-button:hover {
+  border-color: rgba(180, 35, 47, 0.34);
+  box-shadow: 0 12px 26px rgba(41, 35, 28, 0.1);
+}
+
+body[data-active-screen="5e-2024"] .floating-quick-button small,
+body[data-active-screen="5e-2024"] .d20-submit-copy small {
+  color: rgba(255, 255, 255, 0.82);
+}
+
+body[data-active-screen="5e-2024"] .floating-quick-button small {
+  color: #6a655e;
+}
+
+body[data-active-screen="5e-2024"] .d20-face {
+  fill: #bf2e3b;
+  stroke: rgba(255, 244, 231, 0.96);
+}
+
+body[data-active-screen="5e-2024"] .d20-face-center {
+  fill: #d64a55;
+}
+
+body[data-active-screen="5e-2024"] .d20-num {
+  font-family: 'Libre Baskerville', Georgia, serif;
+}
+
+body[data-active-screen="5e-2024"] button:not(.secondary-button):not(.ghost-button):not(.unit-toggle-btn):not(.floating-quick-button):not(.d20-submit-button):not(.hp-roll-button):not(.hp-roll-all-button) {
+  border-color: #8b1823;
+  background: linear-gradient(180deg, #c8333f, #911a26);
+  color: #fff;
 }
