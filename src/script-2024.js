@@ -1106,6 +1106,7 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     [el.hpMethodFixed, el.hpMethodRolled].forEach((field) => field?.addEventListener("change", onHitPointProgressionChanged2024));
     el.hpRollsPanel?.addEventListener("input", onHitPointRollsInput2024);
     el.hpRollsPanel?.addEventListener("change", onHitPointRollsInput2024);
+    el.hpRollsPanel?.addEventListener("click", onHitPointRollsClick2024);
     el.divindadeInput?.addEventListener("input", () => onDivinityChanged2024({ showSuggestions: true }));
     el.divindadeInput?.addEventListener("focus", () => onDivinityChanged2024({ showSuggestions: true, allowEmptySuggestions: true, showAllOnFocus: true }));
     el.divindadeInput?.addEventListener("click", () => onDivinityChanged2024({ showSuggestions: true, allowEmptySuggestions: true, showAllOnFocus: true }));
@@ -7668,30 +7669,74 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     }
 
     el.hpRollsPanel.hidden = false;
-    el.hpRollsPanel.innerHTML = rollEntries.map((entry) => {
+    const rowsMarkup = rollEntries.map((entry) => {
       const fixedValue = averageHitDieRoundedUp2024(entry.hitDie);
       const current = currentValues[entry.key] ?? "";
+      const inputId = `hp-roll-2024-${entry.characterLevel}-${String(entry.key).replace(/[^a-z0-9_-]/gi, "-")}`;
       return `
-        <label class="hp-roll-row">
-          <span>Nível ${entry.characterLevel}: ${escapeHtml(entry.className)} ${entry.classLevel} (d${entry.hitDie} + CON)</span>
-          <input
-            type="number"
-            min="1"
-            max="${entry.hitDie}"
-            step="1"
-            data-hp-roll-key="${escapeHtml(entry.key)}"
-            placeholder="${fixedValue}"
-            value="${escapeHtml(current)}"
-          />
-        </label>
+        <div class="hp-roll-row">
+          <label for="${escapeHtml(inputId)}">Nível ${entry.characterLevel}: ${escapeHtml(entry.className)} ${entry.classLevel} (d${entry.hitDie} + CON)</label>
+          <div class="hp-roll-control">
+            <button
+              type="button"
+              class="hp-roll-button"
+              data-hp-roll-action="single"
+              data-hp-roll-target="${escapeHtml(entry.key)}"
+              title="Rolar d${entry.hitDie}"
+              aria-label="${escapeHtml(`Rolar d${entry.hitDie} para o nível ${entry.characterLevel}`)}"
+            >🎲</button>
+            <input
+              id="${escapeHtml(inputId)}"
+              type="number"
+              min="1"
+              max="${entry.hitDie}"
+              step="1"
+              data-hp-roll-key="${escapeHtml(entry.key)}"
+              placeholder="${fixedValue}"
+              value="${escapeHtml(current)}"
+            />
+          </div>
+        </div>
       `;
     }).join("");
+    el.hpRollsPanel.innerHTML = `
+      <div class="hp-rolls-toolbar">
+        <button type="button" class="hp-roll-all-button" data-hp-roll-action="all" title="Rolar todos os dados de vida">
+          🎲 Rolar todos
+        </button>
+      </div>
+      ${rowsMarkup}
+    `;
   }
 
   function onHitPointProgressionChanged2024() {
     renderHitPointRollControls2024({ force: true });
     syncDerivedQuickSheetFields2024();
     updatePreview();
+  }
+
+  function setRandomHitPointRoll2024(input) {
+    if (!input) return;
+    const max = clampInt(input.getAttribute("max") || 1, 1, 100);
+    input.value = String(randomIntBetween2024(1, max));
+  }
+
+  function onHitPointRollsClick2024(event) {
+    const button = event?.target?.closest?.("[data-hp-roll-action]");
+    if (!button || !el.hpRollsPanel?.contains(button)) return;
+    event.preventDefault();
+
+    if (button.getAttribute("data-hp-roll-action") === "all") {
+      el.hpRollsPanel.querySelectorAll("input[data-hp-roll-key]").forEach(setRandomHitPointRoll2024);
+      onHitPointRollsInput2024();
+      return;
+    }
+
+    const targetKey = button.getAttribute("data-hp-roll-target") || "";
+    const input = Array.from(el.hpRollsPanel.querySelectorAll("input[data-hp-roll-key]"))
+      .find((field) => field.getAttribute("data-hp-roll-key") === targetKey);
+    setRandomHitPointRoll2024(input);
+    onHitPointRollsInput2024();
   }
 
   function onHitPointRollsInput2024() {

@@ -2059,16 +2059,63 @@ select[multiple] option {
   gap: 8px;
 }
 
+.hp-rolls-toolbar {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.hp-roll-all-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: auto;
+  min-height: 38px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border-color: rgba(90, 62, 36, 0.28);
+  background: rgba(253, 246, 227, 0.86);
+  color: var(--text);
+  font-weight: 700;
+}
+
 .hp-roll-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(72px, 96px);
+  grid-template-columns: minmax(0, 1fr) minmax(118px, 154px);
   align-items: center;
   gap: 10px;
 }
 
-.hp-roll-row span {
+.hp-roll-row label {
   color: var(--text);
   font-size: 0.94rem;
+}
+
+.hp-roll-control {
+  display: grid;
+  grid-template-columns: 42px minmax(72px, 1fr);
+  align-items: center;
+  gap: 6px;
+}
+
+.hp-roll-button {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  min-width: 42px;
+  height: 42px;
+  padding: 0;
+  border-radius: 8px;
+  border-color: rgba(90, 62, 36, 0.28);
+  background: rgba(253, 246, 227, 0.92);
+  color: var(--text);
+  font-size: 18px;
+  line-height: 1;
+}
+
+.hp-roll-button:hover,
+.hp-roll-all-button:hover {
+  background: rgba(255, 250, 238, 0.98);
+  border-color: rgba(90, 62, 36, 0.5);
 }
 
 .hp-roll-row input {
@@ -2078,6 +2125,14 @@ select[multiple] option {
 @media (max-width: 640px) {
   .hp-roll-row {
     grid-template-columns: 1fr;
+  }
+
+  .hp-rolls-toolbar {
+    justify-content: stretch;
+  }
+
+  .hp-roll-all-button {
+    width: 100%;
   }
 }
 
