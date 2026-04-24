@@ -9144,6 +9144,9 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
 
   function normalizeVisibleAsiSelections(maxVisible = 3) {
     const visibleSelects = getVisibleAsiPickSelects(maxVisible);
+    const allEmpty = visibleSelects.length && visibleSelects.every((s) => !s.value);
+    if (allEmpty) return;
+    
     const used = new Set();
 
     visibleSelects.forEach((select) => {
