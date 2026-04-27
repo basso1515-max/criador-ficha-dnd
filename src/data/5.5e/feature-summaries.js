@@ -188,23 +188,23 @@ export const FEATURE_SUMMARIES_2024 = {
       "Dádiva Épica": "Recebe uma Dádiva Épica ou outro talento elegível."
     },
     "patrulheiro": {
-      "Conjuração": "Conjura magias primais ligadas à exploração e à caça.",
-      "Inimigo Favorito": "Marca e persegue alvos com magia e precisão.",
-      "Maestria em Arma": "Domina propriedades de maestria com armas escolhidas.",
-      "Estilo de Luta": "Escolhe um talento de Estilo de Luta.",
-      "Explorador Hábil": "Aprimora movimentação, sobrevivência e exploração.",
+      "Conjuração": "Prepara magias de Guardião usando Sabedoria, recupera espaços em descanso longo e pode usar foco druídico.",
+      "Inimigo Favorito": "Sempre tem Marca do Predador preparada e pode conjurá-la sem espaço 2 vezes por descanso longo; usos aumentam para 3/4/5/6 nos níveis 5/9/13/17.",
+      "Maestria em Arma": "Domina propriedades de maestria de 2 armas proficientes e pode trocá-las ao terminar descanso longo.",
+      "Estilo de Luta": "Escolhe um talento de Estilo de Luta ou Guerreiro Druídico para aprender 2 truques de Druida usando Sabedoria.",
+      "Explorador Hábil": "Recebe Expertise em uma perícia proficiente sem Expertise e aprende 2 idiomas adicionais.",
       "Subclasse de Guardião": "Escolhe um arquétipo de vigília, caça ou vínculo animal.",
       "Aumento no Valor de Atributo": "Recebe Aumento no Valor de Atributo ou outro talento para o qual se qualifique.",
       "Ataque Extra": "Ataca duas vezes ao usar a ação Atacar.",
-      "Errante": "Sua experiência de viagem aumenta mobilidade e resistência.",
-      "Especialista": "Aprofunda o domínio de perícias e táticas de campo.",
-      "Incansável": "Recupera-se com rapidez e segue em frente.",
-      "Predador Implacável": "Mantém pressão constante sobre o alvo marcado.",
-      "Véu da Natureza": "Usa o mundo natural para se ocultar ou reposicionar.",
-      "Caçador Preciso": "Eleva a eficiência dos ataques contra sua presa.",
-      "Sentidos Selvagens": "Seus sentidos detectam ameaças ocultas com facilidade.",
+      "Errante": "Sem armadura pesada, deslocamento +3 m e ganha escalada e natação iguais ao deslocamento.",
+      "Especialista": "Recebe Expertise em 2 perícias proficientes nas quais ainda não tenha Expertise.",
+      "Incansável": "Ação Mágica: recebe 1d8 + SAB PV temporários, mínimo 1, usos iguais ao mod. SAB, mínimo 1; descanso curto reduz Exaustão em 1.",
+      "Predador Implacável": "Sofrer dano não quebra sua Concentração em Marca do Predador.",
+      "Véu da Natureza": "Ação bônus: fica Invisível até o fim do próximo turno; usos iguais ao mod. SAB, mínimo 1, por descanso longo.",
+      "Caçador Preciso": "Tem Vantagem em ataques contra a criatura marcada por sua Marca do Predador.",
+      "Sentidos Selvagens": "Recebe Percepção às Cegas com alcance de 9 m.",
       "Dádiva Épica": "Recebe uma Dádiva Épica ou outro talento elegível.",
-      "Matador de Inimigos Favoritos": "Sua marca culmina em eficiência letal máxima."
+      "Matador de Inimigos Favoritos": "O dado de dano de Marca do Predador se torna d10 em vez de d6."
     }
   },
   "subclasses": {
@@ -383,11 +383,15 @@ export const FEATURE_SUMMARIES_2024 = {
       "Andarilho Nebuloso": "Pode conjurar Passo Nebuloso sem gastar um espaço de magia"
     },
     "patrulheiro-cacador": {
-      "Conhecimento do Caçador": "Pode recorrer às forças da natureza para revelar certos pontos fortes e fracos de sua presa",
-      "Presa do Caçador": "Ao atingir com arma uma criatura com os PV menor que o máximo, você causa 1d8 pontos de dano adicional",
-      "Táticas Defensivas": "Ao ser atingido por uma criatura com uma jogada de ataque, essa criatura tem Desvantagem em todas as outras jogadas de ataque contra você neste turno",
+      "Conhecimento do Caçador": "Enquanto uma criatura está marcada por Marca do Predador, sabe se ela tem Imunidades, Resistências ou Vulnerabilidades e quais são.",
+      "Presa do Caçador": "Escolhe Colosso ou Rompedor de Horda; pode trocar a opção ao terminar descanso curto ou longo.",
+      "Colosso": "Uma vez por turno, ao atingir com arma uma criatura ferida, a arma causa +1d8 de dano.",
+      "Rompedor de Horda": "Uma vez no seu turno, ao atacar com arma, pode fazer outro ataque com a mesma arma contra outra criatura a 1,5 m do alvo original, dentro do alcance e ainda não atacada.",
+      "Táticas Defensivas": "Escolhe Escapar da Horda ou Defesa contra Ataques Múltiplos; pode trocar a opção ao terminar descanso curto ou longo.",
+      "Escapar da Horda": "Ataques de oportunidade têm Desvantagem contra você.",
+      "Defesa contra Ataques Múltiplos": "Quando uma criatura o atinge com uma jogada de ataque, ela tem Desvantagem nas outras jogadas de ataque contra você neste turno.",
       "Presa do Caçador Superior": "Uma vez por turno, ao causar dano a uma criatura marcada pela Marca do Predador, você também pode causar dano adicional dessa magia a uma criatura diferente à sua vista e a até 9 metros da primeira criatura",
-      "Defesa do Caçador": "Superior Ao sofrer dano, você pode executar uma Reação para conceder a si mesmo Resistência a esse dano e a qualquer outro dano do mesmo tipo até o final do turno atual"
+      "Defesa Superior do Caçador": "Ao sofrer dano, pode executar uma Reação para receber Resistência a esse dano e a qualquer outro dano do mesmo tipo até o fim do turno atual."
     },
     "patrulheiro-mestre-feras": {
       "Companheiro Primal": "Ela pode se mover e usar a própria Reação, embora a única ação padrão que ela executa é Esquivar, a menos que você use uma Ação Bônus para comandá-la a executar, execute uma ação do bloco de estatísticas dela ou alguma outra ação",

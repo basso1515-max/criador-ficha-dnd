@@ -30,6 +30,7 @@ const FIGHTING_STYLE_CHOICES = [
 ];
 
 const PALADIN_FIGHTING_STYLE_CHOICES = [...FIGHTING_STYLE_CHOICES, "guerreiro-abencoado"];
+const RANGER_FIGHTING_STYLE_CHOICES = [...FIGHTING_STYLE_CHOICES, "guerreiro-druidico"];
 
 export const CLASSES = {
   barbaro: {
@@ -609,32 +610,32 @@ export const CLASSES = {
       { grupo: "A", descr: "Armadura de couro batido, cimitarra, espada curta, arco longo, 20 flechas, aljava, foco druídico (ramo de visco), kit de aventureiro e 7 PO", armaduras: ["couro-batido"], armas: ["cimitarra", "espada-curta", "arco-longo"] },
       { grupo: "B", descr: "150 PO", armas: [] },
     ],
-    escolhas: { estilosLuta: FIGHTING_STYLE_CHOICES, talentosSugestao: ["alerta", "mestre-atirador"] },
+    escolhas: { estilosLuta: RANGER_FIGHTING_STYLE_CHOICES, talentosSugestao: ["alerta", "mestre-atirador"] },
     features: {
       1: [
-        feature("Conjuração", "Conjura magias primais ligadas à exploração e à caça."),
-        feature("Inimigo Favorito", "Marca e persegue alvos com magia e precisão."),
-        feature("Maestria em Arma", "Domina propriedades de maestria com armas escolhidas."),
+        feature("Conjuração", "Prepara magias de Guardião usando Sabedoria, recupera espaços em descanso longo e pode usar foco druídico."),
+        feature("Inimigo Favorito", "Sempre tem Marca do Predador preparada e pode conjurá-la sem espaço 2 vezes por descanso longo; os usos aumentam com o nível."),
+        feature("Maestria em Arma", "Domina as propriedades de maestria de 2 armas proficientes e pode trocar as escolhas ao terminar descanso longo."),
       ],
       2: [
-        feature("Estilo de Luta", "Escolhe um talento de Estilo de Luta."),
-        feature("Explorador Hábil", "Aprimora movimentação, sobrevivência e exploração."),
+        feature("Explorador Hábil", "Recebe Expertise em uma perícia proficiente sem Expertise e aprende 2 idiomas adicionais."),
+        feature("Estilo de Luta", "Escolhe um talento de Estilo de Luta ou Guerreiro Druídico para aprender 2 truques de Druida usando Sabedoria."),
       ],
       3: [feature("Subclasse de Guardião", "Escolhe um arquétipo de vigília, caça ou vínculo animal.")],
       4: [feature("Aumento no Valor de Atributo", "Recebe Aumento no Valor de Atributo ou outro talento para o qual se qualifique.")],
       5: [feature("Ataque Extra", "Ataca duas vezes ao usar a ação Atacar.")],
-      6: [feature("Errante", "Sua experiência de viagem aumenta mobilidade e resistência.")],
+      6: [feature("Errante", "Enquanto não usa armadura pesada, seu deslocamento aumenta em 3 m e você ganha escalada e natação iguais ao deslocamento.")],
       8: [feature("Aumento no Valor de Atributo", "Recebe Aumento no Valor de Atributo ou outro talento para o qual se qualifique.")],
-      9: [feature("Especialista", "Aprofunda o domínio de perícias e táticas de campo.")],
-      10: [feature("Incansável", "Recupera-se com rapidez e segue em frente.")],
+      9: [feature("Especialista", "Recebe Expertise em 2 perícias proficientes nas quais ainda não tenha Expertise.")],
+      10: [feature("Incansável", "Como ação Mágica, recebe PV temporários iguais a 1d8 + Sabedoria, mínimo 1, usos por descanso longo iguais ao mod. SAB, mínimo 1; descanso curto reduz Exaustão em 1.")],
       12: [feature("Aumento no Valor de Atributo", "Recebe Aumento no Valor de Atributo ou outro talento para o qual se qualifique.")],
-      13: [feature("Predador Implacável", "Mantém pressão constante sobre o alvo marcado.")],
-      14: [feature("Véu da Natureza", "Usa o mundo natural para se ocultar ou reposicionar.")],
+      13: [feature("Predador Implacável", "Sofrer dano não quebra sua Concentração em Marca do Predador.")],
+      14: [feature("Véu da Natureza", "Como ação bônus, fica Invisível até o fim do próximo turno; usos por descanso longo iguais ao mod. SAB, mínimo 1.")],
       16: [feature("Aumento no Valor de Atributo", "Recebe Aumento no Valor de Atributo ou outro talento para o qual se qualifique.")],
-      17: [feature("Caçador Preciso", "Eleva a eficiência dos ataques contra sua presa.")],
-      18: [feature("Sentidos Selvagens", "Seus sentidos detectam ameaças ocultas com facilidade.")],
+      17: [feature("Caçador Preciso", "Tem Vantagem em jogadas de ataque contra a criatura marcada por sua Marca do Predador.")],
+      18: [feature("Sentidos Selvagens", "Recebe Percepção às Cegas com alcance de 9 m.")],
       19: [feature("Dádiva Épica", "Recebe uma Dádiva Épica ou outro talento elegível.")],
-      20: [feature("Matador de Inimigos Favoritos", "Sua marca culmina em eficiência letal máxima.")],
+      20: [feature("Matador de Inimigos Favoritos", "O dado de dano de Marca do Predador se torna d10 em vez de d6.")],
     },
     subclasses: ["patrulheiro-andarilho-feerico", "patrulheiro-cacador", "patrulheiro-mestre-feras", "patrulheiro-perseguidor"],
   },

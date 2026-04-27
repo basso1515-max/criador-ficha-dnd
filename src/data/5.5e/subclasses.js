@@ -340,10 +340,13 @@ const SUBCLASS_LIST = [
     3,
     "Especializa-se em técnicas puras de rastreamento, perseguição e eliminação de presas perigosas.",
     {
-      3: [feature("Conhecimento do Caçador"), feature("Presa do Caçador")],
-      7: [feature("Táticas Defensivas")],
-      11: [feature("Presa do Caçador Superior")],
-      15: [feature("Defesa do Caçador")],
+      3: [
+        feature("Conhecimento do Caçador", "Enquanto uma criatura está marcada por Marca do Predador, sabe se ela tem Imunidades, Resistências ou Vulnerabilidades e quais são."),
+        feature("Presa do Caçador", "Escolhe Colosso ou Rompedor de Horda; pode trocar a opção ao terminar descanso curto ou longo."),
+      ],
+      7: [feature("Táticas Defensivas", "Escolhe Escapar da Horda ou Defesa contra Ataques Múltiplos; pode trocar a opção ao terminar descanso curto ou longo.")],
+      11: [feature("Presa do Caçador Superior", "Uma vez por turno, ao causar dano a uma criatura marcada pela Marca do Predador, também causa o dano extra da magia a outra criatura a até 9 m da primeira.")],
+      15: [feature("Defesa Superior do Caçador", "Ao sofrer dano, pode executar uma Reação para receber Resistência a esse dano e a qualquer outro dano do mesmo tipo até o fim do turno atual.")],
     }
   ),
   subclass(

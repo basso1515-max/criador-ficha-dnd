@@ -142,6 +142,7 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
   const PALADIN_OATH_GRANTED_SPELL_IDS_2024 = {
     "paladino-devocao": PALADIN_DEVOTION_GRANTED_SPELL_IDS_2024,
   };
+  const RANGER_FAVORED_ENEMY_BY_LEVEL_2024 = [0, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6];
   const WARLOCK_ELDRITCH_INVOCATIONS_BY_LEVEL_2024 = [0, 1, 3, 3, 3, 5, 5, 6, 6, 7, 7, 7, 8, 8, 8, 9, 9, 9, 10, 10, 10];
   const WARLOCK_PATRON_GRANTED_SPELL_IDS_2024 = {
     "bruxo-arquifada": {
@@ -1571,6 +1572,15 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
       const aura = level >= 18 ? "Aura: 9 m" : level >= 6 ? "Aura: 3 m" : "Aura: —";
       const radiantStrikes = level >= 11 ? " Golpes Radiantes: +1d8 radiante em ataques corpo a corpo." : "";
       return `Mãos Consagradas: ${layOnHandsPool} PV. Canalizar Divindade: ${channelDivinity ? `${channelDivinity} uso(s)` : "—"}. Maestrias de arma: 2. Magias preparadas: ${prepared}. ${aura}.${radiantStrikes}`;
+    }
+    if (classId === "patrulheiro") {
+      const rangerRule = SPELLCASTING_RULES_2024.patrulheiro || {};
+      const prepared = Number(rangerRule.preparedByLevel?.[level] || 0);
+      const favoredEnemy = RANGER_FAVORED_ENEMY_BY_LEVEL_2024[level] || 0;
+      const roving = level >= 6 ? " Errante: +3 m, escalada e natação sem armadura pesada." : "";
+      const tireless = level >= 10 ? " Incansável: 1d8 + SAB PV temporários; usos = mod. SAB, mínimo 1." : "";
+      const foeSlayer = level >= 20 ? " Marca do Predador causa d10." : "";
+      return `Inimigo Favorito: ${favoredEnemy} uso(s) gratuitos de Marca do Predador. Maestrias de arma: 2. Magias preparadas: ${prepared}.${roving}${tireless}${foeSlayer}`;
     }
     if (classId === "guerreiro") {
       const secondWind = FIGHTER_PROGRESSION_2024.secondWind[level] || 0;
@@ -3347,6 +3357,11 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     if (text === "caracteristica de estilo de luta de paladino") {
       const slotClassId = context.slot?.classId || context.cls?.id || "";
       return { eligible: context.hasFightingStyle && slotClassId === "paladino", resolved: true };
+    }
+
+    if (text === "caracteristica de estilo de luta de guardiao" || text === "caracteristica de estilo de luta de patrulheiro") {
+      const slotClassId = context.slot?.classId || context.cls?.id || "";
+      return { eligible: context.hasFightingStyle && slotClassId === "patrulheiro", resolved: true };
     }
 
     if (text.includes("treinamento com armadura leve")) {
@@ -7323,14 +7338,14 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
         definitions.push(
           {
             id: `${entry.uid}-ranger-language-1`,
-            label: `Explorador Habil (${entry.classData.nome}): idioma 1`,
+            label: `Explorador Hábil (${entry.classData.nome}): idioma 1`,
             help: "O Guardião escolhe dois idiomas adicionais no nível 2.",
             options: CHAPTER_TWO_LANGUAGE_CHOICE_IDS_2024,
           },
           {
             id: `${entry.uid}-ranger-language-2`,
-            label: `Explorador Habil (${entry.classData.nome}): idioma 2`,
-            help: "Escolha o segundo idioma adicional concedido por Explorador Habil.",
+            label: `Explorador Hábil (${entry.classData.nome}): idioma 2`,
+            help: "Escolha o segundo idioma adicional concedido por Explorador Hábil.",
             options: CHAPTER_TWO_LANGUAGE_CHOICE_IDS_2024,
           }
         );
@@ -9076,6 +9091,7 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     const hasShield = armorItems.some((armor) => armor?.categoria === "escudo");
     const baseFeet = getBaseSpeedFeet2024(race, subrace);
     let bonusFeet = 0;
+    let hasRangerRoving = false;
 
     resolvedEntries.forEach((entry) => {
       if (!entry?.classId || !entry?.level) return;
@@ -9085,14 +9101,24 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
       if (entry.classId === "monge" && !isWearingArmor && !hasShield) {
         bonusFeet += getMonkUnarmoredMovementBonusFeet2024(entry.level);
       }
+      if (entry.classId === "patrulheiro" && entry.level >= 6 && !isWearingHeavyArmor) {
+        bonusFeet += 10;
+        hasRangerRoving = true;
+      }
     });
 
     const totalFeet = Math.max(0, baseFeet + bonusFeet);
+    const totalLabel = totalFeet ? formatDistanceFromFeet2024(totalFeet) : "—";
     return {
       baseFeet,
       bonusFeet,
       totalFeet,
-      label: totalFeet ? formatDistanceFromFeet2024(totalFeet) : "—",
+      hasRangerRoving,
+      climbFeet: hasRangerRoving ? totalFeet : 0,
+      swimFeet: hasRangerRoving ? totalFeet : 0,
+      label: hasRangerRoving && totalFeet
+        ? `${totalLabel}; escalada/natação ${totalLabel}`
+        : totalLabel,
     };
   }
 
@@ -9267,6 +9293,9 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
           grantedSpellIds.push(...collectGrantedSpellIdsByLevel2024(PALADIN_OATH_GRANTED_SPELL_IDS_2024[entry.subclassId], entry.level));
         }
         mergeGrantedSpellIdsIntoConfig2024(config, grantedSpellIds);
+      }
+      if (entry.classId === "patrulheiro") {
+        mergeGrantedSpellIdsIntoConfig2024(config, ["marca-do-cacador"]);
       }
       if (entry.classId === "druida") {
         const grantedSpellIds = [...DRUID_DRUIDIC_GRANTED_SPELL_IDS_2024];
@@ -9512,6 +9541,36 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
           proficiencyBonus,
           limits,
           allowedClassIds: ["clerigo"],
+        });
+        if (source) sources.push(source);
+      }
+
+      if (featId === "guerreiro-druidico") {
+        const ability = "sab";
+        const limits = {
+          level: 1,
+          sourceClassId: "druida",
+          ability,
+          abilityMod: getAbilityModifierValue(ability),
+          selectionLabel: "Truques de druida",
+          cantripLimit: 2,
+          spellLimit: 0,
+          restrictedSchools: [],
+          flexibleSpellAllowance: 0,
+          slots: [],
+          maxSpellLevel: 0,
+          pactSlots: 0,
+          pactSlotLevel: 0,
+        };
+        const source = buildFeatSpellSource2024({
+          entry,
+          sourceKey: `feat:${slotKey}:druidic-warrior`,
+          classLabel: featLabel,
+          detailLabel: `${featLabel} (Druida)`,
+          ability,
+          proficiencyBonus,
+          limits,
+          allowedClassIds: ["druida"],
         });
         if (source) sources.push(source);
       }
