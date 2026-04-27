@@ -23,18 +23,19 @@ export const FEATURE_SUMMARIES_2024 = {
       "Campeão Primal": "Força e Constituição aumentam em 4, até o máximo de 25."
     },
     "bardo": {
-      "Inspiração de Bardo": "Concede dados de inspiração que aliados podem gastar para transformar falhas em sucessos.",
-      "Conjuração": "Conjura magias usando Carisma e uma lista preparada de magias de bardo.",
-      "Especialista": "Recebe Especialização em perícias selecionadas.",
-      "Pau pra Toda Obra": "Adiciona metade da proficiência em testes sem proficiência.",
+      "Inspiração de Bardo": "Ação bônus para inspirar outra criatura a até 18 m; em até 1 hora, ela pode rolar o dado após falhar em um teste de d20 e somar ao resultado.",
+      "Conjuração": "Prepara magias de bardo usando Carisma, recupera espaços com descanso longo e pode usar instrumento musical como foco de conjuração.",
+      "Especialista": "Recebe Especialização em duas perícias nas quais tenha proficiência.",
+      "Pau pra Toda Obra": "Adiciona metade do bônus de proficiência, arredondado para baixo, a testes de atributo que usam uma perícia em que você não tenha proficiência.",
       "Subclasse de Bardo": "Escolhe um colégio bárdico que define seu estilo de atuação e combate.",
       "Aumento no Valor de Atributo": "Recebe Aumento no Valor de Atributo ou outro talento para o qual se qualifique.",
-      "Fonte de Inspiração": "Recupera Inspiração de Bardo com mais facilidade.",
-      "Contra-Encantamento": "Usa sua arte para resistir a manipulações sobrenaturais.",
-      "Segredos Mágicos": "Aprende magias adicionais que ampliam sua versatilidade mágica.",
-      "Inspiração Superior": "Sua inspiração se torna ainda mais constante.",
+      "Fonte de Inspiração": "Recupera todos os usos de Inspiração de Bardo em descanso curto ou longo; também pode gastar um espaço de magia sem ação para recuperar um uso.",
+      "Contra-Encantamento": "Reação quando você ou criatura a até 9 m falha em salvaguarda contra Enfeitiçado ou Amedrontado; a salvaguarda é refeita com Vantagem.",
+      "Especialista Adicional": "Recebe Especialização em mais duas perícias nas quais tenha proficiência.",
+      "Segredos Mágicos": "A partir do 10º nível, novas magias preparadas e substituições podem vir das listas de bardo, clérigo, druida ou mago.",
+      "Inspiração Superior": "Ao rolar Iniciativa, recupera usos de Inspiração de Bardo até ficar com dois se tiver menos que isso.",
       "Dádiva Épica": "Recebe uma Dádiva Épica ou outro talento elegível.",
-      "Palavras de Criação": "Sua conexão com a música das origens alcança o auge."
+      "Palavras de Criação": "Sempre tem Palavra de Poder: Salvar e Palavra de Poder: Matar preparadas; ao conjurar uma delas, pode afetar um segundo alvo a até 3 m do primeiro."
     },
     "bruxo": {
       "Invocações Místicas": "Aprende invocações permanentes que personalizam profundamente sua magia.",
@@ -228,28 +229,28 @@ export const FEATURE_SUMMARIES_2024 = {
       "Fúria dos Deuses": "Uma vez por descanso longo, ao ativar Fúria assume forma divina por 1 minuto: voo, pairar, resistência a necrótico, psíquico e radiante, e reação para salvar criatura a 0 PV."
     },
     "bardo-bravura": {
-      "Inspiração em Combate": "Quando a criatura é atingida por uma jogada de ataque, pode executar a própria Reação para jogar o dado da Inspiração de Bardo e adicionar o resultado jogado à própria CA contra aquele ataque, potencialmente fazendo com que o ataque erre",
-      "Treinamento Marcial": "Ganha proficiência com armas Marciais, armaduras Médias e treinamento com Escudos",
-      "Ataque Extra": "Pode atacar duas vezes, em vez de uma, sempre que executar a ação Atacar no seu turno",
-      "Magia de Batalha": "Após conjurar uma magia que tenha um tempo de conjuração de uma ação, você pode realizar um ataque com uma arma como uma Ação Bônus"
+      "Inspiração em Combate": "Uma criatura com sua Inspiração de Bardo pode somar o dado à CA como Reação contra um ataque ou ao dano logo após acertar um ataque.",
+      "Treinamento Marcial": "Ganha proficiência com armas marciais, armaduras médias e escudos; pode usar arma simples ou marcial como foco para magias de bardo.",
+      "Ataque Extra": "Ataca duas vezes ao usar a ação Atacar e pode substituir um desses ataques por um truque de tempo de conjuração de uma ação.",
+      "Magia de Batalha": "Após conjurar uma magia com tempo de conjuração de uma ação, pode fazer um ataque com arma como ação bônus."
     },
     "bardo-danca": {
-      "Ginga Fascinante": "Quando você causar dano com um Ataque Desarmado, pode causar dano Contundente igual ao resultado do dado da sua Inspiração de Bardo mais seu modificador de Destreza, em vez do dano normal do ataque",
-      "Gingado Coordenado": "Ao jogar Iniciativa, você pode gastar um uso da sua Inspiração de Bardo se não estiver com a condição Incapacitado",
-      "Movimento Inspirador": "Quando um inimigo à sua vista encerra o turno dele a até 1,5 metro de você, você pode executar uma Reação e gastar um uso da sua Inspiração de Bardo para se mover até metade do seu Deslocamento",
-      "Evasão Liderada": "Se você for alvo de um efeito que permita uma salvaguarda de Destreza para receber apenas metade do dano, você não recebe dano algum se for bem-sucedido e apenas metade se falhar"
+      "Jogo de Pés Deslumbrante": "Sem armadura nem escudo, ganha Vantagem em Performance de dança, CA 10 + DES + CAR, ataques desarmados com DES e dano igual ao dado de Inspiração de Bardo + DES; ao gastar Inspiração, pode fazer um Ataque Desarmado junto.",
+      "Gingado Coordenado": "Ao rolar Iniciativa, pode gastar Inspiração de Bardo para somar o dado à Iniciativa de você e aliados a até 9 m que vejam ou ouçam você.",
+      "Movimento Inspirador": "Quando inimigo visível termina o turno a até 1,5 m, usa Reação e Inspiração para mover metade do deslocamento; um aliado a até 9 m também pode mover metade com Reação, sem ataques de oportunidade.",
+      "Evasão Liderada": "Em salvaguardas de Destreza para metade do dano, sofre nenhum dano em sucesso e metade em falha; pode compartilhar o benefício com criaturas a até 1,5 m na mesma salvaguarda."
     },
     "bardo-conhecimento": {
-      "Palavras de Interrupção": "Quando uma criatura à sua vista a até 18 metros de você realizar uma jogada de dano, ou for bem-sucedida em um teste de atributo ou jogada de ataque, você pode executar uma Reação para gastar um uso da sua Inspiração de Bardo",
-      "Proficiências Bônus": "Ganha proficiência em três perícias à sua escolha",
-      "Descobertas Mágicas": "Você aprende duas magias à sua escolha",
-      "Perícia Inigualável": "Quando você realizar um teste de atributo ou uma jogada de ataque e falhar, pode gastar um uso da Inspiração de Bardo; jogue o dado da Inspiração de Bardo e adicione o resultado jogado ao d20, transformando potencialmente a falha em sucesso"
+      "Palavras Cortantes": "Reação para gastar Inspiração de Bardo e subtrair o dado de uma jogada de dano, teste bem-sucedido ou ataque bem-sucedido de criatura visível a até 18 m.",
+      "Proficiências Bônus": "Ganha proficiência em três perícias à sua escolha.",
+      "Descobertas Mágicas": "Aprende duas magias de clérigo, druida ou mago, incluindo truques ou magias para as quais tenha espaços; elas ficam sempre preparadas.",
+      "Perícia Inigualável": "Quando falha em teste de atributo ou ataque, pode gastar Inspiração de Bardo e somar o dado ao d20; se ainda falhar, o uso não é gasto."
     },
     "bardo-glamour": {
-      "Magia Fascinante": "Após conjurar Encantamento ou Ilusão com espaço de magia, tenta fascinar um alvo próximo.",
-      "Manto de Inspiração": "Como um Ação Bônus, você pode usar uma das suas Inspirações de Bardo, jogando um dado de Inspiração de Bardo",
-      "Manto de Majestade": "Ação bônus para conjurar Comando sem gastar um espaço de magia e assumir uma aparência sobrenatural por 1 minuto ou até que sua Concentração se quebre",
-      "Majestade Inquebrável": "Ação bônus para assumir uma presença majestosamente mágica por 1 minuto ou até que tenha a condição Incapacitado"
+      "Magia Fascinante": "Sempre prepara Enfeitiçar Pessoa e Reflexos; após conjurar Encantamento ou Ilusão com espaço, pode forçar uma criatura a até 18 m a ficar Enfeitiçada ou Amedrontada, recarregando com descanso longo ou Inspiração de Bardo.",
+      "Manto de Inspiração": "Ação bônus: gasta Inspiração, rola o dado e escolhe até CAR criaturas a até 18 m; cada uma ganha PV temporários iguais ao dobro do dado e pode mover seu deslocamento com Reação sem ataques de oportunidade.",
+      "Manto de Majestade": "Sempre prepara Comando; como ação bônus, conjura Comando sem espaço e, por 1 minuto com Concentração, pode repetir Comando como ação bônus; alvos Enfeitiçados por você falham automaticamente.",
+      "Majestade Inquebrável": "Ação bônus para assumir presença majestosa por 1 minuto; a primeira criatura que acertar você em cada turno deve passar em salvaguarda de Carisma ou o ataque erra."
     },
     "bruxo-arquifada": {
       "Magias de Pacto da Arquifada": "A magia do seu patrono assegura que você sempre tenha algumas magias disponíveis; ao atingir um nível de Bruxo indicado na tabela Magias da Arquifada, você sempre tem essas magias preparadas",

@@ -66,6 +66,13 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     rageDamage: [0, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4],
     weaponMastery: [0, 2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
   };
+  const BARD_BARDIC_DIE_BY_LEVEL_2024 = [0, 6, 6, 6, 6, 8, 8, 8, 8, 8, 10, 10, 10, 10, 10, 12, 12, 12, 12, 12, 12];
+  const BARD_MAGICAL_SECRETS_CLASS_IDS_2024 = ["bardo", "clerigo", "druida", "mago"];
+  const BARD_WORDS_OF_CREATION_SPELL_IDS_2024 = ["palavra-do-poder-cura", "palavra-do-poder-matar"];
+  const BARD_GLAMOUR_GRANTED_SPELL_IDS_2024 = {
+    3: ["enfeiticar-pessoa", "reflexos"],
+    6: ["comando"],
+  };
   const XP_BY_LEVEL_2024 = [
     0,
     0,
@@ -626,7 +633,7 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     ["ferramentas-de-artesao-um", "1 ferramenta de artesão à escolha"],
     ["instrumento-musical-um", "1 instrumento musical à escolha"],
     ["kit-de-jogos-um", "1 jogo à escolha"],
-    ["instrumentos-musicais", "Instrumentos musicais"],
+    ["instrumentos-musicais", "3 instrumentos musicais à escolha"],
   ]);
 
   Object.values(EQUIPMENT_OPTION_LISTS || {}).forEach((group) => {
@@ -1416,6 +1423,15 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
       const rageDamage = BARBARIAN_PROGRESSION_2024.rageDamage[level] || 0;
       const masteries = BARBARIAN_PROGRESSION_2024.weaponMastery[level] || 0;
       return `Fúrias: ${rages}. Dano de Fúria: +${rageDamage}. Maestrias de arma: ${masteries}.`;
+    }
+    if (classId === "bardo") {
+      const bardRule = SPELLCASTING_RULES_2024.bardo || {};
+      const bardicDie = BARD_BARDIC_DIE_BY_LEVEL_2024[level] || 6;
+      const cantrips = Number(bardRule.cantripsByLevel?.[level] || 0);
+      const prepared = Number(bardRule.preparedByLevel?.[level] || 0);
+      const recharge = level >= 5 ? "descanso curto ou longo" : "descanso longo";
+      const magicalSecrets = level >= 10 ? " Segredos Mágicos: listas de bardo, clérigo, druida e mago." : "";
+      return `Inspiração de Bardo: d${bardicDie} (usos = mod. CAR, mínimo 1; recarga em ${recharge}). Truques: ${cantrips}. Magias preparadas: ${prepared}.${magicalSecrets}`;
     }
     return "";
   }
@@ -8785,6 +8801,7 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     const dexMod = getAbilityModifier(scores.des);
     const conMod = getAbilityModifier(scores.con);
     const wisMod = getAbilityModifier(scores.sab);
+    const chaMod = getAbilityModifier(scores.car);
     const armorItems = getSelectedArmorItems2024(cls);
     const chosenFeatIds = new Set(getActiveChosenFeatIds2024());
     const shieldBonus = armorItems
@@ -8792,7 +8809,11 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
       .reduce((total, armor) => total + Number(armor?.bonusCA || 0), 0);
     const isWearingArmor = armorItems.some((armor) => armor?.categoria && armor.categoria !== "escudo");
     const baseArmorOptions = [10 + dexMod];
-    const firstUnarmoredDefenseEntry = classEntries.find((entry) => entry.classId === "barbaro" || entry.classId === "monge");
+    const firstUnarmoredDefenseEntry = classEntries.find((entry) =>
+      entry.classId === "barbaro"
+      || entry.classId === "monge"
+      || (entry.classId === "bardo" && entry.subclassId === "bardo-danca" && entry.level >= 3)
+    );
 
     if (!isWearingArmor && firstUnarmoredDefenseEntry?.classId === "barbaro") {
       baseArmorOptions.push(10 + dexMod + conMod);
@@ -8800,6 +8821,10 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
 
     if (!isWearingArmor && firstUnarmoredDefenseEntry?.classId === "monge" && !shieldBonus) {
       baseArmorOptions.push(10 + dexMod + wisMod);
+    }
+
+    if (!isWearingArmor && firstUnarmoredDefenseEntry?.subclassId === "bardo-danca" && !shieldBonus) {
+      baseArmorOptions.push(10 + dexMod + chaMod);
     }
 
     armorItems
@@ -8895,7 +8920,25 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
 
     const classRule = SPELLCASTING_RULES_2024[entry.classId];
     if (classRule && entry.level >= (classRule.minLevel || 1)) {
-      return { ...classRule, sourceKey: entry.classId };
+      const config = { ...classRule, sourceKey: entry.classId };
+      if (entry.classId === "bardo") {
+        const grantedSpellIds = [];
+        if (entry.level >= 20) {
+          grantedSpellIds.push(...BARD_WORDS_OF_CREATION_SPELL_IDS_2024);
+        }
+        if (entry.subclassId === "bardo-glamour") {
+          Object.entries(BARD_GLAMOUR_GRANTED_SPELL_IDS_2024).forEach(([requiredLevel, spellIds]) => {
+            if (entry.level >= Number(requiredLevel)) grantedSpellIds.push(...spellIds);
+          });
+        }
+        if (grantedSpellIds.length) {
+          config.grantedSpellIds = Array.from(new Set([...(config.grantedSpellIds || []), ...grantedSpellIds]));
+        }
+        if (entry.level >= 10) {
+          config.allowedClassIds = BARD_MAGICAL_SECRETS_CLASS_IDS_2024;
+        }
+      }
+      return config;
     }
 
     return null;
@@ -8979,6 +9022,7 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
       abilityLabel: formatAbilityLabel(config?.ability),
       spellSaveDC: 8 + proficiencyBonus + limits.abilityMod,
       spellAttackBonus: proficiencyBonus + limits.abilityMod,
+      grantedSpellIds: Array.from(new Set(config?.grantedSpellIds || [])),
     };
   }
 

@@ -67,7 +67,7 @@ const SUBCLASS_LIST = [
   subclass(
     "bardo-bravura",
     "bardo",
-    "Colégio da Bravura",
+    "Colégio do Valor",
     3,
     "Bardos heroicos que inspiram feitos grandiosos e lutam ao lado dos aliados.",
     {
@@ -83,7 +83,7 @@ const SUBCLASS_LIST = [
     3,
     "Transforma movimento, graça e ritmo em magia e mobilidade ofensiva.",
     {
-      3: [feature("Ginga Fascinante")],
+      3: [feature("Jogo de Pés Deslumbrante")],
       6: [feature("Gingado Coordenado"), feature("Movimento Inspirador")],
       14: [feature("Evasão Liderada")],
     }
@@ -95,7 +95,7 @@ const SUBCLASS_LIST = [
     3,
     "Mestres da tradição e da versatilidade que interrompem, estudam e roubam segredos mágicos.",
     {
-      3: [feature("Palavras de Interrupção"), feature("Proficiências Bônus")],
+      3: [feature("Palavras Cortantes"), feature("Proficiências Bônus")],
       6: [feature("Descobertas Mágicas")],
       14: [feature("Perícia Inigualável")],
     }

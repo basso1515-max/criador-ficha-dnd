@@ -2411,6 +2411,7 @@ export const MAGIAS = {
         "componentesDetalhe": "",
         "duracao": "1 turno",
         "classes": [
+          "bardo",
           "clerigo",
           "paladino"
         ],
