@@ -15822,7 +15822,7 @@ function patchSpell2024(spellId, patch) {
   {
     id: "golpe-do-vento-de-aco",
     patch: {
-      nome: "Golpe de Arço",
+      nome: "Golpe do Vento de Aço",
       fonte: "PHB24",
       pagina: 287
     }

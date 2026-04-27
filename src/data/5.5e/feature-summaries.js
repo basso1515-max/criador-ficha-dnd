@@ -49,17 +49,17 @@ export const FEATURE_SUMMARIES_2024 = {
       "Mestre Místico": "Extrai o máximo de suas invocações e da Magia de Pacto."
     },
     "clerigo": {
-      "Conjuração": "Conjura magias divinas usando Sabedoria e prepara milagres diariamente.",
-      "Ordem Divina": "Escolhe uma ordem que orienta seu papel entre devoção, erudição e combate.",
-      "Canalizar Divindade": "Canaliza energia sagrada para efeitos únicos de classe e subclasse.",
-      "Subclasse de Clérigo": "Escolhe um domínio divino que amplia suas magias e poderes.",
+      "Conjuração": "Conjura magias de clérigo usando Sabedoria; começa com 3 truques e 4 magias preparadas, aumentando conforme a tabela 2024.",
+      "Ordem Divina": "Escolhe Protetor para armas marciais e armadura pesada ou Taumaturgo para truque extra e bônus de Sabedoria em Arcana ou Religião.",
+      "Canalizar Divindade": "Começa com Centelha Divina e Expulsar Mortos-Vivos; usos são 2, sobem para 3 no nível 6 e para 4 no nível 18.",
+      "Subclasse de Clérigo": "Escolhe um domínio divino; suas magias de domínio ficam sempre preparadas e não contam contra o limite.",
       "Aumento no Valor de Atributo": "Recebe Aumento no Valor de Atributo ou outro talento para o qual se qualifique.",
-      "Fulminar Mortos-Vivos": "Sua energia sagrada passa a destruir mortos-vivos debilitados.",
-      "Golpes Abençoados": "Seus ataques e truques recebem reforço divino.",
-      "Intervenção Divina": "Implora assistência direta da sua divindade ou força sagrada.",
-      "Golpes Abençoados Aprimorados": "Seu reforço ofensivo divino fica mais poderoso.",
+      "Fulminar Mortos-Vivos": "Ao usar Expulsar Mortos-Vivos, mortos-vivos que falham sofrem dano radiante igual a dados d8 em número igual ao modificador de Sabedoria, mínimo 1d8.",
+      "Golpes Abençoados": "Escolhe Golpe Divino para +1d8 necrótico ou radiante com arma, ou Conjuração Potente para somar Sabedoria ao dano de truques de clérigo.",
+      "Intervenção Divina": "Como ação Usar Magia, conjura uma magia de clérigo de até 5º círculo sem gastar espaço nem componentes materiais uma vez por descanso longo.",
+      "Golpes Abençoados Aprimorados": "Golpe Divino aumenta para 2d8; Conjuração Potente pode conceder PV temporários iguais ao dobro do modificador de Sabedoria.",
       "Dádiva Épica": "Recebe uma Dádiva Épica ou outro talento elegível.",
-      "Intervenção Divina Maior": "Sua capacidade de pedir milagres alcança o auge."
+      "Intervenção Divina Maior": "Intervenção Divina pode escolher Desejo; ao fazê-lo, a característica só retorna após 2d4 descansos longos."
     },
     "druida": {
       "Conjuração": "Conjura magias primais usando Sabedoria.",
@@ -283,32 +283,32 @@ export const FEATURE_SUMMARIES_2024 = {
       "Lançar no Inferno": "O alvo deve ser bem-sucedido em uma salvaguarda de Carisma contra a CD para evitar sua magia, ou ele desaparece e atravessa uma paisagem de pesadelo"
     },
     "clerigo-guerra": {
-      "Magias de Domínio da Guerra": "Ao atingir um nível de Clérigo especificado na tabela Magias de Domínio da Guerra, você sempre tem as magias listadas preparadas",
-      "Ataque Direcionado": "Quando você ou uma criatura a até 9 metros de você erra uma jogada de ataque, você pode gastar um uso de seu Canalizar Divindade e dar a essa jogada um Um Clérigo reza pelas magias diárias",
-      "Sacerdote da Guerra": "Ação bônus para realizar um ataque com uma arma ou um Ataque Desarmado",
-      "Bênção do Deus da Guerra": "Pode gastar um uso de seu Canalizar Divindade para conjurar Arma Espiritual ou Escudo da Fé em vez de gastar um espaço de magia",
-      "Avatar da Guerra": "Ganha Resistência a dano Contundente, Cortante e Perfurante"
+      "Magias de Domínio da Guerra": "Sempre tem preparadas as magias do domínio: Raio Guia, Arma Mágica, Escudo da Fé, Arma Espiritual e as demais liberadas nos níveis 5, 7 e 9.",
+      "Ataque Direcionado": "Quando você ou uma criatura a até 9 m erra uma jogada de ataque, gasta Canalizar Divindade para dar +10 ao resultado; para beneficiar outra criatura, usa Reação.",
+      "Sacerdote da Guerra": "Como ação bônus, faz um ataque com arma ou Ataque Desarmado; usos iguais ao modificador de Sabedoria, mínimo 1, recuperados em descanso curto ou longo.",
+      "Bênção do Deus da Guerra": "Gasta Canalizar Divindade para conjurar Arma Espiritual ou Escudo da Fé sem espaço; a magia não exige Concentração e dura 1 minuto.",
+      "Avatar da Guerra": "Ganha Resistência a dano Contundente, Cortante e Perfurante."
     },
     "clerigo-luz": {
-      "Brilho do Amanhecer": "Como uma ação Usar Magia, você ergue seu Símbolo Sagrado e gasta o uso de seu Canalizar Divindade para emitir um feixe de luz em uma Emanação de 9 metros originada em você",
-      "Labareda Protetora": "Quando uma criatura à sua vista a até 9 metros de você realiza uma jogada de ataque, você pode executar uma Reação para impor Desvantagem na jogada de ataque, fazendo com que a luz brilhe antes de acertar ou errar",
-      "Magias de Domínio da Luz": "Ao atingir um nível de Clérigo especificado na tabela Magias de Domínio da Luz, você sempre tem as magias listadas preparadas",
-      "Labareda Protetora Aprimorada": "Além disso, sempre que usar Labareda Protetora, você pode conceder ao alvo do ataque desencadeado um número de PV Temporários igual a 2d6 mais seu modificador de Sabedoria",
-      "Coroa de Luz": "Como uma ação Usar Magia, você emite uma aura de luz solar que dura 1 minuto ou até que você a encerre (nenhuma ação é necessária)"
+      "Brilho do Amanhecer": "Como ação Usar Magia, gasta Canalizar Divindade para dissipar Escuridão mágica em emanação de 9 m e causar 2d10 + nível de clérigo de dano radiante, Con reduz à metade.",
+      "Labareda Protetora": "Quando uma criatura visível a até 9 m faz uma jogada de ataque, usa Reação para impor Desvantagem; usos iguais ao modificador de Sabedoria, mínimo 1, por descanso longo.",
+      "Magias de Domínio da Luz": "Sempre tem preparadas as magias do domínio: Mãos Flamejantes, Fogo Feérico, Raio Ardente, Ver Invisibilidade e as demais liberadas nos níveis 5, 7 e 9.",
+      "Labareda Protetora Aprimorada": "Recupera Labareda Protetora em descanso curto ou longo; ao usá-la, pode dar 2d6 + Sabedoria PV temporários ao alvo do ataque.",
+      "Coroa de Luz": "Como ação Usar Magia, emite luz solar por 1 minuto; inimigos na luz plena têm Desvantagem contra Brilho do Amanhecer e magias de fogo ou radiante."
     },
     "clerigo-enganacao": {
-      "Magias de Domínio da Trapaça": "Ao atingir um nível de Clérigo especificado na tabela Magias de Domínio da Trapaça, você sempre tem as magias listadas preparadas",
-      "Bênção do Trapaceiro": "Com uma ação Usar Magia, você pode escolher a si ou a uma criatura voluntária a até 9 metros de você para ter Vantagem em testes de Destreza (Furtividade)",
-      "Invocar Duplicidade": "Ação bônus para gastar um uso de seu Canalizar Divindade para criar uma ilusão visual perfeita de si em um espaço desocupado à sua vista a até 9 metros de si",
-      "Transposição do Trapaceiro": "Ao executar a Ação Bônus para criar ou mover a ilusão de seu Invocar Duplicidade, você pode se teleportar, trocando de lugar com a ilusão",
-      "Duplicidade Aprimorada": "Quando você e seus aliados realizam jogadas de ataque contra uma criatura a até 1,5 metro da ilusão, as jogadas de ataque têm Vantagem"
+      "Magias de Domínio da Trapaça": "Sempre tem preparadas as magias do domínio: Enfeitiçar Pessoa, Disfarçar-se, Invisibilidade, Passo Sem Rastro e as demais liberadas nos níveis 5, 7 e 9.",
+      "Bênção do Trapaceiro": "Como ação Usar Magia, você ou uma criatura voluntária a até 9 m ganha Vantagem em Furtividade até seu próximo descanso longo ou até usar a bênção de novo.",
+      "Invocar Duplicidade": "Como ação bônus, gasta Canalizar Divindade para criar uma ilusão por 1 minuto; pode conjurar como se estivesse no espaço dela, ganhar Vantagem contra alvos distraídos e movê-la 9 m.",
+      "Transposição do Trapaceiro": "Sempre que cria ou move a ilusão de Invocar Duplicidade com ação bônus, pode se teleportar trocando de lugar com ela.",
+      "Duplicidade Aprimorada": "Ataques seus e de aliados têm Vantagem contra criaturas a até 1,5 m da ilusão; quando a ilusão termina, você ou uma criatura próxima recupera PV iguais ao nível de clérigo."
     },
     "clerigo-vida": {
-      "Magias de Domínio da Vida": "Ao atingir um nível de Clérigo especificado na tabela Magias de Domínio da Vida, você sempre tem as magias listadas preparadas",
-      "Discípulo da Vida": "Ao conjurar uma magia com um espaço de magia que restaura PV em uma criatura, essa criatura recupera PV adicionais no turno da conjuração",
-      "Preservar a Vida": "Com uma ação Usar Magia, você exibe seu Símbolo Sagrado e usa seu Canalizar Divindade para evocar uma energia de cura que pode restaurar um número de PV igual a cinco vezes seu nível de Clérigo",
-      "Curandeiro Abençoado": "Magias de cura que você conjurar nos outros também o curam",
-      "Cura Suprema": "Ao usar uma magia ou Canalizar Divindade para restaurar PV em uma criatura, não jogue os dados normalmente; em vez disso, utilize o maior resultado de cada dado"
+      "Magias de Domínio da Vida": "Sempre tem preparadas as magias do domínio: Ajuda, Bênção, Curar Ferimentos, Restauração Menor e as demais liberadas nos níveis 5, 7 e 9.",
+      "Discípulo da Vida": "Quando uma magia com espaço restaura PV, a criatura recupera PV adicionais iguais a 2 + o círculo do espaço usado.",
+      "Preservar a Vida": "Como ação Usar Magia, gasta Canalizar Divindade para distribuir cura igual a 5 vezes seu nível de clérigo entre criaturas Sangrando a até 9 m, sem passar de metade dos PV máximos.",
+      "Curandeiro Abençoado": "Depois de conjurar com espaço uma magia que cure outra criatura, você recupera PV iguais a 2 + o círculo do espaço usado.",
+      "Cura Suprema": "Quando uma magia ou Canalizar Divindade restauraria PV com dados, usa o maior resultado possível em cada dado."
     },
     "druida-lua": {
       "Formas Animais dos Círculos Druídicos": "Pode canalizar a magia lunar ao assumir uma Forma Selvagem, obtendo os seguintes benefícios",

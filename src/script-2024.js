@@ -73,6 +73,33 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     3: ["enfeiticar-pessoa", "reflexos"],
     6: ["comando"],
   };
+  const CLERIC_CHANNEL_DIVINITY_BY_LEVEL_2024 = [0, 0, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4];
+  const CLERIC_DOMAIN_GRANTED_SPELL_IDS_2024 = {
+    "clerigo-guerra": {
+      3: ["disparo-guia", "arma-magica", "escudo-da-fe", "arma-espiritual"],
+      5: ["manto-do-cruzado", "guardioes-espirituais"],
+      7: ["escudo-de-fogo", "movimento-livre"],
+      9: ["imobilizar-monstro", "golpe-do-vento-de-aco"],
+    },
+    "clerigo-luz": {
+      3: ["maos-flamejantes", "fogo-feerico", "raio-ardente", "ver-invisibilidade"],
+      5: ["luz-do-dia", "bola-de-fogo"],
+      7: ["olho-arcano", "muralha-de-fogo"],
+      9: ["golpe-de-chama", "espionagem"],
+    },
+    "clerigo-enganacao": {
+      3: ["enfeiticar-pessoa", "disfarçar-se", "invisibilidade", "passos-sem-pegadas"],
+      5: ["padrao-hipnotico", "antideteccao"],
+      7: ["confusao", "porta-dimensional"],
+      9: ["dominar-pessoa", "modificar-memoria"],
+    },
+    "clerigo-vida": {
+      3: ["ajuda", "bencao", "curar-ferimentos", "restauracao-menor"],
+      5: ["palavra-de-cura-em-massa", "revificar"],
+      7: ["aura-da-vida", "protecao-contra-morte"],
+      9: ["restauracao-maior", "curar-ferimentos-em-massa"],
+    },
+  };
   const XP_BY_LEVEL_2024 = [
     0,
     0,
@@ -1432,6 +1459,14 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
       const recharge = level >= 5 ? "descanso curto ou longo" : "descanso longo";
       const magicalSecrets = level >= 10 ? " Segredos Mágicos: listas de bardo, clérigo, druida e mago." : "";
       return `Inspiração de Bardo: d${bardicDie} (usos = mod. CAR, mínimo 1; recarga em ${recharge}). Truques: ${cantrips}. Magias preparadas: ${prepared}.${magicalSecrets}`;
+    }
+    if (classId === "clerigo") {
+      const clericRule = SPELLCASTING_RULES_2024.clerigo || {};
+      const channelDivinity = CLERIC_CHANNEL_DIVINITY_BY_LEVEL_2024[level] || 0;
+      const cantrips = Number(clericRule.cantripsByLevel?.[level] || 0);
+      const prepared = Number(clericRule.preparedByLevel?.[level] || 0);
+      const channelText = channelDivinity ? String(channelDivinity) : "—";
+      return `Canalizar Divindade: ${channelText}. Truques: ${cantrips}. Magias preparadas: ${prepared}.`;
     }
     return "";
   }
@@ -8910,6 +8945,22 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     }
   }
 
+  function collectGrantedSpellIdsByLevel2024(definition, level) {
+    const grantedSpellIds = [];
+    Object.entries(definition || {}).forEach(([requiredLevel, spellIds]) => {
+      if (level >= Number(requiredLevel)) grantedSpellIds.push(...spellIds);
+    });
+    return Array.from(new Set(grantedSpellIds));
+  }
+
+  function mergeGrantedSpellIdsIntoConfig2024(config, spellIds = []) {
+    const grantedSpellIds = Array.from(new Set((spellIds || []).filter(Boolean)));
+    if (!grantedSpellIds.length) return config;
+    config.grantedSpellIds = Array.from(new Set([...(config.grantedSpellIds || []), ...grantedSpellIds]));
+    config.allowedSpellIds = Array.from(new Set([...(config.allowedSpellIds || []), ...grantedSpellIds]));
+    return config;
+  }
+
   function getSpellcastingConfigForEntry2024(entry) {
     if (!entry?.classData || !entry.level) return null;
 
@@ -8931,12 +8982,16 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
             if (entry.level >= Number(requiredLevel)) grantedSpellIds.push(...spellIds);
           });
         }
-        if (grantedSpellIds.length) {
-          config.grantedSpellIds = Array.from(new Set([...(config.grantedSpellIds || []), ...grantedSpellIds]));
-        }
+        mergeGrantedSpellIdsIntoConfig2024(config, grantedSpellIds);
         if (entry.level >= 10) {
           config.allowedClassIds = BARD_MAGICAL_SECRETS_CLASS_IDS_2024;
         }
+      }
+      if (entry.classId === "clerigo" && entry.subclassId) {
+        mergeGrantedSpellIdsIntoConfig2024(
+          config,
+          collectGrantedSpellIdsByLevel2024(CLERIC_DOMAIN_GRANTED_SPELL_IDS_2024[entry.subclassId], entry.level)
+        );
       }
       return config;
     }

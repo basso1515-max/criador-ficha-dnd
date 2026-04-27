@@ -91,7 +91,7 @@ export const CLASS_EQUIPMENT_RULES = {
     packageOption("b", "Pacote B", "100 PO")
   ),
   clerigo: packageOptions(
-    packageOption("a", "Pacote A", "Meia-armadura, escudo, maça, símbolo sagrado, kit de sacerdote e 7 PO"),
+    packageOption("a", "Pacote A", "Camisão de malha, escudo, maça, símbolo sagrado, kit de sacerdote e 7 PO"),
     packageOption("b", "Pacote B", "110 PO")
   ),
   druida: packageOptions(
