@@ -595,10 +595,13 @@ const SUBCLASS_LIST = [
     3,
     "Converte fé inabalável em proteção, luz sagrada e firmeza exemplar contra o mal.",
     {
-      3: [feature("Magias do Juramento"), feature("Arma Sagrada"), feature("Expulsar o Profano")],
-      7: [feature("Aura de Devoção")],
-      15: [feature("Destruição Protetora", "Quando usa Destruição Divina, concede cobertura defensiva sagrada a aliados próximos.")],
-      20: [feature("Nimbo Sagrado")],
+      3: [
+        feature("Magias do Juramento", "Sempre deixa preparadas magias específicas da Devoção conforme o nível de Paladino."),
+        feature("Arma Sagrada", "Ao tomar a ação Atacar, gasta Canalizar Divindade para somar Carisma aos ataques de uma arma corpo a corpo e permitir dano Radiante."),
+      ],
+      7: [feature("Aura de Devoção", "Você e aliados na Aura de Proteção têm Imunidade a Enfeitiçado.")],
+      15: [feature("Destruição Protetora", "Quando conjura Destruição Divina, você e aliados na Aura de Proteção recebem meia cobertura até o início do seu próximo turno.")],
+      20: [feature("Nimbo Sagrado", "Como ação bônus, fortalece a Aura de Proteção por 10 minutos com luz solar, dano Radiante e Vantagem contra ínferos e mortos-vivos.")],
     }
   ),
   subclass(

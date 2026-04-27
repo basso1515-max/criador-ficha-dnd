@@ -29,6 +29,8 @@ const FIGHTING_STYLE_CHOICES = [
   "protetivo",
 ];
 
+const PALADIN_FIGHTING_STYLE_CHOICES = [...FIGHTING_STYLE_CHOICES, "guerreiro-abencoado"];
+
 export const CLASSES = {
   barbaro: {
     id: "barbaro",
@@ -553,35 +555,35 @@ export const CLASSES = {
       { grupo: "A", descr: "Cota de malha, escudo, espada longa, 6 azagaias, símbolo sagrado, kit de sacerdote e 9 PO", armaduras: ["cota-de-malha", "escudo"], armas: ["espada-longa", "azagaia", "azagaia", "azagaia", "azagaia", "azagaia", "azagaia"] },
       { grupo: "B", descr: "150 PO", armas: [] },
     ],
-    escolhas: { estilosLuta: FIGHTING_STYLE_CHOICES, talentosSugestao: ["mestre-em-escudos", "lider-inspirador"] },
+    escolhas: { estilosLuta: PALADIN_FIGHTING_STYLE_CHOICES, talentosSugestao: ["mestre-em-escudos", "lider-inspirador"] },
     features: {
       1: [
-        feature("Conjuração", "Conjura magias sagradas usando Carisma."),
-        feature("Maestria em Arma", "Domina propriedades de maestria com armas de sua escolha."),
-        feature("Mãos Consagradas", "Canaliza poder restaurador e purificador pelo toque."),
+        feature("Conjuração", "Prepara magias de Paladino usando Carisma e recupera espaços em descanso longo; símbolo sagrado pode servir como foco."),
+        feature("Maestria em Arma", "Domina as propriedades de maestria de 2 armas proficientes e pode trocá-las ao terminar descanso longo."),
+        feature("Mãos Consagradas", "Como ação bônus, cura com uma reserva de 5 PV por nível de Paladino; 5 PV da reserva removem Envenenado."),
       ],
       2: [
-        feature("Destruição do Paladino", "Converte espaços de magia em dano radiante devastador."),
-        feature("Estilo de Luta", "Escolhe um talento de Estilo de Luta."),
+        feature("Destruição do Paladino", "Sempre tem Destruição Divina preparada e pode conjurá-la uma vez por descanso longo sem gastar espaço de magia."),
+        feature("Estilo de Luta", "Escolhe um talento de Estilo de Luta ou Guerreiro Abençoado para aprender 2 truques de clérigo com Carisma."),
       ],
       3: [
-        feature("Canalizar Divindade", "Usa seu juramento para efeitos sagrados marcantes."),
-        feature("Subclasse de Paladino", "Escolhe um juramento que amplia suas magias e auras."),
+        feature("Canalizar Divindade", "Ganha 2 usos; recupera 1 em descanso curto e todos em descanso longo. Sentido Divino detecta celestiais, ínferos e mortos-vivos por 10 minutos."),
+        feature("Subclasse de Paladino", "Escolhe um juramento que concede magias sempre preparadas e características nos níveis 3, 7, 15 e 20."),
       ],
       4: [feature("Aumento no Valor de Atributo", "Recebe Aumento no Valor de Atributo ou outro talento para o qual se qualifique.")],
       5: [
         feature("Ataque Extra", "Ataca duas vezes ao usar a ação Atacar."),
-        feature("Montaria Fiel", "Consegue invocar ou manter uma montaria sobrenatural."),
+        feature("Montaria Fiel", "Sempre tem Encontrar Montaria preparada e pode conjurá-la uma vez por descanso longo sem gastar espaço de magia."),
       ],
-      6: [feature("Aura de Proteção", "Aliados próximos recebem sua força espiritual nas salvaguardas.")],
+      6: [feature("Aura de Proteção", "Você e aliados emanação de 3 m somam seu modificador de Carisma, mínimo +1, às salvaguardas enquanto você não estiver Incapacitado.")],
       8: [feature("Aumento no Valor de Atributo", "Recebe Aumento no Valor de Atributo ou outro talento para o qual se qualifique.")],
-      9: [feature("Repudiar Inimigos", "Afasta e enfraquece adversários com autoridade sagrada.")],
-      10: [feature("Aura de Coragem", "Você e aliados próximos resistem ao medo.")],
-      11: [feature("Golpes Radiantes", "Seus ataques corpo a corpo irradiam dano sagrado constante.")],
+      9: [feature("Repudiar Inimigos", "Ação mágica com Canalizar Divindade: criaturas à vista até 18 m iguais ao Carisma, mínimo 1, fazem salvaguarda de Sabedoria ou ficam Amedrontadas.")],
+      10: [feature("Aura de Coragem", "Você e aliados na Aura de Proteção têm Imunidade a Amedrontado; a condição não tem efeito enquanto estiverem na aura.")],
+      11: [feature("Golpes Radiantes", "Ao atingir com arma corpo a corpo ou ataque desarmado, causa +1d8 de dano Radiante.")],
       12: [feature("Aumento no Valor de Atributo", "Recebe Aumento no Valor de Atributo ou outro talento para o qual se qualifique.")],
-      14: [feature("Toque Restaurador", "Seu toque remove males e restaura a vitalidade.")],
+      14: [feature("Toque Restaurador", "Ao usar Mãos Consagradas, pode gastar 5 PV da reserva por condição para remover Cego, Enfeitiçado, Surdo, Amedrontado, Paralisado ou Atordoado.")],
       16: [feature("Aumento no Valor de Atributo", "Recebe Aumento no Valor de Atributo ou outro talento para o qual se qualifique.")],
-      18: [feature("Aura Expandida", "O alcance das suas auras aumenta.")],
+      18: [feature("Aura Expandida", "Sua Aura de Proteção aumenta para emanação de 9 m.")],
       19: [feature("Dádiva Épica", "Recebe uma Dádiva Épica ou outro talento elegível.")],
     },
     subclasses: ["paladino-devocao", "paladino-gloria", "paladino-vinganca", "paladino-ancioes"],

@@ -131,6 +131,17 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
       9: ["conjurar-elementais", "imobilizar-monstro"],
     },
   };
+  const PALADIN_CHANNEL_DIVINITY_BY_LEVEL_2024 = [0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3];
+  const PALADIN_DEVOTION_GRANTED_SPELL_IDS_2024 = {
+    3: ["protecao-contra-o-bem-e-o-mal", "escudo-da-fe"],
+    5: ["ajuda", "zona-da-verdade"],
+    9: ["farol-de-esperanca", "dissipar-magia"],
+    13: ["movimento-livre", "guardiao-da-fe"],
+    17: ["comunhao", "golpe-de-chama"],
+  };
+  const PALADIN_OATH_GRANTED_SPELL_IDS_2024 = {
+    "paladino-devocao": PALADIN_DEVOTION_GRANTED_SPELL_IDS_2024,
+  };
   const WARLOCK_ELDRITCH_INVOCATIONS_BY_LEVEL_2024 = [0, 1, 3, 3, 3, 5, 5, 6, 6, 7, 7, 7, 8, 8, 8, 9, 9, 9, 10, 10, 10];
   const WARLOCK_PATRON_GRANTED_SPELL_IDS_2024 = {
     "bruxo-arquifada": {
@@ -1551,6 +1562,15 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
             ? "4 formas conhecidas, ND máx. 1/4, sem voo"
             : "liberada no nível 2";
       return `Forma Selvagem: ${wildShapeUses ? `${wildShapeUses} uso(s)` : "—"}; ${beastShapes}. Truques: ${cantrips}. Magias preparadas: ${prepared}. Falar com Animais sempre preparada.`;
+    }
+    if (classId === "paladino") {
+      const paladinRule = SPELLCASTING_RULES_2024.paladino || {};
+      const prepared = Number(paladinRule.preparedByLevel?.[level] || 0);
+      const channelDivinity = PALADIN_CHANNEL_DIVINITY_BY_LEVEL_2024[level] || 0;
+      const layOnHandsPool = level * 5;
+      const aura = level >= 18 ? "Aura: 9 m" : level >= 6 ? "Aura: 3 m" : "Aura: —";
+      const radiantStrikes = level >= 11 ? " Golpes Radiantes: +1d8 radiante em ataques corpo a corpo." : "";
+      return `Mãos Consagradas: ${layOnHandsPool} PV. Canalizar Divindade: ${channelDivinity ? `${channelDivinity} uso(s)` : "—"}. Maestrias de arma: 2. Magias preparadas: ${prepared}. ${aura}.${radiantStrikes}`;
     }
     if (classId === "guerreiro") {
       const secondWind = FIGHTER_PROGRESSION_2024.secondWind[level] || 0;
@@ -3324,6 +3344,11 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
       return { eligible: context.hasFightingStyle, resolved: true };
     }
 
+    if (text === "caracteristica de estilo de luta de paladino") {
+      const slotClassId = context.slot?.classId || context.cls?.id || "";
+      return { eligible: context.hasFightingStyle && slotClassId === "paladino", resolved: true };
+    }
+
     if (text.includes("treinamento com armadura leve")) {
       return { eligible: context.armorTraining.has("leve"), resolved: true };
     }
@@ -3449,6 +3474,7 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
       level,
       cls,
       subclass,
+      slot,
       abilityScores: effectiveAbilityScores.scores,
       abilityScoresReady,
       hasSpellcasting: hasSpellcastingFeature(classEntries),
@@ -8771,6 +8797,27 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     return martialSides ? `1d${martialSides}` : "";
   }
 
+  function getPaladinLevelFromEntries2024(classEntries = getResolvedClassEntries2024()) {
+    return normalizeClassEntriesArgument2024(classEntries)
+      .filter((entry) => entry.classId === "paladino")
+      .reduce((highest, entry) => Math.max(highest, clampInt(entry.level, 0, 20)), 0);
+  }
+
+  function getPaladinAuraProtectionBonus2024(abilityScores = {}, classEntries = getResolvedClassEntries2024()) {
+    if (getPaladinLevelFromEntries2024(classEntries) < 6) return 0;
+    const charismaMod = getAbilityModifier(abilityScores.car);
+    return Number.isFinite(charismaMod) ? Math.max(1, charismaMod) : 1;
+  }
+
+  function hasPaladinRadiantStrikes2024(classEntries = getResolvedClassEntries2024()) {
+    return getPaladinLevelFromEntries2024(classEntries) >= 11;
+  }
+
+  function getPaladinRadiantStrikesDamageText2024(weapon, classEntries = getResolvedClassEntries2024()) {
+    if (!hasPaladinRadiantStrikes2024(classEntries) || weapon?.tipo !== "corpo-a-corpo") return "";
+    return "1d8 Radiante";
+  }
+
   function getWeaponAttackAbilityKey2024(weapon, abilityScores = {}, classEntries = getResolvedClassEntries2024(), cls = getSelectedClass()) {
     const strengthMod = getAbilityModifier(abilityScores.for);
     const dexterityMod = getAbilityModifier(abilityScores.des);
@@ -8789,7 +8836,7 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     return "for";
   }
 
-  function formatWeaponDamageField2024(weapon, abilityModifier, damageDieOverride = "") {
+  function formatWeaponDamageField2024(weapon, abilityModifier, damageDieOverride = "", extraDamageText = "") {
     if (!weapon?.dano?.dado) return "";
     const baseDie = weapon.dano.dado;
     const damageDie = getDieSidesFromText2024(damageDieOverride) > getDieSidesFromText2024(baseDie)
@@ -8798,7 +8845,8 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     const modifierText = Number.isFinite(abilityModifier) && abilityModifier !== 0
       ? (abilityModifier > 0 ? `+${abilityModifier}` : `${abilityModifier}`)
       : "";
-    return `${damageDie}${modifierText} ${formatDamageTypeLabel2024(weapon.dano.tipo)}`.trim();
+    const baseDamage = `${damageDie}${modifierText} ${formatDamageTypeLabel2024(weapon.dano.tipo)}`.trim();
+    return [baseDamage, extraDamageText].filter(Boolean).join(" + ");
   }
 
   function formatWeaponRangeNote2024(weapon) {
@@ -8950,12 +8998,14 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     const modifierText = Number.isFinite(abilityModifier) && abilityModifier !== 0
       ? (abilityModifier > 0 ? `+${abilityModifier}` : `${abilityModifier}`)
       : "";
+    const radiantStrikesDamage = hasPaladinRadiantStrikes2024(classEntries) ? "1d8 Radiante" : "";
+    const baseDamage = martialArtsDie ? `1d${martialArtsDie}${modifierText} ${damageType}` : "";
 
     return {
       nome: "Ataque Desarmado",
       bonusAtaque: Number.isFinite(abilityModifier) ? formatSignedNumber(abilityModifier + proficiencyBonus, "") : "",
-      danoTipo: martialArtsDie ? `1d${martialArtsDie}${modifierText} ${damageType}` : "",
-      notas: "Artes Marciais",
+      danoTipo: [baseDamage, radiantStrikesDamage].filter(Boolean).join(" + "),
+      notas: ["Artes Marciais", radiantStrikesDamage ? "Golpes Radiantes +1d8" : ""].filter(Boolean).join(" • "),
     };
   }
 
@@ -8975,17 +9025,22 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     const weaponRows = Array.from(weaponCounts.entries()).map(([weaponId, quantity]) => {
       const weapon = WEAPON_BY_ID_2024.get(weaponId);
       const martialArtsDie = getMonkMartialArtsDamageDie2024(weapon, cls, resolvedEntries);
+      const radiantStrikesDamage = getPaladinRadiantStrikesDamageText2024(weapon, resolvedEntries);
       const abilityKey = getWeaponAttackAbilityKey2024(weapon, abilityScores, resolvedEntries, cls);
       const abilityModifier = getAbilityModifier(abilityScores?.[abilityKey]);
       const attackBonus = Number.isFinite(abilityModifier)
         ? abilityModifier + (isCharacterProficientWithWeapon2024(weapon, weaponTrainingTags) ? proficiencyBonus : 0)
         : null;
+      const extraNotes = [
+        martialArtsDie ? `Artes Marciais ${martialArtsDie}` : "",
+        radiantStrikesDamage ? "Golpes Radiantes +1d8" : "",
+      ];
 
       return {
         nome: quantity > 1 ? `${weapon?.nome || labelFromSlug(weaponId)} x${quantity}` : (weapon?.nome || labelFromSlug(weaponId)),
         bonusAtaque: Number.isFinite(attackBonus) ? formatSignedNumber(attackBonus, "") : "",
-        danoTipo: formatWeaponDamageField2024(weapon, abilityModifier, martialArtsDie),
-        notas: formatWeaponNotes2024(weapon, quantity, masteryState, martialArtsDie ? [`Artes Marciais ${martialArtsDie}`] : []),
+        danoTipo: formatWeaponDamageField2024(weapon, abilityModifier, martialArtsDie, radiantStrikesDamage),
+        notas: formatWeaponNotes2024(weapon, quantity, masteryState, extraNotes),
       };
     });
 
@@ -9205,6 +9260,14 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
           collectGrantedSpellIdsByLevel2024(CLERIC_DOMAIN_GRANTED_SPELL_IDS_2024[entry.subclassId], entry.level)
         );
       }
+      if (entry.classId === "paladino") {
+        const grantedSpellIds = ["destruicao-divina"];
+        if (entry.level >= 5) grantedSpellIds.push("encontrar-montaria");
+        if (entry.subclassId) {
+          grantedSpellIds.push(...collectGrantedSpellIdsByLevel2024(PALADIN_OATH_GRANTED_SPELL_IDS_2024[entry.subclassId], entry.level));
+        }
+        mergeGrantedSpellIdsIntoConfig2024(config, grantedSpellIds);
+      }
       if (entry.classId === "druida") {
         const grantedSpellIds = [...DRUID_DRUIDIC_GRANTED_SPELL_IDS_2024];
         if (entry.subclassId) {
@@ -9419,6 +9482,36 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
           proficiencyBonus,
           limits,
           allowedClassIds: [classId],
+        });
+        if (source) sources.push(source);
+      }
+
+      if (featId === "guerreiro-abencoado") {
+        const ability = "car";
+        const limits = {
+          level: 1,
+          sourceClassId: "clerigo",
+          ability,
+          abilityMod: getAbilityModifierValue(ability),
+          selectionLabel: "Truques de clérigo",
+          cantripLimit: 2,
+          spellLimit: 0,
+          restrictedSchools: [],
+          flexibleSpellAllowance: 0,
+          slots: [],
+          maxSpellLevel: 0,
+          pactSlots: 0,
+          pactSlotLevel: 0,
+        };
+        const source = buildFeatSpellSource2024({
+          entry,
+          sourceKey: `feat:${slotKey}:blessed-warrior`,
+          classLabel: featLabel,
+          detailLabel: `${featLabel} (Clérigo)`,
+          ability,
+          proficiencyBonus,
+          limits,
+          allowedClassIds: ["clerigo"],
         });
         if (source) sources.push(source);
       }
@@ -10444,6 +10537,7 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     const selectedFeatEntries = collectSelectedFeatEntries2024({ background, race, cls, subclass, level, classEntries });
     const saveProficiencies = collectClassSavingThrowProficiencyIds2024(classEntries);
     collectFeatSavingThrowProficiencies2024(selectedFeatEntries).forEach((ability) => saveProficiencies.add(ability));
+    const auraProtectionBonus = getPaladinAuraProtectionBonus2024(abilityScores, classEntries);
 
     return {
       texto: {
@@ -10528,7 +10622,7 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
           return [ability, {
             proficiente: proficient,
             bonus: Number.isFinite(baseMod)
-              ? formatSignedNumber(baseMod + (proficient ? proficiencyBonus : 0), "")
+              ? formatSignedNumber(baseMod + (proficient ? proficiencyBonus : 0) + auraProtectionBonus, "")
               : "",
           }];
         })

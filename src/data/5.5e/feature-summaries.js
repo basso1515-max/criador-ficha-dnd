@@ -169,22 +169,22 @@ export const FEATURE_SUMMARIES_2024 = {
       "Corpo e Mente": "Destreza e Sabedoria aumentam em 4, até o máximo de 25."
     },
     "paladino": {
-      "Conjuração": "Conjura magias sagradas usando Carisma.",
-      "Maestria em Arma": "Domina propriedades de maestria com armas de sua escolha.",
-      "Mãos Consagradas": "Canaliza poder restaurador e purificador pelo toque.",
+      "Conjuração": "Prepara magias de Paladino usando Carisma; recupera espaços em descanso longo e pode usar símbolo sagrado como foco.",
+      "Maestria em Arma": "Escolhe 2 armas proficientes para usar propriedades de maestria e pode trocar as escolhas ao terminar descanso longo.",
+      "Mãos Consagradas": "Reserva de cura igual a 5 × nível de Paladino; como ação bônus, toca uma criatura para curar, ou gasta 5 PV da reserva para remover Envenenado.",
       "Destruição do Paladino": "Sempre deixa Destruição Divina preparada e permite conjurá-la uma vez sem gastar espaço de magia.",
-      "Estilo de Luta": "Escolhe um talento de Estilo de Luta.",
-      "Canalizar Divindade": "Usa seu juramento para efeitos sagrados marcantes.",
-      "Subclasse de Paladino": "Escolhe um juramento que amplia suas magias e auras.",
+      "Estilo de Luta": "Escolhe um talento de Estilo de Luta ou Guerreiro Abençoado, que concede 2 truques de clérigo usando Carisma.",
+      "Canalizar Divindade": "Ganha 2 usos no nível 3 e 3 no nível 11; recupera 1 em descanso curto e todos em descanso longo. A CD é sua CD de magia de Paladino.",
+      "Subclasse de Paladino": "Escolhe um juramento que concede magias sempre preparadas e características nos níveis 3, 7, 15 e 20.",
       "Aumento no Valor de Atributo": "Recebe Aumento no Valor de Atributo ou outro talento para o qual se qualifique.",
       "Ataque Extra": "Ataca duas vezes ao usar a ação Atacar.",
-      "Montaria Fiel": "Consegue invocar ou manter uma montaria sobrenatural.",
-      "Aura de Proteção": "Aliados próximos recebem sua força espiritual nas salvaguardas.",
-      "Repudiar Inimigos": "Afasta e enfraquece adversários com autoridade sagrada.",
-      "Aura de Coragem": "Você e aliados próximos resistem ao medo.",
-      "Golpes Radiantes": "Seus ataques corpo a corpo irradiam dano sagrado constante.",
-      "Toque Restaurador": "Seu toque remove males e restaura a vitalidade.",
-      "Aura Expandida": "O alcance das suas auras aumenta.",
+      "Montaria Fiel": "Sempre deixa Encontrar Montaria preparada e pode conjurá-la uma vez por descanso longo sem gastar espaço de magia.",
+      "Aura de Proteção": "Você e aliados em emanação de 3 m ganham bônus em salvaguardas igual ao seu Carisma, mínimo +1; a aura fica inativa se você estiver Incapacitado.",
+      "Repudiar Inimigos": "Ação mágica e 1 uso de Canalizar Divindade para forçar salvaguarda de Sabedoria em criaturas à vista até 18 m em número igual ao Carisma, mínimo 1.",
+      "Aura de Coragem": "Você e aliados na Aura de Proteção têm Imunidade a Amedrontado; a condição não tem efeito enquanto permanecerem na aura.",
+      "Golpes Radiantes": "Ataques com arma corpo a corpo ou ataque desarmado causam +1d8 de dano Radiante ao acertar.",
+      "Toque Restaurador": "Ao usar Mãos Consagradas, pode gastar 5 PV da reserva por condição para remover Cego, Enfeitiçado, Surdo, Amedrontado, Paralisado ou Atordoado.",
+      "Aura Expandida": "Sua Aura de Proteção aumenta para emanação de 9 m.",
       "Dádiva Épica": "Recebe uma Dádiva Épica ou outro talento elegível."
     },
     "patrulheiro": {
@@ -518,12 +518,11 @@ export const FEATURE_SUMMARIES_2024 = {
       "Epítome Elemental": "Alcança domínio elemental máximo, reforçando defesa, deslocamento e dano."
     },
     "paladino-devocao": {
-      "Magias do Juramento": "Sempre deixa preparadas magias de juramento específicas da Devoção.",
-      "Arma Sagrada": "Canaliza divindade para imbuir uma arma corpo a corpo com energia sagrada e mais precisão.",
-      "Expulsar o Profano": "Canaliza energia sagrada para assustar e afastar inimigos profanos.",
-      "Aura de Devoção": "Você e aliados têm Imunidade à condição Enfeitiçado enquanto estiverem em sua Aura de Proteção",
-      "Destruição Protetora": "Quando usa Destruição Divina, concede cobertura defensiva sagrada a aliados próximos.",
-      "Nimbo Sagrado": "Envolve-se em luz sagrada que protege aliados e pune inimigos próximos."
+      "Magias do Juramento": "Sempre deixa preparadas as magias de Devoção: Proteção Contra o Bem e o Mal, Escudo da Fé, Ajuda, Zona da Verdade, Sinal de Esperança, Dissipar Magia, Movimentação Livre, Guardião da Fé, Comunhão e Golpe de Chama conforme o nível.",
+      "Arma Sagrada": "Ao tomar a ação Atacar, gasta 1 Canalizar Divindade para imbuir uma arma corpo a corpo por 10 minutos: soma Carisma aos ataques, mínimo +1, pode causar dano normal ou Radiante e emite luz.",
+      "Aura de Devoção": "Você e aliados na Aura de Proteção têm Imunidade a Enfeitiçado; a condição não tem efeito enquanto permanecerem na aura.",
+      "Destruição Protetora": "Quando conjura Destruição Divina, você e aliados na Aura de Proteção recebem meia cobertura até o início do seu próximo turno.",
+      "Nimbo Sagrado": "Ação bônus por 10 minutos: sua Aura de Proteção vira luz solar, causa dano Radiante igual a Carisma + proficiência a inimigos que começam nela e dá Vantagem contra ínferos e mortos-vivos."
     },
     "paladino-gloria": {
       "Magias do Juramento": "Sempre deixa preparadas magias de juramento específicas da Glória.",
