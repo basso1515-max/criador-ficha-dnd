@@ -142,6 +142,7 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
   const PALADIN_OATH_GRANTED_SPELL_IDS_2024 = {
     "paladino-devocao": PALADIN_DEVOTION_GRANTED_SPELL_IDS_2024,
   };
+  const ROGUE_SNEAK_ATTACK_DICE_BY_LEVEL_2024 = [0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10];
   const RANGER_FAVORED_ENEMY_BY_LEVEL_2024 = [0, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6];
   const WARLOCK_ELDRITCH_INVOCATIONS_BY_LEVEL_2024 = [0, 1, 3, 3, 3, 5, 5, 6, 6, 7, 7, 7, 8, 8, 8, 9, 9, 9, 10, 10, 10];
   const WARLOCK_PATRON_GRANTED_SPELL_IDS_2024 = {
@@ -1572,6 +1573,16 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
       const aura = level >= 18 ? "Aura: 9 m" : level >= 6 ? "Aura: 3 m" : "Aura: —";
       const radiantStrikes = level >= 11 ? " Golpes Radiantes: +1d8 radiante em ataques corpo a corpo." : "";
       return `Mãos Consagradas: ${layOnHandsPool} PV. Canalizar Divindade: ${channelDivinity ? `${channelDivinity} uso(s)` : "—"}. Maestrias de arma: 2. Magias preparadas: ${prepared}. ${aura}.${radiantStrikes}`;
+    }
+    if (classId === "ladino") {
+      const sneakAttackDice = ROGUE_SNEAK_ATTACK_DICE_BY_LEVEL_2024[level] || 0;
+      const cunningStrike = level >= 5
+        ? " Golpe Astuto (CD 8 + DES + prof.): Veneno (requer Kit de Veneno), Rasteira ou Retirada custam 1d6."
+        : "";
+      const improvedCunningStrike = level >= 11 ? " Pode aplicar até 2 efeitos." : "";
+      const deviousStrikes = level >= 14 ? " Golpes Sujos: Pasmar 2d6, Nocaute 6d6, Ofuscar 3d6." : "";
+      const slipperyMind = level >= 15 ? " Mente Escorregadia: proficiência em salvaguardas de Sabedoria e Carisma." : "";
+      return `Ataque Furtivo: ${sneakAttackDice}d6 uma vez por turno. Maestrias de arma: 2.${cunningStrike}${improvedCunningStrike}${deviousStrikes}${slipperyMind}`;
     }
     if (classId === "patrulheiro") {
       const rangerRule = SPELLCASTING_RULES_2024.patrulheiro || {};
@@ -7611,6 +7622,10 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     if (resolvedEntries.some((entry) => entry.classId === "monge" && entry.level >= 14)) {
       ABILITY_ORDER.forEach((ability) => saveIds.add(ability));
     }
+    if (resolvedEntries.some((entry) => entry.classId === "ladino" && entry.level >= 15)) {
+      saveIds.add("sab");
+      saveIds.add("car");
+    }
     return saveIds;
   }
 
@@ -8812,6 +8827,28 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     return martialSides ? `1d${martialSides}` : "";
   }
 
+  function getRogueLevelFromEntries2024(classEntries = getResolvedClassEntries2024()) {
+    return normalizeClassEntriesArgument2024(classEntries)
+      .filter((entry) => entry.classId === "ladino")
+      .reduce((highest, entry) => Math.max(highest, clampInt(entry.level, 0, 20)), 0);
+  }
+
+  function getRogueSneakAttackDice2024(classEntries = getResolvedClassEntries2024()) {
+    const rogueLevel = getRogueLevelFromEntries2024(classEntries);
+    return ROGUE_SNEAK_ATTACK_DICE_BY_LEVEL_2024[rogueLevel] || 0;
+  }
+
+  function isRogueSneakAttackEligibleWeapon2024(weapon) {
+    if (!weapon) return false;
+    return weapon.tipo === "distancia" || (weapon.propriedades || []).includes("finesse");
+  }
+
+  function formatRogueSneakAttackNote2024(weapon, classEntries = getResolvedClassEntries2024()) {
+    const sneakAttackDice = getRogueSneakAttackDice2024(classEntries);
+    if (!sneakAttackDice || !isRogueSneakAttackEligibleWeapon2024(weapon)) return "";
+    return `Ataque Furtivo ${sneakAttackDice}d6 (1/turno)`;
+  }
+
   function getPaladinLevelFromEntries2024(classEntries = getResolvedClassEntries2024()) {
     return normalizeClassEntriesArgument2024(classEntries)
       .filter((entry) => entry.classId === "paladino")
@@ -9041,6 +9078,7 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
       const weapon = WEAPON_BY_ID_2024.get(weaponId);
       const martialArtsDie = getMonkMartialArtsDamageDie2024(weapon, cls, resolvedEntries);
       const radiantStrikesDamage = getPaladinRadiantStrikesDamageText2024(weapon, resolvedEntries);
+      const sneakAttackNote = formatRogueSneakAttackNote2024(weapon, resolvedEntries);
       const abilityKey = getWeaponAttackAbilityKey2024(weapon, abilityScores, resolvedEntries, cls);
       const abilityModifier = getAbilityModifier(abilityScores?.[abilityKey]);
       const attackBonus = Number.isFinite(abilityModifier)
@@ -9049,6 +9087,7 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
       const extraNotes = [
         martialArtsDie ? `Artes Marciais ${martialArtsDie}` : "",
         radiantStrikesDamage ? "Golpes Radiantes +1d8" : "",
+        sneakAttackNote,
       ];
 
       return {

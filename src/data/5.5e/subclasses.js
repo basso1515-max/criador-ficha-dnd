@@ -463,12 +463,15 @@ const SUBCLASS_LIST = [
     "ladino",
     "Ladrão",
     3,
-    "Especialista em escalada, furtos rápidos e uso criativo de itens em plena ação.",
+    "Especialista em exploração clássica, furtos rápidos, escalada e uso excepcional de itens mágicos.",
     {
-      3: [feature("Mãos Rápidas"), feature("Trabalho de Segundo Andar")],
-      9: [feature("Furtividade Suprema", "Recebe Vantagem em testes de Destreza (Furtividade) quando se move com cuidado.")],
-      13: [feature("Usar Dispositivo Mágico")],
-      17: [feature("Reflexos de Ladrão")],
+      3: [
+        feature("Mãos Rápidas", "Como Ação Bônus, usa Prestidigitação com Ferramentas de Ladrão ou toma a ação Utilizar/Magia para certos itens."),
+        feature("Trabalho de Segundo Andar", "Ganha escalada igual ao Deslocamento e pode usar Destreza para calcular distância de salto."),
+      ],
+      9: [feature("Furtividade Suprema", "Ganha a opção de Golpe Astuto Ataque Sigiloso para manter Invisível de Esconder ao terminar atrás de cobertura superior.")],
+      13: [feature("Usar Dispositivo Mágico", "Sintoniza 4 itens, pode poupar cargas em 6 no d6 e usa pergaminhos de magia com Inteligência.")],
+      17: [feature("Reflexos de Ladrão", "Age duas vezes na primeira rodada: na Iniciativa normal e novamente na Iniciativa menos 10.")],
     }
   ),
   subclass(

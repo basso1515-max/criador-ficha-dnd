@@ -113,24 +113,24 @@ export const FEATURE_SUMMARIES_2024 = {
       "Três Ataques Extras": "Ataca quatro vezes ao usar a ação Atacar."
     },
     "ladino": {
-      "Ataque Furtivo": "Inflige dano adicional quando explora distrações ou vantagem posicional.",
-      "Especialista": "Recebe Especialização em perícias selecionadas.",
-      "Gíria do Ladrão": "Aprende a linguagem secreta do submundo e um idioma extra.",
-      "Maestria em Arma": "Domina propriedades de maestria com armas apropriadas ao estilo ladino.",
+      "Ataque Furtivo": "Uma vez por turno, causa dano extra com arma de Acuidade ou à distância quando tem Vantagem, ou quando um aliado não Incapacitado está a 1,5 m do alvo e você não tem Desvantagem.",
+      "Especialista": "Recebe Expertise em duas perícias proficientes à sua escolha; no nível 6 escolhe mais duas.",
+      "Gíria do Ladrão": "Aprende Gíria dos Ladrões automaticamente e escolhe mais um idioma.",
+      "Maestria em Arma": "Escolhe 2 armas proficientes para usar propriedades de maestria e pode trocar as escolhas ao terminar descanso longo.",
       "Ação Ardilosa": "Usa Correr, Desengajar ou Esconder como Ação Bônus.",
-      "Mira Firme": "Compensa mobilidade por precisão letal.",
-      "Subclasse de Ladino": "Escolhe uma especialização de furtividade, magia ou assassinato.",
+      "Mira Firme": "Como Ação Bônus, ganha Vantagem no próximo ataque do turno se ainda não se moveu; depois seu Deslocamento é 0 até o fim do turno.",
+      "Subclasse de Ladino": "Escolhe uma especialização que concede características nos níveis 3, 9, 13 e 17.",
       "Aumento no Valor de Atributo": "Recebe Aumento no Valor de Atributo ou outro talento para o qual se qualifique.",
-      "Golpe Astuto": "Acrescenta efeitos especiais ao Ataque Furtivo.",
-      "Esquiva Sobrenatural": "Reduz dano de golpes que consegue perceber.",
-      "Evasão": "Evita parte do dano de efeitos em área.",
-      "Talento Confiável": "Trata resultados baixos como desempenho consistente em perícias.",
-      "Golpe Astuto Aprimorado": "Seu Ataque Furtivo passa a aplicar efeitos mais fortes.",
-      "Golpes Sujos": "Explora aberturas com ainda mais crueldade tática.",
-      "Mente Escorregadia": "Sua mente torna-se difícil de dominar ou desviar.",
-      "Elusivo": "Torna-se excepcionalmente difícil de acertar ou prender.",
+      "Golpe Astuto": "Ao causar Ataque Furtivo, abdica dados antes de rolar para aplicar Veneno (requer Kit de Veneno), Rasteira ou Retirada; a CD é 8 + DES + proficiência.",
+      "Esquiva Sobrenatural": "Como Reação, reduz pela metade o dano de um ataque que o acerta e que você pode ver.",
+      "Evasão": "Em salvaguardas de Destreza contra meio dano, sofre nenhum dano em sucesso e metade em falha se não estiver Incapacitado.",
+      "Talento Confiável": "Em testes de atributo com perícia ou ferramenta proficiente, trata resultado 9 ou menor no d20 como 10.",
+      "Golpe Astuto Aprimorado": "Pode aplicar até dois efeitos de Golpe Astuto no mesmo Ataque Furtivo, pagando o custo de cada um.",
+      "Golpes Sujos": "Adiciona Pasmar, Nocaute e Ofuscar às opções de Golpe Astuto, com custos maiores de Ataque Furtivo.",
+      "Mente Escorregadia": "Ganha proficiência em salvaguardas de Sabedoria e Carisma.",
+      "Elusivo": "Jogadas de ataque contra você não podem ter Vantagem, a menos que você esteja Incapacitado.",
       "Dádiva Épica": "Recebe uma Dádiva Épica ou outro talento elegível.",
-      "Golpe de Sorte": "Dobra sua capacidade de converter fracassos em sucesso."
+      "Golpe de Sorte": "Ao falhar em um Teste de d20, transforma a jogada em 20; recupera o uso em descanso curto ou longo."
     },
     "mago": {
       "Adepto de Ritual": "Conjura magias rituais a partir do livro de magias sem prepará-las.",
@@ -453,10 +453,10 @@ export const FEATURE_SUMMARIES_2024 = {
       "Golpe Mortal": "Ao acertar com seu Ataque Furtivo na primeira rodada de um combate, o alvo deve ser bem-sucedido em uma salvaguarda de Constituição (CD 8 mais seu modificador de Destreza e seu Bônus de Proficiência) ou o dano do ataque é dobrado contra o alvo"
     },
     "ladino-ladrao": {
-      "Mãos Rápidas": "Usa Ação Bônus para manipular objetos, armadilhas ou ferramentas com rapidez.",
-      "Trabalho de Segundo Andar": "Escala e salta melhor, tornando infiltrações verticais mais seguras.",
-      "Furtividade Suprema": "Recebe Vantagem em testes de Destreza (Furtividade) quando se move com cuidado.",
-      "Usar Dispositivo Mágico": "Usa itens mágicos com mais liberdade, incluindo propriedades de itens, sintonia e pergaminhos.",
+      "Mãos Rápidas": "Como Ação Bônus, faz Destreza (Prestidigitação) para abrir fechaduras, desarmar armadilhas com Ferramentas de Ladrão ou furtar, ou usa Utilizar/Magia para item mágico que exija essa ação.",
+      "Trabalho de Segundo Andar": "Ganha Deslocamento de escalada igual ao seu Deslocamento e pode calcular distância de salto com Destreza em vez de Força.",
+      "Furtividade Suprema": "Ganha a opção de Golpe Astuto Ataque Sigiloso: custa 1d6 e não encerra a condição Invisível de Esconder se terminar o turno atrás de cobertura superior.",
+      "Usar Dispositivo Mágico": "Pode sintonizar até 4 itens, rola 1d6 para não gastar cargas em 6, e usa qualquer pergaminho de magia com Inteligência.",
       "Reflexos de Ladrão": "Em combate, você realiza dois turnos na primeira rodada: o primeiro conforme sua Iniciativa normal e o segundo em sua Iniciativa menos 10"
     },
     "ladino-trapaceiro-arcano": {
