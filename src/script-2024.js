@@ -61,6 +61,11 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     lb: { label: "lb", factorToKg: 0.45359237, decimals: 0 },
     kg: { label: "kg", factorToKg: 1, decimals: 1 },
   };
+  const BARBARIAN_PROGRESSION_2024 = {
+    rages: [0, 2, 2, 3, 3, 3, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 6, 6, 6, 6],
+    rageDamage: [0, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4],
+    weaponMastery: [0, 2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
+  };
   const XP_BY_LEVEL_2024 = [
     0,
     0,
@@ -1404,6 +1409,17 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     return getSubclassesForClass(cls).filter((subclass) => classLevel >= (Number(subclass?.nivel) || 1));
   }
 
+  function buildClassResourceSummary2024(classId, classLevel) {
+    const level = clampInt(classLevel, 1, 20);
+    if (classId === "barbaro") {
+      const rages = BARBARIAN_PROGRESSION_2024.rages[level] || 0;
+      const rageDamage = BARBARIAN_PROGRESSION_2024.rageDamage[level] || 0;
+      const masteries = BARBARIAN_PROGRESSION_2024.weaponMastery[level] || 0;
+      return `Fúrias: ${rages}. Dano de Fúria: +${rageDamage}. Maestrias de arma: ${masteries}.`;
+    }
+    return "";
+  }
+
   function buildSubclassPlaceholder2024(cls, classLevel, available) {
     if (!cls) return "Selecione a classe primeiro...";
     if (available.length) return "Selecione a subclasse...";
@@ -1422,6 +1438,7 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
       cls.atributoPrincipal?.length ? `Atributos principais: ${formatList(cls.atributoPrincipal.map(formatAbilityLabel))}.` : "",
       cls.salvaguardas?.length ? `Salvaguardas: ${formatList(cls.salvaguardas.map(formatAbilityLabel))}.` : "",
       `Nível atual na classe: ${classLevel}.`,
+      buildClassResourceSummary2024(cls.id, classLevel),
       unlockLevel ? `Subclasse liberada no nível ${unlockLevel}.` : "Sem subclasses cadastradas.",
     ].filter(Boolean).join(" ");
   }

@@ -57,7 +57,7 @@ const SUBCLASS_LIST = [
     3,
     "Converte fervor sagrado em agressão divina e resistência sobrenatural.",
     {
-      3: [feature("Campeão dos Deuses"), feature("Fúria Divina")],
+      3: [feature("Guerreiro dos Deuses"), feature("Fúria Divina")],
       6: [feature("Concentração Fanática")],
       10: [feature("Presença Zelosa")],
       14: [feature("Fúria dos Deuses")],

@@ -1,25 +1,26 @@
 export const FEATURE_SUMMARIES_2024 = {
   "classes": {
     "barbaro": {
-      "Fúria": "Entra em fúria para ganhar resistência, dano extra e vantagem em testes e salvaguardas de Força.",
+      "Fúria": "Ação bônus sem armadura pesada; ganha resistência a contundente, perfurante e cortante, bônus de dano por Força e Vantagem em testes e salvaguardas de Força.",
       "Defesa sem Armadura": "Sem armadura, sua CA usa Destreza e Constituição; você ainda pode usar escudo.",
-      "Maestria em Arma": "Escolhe tipos de armas corpo a corpo simples ou marciais para usar propriedades de maestria.",
-      "Ataque Imprudente": "Pode atacar com agressividade extrema para ganhar Vantagem nos ataques de Força.",
-      "Sentido de Perigo": "Seus instintos ajudam a evitar perigos que você percebe.",
-      "Conhecimento Primordial": "Desenvolve percepção e utilidade fora de combate ligadas à vida selvagem.",
+      "Maestria em Arma": "Escolhe armas corpo a corpo simples ou marciais para usar propriedades de maestria e pode trocar uma escolha ao fim de descanso longo.",
+      "Ataque Imprudente": "Ao fazer o primeiro ataque do turno, ganha Vantagem em ataques com Força até o início do próximo turno, mas ataques contra você também têm Vantagem.",
+      "Sentido de Perigo": "Tem Vantagem em salvaguardas de Destreza enquanto não estiver Incapacitado.",
+      "Conhecimento Primal": "Ganha uma perícia de bárbaro e, em Fúria, pode usar Força em Acrobacia, Furtividade, Intimidação, Percepção e Sobrevivência.",
       "Subclasse de Bárbaro": "Escolhe um caminho bárbaro que expande sua Fúria.",
       "Aumento no Valor de Atributo": "Recebe Aumento no Valor de Atributo ou outro talento para o qual se qualifique.",
       "Ataque Extra": "Ataca duas vezes ao usar a ação Atacar.",
       "Movimento Rápido": "Seu deslocamento aumenta enquanto não estiver usando armadura pesada.",
-      "Bote Instintivo": "Move-se e salta com agressividade ainda maior ao entrar em combate.",
-      "Instintos Primitivos": "Seus sentidos ampliados o ajudam a agir cedo e a evitar ser surpreendido.",
-      "Golpe Brutal": "Converte sua força em efeitos extras quando acerta ataques corpo a corpo pesados.",
-      "Fúria Implacável": "Sua Fúria o mantém lutando mesmo ao ser derrubado.",
-      "Golpe Brutal Fortalecido": "O poder do Golpe Brutal melhora novamente.",
-      "Fúria Persistente": "Sua Fúria torna-se ainda mais fácil de manter em combate.",
-      "Força Indomável": "Sua força física ultrapassa limites normais.",
+      "Bote Instintivo": "Move-se até metade do deslocamento como parte da ação bônus usada para entrar em Fúria.",
+      "Instinto Feral": "Recebe Vantagem em jogadas de Iniciativa.",
+      "Golpe Brutal": "Ao usar Ataque Imprudente, pode abdicar da Vantagem em um ataque de Força sem Desvantagem para causar +1d10 e empurrar/perseguir o alvo ou reduzir seu deslocamento.",
+      "Fúria Implacável": "Se cair a 0 PV em Fúria, faz salvaguarda de Constituição CD 10; com sucesso, fica com PV iguais ao dobro do nível de bárbaro; a CD aumenta 5 até descansar.",
+      "Golpe Brutal Aprimorado (13º nível)": "Adiciona opções de Golpe Brutal que prejudicam a próxima salvaguarda do alvo, bloqueiam ataques de oportunidade ou dão +5 ao próximo ataque de outro aliado.",
+      "Fúria Persistente": "Uma vez por descanso longo, ao rolar Iniciativa, recupera todas as Fúrias; a Fúria dura 10 minutos sem precisar ser estendida.",
+      "Golpe Brutal Aprimorado (17º nível)": "O dano extra do Golpe Brutal vira 2d10 e você pode aplicar dois efeitos diferentes no mesmo uso.",
+      "Força Indomável": "Se um teste ou salvaguarda de Força ficar abaixo do seu valor de Força, pode usar esse valor como total.",
       "Dádiva Épica": "Recebe uma Dádiva Épica ou outro talento elegível.",
-      "Campeão Primitivo": "Eleva seus atributos físicos ao ápice bárbaro."
+      "Campeão Primal": "Força e Constituição aumentam em 4, até o máximo de 25."
     },
     "bardo": {
       "Inspiração de Bardo": "Concede dados de inspiração que aliados podem gastar para transformar falhas em sucessos.",
@@ -200,31 +201,31 @@ export const FEATURE_SUMMARIES_2024 = {
   },
   "subclasses": {
     "barbaro-arvore-mundo": {
-      "Vitalidade da Árvore": "No início de cada um dos seus turnos enquanto sua Fúria estiver ativa, você pode escolher outra criatura a até 3 metros de você para receber PV Temporários",
-      "Força que Dá Vida": "No início do turno em Fúria, concede PV temporários a um aliado próximo.",
-      "Ramos da Árvore": "Sempre que uma criatura que você pode ver começar o turno a até 9 metros de você enquanto sua Fúria estiver ativa, você pode executar uma Reação para convocar ramos espectrais da Árvore do Mundo ao redor dela",
-      "Raízes Devastadoras": "Durante o seu turno, seu alcance é 3 metros maior com qualquer arma corpo a corpo que tenha a propriedade Pesada ou Versátil, à medida que as raízes da Árvore do Mundo se estendem a partir de você",
-      "Percorrer a Árvore": "Ao ativar sua Fúria e, como uma Ação Bônus enquanto ela estiver ativa, você pode se teleportar a até 18 metros para um espaço desocupado à sua vista"
+      "Vitalidade da Árvore": "Ao ativar Fúria, ganha PV temporários iguais ao nível de bárbaro.",
+      "Força que Dá Vida": "No início de cada turno em Fúria, outra criatura a até 3 m recebe PV temporários iguais a dados d6 em número igual ao bônus de Dano da Fúria.",
+      "Ramos da Árvore": "Em Fúria, usa Reação contra criatura que começa o turno a até 9 m; se ela falhar em Força, é teleportada para perto de você e pode ter deslocamento 0.",
+      "Raízes Devastadoras": "No seu turno, armas corpo a corpo Pesadas ou Versáteis ganham +3 m de alcance e podem aplicar Empurrar ou Derrubar além da maestria usada.",
+      "Percorrer a Árvore": "Ao ativar Fúria ou como ação bônus durante ela, teleporta até 18 m; uma vez por Fúria, aumenta para 45 m e leva até seis criaturas voluntárias próximas."
     },
     "barbaro-berserker": {
-      "Frenesi": "Se você usar Ataque Imprudente enquanto sua Fúria estiver ativa, você causa dano adicional ao primeiro alvo atingido no seu turno com um ataque baseado em Força",
-      "Fúria Irracional": "Se você estiver sob efeito de uma dessas condições ao entrar em Fúria, a condição encerra",
+      "Frenesi": "Se usar Ataque Imprudente em Fúria, o primeiro alvo acertado no turno por ataque de Força sofre dano extra em d6s igual ao bônus de Dano da Fúria.",
+      "Fúria Irracional": "Tem Imunidade a Enfeitiçado e Amedrontado durante a Fúria; se entrar em Fúria sob uma dessas condições, ela termina.",
       "Retaliação": "Quando você sofrer dano de uma criatura que esteja a até 1,5 metro de você, pode executar uma Reação para realizar um ataque corpo a corpo contra essa criatura, usando uma arma ou um Ataque Desarmado",
-      "Presença Intimidante": "Ação bônus para causar terror em outros com sua presença ameaçadora e poder primitivo"
+      "Presença Intimidante": "Ação bônus: criaturas escolhidas em emanação de 9 m fazem salvaguarda de Sabedoria CD 8 + Força + Proficiência ou ficam Amedrontadas por 1 minuto."
     },
     "barbaro-coracao-selvagem": {
-      "Arauto da Fauna": "Pode conjurar as magias Falar com Animais e Sentido Feral, mas apenas como Rituais",
-      "Fúria dos Selvagens": "Ao ativar sua Fúria, você pode executar as ações Correr e Desengajar como parte dessa Ação Bônus",
-      "Aspecto dos Selvagens": "Tem Visão no Escuro com um alcance de 18 metros. Se você já tem Visão no Escuro, seu alcance aumenta em 18 metros",
+      "Arauto da Fauna": "Pode conjurar Sentido Bestial e Falar com Animais apenas como rituais, usando Sabedoria.",
+      "Fúria dos Selvagens": "Ao ativar Fúria, escolhe Urso, Águia ou Lobo para ganhar resistência ampliada, mobilidade ou apoio ofensivo a aliados.",
+      "Aspecto dos Selvagens": "Após descanso longo, escolhe Coruja, Pantera ou Salmão para ganhar visão no escuro ampliada, escalada ou natação.",
       "Arauto da Natureza": "Pode conjurar a magia Comunhão com a Natureza, mas apenas como um Ritual",
-      "Poder dos Selvagens": "Enquanto sua Fúria estiver ativa, você pode impor a condição Caído em uma criatura Grande ou menor quando você a atinge com um ataque corpo a corpo"
+      "Poder dos Selvagens": "Ao ativar Fúria, escolhe Falcão, Leão ou Carneiro para ganhar voo sem armadura, proteger aliados próximos ou derrubar criaturas grandes ou menores."
     },
     "barbaro-fanatico": {
-      "Campeão dos Deuses": "Tem uma reserva de quatro d12s que pode gastar para se curar",
-      "Fúria Divina": "Em cada um dos seus turnos, enquanto sua Fúria estiver ativa, a primeira criatura que você atingir com uma arma ou com um Ataque Desarmado sofre dano adicional igual a 1d6 pontos mais metade do seu nível de Bárbaro (arredondado para baixo)",
+      "Guerreiro dos Deuses": "Tem uma reserva de d12s para se curar como ação bônus; começa com 4 dados e aumenta nos níveis 6, 12 e 17 de bárbaro.",
+      "Fúria Divina": "Em Fúria, a primeira criatura que você acertar no turno com arma ou Ataque Desarmado sofre 1d6 + metade do nível de bárbaro em dano necrótico ou radiante.",
       "Concentração Fanática": "Uma vez por Fúria ativa, se você falhar em uma salvaguarda, pode jogá-la novamente com um bônus igual ao seu bônus de Dano da Fúria, e deve usar o novo resultado",
-      "Presença Zelosa": "Como uma Ação Bônus, você libera um grito de batalha infundido com energia divina",
-      "Fúria dos Deuses": "Quando uma criatura a até 9 metros de você atingir 0 PV, você pode executar uma Reação para gastar um uso da sua Fúria e, em vez disso, mudar os PV do alvo para um número igual ao seu nível de Bárbaro"
+      "Presença Zelosa": "Ação bônus: até dez outras criaturas a até 18 m ganham Vantagem em ataques e salvaguardas até o início do seu próximo turno; recarrega com descanso longo ou gasto de Fúria.",
+      "Fúria dos Deuses": "Uma vez por descanso longo, ao ativar Fúria assume forma divina por 1 minuto: voo, pairar, resistência a necrótico, psíquico e radiante, e reação para salvar criatura a 0 PV."
     },
     "bardo-bravura": {
       "Inspiração em Combate": "Quando a criatura é atingida por uma jogada de ataque, pode executar a própria Reação para jogar o dado da Inspiração de Bardo e adicionar o resultado jogado à própria CA contra aquele ataque, potencialmente fazendo com que o ataque erre",
