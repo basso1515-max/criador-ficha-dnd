@@ -100,6 +100,25 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
       9: ["restauracao-maior", "curar-ferimentos-em-massa"],
     },
   };
+  const DRUID_WILD_SHAPE_USES_BY_LEVEL_2024 = [0, 0, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4];
+  const DRUID_DRUIDIC_GRANTED_SPELL_IDS_2024 = ["falar-com-animais"];
+  const DRUID_CIRCLE_GRANTED_SPELL_IDS_2024 = {
+    "druida-lua": {
+      3: ["curar-ferimentos", "raio-de-lua", "fagulha-estelar"],
+      5: ["conjurar-animais"],
+      7: ["fonte-do-luar"],
+      9: ["curar-ferimentos-em-massa"],
+    },
+    "druida-estrelas": {
+      3: ["orientacao", "disparo-guia"],
+    },
+    "druida-mar": {
+      3: ["neblina", "lufada-de-vento", "raio-de-gelo", "esmigalhar", "onda-de-trovao"],
+      5: ["relampago", "respirar-agua"],
+      7: ["controlar-agua", "tempestade-de-gelo"],
+      9: ["conjurar-elementais", "imobilizar-monstro"],
+    },
+  };
   const WARLOCK_ELDRITCH_INVOCATIONS_BY_LEVEL_2024 = [0, 1, 3, 3, 3, 5, 5, 6, 6, 7, 7, 7, 8, 8, 8, 9, 9, 9, 10, 10, 10];
   const WARLOCK_PATRON_GRANTED_SPELL_IDS_2024 = {
     "bruxo-arquifada": {
@@ -1506,6 +1525,20 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
       const magicalCunning = level >= 20 ? pactSlots : Math.ceil(pactSlots / 2);
       const cunningText = level >= 2 ? ` Astúcia Mágica recupera ${magicalCunning} espaço(s).` : "";
       return `Invocações: ${invocations}. Truques: ${cantrips}. Magias preparadas: ${prepared}. Espaços de pacto: ${pactSlots} de ${pactSlotLevel}º círculo.${cunningText}`;
+    }
+    if (classId === "druida") {
+      const druidRule = SPELLCASTING_RULES_2024.druida || {};
+      const cantrips = Number(druidRule.cantripsByLevel?.[level] || 0);
+      const prepared = Number(druidRule.preparedByLevel?.[level] || 0);
+      const wildShapeUses = DRUID_WILD_SHAPE_USES_BY_LEVEL_2024[level] || 0;
+      const beastShapes = level >= 8
+        ? "8 formas conhecidas, ND máx. 1, voo permitido"
+        : level >= 4
+          ? "6 formas conhecidas, ND máx. 1/2, sem voo"
+          : level >= 2
+            ? "4 formas conhecidas, ND máx. 1/4, sem voo"
+            : "liberada no nível 2";
+      return `Forma Selvagem: ${wildShapeUses ? `${wildShapeUses} uso(s)` : "—"}; ${beastShapes}. Truques: ${cantrips}. Magias preparadas: ${prepared}. Falar com Animais sempre preparada.`;
     }
     return "";
   }
@@ -9031,6 +9064,13 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
           config,
           collectGrantedSpellIdsByLevel2024(CLERIC_DOMAIN_GRANTED_SPELL_IDS_2024[entry.subclassId], entry.level)
         );
+      }
+      if (entry.classId === "druida") {
+        const grantedSpellIds = [...DRUID_DRUIDIC_GRANTED_SPELL_IDS_2024];
+        if (entry.subclassId) {
+          grantedSpellIds.push(...collectGrantedSpellIdsByLevel2024(DRUID_CIRCLE_GRANTED_SPELL_IDS_2024[entry.subclassId], entry.level));
+        }
+        mergeGrantedSpellIdsIntoConfig2024(config, grantedSpellIds);
       }
       if (entry.classId === "bruxo") {
         const grantedSpellIds = [];

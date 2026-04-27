@@ -221,8 +221,8 @@ const SUBCLASS_LIST = [
     3,
     "Especialistas em Forma Selvagem que assumem corpos lunares e bestiais cada vez mais poderosos.",
     {
-      3: [feature("Formas Animais dos Círculos Druídicos"), feature("Magias do Círculo da Lua")],
-      6: [feature("Formas Animais dos Círculos Druídicos Aprimorada")],
+      3: [feature("Formas do Círculo"), feature("Magias do Círculo da Lua")],
+      6: [feature("Formas do Círculo Aprimoradas")],
       10: [feature("Passo Lunar")],
       14: [feature("Forma Lunar")],
     }
@@ -262,8 +262,8 @@ const SUBCLASS_LIST = [
     {
       3: [feature("Ira do Mar"), feature("Magias do Círculo do Mar")],
       6: [feature("Afinidade Aquática")],
-      10: [feature("Filho da Tempestade")],
-      14: [feature("Manifestação Oceânica")],
+      10: [feature("Nascido da Tempestade")],
+      14: [feature("Dádiva Oceânica")],
     }
   ),
 

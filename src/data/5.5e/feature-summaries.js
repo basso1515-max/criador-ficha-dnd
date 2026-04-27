@@ -66,19 +66,19 @@ export const FEATURE_SUMMARIES_2024 = {
       "Intervenção Divina Maior": "Intervenção Divina pode escolher Desejo; ao fazê-lo, a característica só retorna após 2d4 descansos longos."
     },
     "druida": {
-      "Conjuração": "Conjura magias primais usando Sabedoria.",
-      "Idioma Druídico": "Conhece a linguagem secreta dos druidas.",
-      "Ordem Primal": "Escolhe uma ordem que molda como você usa a magia e a Forma Selvagem.",
-      "Companheiro Selvagem": "Invoca ajuda animal por meio de magia primal.",
-      "Forma Selvagem": "Assume formas animais para exploração e combate.",
+      "Conjuração": "Prepara magias primais de 1º círculo ou superior conforme a tabela do Druida, usa Sabedoria como atributo de conjuração e pode trocar a lista preparada ao concluir um Descanso Longo.",
+      "Idioma Druídico": "Conhece Druídico, pode deixar mensagens secretas decifráveis por outros druidas e sempre tem Falar com Animais preparada sem contar no limite de magias.",
+      "Ordem Primal": "Escolhe Mágico para ganhar um truque de Druida extra e somar Sabedoria a testes de Arcanismo ou Natureza, ou Guardião para proficiência com armas marciais e treino com armadura média.",
+      "Companheiro Selvagem": "Como ação Usar Magia, gasta um espaço de magia ou um uso de Forma Selvagem para conjurar Encontrar Familiar sem componentes materiais; o familiar é feérico e some no próximo Descanso Longo.",
+      "Forma Selvagem": "Como ação bônus, assume uma forma de Besta conhecida por horas iguais à metade do nível de Druida; começa com 2 usos, recupera 1 no Descanso Curto e todos no Descanso Longo.",
       "Subclasse de Druida": "Escolhe um círculo druídico que amplia sua conexão natural.",
       "Aumento no Valor de Atributo": "Recebe Aumento no Valor de Atributo ou outro talento para o qual se qualifique.",
-      "Ressurgimento Selvagem": "Sua Forma Selvagem e magia tornam-se mais eficientes.",
-      "Fúria Elemental": "Passa a carregar poder elemental em suas formas e feitiços.",
-      "Fúria Elemental Aprimorada": "Seu domínio elemental evolui novamente.",
-      "Magias Bestiais": "Conjura magias mesmo em formas bestiais com maior naturalidade.",
+      "Ressurgimento Selvagem": "Uma vez em cada turno, se estiver sem usos de Forma Selvagem, pode gastar um espaço de magia para recuperar 1 uso; uma vez por Descanso Longo, pode gastar 1 uso de Forma Selvagem para recuperar um espaço de 1º círculo.",
+      "Fúria Elemental": "Escolhe Conjuração Potente para adicionar Sabedoria ao dano de truques de Druida ou Golpe Primal para causar +1d8 de dano gélido, ígneo, elétrico ou trovejante uma vez por turno com arma ou ataque de Besta.",
+      "Fúria Elemental Aprimorada": "Conjuração Potente aumenta em 90 m o alcance dos truques de Druida com alcance de 3 m ou mais; Golpe Primal aumenta para 2d8.",
+      "Magias Bestiais": "Enquanto usa Forma Selvagem, pode conjurar magias, exceto as que tenham componente material com custo especificado ou que consumam o componente.",
       "Dádiva Épica": "Recebe uma Dádiva Épica ou outro talento elegível.",
-      "Arquidruida": "Alcança a expressão máxima do poder primal e da Forma Selvagem."
+      "Arquidruida": "Ao rolar Iniciativa sem usos de Forma Selvagem, recupera 1 uso; também pode converter usos em um espaço de magia uma vez por Descanso Longo e envelhece mais devagar."
     },
     "feiticeiro": {
       "Conjuração": "Conjura magias por meio de uma lista preparada alimentada por magia inata.",
@@ -315,32 +315,32 @@ export const FEATURE_SUMMARIES_2024 = {
       "Cura Suprema": "Quando uma magia ou Canalizar Divindade restauraria PV com dados, usa o maior resultado possível em cada dado."
     },
     "druida-lua": {
-      "Formas Animais dos Círculos Druídicos": "Pode canalizar a magia lunar ao assumir uma Forma Selvagem, obtendo os seguintes benefícios",
-      "Magias do Círculo da Lua": "Ao atingir um nível de Druida detalhado na tabela Magias do Círculo da Lua, você tem a as magias da lista sempre preparadas",
-      "Formas Animais dos Círculos Druídicos Aprimorada": "Cada um de seus ataques na Forma Selvagem pode causar seu tipo de dano normal ou dano Radiante",
-      "Passo Lunar": "Como uma Ação Bônus, você se teleporta até 9 metros para um espaço desocupado à sua vista e tem Vantagem na próxima jogada de ataque que realizar antes do final deste turno",
-      "Forma Lunar": "Uma vez por turno, você pode causar 2d10 pontos de dano Radiante adicional a um alvo que você acerta com o ataque da Forma Selvagem"
+      "Formas do Círculo": "Ao assumir Forma Selvagem, pode usar Bestas com ND máximo igual ao nível de Druida dividido por 3, arredondado para baixo; sua CA na forma pode ser 13 + Sabedoria e os PV temporários sobem para 3 vezes o nível de Druida.",
+      "Magias do Círculo da Lua": "Sempre tem preparadas Fagulha Estelar, Curar Ferimentos e Raio Lunar no nível 3, Conjurar Animais no 5, Fonte do Luar no 7 e Curar Ferimentos em Massa no 9; pode conjurá-las em Forma Selvagem.",
+      "Formas do Círculo Aprimoradas": "Enquanto está em Forma Selvagem, cada ataque pode causar dano normal ou radiante, e você soma Sabedoria às salvaguardas de Constituição.",
+      "Passo Lunar": "Como ação bônus, teleporta até 9 m para um espaço desocupado à vista e ganha Vantagem no próximo ataque antes do fim do turno; usos iguais ao modificador de Sabedoria, mínimo 1, com restauração por espaço de 2º círculo ou superior.",
+      "Forma Lunar": "Uma vez por turno, causa +2d10 radiante ao acertar um ataque de Forma Selvagem e pode levar uma criatura voluntária próxima quando usa Passo Lunar."
     },
     "druida-terra": {
-      "Auxílio da Terra": "Ação Usar Magia para gastar um uso de sua Forma Selvagem e escolher um ponto a até 18 metros de você",
-      "Magias do Círculo da Terra": "Sempre deixa preparadas magias ligadas ao ambiente escolhido para o círculo.",
-      "Recuperação Natural": "Pode conjurar uma das magias de 1º círculo ou superior que preparou de sua característica Magias de Círculo Druídico sem gastar um espaço de magia, e deve completar um Descanso Longo antes de fazê-lo novamente",
-      "Proteção Natural": "Você é imune à condição Envenenado e tem Resistência a um tipo de dano associado à sua escolha atual de terreno na característica Magias de Círculo Druídico, conforme mostrado na tabela Proteção Natural",
-      "Santuário Natural": "Ação Usar Magia para gastar um uso de sua Forma Selvagem e produzir árvores e vinhas espectrais que aparecem em um Cubo de 4,5 metros de lados no chão a até 36 metros de você"
+      "Auxílio da Terra": "Como ação Usar Magia, gasta Forma Selvagem e escolhe um ponto a até 18 m; criaturas escolhidas em esfera de 3 m fazem salvaguarda de Constituição contra 2d6 necrótico, metade no sucesso, e uma criatura na área recupera 2d6 PV. O valor vira 3d6 no nível 10 e 4d6 no 14.",
+      "Magias do Círculo da Terra": "Ao concluir um Descanso Longo, escolhe terreno e sempre tem preparadas as magias do terreno para seu nível: árido concede Nublar, Mãos Flamejantes, Raio de Fogo, Bola de Fogo, Malogro e Muralha de Pedra; polar concede Névoa Obscurecente, Paralisar Pessoa, Raio de Gelo, Nevasca, Tempestade Glacial e Cone de Frio; temperado concede Passo Nebuloso, Toque Chocante, Sono, Relâmpago, Movimentação Livre e Passo Arbóreo; tropical concede Disparo Ácido, Raio Nauseante, Teia, Nuvem Fétida, Polimorfia e Praga de Insetos.",
+      "Recuperação Natural": "Uma vez por Descanso Longo, conjura sem espaço uma magia de 1º círculo ou superior preparada por Magias do Círculo; além disso, em Descanso Curto recupera espaços somando até metade do nível de Druida arredondada para cima, nenhum de 6º círculo ou superior.",
+      "Proteção Natural": "Fica imune à condição Envenenado e recebe resistência conforme o terreno atual: árido ígneo, polar gélido, temperado elétrico ou tropical venenoso.",
+      "Santuário Natural": "Como ação Usar Magia, gasta Forma Selvagem para criar um cubo de 4,5 m no chão a até 36 m por 1 minuto; você e aliados ali têm meia cobertura, e aliados recebem a resistência de Proteção Natural. Pode mover o cubo 18 m como ação bônus."
     },
     "druida-estrelas": {
-      "Forma Estrelada": "A forma dura 10 minutos e encerra se você a dispensar (nenhuma ação é necessária), ter a condição Incapacitado ou se você usar essa característica novamente",
-      "Mapa Estelar": "Ele é um objeto Minúsculo, e você pode usá-lo como Foco de Conjuração para suas magias de Druida",
-      "Presságio Cósmico": "Sempre que uma criatura à sua vista a até 9 metros de você realizar um Teste de D20, você pode executar uma Reação para jogar 1d6 e adicionar o resultado jogado ao total",
-      "Constelações Cintilantes": "O 1d8 do Arqueiro e da Taça torna-se 2d8, e enquanto o Dragão estiver ativo, você adquire um Deslocamento de Voo de 6 metros e pode pairar",
+      "Forma Estrelada": "Como ação bônus, gasta Forma Selvagem para brilhar por 10 minutos e escolhe Arqueiro, Taça ou Dragão: ataque radiante bônus, cura extra ao curar com espaço ou mínimo 10 em testes de Int/Sab e salvaguardas de Concentração.",
+      "Mapa Estelar": "Cria um mapa estelar Minúsculo que serve como foco; enquanto o segura, Orientação e Raio Guia ficam preparadas e Raio Guia pode ser conjurada sem espaço um número de vezes igual ao modificador de Sabedoria, mínimo 1, por Descanso Longo.",
+      "Presságio Cósmico": "Ao concluir Descanso Longo, rola um dado: resultado par concede reação para somar 1d6 a um Teste de D20 de criatura à vista a 9 m; resultado ímpar concede reação para subtrair 1d6. Usos iguais ao modificador de Sabedoria, mínimo 1.",
+      "Constelações Cintilantes": "Arqueiro e Taça passam de 1d8 para 2d8, Dragão concede voo de 6 m com pairar, e no início de cada turno em Forma Estrelada você pode trocar a constelação ativa.",
       "Repleto de Estrelas": "Enquanto estiver em sua Forma Estrelada, você se torna parcialmente incorpóreo e tem Resistência a dano Contundente, Cortante e Perfurante"
     },
     "druida-mar": {
-      "Ira do Mar": "Ação bônus para gastar um uso da sua Forma Selvagem para manifestar uma Emanação de 1,5 metro, que toma a forma de respingos de água do oceano ao seu redor por 10 minutos",
-      "Magias do Círculo do Mar": "Ao atingir um nível de Druida detalhado na tabela Magias do Círculo do Mar, você tem a as magias da lista sempre preparadas",
+      "Ira do Mar": "Como ação bônus, gasta Forma Selvagem para criar uma Emanação de 1,5 m por 10 minutos; ao criar e como ação bônus nos turnos seguintes, uma criatura visível na Emanação faz salvaguarda de Constituição ou sofre dados d6 de dano gélido iguais ao modificador de Sabedoria, mínimo 1, e, se for Grande ou menor, é empurrada até 4,5 m.",
+      "Magias do Círculo do Mar": "Sempre tem preparadas Névoa Obscurecente, Lufada de Vento, Raio de Gelo, Esmigalhar e Onda Trovejante no nível 3; Relâmpago e Respirar na Água no 5; Controlar Água e Tempestade Glacial no 7; Conjurar Elemental e Paralisar Monstro no 9.",
       "Afinidade Aquática": "O tamanho da Emanação criada pela sua Ira do Mar aumenta para 3 metros. Além disso, você adquire um Deslocamento de Natação igual ao seu Deslocamento",
-      "Filho da Tempestade": "Tem Resistência a dano Elétrico, Gélido e Trovejante",
-      "Manifestação Oceânica": "Seu vínculo com o mar se intensifica, ampliando mobilidade, resistência e pressão elemental."
+      "Nascido da Tempestade": "Enquanto Ira do Mar está ativa, ganha deslocamento de voo igual ao seu Deslocamento e resistência a dano gélido, elétrico e trovejante.",
+      "Dádiva Oceânica": "Pode manifestar Ira do Mar ao redor de uma criatura voluntária a até 18 m; ela usa sua CD de magia e seu modificador de Sabedoria. Ao gastar 2 usos de Forma Selvagem, manifesta a Emanação nela e em você."
     },
     "feiticeiro-mente-aberrante": {
       "Fala Telepática": "Pode estabelecer comunicação telepática com outras criaturas. Como uma Ação Bônus, escolha uma criatura que esteja à sua vista e a até 9 metros de você",
