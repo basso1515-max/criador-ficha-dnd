@@ -163,7 +163,7 @@ export const FEATURE_SUMMARIES_2024 = {
       "Conjuração": "Conjura magias sagradas usando Carisma.",
       "Maestria em Arma": "Domina propriedades de maestria com armas de sua escolha.",
       "Mãos Consagradas": "Canaliza poder restaurador e purificador pelo toque.",
-      "Destruição do Paladino": "Converte espaços de magia em dano radiante devastador.",
+      "Destruição do Paladino": "Sempre deixa Destruição Divina preparada e permite conjurá-la uma vez sem gastar espaço de magia.",
       "Estilo de Luta": "Escolhe um talento de Estilo de Luta.",
       "Canalizar Divindade": "Usa seu juramento para efeitos sagrados marcantes.",
       "Subclasse de Paladino": "Escolhe um juramento que amplia suas magias e auras.",
@@ -384,7 +384,7 @@ export const FEATURE_SUMMARIES_2024 = {
       "Companheiro Primal": "Ela pode se mover e usar a própria Reação, embora a única ação padrão que ela executa é Esquivar, a menos que você use uma Ação Bônus para comandá-la a executar, execute uma ação do bloco de estatísticas dela ou alguma outra ação",
       "Treinamento Excepcional": "Ao executar uma Ação Bônus para ordenar sua fera Companheira Primal, você também pode ordená-la executar a ação Ajudar, Correr, Desengajar ou Esquivar usando a Ação Bônus dela",
       "Fúria Bestial": "Ao ordenar sua fera Companheira Primal a executar a ação Golpe da Fera, ela pode usá-la duas vezes",
-      "Compartilhar Magias": "Fera do Mar Fera Média, Neutra CA 13 mais seu modificador de Sabedoria Iniciativa +3 (13) PV 5 mais cinco vezes o seu nível de Guardião (a fera tem um número de Dados de Vida [d8s] igual ao seu nível de Guardião) Deslocamento 1,5 m, natação 18 m Sentidos: Visão no Escuro 18 m, Percepção Passiva 12 MOD SG MOD SG MOD SG For 14 +2 +2 Des 14 +2 +2 Con 15 +2 +2 Int 8 –1 –1 Sab 14 +2 +2 Car 11 +0 +0 Idiomas Compreende os idiomas que você fala ND Nenhum (XP 0; BP é igual ao seu Bônus de Proficiência) Traços Anfíbio"
+      "Compartilhar Magias": "Quando conjura uma magia que afeta você, seu Companheiro Primal também pode receber o efeito se estiver próximo."
     },
     "patrulheiro-perseguidor": {
       "Magias do Vigilante das Sombras": "Sempre deixa preparadas magias sombrias voltadas a caça, infiltração e emboscada.",
@@ -428,22 +428,22 @@ export const FEATURE_SUMMARIES_2024 = {
     "ladino-faca-alma": {
       "Poder Psíquico": "Ganha uma reserva de energia psíquica para reforçar testes, mobilidade e truques mentais.",
       "Lâminas Psíquicas": "Cria lâminas mentais arremessáveis que causam dano psíquico e desaparecem após o golpe.",
-      "Esfumaçar Psíquico": "Usa poder psíquico para escapar, se reposicionar ou dificultar que percebam sua presença.",
-      "Golpes Psíquicos": "Suas lâminas mentais passam a atravessar defesas com mais eficiência e ferir a mente do alvo.",
-      "Corte de Rachadura da Alma": "Desfere um corte mental devastador, abrindo a mente do alvo para efeitos extras."
+      "Lâminas da Alma": "Aprimora suas Lâminas Psíquicas com teleporte e precisão psíquica.",
+      "Véu Psíquico": "Fica invisível por meio de energia psíquica até atacar, causar dano ou forçar uma salvaguarda.",
+      "Rasgar a Mente": "Após causar dano de Ataque Furtivo com uma Lâmina Psíquica, pode atordoar a mente do alvo."
     },
     "ladino-assassino": {
       "Ferramentas do Ofício": "Ganha ferramentas e proficiências voltadas a disfarce, venenos e infiltração.",
-      "Assassinar": "Durante a primeira rodada de cada combate, você tem Vantagem em jogadas de ataque contra qualquer criatura que não tenha realizado o turno",
-      "Especialista em Infiltração": "Pode imitar perfeitamente a fala, a caligrafia ou ambos de outra pessoa se tiver passado pelo menos 1 hora estudando-os",
-      "Impostor": "Imita aparência, voz e postura para sustentar identidades falsas com segurança.",
+      "Assassinar": "Age com Vantagem contra alvos que ainda não atuaram e causa dano extra quando acerta com Ataque Furtivo no início do combate.",
+      "Especialista em Infiltração": "Cria identidades falsas confiáveis e aprende a se passar por uma pessoa estudada.",
+      "Envenenar Armas": "Aplica veneno com mais eficiência e amplia a letalidade de ataques envenenados.",
       "Golpe Mortal": "Ao acertar com seu Ataque Furtivo na primeira rodada de um combate, o alvo deve ser bem-sucedido em uma salvaguarda de Constituição (CD 8 mais seu modificador de Destreza e seu Bônus de Proficiência) ou o dano do ataque é dobrado contra o alvo"
     },
     "ladino-ladrao": {
       "Mãos Rápidas": "Usa Ação Bônus para manipular objetos, armadilhas ou ferramentas com rapidez.",
       "Trabalho de Segundo Andar": "Escala e salta melhor, tornando infiltrações verticais mais seguras.",
-      "Supremo Furto": "Sua técnica ladra fica precisa o bastante para roubos ousados em plena ação.",
-      "Usar Dispositivo Mágico": "Sempre que você usar uma propriedade de item mágico que gaste cargas, jogue 1d6",
+      "Furtividade Suprema": "Recebe Vantagem em testes de Destreza (Furtividade) quando se move com cuidado.",
+      "Usar Dispositivo Mágico": "Usa itens mágicos com mais liberdade, incluindo propriedades de itens, sintonia e pergaminhos.",
       "Reflexos de Ladrão": "Em combate, você realiza dois turnos na primeira rodada: o primeiro conforme sua Iniciativa normal e o segundo em sua Iniciativa menos 10"
     },
     "ladino-trapaceiro-arcano": {
@@ -457,7 +457,7 @@ export const FEATURE_SUMMARIES_2024 = {
       "Erudito da Abjuração": "Aprende magias de Abjuração com mais facilidade e reforça o grimório dessa escola.",
       "Proteção Arcana": "Ao conjurar uma magia de Abjuração com um espaço de magia, você pode usar simultaneamente um fio da magia para criar uma proteção mágica em si que dura até você completar um Descanso Longo",
       "Proteção Projetada": "Quando uma criatura à sua vista a até 9 metros de você sofrer dano, você pode executar uma Reação para que sua Proteção Arcana absorva esse dano",
-      "Abjuração Potente": "Melhora magias defensivas como Contramágica e Dissipar Magia.",
+      "Quebrador de Magias": "Aprimora suas magias de Abjuração usadas para desfazer ou interromper magia hostil.",
       "Resistência a Feitiços": "Ganha vantagem para resistir a magias e mais proteção contra dano mágico."
     },
     "mago-adivinhacao": {
@@ -477,14 +477,14 @@ export const FEATURE_SUMMARIES_2024 = {
     "mago-ilusao": {
       "Erudito da Ilusão": "Aprende magias de Ilusão com facilidade e aprofunda o grimório nessa escola.",
       "Ilusão Aprimorada": "Suas ilusões ganham truques extras e ficam mais convincentes.",
+      "Criaturas Fantasmagóricas": "Suas ilusões podem criar ameaças fantasmagóricas mais convincentes e úteis em combate.",
       "Eu Ilusório": "Cria um duplo ilusório para enganar ataques e escapar de perigo.",
-      "Ilusões Maleáveis": "Altera ilusões ativas sem precisar reconjurar toda a magia.",
       "Realidade Ilusória": "Ao conjurar uma magia Ilusão com um espaço de magia, você pode escolher um objeto inanimado e não mágico que faça parte da ilusão e tornar esse objeto real"
     },
     "monge-palma-aberta": {
       "Técnica da Palma Aberta": "Sua Torrente de Golpes pode empurrar, derrubar ou impedir reações do alvo.",
       "Integridade Corporal": "Ganha a capacidade de se curar. Como uma Ação Bônus, você pode jogar seu dado de Artes Marciais",
-      "Tranquilidade": "Mantém uma proteção meditativa que dificulta ser atacado até a paz se romper.",
+      "Passo Veloz": "Combina Passo do Vento com outra Ação Bônus para reposicionar-se com agilidade extrema.",
       "Palma Vibrante": "Ao acertar uma criatura com um Ataque Desarmado, você pode gastar 4 Pontos de Foco para iniciar essas vibrações imperceptíveis, que duram por um número de dias igual ao seu nível de Monge"
     },
     "monge-misericordia": {
@@ -496,23 +496,24 @@ export const FEATURE_SUMMARIES_2024 = {
       "Mão da Misericórdia Suprema": "Ressuscita um morto recente e remove várias condições com grande gasto de foco."
     },
     "monge-sombras": {
-      "Artes das Sombras": "Pode gastar 1 Ponto de Foco para conjurar a magia Escuridão sem componentes de magia",
+      "Artes das Sombras": "Canaliza foco em escuridão sobrenatural e truques sombrios para ocultação e controle.",
       "Passo Sombrio": "Teleporta entre sombras e prepara um ataque corpo a corpo com vantagem.",
-      "Manto das Sombras": "Consegue desaparecer ou se ocultar totalmente enquanto opera nas trevas.",
-      "Oportunista": "Aproveita brechas criadas por aliados para atacar fora do próprio turno."
+      "Passo Sombrio Aprimorado": "Aprimora o teleporte entre sombras e fortalece o ataque feito logo depois.",
+      "Manto das Sombras": "Usa foco para envolver-se em sombra, ganhar invisibilidade e atravessar o campo como uma ameaça sombria."
     },
     "monge-quatro-elementos": {
-      "Discípulo dos Elementos": "Ganha controle elemental básico e técnicas ligadas aos quatro elementos.",
-      "Afinidade Elemental": "Sua magia dracônica tem relação com um tipo de dano associado a dragões",
-      "Disciplina Elemental Aprimorada": "Suas técnicas elementais ficam mais fortes e versáteis.",
-      "Avatar dos Elementos": "Entra em um estado máximo de domínio elemental para dano, mobilidade e controle."
+      "Sintonia Elemental": "Canaliza energia elemental em ataques desarmados, alcance e dano elemental.",
+      "Manipular Elementos": "Manipula pequenas manifestações elementais para efeitos utilitários.",
+      "Explosão Elemental": "Gasta foco para liberar uma explosão elemental contra criaturas em área.",
+      "Passo dos Elementos": "Usa os elementos para voar temporariamente e atravessar o campo com facilidade.",
+      "Epítome Elemental": "Alcança domínio elemental máximo, reforçando defesa, deslocamento e dano."
     },
     "paladino-devocao": {
       "Magias do Juramento": "Sempre deixa preparadas magias de juramento específicas da Devoção.",
       "Arma Sagrada": "Canaliza divindade para imbuir uma arma corpo a corpo com energia sagrada e mais precisão.",
       "Expulsar o Profano": "Canaliza energia sagrada para assustar e afastar inimigos profanos.",
       "Aura de Devoção": "Você e aliados têm Imunidade à condição Enfeitiçado enquanto estiverem em sua Aura de Proteção",
-      "Pureza de Espírito": "Fica sob proteção constante contra influências sobrenaturais hostis.",
+      "Destruição Protetora": "Quando usa Destruição Divina, concede cobertura defensiva sagrada a aliados próximos.",
       "Nimbo Sagrado": "Envolve-se em luz sagrada que protege aliados e pune inimigos próximos."
     },
     "paladino-gloria": {

@@ -270,7 +270,7 @@ const SUBCLASS_LIST = [
   subclass(
     "feiticeiro-mente-aberrante",
     "feiticeiro",
-    "Mente Aberrante",
+    "Feitiçaria Aberrante",
     3,
     "Transforma influência psíquica alienígena em telepatia, distorção mental e adaptação corporal.",
     {
@@ -283,7 +283,7 @@ const SUBCLASS_LIST = [
   subclass(
     "feiticeiro-draconico",
     "feiticeiro",
-    "Linhagem Dracônica",
+    "Feitiçaria Dracônica",
     3,
     "Canaliza poder de dragão em resiliência, afinidade elemental e presença majestosa.",
     {
@@ -296,7 +296,7 @@ const SUBCLASS_LIST = [
   subclass(
     "feiticeiro-alma-mecanica",
     "feiticeiro",
-    "Alma Mecânica",
+    "Feitiçaria Mecânica",
     3,
     "Expressa ordem cósmica, estabilidade arcana e proteção metódica.",
     {
@@ -309,7 +309,7 @@ const SUBCLASS_LIST = [
   subclass(
     "feiticeiro-magia-selvagem",
     "feiticeiro",
-    "Magia Selvagem",
+    "Feitiçaria Selvagem",
     3,
     "Abraça o caos arcano e o converte em explosões imprevisíveis de poder.",
     {
@@ -432,14 +432,14 @@ const SUBCLASS_LIST = [
   subclass(
     "ladino-faca-alma",
     "ladino",
-    "Adaga Espiritual",
+    "Faca da Alma",
     3,
     "Canaliza poder psiônico em lâminas mentais, mobilidade e comunicação telepática.",
     {
       3: [feature("Poder Psíquico"), feature("Lâminas Psíquicas")],
-      9: [feature("Esfumaçar Psíquico")],
-      13: [feature("Golpes Psíquicos")],
-      17: [feature("Corte de Rachadura da Alma")],
+      9: [feature("Lâminas da Alma", "Aprimora suas Lâminas Psíquicas com teleporte e precisão psíquica.")],
+      13: [feature("Véu Psíquico", "Fica invisível por meio de energia psíquica até atacar, causar dano ou forçar uma salvaguarda.")],
+      17: [feature("Rasgar a Mente", "Após causar dano de Ataque Furtivo com uma Lâmina Psíquica, pode atordoar a mente do alvo.")],
     }
   ),
   subclass(
@@ -451,7 +451,7 @@ const SUBCLASS_LIST = [
     {
       3: [feature("Ferramentas do Ofício"), feature("Assassinar")],
       9: [feature("Especialista em Infiltração")],
-      13: [feature("Impostor")],
+      13: [feature("Envenenar Armas", "Aplica veneno com mais eficiência e amplia a letalidade de ataques envenenados.")],
       17: [feature("Golpe Mortal")],
     }
   ),
@@ -463,7 +463,7 @@ const SUBCLASS_LIST = [
     "Especialista em escalada, furtos rápidos e uso criativo de itens em plena ação.",
     {
       3: [feature("Mãos Rápidas"), feature("Trabalho de Segundo Andar")],
-      9: [feature("Supremo Furto")],
+      9: [feature("Furtividade Suprema", "Recebe Vantagem em testes de Destreza (Furtividade) quando se move com cuidado.")],
       13: [feature("Usar Dispositivo Mágico")],
       17: [feature("Reflexos de Ladrão")],
     }
@@ -490,7 +490,7 @@ const SUBCLASS_LIST = [
     {
       3: [feature("Erudito da Abjuração"), feature("Proteção Arcana")],
       6: [feature("Proteção Projetada")],
-      10: [feature("Abjuração Potente")],
+      10: [feature("Quebrador de Magias", "Aprimora suas magias de Abjuração usadas para desfazer ou interromper magia hostil.")],
       14: [feature("Resistência a Feitiços")],
     }
   ),
@@ -514,8 +514,8 @@ const SUBCLASS_LIST = [
     3,
     "Concentra energia destrutiva com precisão, intensidade e segurança para aliados próximos.",
     {
-      3: [feature("Erudito da Evocação"), feature("Moldar Magias")],
-      6: [feature("Truque Potente")],
+      3: [feature("Erudito da Evocação"), feature("Truque Potente")],
+      6: [feature("Moldar Magias")],
       10: [feature("Evocação Potencializada")],
       14: [feature("Sobrecarregar")],
     }
@@ -528,28 +528,28 @@ const SUBCLASS_LIST = [
     "Cria imagens convincentes, dobra percepções e transforma truques em enganos perigosos.",
     {
       3: [feature("Erudito da Ilusão"), feature("Ilusão Aprimorada")],
-      6: [feature("Eu Ilusório")],
-      10: [feature("Ilusões Maleáveis")],
+      6: [feature("Criaturas Fantasmagóricas", "Suas ilusões podem criar ameaças fantasmagóricas mais convincentes e úteis em combate.")],
+      10: [feature("Eu Ilusório")],
       14: [feature("Realidade Ilusória")],
     }
   ),
   subclass(
     "monge-palma-aberta",
     "monge",
-    "Palma Aberta",
+    "Guerreiro da Palma Aberta",
     3,
     "Transforma disciplina corporal em derrubadas, reposicionamento e autocontrole marcial.",
     {
       3: [feature("Técnica da Palma Aberta")],
       6: [feature("Integridade Corporal")],
-      11: [feature("Tranquilidade")],
+      11: [feature("Passo Veloz", "Combina Passo do Vento com outra Ação Bônus para reposicionar-se com agilidade extrema.")],
       17: [feature("Palma Vibrante")],
     }
   ),
   subclass(
     "monge-misericordia",
     "monge",
-    "Misericórdia",
+    "Guerreiro da Misericórdia",
     3,
     "Usa ki para curar aliados, espalhar pragas e alternar compaixão com letalidade precisa.",
     {
@@ -562,27 +562,30 @@ const SUBCLASS_LIST = [
   subclass(
     "monge-sombras",
     "monge",
-    "Sombras",
+    "Guerreiro das Sombras",
     3,
     "Desaparece na penumbra, manipula escuridão e ataca onde os inimigos menos esperam.",
     {
       3: [feature("Artes das Sombras")],
       6: [feature("Passo Sombrio")],
-      11: [feature("Manto das Sombras")],
-      17: [feature("Oportunista")],
+      11: [feature("Passo Sombrio Aprimorado", "Aprimora o teleporte entre sombras e fortalece o ataque feito logo depois.")],
+      17: [feature("Manto das Sombras", "Usa foco para envolver-se em sombra, ganhar invisibilidade e atravessar o campo como uma ameaça sombria.")],
     }
   ),
   subclass(
     "monge-quatro-elementos",
     "monge",
-    "Quatro Elementos",
+    "Guerreiro dos Elementos",
     3,
     "Canaliza ki elemental em rajadas, formas de controle e técnicas inspiradas na natureza.",
     {
-      3: [feature("Discípulo dos Elementos")],
-      6: [feature("Afinidade Elemental")],
-      11: [feature("Disciplina Elemental Aprimorada")],
-      17: [feature("Avatar dos Elementos")],
+      3: [
+        feature("Sintonia Elemental", "Canaliza energia elemental em ataques desarmados, alcance e dano elemental."),
+        feature("Manipular Elementos", "Manipula pequenas manifestações elementais para efeitos utilitários."),
+      ],
+      6: [feature("Explosão Elemental", "Gasta foco para liberar uma explosão elemental contra criaturas em área.")],
+      11: [feature("Passo dos Elementos", "Usa os elementos para voar temporariamente e atravessar o campo com facilidade.")],
+      17: [feature("Epítome Elemental", "Alcança domínio elemental máximo, reforçando defesa, deslocamento e dano.")],
     }
   ),
   subclass(
@@ -594,7 +597,7 @@ const SUBCLASS_LIST = [
     {
       3: [feature("Magias do Juramento"), feature("Arma Sagrada"), feature("Expulsar o Profano")],
       7: [feature("Aura de Devoção")],
-      15: [feature("Pureza de Espírito")],
+      15: [feature("Destruição Protetora", "Quando usa Destruição Divina, concede cobertura defensiva sagrada a aliados próximos.")],
       20: [feature("Nimbo Sagrado")],
     }
   ),
