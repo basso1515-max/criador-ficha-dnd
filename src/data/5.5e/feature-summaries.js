@@ -93,21 +93,24 @@ export const FEATURE_SUMMARIES_2024 = {
       "Apoteose Arcana": "Seu corpo e sua magia atingem o ápice feiticeiro."
     },
     "guerreiro": {
-      "Estilo de Luta": "Escolhe um talento de Estilo de Luta.",
-      "Maestria em Arma": "Domina propriedades de maestria com vários tipos de armas.",
-      "Recuperar Fôlego": "Ação bônus para recuperar 1d10 + nível de Guerreiro em PV.",
-      "Mente Tática": "Gasta Recuperar Fôlego para somar 1d10 a um teste de atributo falho.",
-      "Surto de Ação": "Ganha 1 ação extra no turno; recarrega com descanso curto.",
+      "Estilo de Luta": "Escolhe um talento de Estilo de Luta e pode trocá-lo sempre que ganha um nível de Guerreiro.",
+      "Maestria em Arma": "Usa a propriedade de maestria de armas escolhidas; começa com 3 escolhas e pode trocar uma delas ao fim de descanso longo.",
+      "Recuperar Fôlego": "Ação bônus para recuperar 1d10 + nível de Guerreiro em PV; recupera um uso em descanso curto e todos em descanso longo.",
+      "Mente Tática": "Ao falhar em teste de atributo, gasta Recuperar Fôlego para somar 1d10; se ainda falhar, o uso não é gasto.",
+      "Surto de Ação": "No seu turno, ganha uma ação extra que não pode ser a ação Magia; recarrega em descanso curto ou longo.",
       "Subclasse de Guerreiro": "Escolhe um arquétipo marcial que especializa seu combate.",
       "Aumento no Valor de Atributo": "Recebe Aumento no Valor de Atributo ou outro talento para o qual se qualifique.",
-      "Ajuste Tático": "Refina sua leitura tática de cada confronto.",
+      "Deslocamento Tático": "Ao usar Recuperar Fôlego como ação bônus, pode mover até metade do deslocamento sem provocar ataques de oportunidade.",
       "Ataque Extra": "Ataca duas vezes ao usar a ação Atacar.",
-      "Indomável": "Recusa-se a ceder diante de testes cruciais.",
-      "Mestre Tático": "Sua visão de combate sobe para outro patamar.",
-      "Dois Ataques Extras": "Sua ação Atacar passa a incluir três ataques.",
-      "Ataques Estudados": "Seus ataques refletem observação e adaptação constantes.",
+      "Indomável": "Ao falhar em salvaguarda, refaz a rolagem com bônus igual ao nível de Guerreiro e usa o novo resultado.",
+      "Mestre Tático": "Quando ataca com uma arma cuja maestria pode usar, pode trocar a propriedade por Empurrar, Drenar ou Lentidão nesse ataque.",
+      "Dois Ataques Extras": "Ataca três vezes ao usar a ação Atacar.",
+      "Indomável Aprimorado": "Indomável passa a ter dois usos por descanso longo.",
+      "Ataques Estudados": "Se erra uma jogada de ataque contra uma criatura, ganha Vantagem no próximo ataque contra ela antes do fim do próximo turno.",
+      "Surto de Ação Aprimorado": "Surto de Ação passa a ter dois usos entre descansos, mas só uma vez por turno.",
+      "Indomável Superior": "Indomável passa a ter três usos por descanso longo.",
       "Dádiva Épica": "Recebe uma Dádiva Épica ou outro talento elegível.",
-      "Três Ataques Extras": "Sua ação Atacar alcança o auge guerreiro."
+      "Três Ataques Extras": "Ataca quatro vezes ao usar a ação Atacar."
     },
     "ladino": {
       "Ataque Furtivo": "Inflige dano adicional quando explora distrações ou vantagem posicional.",
@@ -401,12 +404,12 @@ export const FEATURE_SUMMARIES_2024 = {
       "Esquiva Sombria": "Quando uma criatura realiza uma jogada de ataque contra você, você pode executar uma Reação para impor Desvantagem nessa jogada"
     },
     "guerreiro-campeao": {
-      "Atleta Extraordinário": "Graças ao seu atletismo, você tem Vantagem em jogadas de Iniciativa e testes de Força (Atletismo)",
-      "Crítico Aprimorado": "Suas jogadas de ataque com armas e Ataques Desarmados obtém Acerto Crítico em jogadas com resultados 19 ou 20 no d20",
+      "Atleta Extraordinário": "Tem Vantagem em Iniciativa e testes de Força (Atletismo); após causar Acerto Crítico, pode mover até metade do deslocamento sem provocar ataques de oportunidade",
+      "Crítico Aprimorado": "Suas jogadas de ataque com armas e Ataques Desarmados obtêm Acerto Crítico com 19 ou 20 no d20",
       "Estilo de Luta Adicional": "Ganha outro talento de Estilo de Luta à sua escolha",
       "Combatente Heroico": "Durante o combate, você pode se conceder Inspiração Heroica sempre que começar seu turno sem ela",
-      "Crítico Superior": "Suas jogadas de ataque com armas e Ataques Desarmados agora obtém Acerto Crítico em jogadas com resultados 18 a 20 no d20",
-      "Sobrevivente": "Tem Vantagem em Salvaguardas Contra Morte"
+      "Crítico Superior": "Suas jogadas de ataque com armas e Ataques Desarmados agora obtêm Acerto Crítico com 18 a 20 no d20",
+      "Sobrevivente": "Tem Vantagem em salvaguardas contra morte; rolagens 18 a 20 contam como 20, e no início do turno recupera PV iguais a 5 + modificador de Constituição se estiver Sangrando e com pelo menos 1 PV"
     },
     "guerreiro-cavaleiro-arcano": {
       "Conjuração": "Aprende magia de mago para apoiar seu combate marcial com truques e espaços limitados.",

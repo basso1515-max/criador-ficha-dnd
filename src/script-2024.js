@@ -66,6 +66,13 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     rageDamage: [0, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4],
     weaponMastery: [0, 2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
   };
+  const FIGHTER_PROGRESSION_2024 = {
+    secondWind: [0, 2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
+    weaponMastery: [0, 3, 3, 3, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6],
+    actionSurge: [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2],
+    indomitable: [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3],
+    attacks: [0, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4],
+  };
   const BARD_BARDIC_DIE_BY_LEVEL_2024 = [0, 6, 6, 6, 6, 8, 8, 8, 8, 8, 10, 10, 10, 10, 10, 12, 12, 12, 12, 12, 12];
   const BARD_MAGICAL_SECRETS_CLASS_IDS_2024 = ["bardo", "clerigo", "druida", "mago"];
   const BARD_WORDS_OF_CREATION_SPELL_IDS_2024 = ["palavra-do-poder-cura", "palavra-do-poder-matar"];
@@ -1539,6 +1546,16 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
             ? "4 formas conhecidas, ND máx. 1/4, sem voo"
             : "liberada no nível 2";
       return `Forma Selvagem: ${wildShapeUses ? `${wildShapeUses} uso(s)` : "—"}; ${beastShapes}. Truques: ${cantrips}. Magias preparadas: ${prepared}. Falar com Animais sempre preparada.`;
+    }
+    if (classId === "guerreiro") {
+      const secondWind = FIGHTER_PROGRESSION_2024.secondWind[level] || 0;
+      const masteries = FIGHTER_PROGRESSION_2024.weaponMastery[level] || 0;
+      const actionSurge = FIGHTER_PROGRESSION_2024.actionSurge[level] || 0;
+      const indomitable = FIGHTER_PROGRESSION_2024.indomitable[level] || 0;
+      const attacks = FIGHTER_PROGRESSION_2024.attacks[level] || 1;
+      const actionSurgeText = actionSurge ? `Surto de Ação: ${actionSurge} uso(s).` : "Surto de Ação: —.";
+      const indomitableText = indomitable ? `Indomável: ${indomitable} uso(s).` : "Indomável: —.";
+      return `Recuperar Fôlego: ${secondWind} uso(s). Maestrias de arma: ${masteries}. Ataques por ação Atacar: ${attacks}. ${actionSurgeText} ${indomitableText}`;
     }
     return "";
   }
@@ -8749,6 +8766,18 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     return score;
   }
 
+  function getWeaponMasteryLimitForClassEntry2024(entry) {
+    if (!collectUnlockedFeatureNames(entry.classData?.features, entry.level).includes("Maestria em Arma")) {
+      return 0;
+    }
+
+    const level = clampInt(entry.level, 1, 20);
+    if (entry.classId === "barbaro") return BARBARIAN_PROGRESSION_2024.weaponMastery[level] || 0;
+    if (entry.classId === "guerreiro") return FIGHTER_PROGRESSION_2024.weaponMastery[level] || 0;
+    if (["ladino", "paladino", "patrulheiro"].includes(entry.classId)) return 2;
+    return Number.POSITIVE_INFINITY;
+  }
+
   function getWeaponMasteryState2024(
     cls,
     background,
@@ -8756,14 +8785,39 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     classEntries = getResolvedClassEntries2024()
   ) {
     const resolvedEntries = normalizeClassEntriesArgument2024(classEntries);
-    const hasWeaponMasteryFeature = resolvedEntries.some((entry) =>
-      collectUnlockedFeatureNames(entry.classData?.features, entry.level).includes("Maestria em Arma")
-    );
-    if (hasWeaponMasteryFeature) {
+    const weaponCounts = getSelectedWeaponCounts2024(cls, background);
+    const preferredClass = getPrimaryClassEntry2024(resolvedEntries)?.classData || cls;
+    const classMasteryLimit = resolvedEntries.reduce((total, entry) => {
+      const limit = getWeaponMasteryLimitForClassEntry2024(entry);
+      return Number.isFinite(total) && Number.isFinite(limit) ? total + limit : Number.POSITIVE_INFINITY;
+    }, 0);
+
+    if (classMasteryLimit > 0) {
+      if (!Number.isFinite(classMasteryLimit)) {
+        return {
+          enabled: true,
+          mode: "all",
+          weaponIds: new Set(),
+        };
+      }
+
+      const preferredWeaponIds = Array.from(weaponCounts.keys())
+        .map((weaponId) => WEAPON_BY_ID_2024.get(weaponId))
+        .filter((weapon) => weapon?.maestria)
+        .sort((a, b) => {
+          const scoreDiff = getWeaponMasteryPreferenceScore2024(b, preferredClass, abilityScores)
+            - getWeaponMasteryPreferenceScore2024(a, preferredClass, abilityScores);
+          if (scoreDiff !== 0) return scoreDiff;
+          return String(a?.nome || "").localeCompare(String(b?.nome || ""), "pt-BR");
+        })
+        .slice(0, classMasteryLimit)
+        .map((weapon) => weapon.id);
+
       return {
-        enabled: true,
-        mode: "all",
-        weaponIds: new Set(),
+        enabled: preferredWeaponIds.length > 0,
+        mode: preferredWeaponIds.length ? "limited" : "none",
+        weaponIds: new Set(preferredWeaponIds),
+        limit: classMasteryLimit,
       };
     }
 
@@ -8777,8 +8831,6 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
       };
     }
 
-    const weaponCounts = getSelectedWeaponCounts2024(cls, background);
-    const preferredClass = getPrimaryClassEntry2024(resolvedEntries)?.classData || cls;
     const preferredWeapon = Array.from(weaponCounts.keys())
       .map((weaponId) => WEAPON_BY_ID_2024.get(weaponId))
       .filter((weapon) => weapon?.maestria)
@@ -8804,6 +8856,7 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
 
     const mastery = PROPRIEDADES_MAESTRIA_ARMA[masteryId];
     const masteryLabel = mastery?.nome || labelFromSlug(masteryId);
+    if (masteryState.mode === "limited" && !masteryState.weaponIds?.has(weapon?.id)) return "";
     return `Maestria ${masteryLabel}`;
   }
 
