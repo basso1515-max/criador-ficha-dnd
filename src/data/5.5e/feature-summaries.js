@@ -38,15 +38,19 @@ export const FEATURE_SUMMARIES_2024 = {
       "Palavras de Criação": "Sempre tem Palavra de Poder: Salvar e Palavra de Poder: Matar preparadas; ao conjurar uma delas, pode afetar um segundo alvo a até 3 m do primeiro."
     },
     "bruxo": {
-      "Invocações Místicas": "Aprende invocações permanentes que personalizam profundamente sua magia.",
-      "Magia de Pacto": "Conjura magias com espaços de pacto que retornam rapidamente.",
-      "Astúcia Mágica": "Manipula seus recursos mágicos com mais flexibilidade e eficiência.",
-      "Subclasse de Bruxo": "Escolhe um patrono que expande suas magias e poderes.",
+      "Invocações Místicas": "Aprende invocações permanentes; começa com 1, sobe para 3 no nível 2 e chega a 10 no nível 18.",
+      "Magia de Pacto": "Prepara magias de bruxo usando Carisma; os espaços de pacto têm o mesmo círculo e retornam em descanso curto ou longo.",
+      "Astúcia Mágica": "Rito de 1 minuto que recupera espaços de pacto gastos até metade do máximo, arredondado para cima, uma vez por descanso longo.",
+      "Subclasse de Bruxo": "Escolhe um patrono; as magias de patrono ficam sempre preparadas e não contam contra o limite.",
       "Aumento no Valor de Atributo": "Recebe Aumento no Valor de Atributo ou outro talento para o qual se qualifique.",
-      "Contatar Patrono": "Aprofunda seu vínculo e acessa o conhecimento do patrono.",
-      "Arcana Mística": "Recebe magias poderosas de alto círculo concedidas por seu patrono.",
+      "Contatar Patrono": "Sempre prepara Contatar Outro Plano e pode conjurá-la uma vez por descanso longo para contatar o patrono, com sucesso automático na salvaguarda.",
+      "Arcana Mística": "Escolhe uma magia de bruxo de alto círculo para conjurar uma vez sem gastar espaço, recuperando o uso em descanso longo.",
+      "Arcana Mística (6º círculo)": "Escolhe uma magia de bruxo de 6º círculo para conjurar uma vez sem gastar espaço por descanso longo.",
+      "Arcana Mística (7º círculo)": "Escolhe uma magia de bruxo de 7º círculo para conjurar uma vez sem gastar espaço por descanso longo.",
+      "Arcana Mística (8º círculo)": "Escolhe uma magia de bruxo de 8º círculo para conjurar uma vez sem gastar espaço por descanso longo.",
+      "Arcana Mística (9º círculo)": "Escolhe uma magia de bruxo de 9º círculo para conjurar uma vez sem gastar espaço por descanso longo.",
       "Dádiva Épica": "Recebe uma Dádiva Épica ou outro talento elegível.",
-      "Mestre Místico": "Extrai o máximo de suas invocações e da Magia de Pacto."
+      "Mestre Místico": "Quando usa Astúcia Mágica, recupera todos os espaços de Magia de Pacto gastos."
     },
     "clerigo": {
       "Conjuração": "Conjura magias de clérigo usando Sabedoria; começa com 3 truques e 4 magias preparadas, aumentando conforme a tabela 2024.",
@@ -253,34 +257,34 @@ export const FEATURE_SUMMARIES_2024 = {
       "Majestade Inquebrável": "Ação bônus para assumir presença majestosa por 1 minuto; a primeira criatura que acertar você em cada turno deve passar em salvaguarda de Carisma ou o ataque erra."
     },
     "bruxo-arquifada": {
-      "Magias de Pacto da Arquifada": "A magia do seu patrono assegura que você sempre tenha algumas magias disponíveis; ao atingir um nível de Bruxo indicado na tabela Magias da Arquifada, você sempre tem essas magias preparadas",
-      "Passos Feéricos": "Pode conjurar Passo Nebuloso sem gastar um espaço de magia um número de vezes igual ao seu modificador de Carisma (mínimo de uma vez) e restaura todos os usos gastos ao completar um Descanso Longo",
-      "Fuga em Névoa": "Pode conjurar Passo Nebuloso como uma Reação ao sofrer dano",
-      "Defesas Sedutoras": "Além disso, imediatamente após uma criatura à sua vista acertar você com uma jogada de ataque, você pode executar uma Reação para reduzir o dano sofrido pela metade (arredondado para baixo) e pode forçar quem o atacou a realizar uma salvaguarda de Sabedoria contra a CD para evitar sua magia",
-      "Magia Sedutora": "Imediatamente após conjurar uma magia de Encantamento ou Ilusão usando uma ação e um espaço de magia, você pode conjurar Passo Nebuloso como parte da mesma ação e sem gastar um espaço de magia"
+      "Magias de Pacto da Arquifada": "Sempre tem preparadas as magias da Arquifada: Acalmar Emoções, Fogo Feérico, Passo Nebuloso, Força Fantasmagórica, Sono e as demais liberadas nos níveis 5, 7 e 9.",
+      "Passos Feéricos": "Conjura Passo Nebuloso sem espaço um número de vezes igual ao modificador de Carisma, mínimo 1, por descanso longo; ao conjurá-lo, escolhe efeito adicional feérico.",
+      "Fuga em Névoa": "Pode conjurar Passo Nebuloso como Reação ao sofrer dano; também adiciona passos que concedem Invisível ou causam 2d10 psíquico a criaturas próximas.",
+      "Defesas Sedutoras": "Fica imune a Enfeitiçado; como Reação ao ser atingido, reduz o dano pela metade e pode causar dano psíquico igual ao dano sofrido ao atacante que falhar em Sabedoria; recarrega em descanso longo ou com espaço de pacto.",
+      "Magia Sedutora": "Após conjurar magia de Encantamento ou Ilusão com ação e espaço, conjura Passo Nebuloso como parte da mesma ação sem gastar espaço."
     },
     "bruxo-celestial": {
-      "Luz Medicinal": "Tem uma reserva de d6s que podem ser gastos nessa cura",
-      "Magia de Pacto do Celestial": "A magia do seu patrono assegura que você sempre tenha algumas magias disponíveis; ao atingir um nível de Bruxo indicado na tabela Magias do Celestial, você sempre tem essas magias preparadas",
-      "Alma Radiante": "Tem Resistência a Dano Radiante",
-      "Resiliência Celestial": "Você recebe PV Temporários sempre que usar sua característica Astúcia Mágica ou completar um Descanso Curto ou Longo",
-      "Vingança Calcinante": "Quando você ou um aliado a até 18 metros de você estiver prestes a realizar uma Salvaguarda Contra Morte, você pode liberar energia radiante para salvar a criatura"
+      "Luz Medicinal": "Reserva de d6 igual a 1 + nível de bruxo; como ação bônus, cura você ou criatura a até 18 m, gastando até CAR dados, mínimo 1, e recupera a reserva em descanso longo.",
+      "Magias de Pacto do Celestial": "Sempre tem preparadas as magias do Celestial: Ajuda, Curar Ferimentos, Raio Guia, Restauração Menor, Luz, Chama Sagrada e as demais liberadas nos níveis 5, 7 e 9.",
+      "Alma Radiante": "Ganha Resistência a dano Radiante; uma vez por turno, quando sua magia causa dano Radiante ou de Fogo, soma Carisma ao dano contra um alvo.",
+      "Resiliência Celestial": "Ao usar Astúcia Mágica ou completar descanso curto ou longo, ganha PV temporários iguais a nível de bruxo + Carisma; até cinco criaturas ganham metade do nível + Carisma.",
+      "Vingança Calcinante": "Uma vez por descanso longo, quando você ou aliado a até 18 m faria salvaguarda contra morte, a criatura recupera metade dos PV máximos, pode encerrar Caído, e inimigos próximos sofrem 2d8 + Carisma radiante e ficam Cegos até o fim do turno."
     },
     "bruxo-grande-antigo": {
-      "Magias de Pacto do Grande Antigo": "A magia do seu patrono assegura que você sempre tenha algumas magias disponíveis; ao atingir um nível de Bruxo indicado na tabela Magias do Grande Antigo, você sempre tem essas magias preparadas",
-      "Magias Psíquicas": "Ao conjurar uma magia de Bruxo que cause dano, você pode mudar seu tipo de dano para Psíquico",
-      "Mente Desperta": "Como uma Ação Bônus, escolha uma criatura à sua vista a até 9 metros de você",
-      "Combatente Clarividente": "Ao formar uma ligação telepática com uma criatura usando Mente Desperta, você pode forçar essa criatura a realizar uma salvaguarda de Sabedoria contra a CD para evitar sua magia",
-      "Danação Mística": "Sempre tem a magia Danação preparada",
-      "Escudo Mental": "Você também tem Resistência a Dano Psíquico e sempre que uma criatura causar Dano Psíquico a você, essa criatura sofre a mesma quantidade de dano que você",
-      "Criar Servo": "Ao fazer isso, a duração da magia se torna 1 minuto para essa conjuração e, quando invocada, a Aberração tem um número de PV Temporários igual ao seu nível de Bruxo mais seu modificador de Carisma"
+      "Magias de Pacto do Grande Antigo": "Sempre tem preparadas as magias do Grande Antigo: Detectar Pensamentos, Sussurros Dissonantes, Força Fantasmagórica, Gargalhada Nefasta de Tasha e as demais liberadas nos níveis 5, 7 e 9.",
+      "Magias Psíquicas": "Ao conjurar magia de bruxo que causa dano, pode trocar o tipo para Psíquico; magias de Encantamento ou Ilusão de bruxo não exigem componentes Verbais nem Somáticos.",
+      "Mente Desperta": "Como ação bônus, cria vínculo telepático com criatura visível a até 9 m; o alcance é em milhas igual a Carisma, mínimo 1, e dura minutos iguais ao nível de bruxo.",
+      "Combatente Clarividente": "Ao criar vínculo de Mente Desperta, pode forçar salvaguarda de Sabedoria; em falha, o alvo tem Desvantagem contra você e você tem Vantagem contra ele pela duração; recarrega em descanso curto ou longo ou com espaço de pacto.",
+      "Danação Mística": "Sempre tem Bruxaria preparada; ao conjurá-la e escolher um atributo, o alvo também tem Desvantagem nas salvaguardas desse atributo.",
+      "Escudo Mental": "Seus pensamentos não podem ser lidos sem permissão; ganha Resistência a Psíquico e reflete dano psíquico recebido na criatura que o causou.",
+      "Criar Servo": "Ao conjurar Invocar Aberração, pode remover Concentração e reduzir a duração para 1 minuto; a Aberração ganha PV temporários iguais a nível de bruxo + Carisma e causa dano extra a alvos sob Bruxaria."
     },
     "bruxo-infernal": {
-      "Bênção do Tenebroso": "Ao reduzir um inimigo a 0 PV, você adquire PV Temporários iguais ao seu modificador de Carisma mais seu nível de Bruxo (mínimo de 1 Ponto de Vida Temporário)",
-      "Magias de Pacto do Ínfero": "A magia do seu patrono assegura que você sempre tenha algumas magias disponíveis; ao atingir um nível de Bruxo indicado na tabela Magias do Ínfero, você sempre tem essas magias preparadas",
-      "A Sorte do Próprio Tenebroso": "Ao realizar um teste de atributo ou uma salvaguarda, você pode usar essa característica para adicionar 1d10 à sua jogada",
-      "Resistência Ínfera": "Ao completar um Descanso Curto ou Longo, escolha um tipo de dano, exceto Energético",
-      "Lançar no Inferno": "O alvo deve ser bem-sucedido em uma salvaguarda de Carisma contra a CD para evitar sua magia, ou ele desaparece e atravessa uma paisagem de pesadelo"
+      "Bênção do Tenebroso": "Quando você reduz um inimigo a 0 PV, ou alguém reduz um inimigo a até 3 m de você a 0 PV, ganha PV temporários iguais a Carisma + nível de bruxo, mínimo 1.",
+      "Magias de Pacto do Ínfero": "Sempre tem preparadas as magias do Ínfero: Mãos Flamejantes, Comando, Raio Ardente, Sugestão e as demais liberadas nos níveis 5, 7 e 9.",
+      "A Sorte do Próprio Tenebroso": "Quando faz teste de atributo ou salvaguarda, após ver a rolagem e antes dos efeitos, pode somar 1d10; usos iguais a Carisma, mínimo 1, por descanso longo.",
+      "Resistência Ínfera": "Ao completar descanso curto ou longo, escolhe um tipo de dano exceto Energético e ganha Resistência a ele até escolher outro.",
+      "Lançar no Inferno": "Uma vez por turno ao acertar ataque, força salvaguarda de Carisma; em falha, o alvo some até o fim do seu próximo turno, fica Incapacitado e sofre 8d10 psíquico se não for ínfero; recarrega em descanso longo ou com espaço de pacto."
     },
     "clerigo-guerra": {
       "Magias de Domínio da Guerra": "Sempre tem preparadas as magias do domínio: Raio Guia, Arma Mágica, Escudo da Fé, Arma Espiritual e as demais liberadas nos níveis 5, 7 e 9.",

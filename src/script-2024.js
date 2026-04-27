@@ -100,6 +100,34 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
       9: ["restauracao-maior", "curar-ferimentos-em-massa"],
     },
   };
+  const WARLOCK_ELDRITCH_INVOCATIONS_BY_LEVEL_2024 = [0, 1, 3, 3, 3, 5, 5, 6, 6, 7, 7, 7, 8, 8, 8, 9, 9, 9, 10, 10, 10];
+  const WARLOCK_PATRON_GRANTED_SPELL_IDS_2024 = {
+    "bruxo-arquifada": {
+      3: ["acalmar-emocoes", "fogo-feerico", "passo-da-neblina", "forca-fantasmagorica", "sono"],
+      5: ["piscar", "crescer-plantas"],
+      7: ["dominar-besta", "invisibilidade-maior"],
+      9: ["dominar-pessoa", "aparencia"],
+    },
+    "bruxo-celestial": {
+      3: ["ajuda", "curar-ferimentos", "disparo-guia", "restauracao-menor", "luz", "chama-sagrada"],
+      5: ["luz-do-dia", "revificar"],
+      7: ["guardiao-da-fe", "muralha-de-fogo"],
+      9: ["restauracao-maior", "invocar-celestial"],
+    },
+    "bruxo-grande-antigo": {
+      3: ["detectar-pensamentos", "sussurros-dissonantes", "forca-fantasmagorica", "risada-histerica"],
+      5: ["clarividencia", "fome-de-hadar"],
+      7: ["confusao", "invocar-aberracao"],
+      9: ["modificar-memoria", "telecinese"],
+      10: ["bruxaria"],
+    },
+    "bruxo-infernal": {
+      3: ["maos-flamejantes", "comando", "raio-ardente", "sugestao"],
+      5: ["bola-de-fogo", "nevoa-fetida"],
+      7: ["escudo-de-fogo", "muralha-de-fogo"],
+      9: ["missao", "praga-de-insetos"],
+    },
+  };
   const XP_BY_LEVEL_2024 = [
     0,
     0,
@@ -281,7 +309,7 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
       sourceClassId: "bruxo",
       ability: "car",
       multiclassProgression: "pact",
-      cantripsByLevel: [0, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
+      cantripsByLevel: [0, 2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
       preparedByLevel: [0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14, 15, 15],
       pactSlotsByLevel: [0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4],
       pactSlotLevelByLevel: [0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5],
@@ -1467,6 +1495,17 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
       const prepared = Number(clericRule.preparedByLevel?.[level] || 0);
       const channelText = channelDivinity ? String(channelDivinity) : "—";
       return `Canalizar Divindade: ${channelText}. Truques: ${cantrips}. Magias preparadas: ${prepared}.`;
+    }
+    if (classId === "bruxo") {
+      const warlockRule = SPELLCASTING_RULES_2024.bruxo || {};
+      const invocations = WARLOCK_ELDRITCH_INVOCATIONS_BY_LEVEL_2024[level] || 0;
+      const cantrips = Number(warlockRule.cantripsByLevel?.[level] || 0);
+      const prepared = Number(warlockRule.preparedByLevel?.[level] || 0);
+      const pactSlots = Number(warlockRule.pactSlotsByLevel?.[level] || 0);
+      const pactSlotLevel = Number(warlockRule.pactSlotLevelByLevel?.[level] || 0);
+      const magicalCunning = level >= 20 ? pactSlots : Math.ceil(pactSlots / 2);
+      const cunningText = level >= 2 ? ` Astúcia Mágica recupera ${magicalCunning} espaço(s).` : "";
+      return `Invocações: ${invocations}. Truques: ${cantrips}. Magias preparadas: ${prepared}. Espaços de pacto: ${pactSlots} de ${pactSlotLevel}º círculo.${cunningText}`;
     }
     return "";
   }
@@ -8992,6 +9031,14 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
           config,
           collectGrantedSpellIdsByLevel2024(CLERIC_DOMAIN_GRANTED_SPELL_IDS_2024[entry.subclassId], entry.level)
         );
+      }
+      if (entry.classId === "bruxo") {
+        const grantedSpellIds = [];
+        if (entry.level >= 9) grantedSpellIds.push("contatar-outro-plano");
+        if (entry.subclassId) {
+          grantedSpellIds.push(...collectGrantedSpellIdsByLevel2024(WARLOCK_PATRON_GRANTED_SPELL_IDS_2024[entry.subclassId], entry.level));
+        }
+        mergeGrantedSpellIdsIntoConfig2024(config, grantedSpellIds);
       }
       return config;
     }

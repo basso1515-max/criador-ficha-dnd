@@ -133,7 +133,7 @@ const SUBCLASS_LIST = [
     3,
     "Canaliza cura e radiância concedidas por seres dos Planos Superiores.",
     {
-      3: [feature("Luz Medicinal"), feature("Magia de Pacto do Celestial")],
+      3: [feature("Luz Medicinal"), feature("Magias de Pacto do Celestial")],
       6: [feature("Alma Radiante")],
       10: [feature("Resiliência Celestial")],
       14: [feature("Vingança Calcinante")],
@@ -142,7 +142,7 @@ const SUBCLASS_LIST = [
   subclass(
     "bruxo-grande-antigo",
     "bruxo",
-    "Patrono O Grande Antigo",
+    "Patrono do Grande Antigo",
     3,
     "Explora segredos aberrantes, telepatia e maldições psíquicas vindas do desconhecido.",
     {
