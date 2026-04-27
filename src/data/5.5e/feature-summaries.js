@@ -145,28 +145,28 @@ export const FEATURE_SUMMARIES_2024 = {
       "Assinatura Mágica": "Sua magia pessoal torna-se instantaneamente reconhecível e excepcional."
     },
     "monge": {
-      "Artes Marciais": "Aprimora ataques desarmados e armas de monge com Destreza e dado marcial.",
-      "Defesa sem Armadura": "Sem armadura nem escudo, sua CA usa Destreza e Sabedoria.",
-      "Foco do Monge": "Gasta pontos de foco para técnicas marciais especiais.",
-      "Metabolismo Incomum": "Seu corpo recupera energia e resistência de modo extraordinário.",
-      "Movimento sem Armadura": "Seu deslocamento aumenta enquanto luta sem armadura.",
-      "Defletir Ataques": "Desvia ou redireciona ataques que conseguir interceptar.",
+      "Artes Marciais": "Sem armadura nem escudo e usando ataques desarmados ou armas de monge, pode atacar com Destreza, usar o dado marcial no dano e fazer ataque desarmado como ação bônus.",
+      "Defesa sem Armadura": "Sem armadura nem escudo, sua CA base é 10 + Destreza + Sabedoria.",
+      "Foco do Monge": "Pontos de Foco alimentam Torrente de Golpes, Defesa Paciente e Passo do Vento; são recuperados em descanso curto ou longo e usam CD 8 + Sabedoria + proficiência.",
+      "Metabolismo Incomum": "Ao rolar Iniciativa, uma vez por descanso longo, recupera todo o Foco gasto e PV iguais ao nível de Monge + um dado de Artes Marciais.",
+      "Movimento sem Armadura": "Sem armadura nem escudo, ganha bônus de deslocamento pela tabela do Monge.",
+      "Defletir Ataques": "Reação ao sofrer ataque com dano de Concussão, Perfurante ou Cortante para reduzir 1d10 + Destreza + nível de Monge; se zerar, pode gastar 1 Foco para redirecionar dano.",
       "Subclasse de Monge": "Escolhe uma tradição que define o uso do seu foco.",
       "Aumento no Valor de Atributo": "Recebe Aumento no Valor de Atributo ou outro talento para o qual se qualifique.",
-      "Queda Lenta": "Reduz fortemente o dano recebido por quedas.",
+      "Queda Lenta": "Reação ao cair para reduzir o dano de queda em 5 vezes o nível de Monge.",
       "Ataque Extra": "Ataca duas vezes ao usar a ação Atacar.",
-      "Golpe Atordoante": "Canaliza foco em um golpe que desestabiliza o alvo.",
-      "Golpes Potencializados": "Seus ataques desarmados passam a romper resistências com mais facilidade.",
-      "Evasão": "Minimiza dano de explosões e efeitos similares.",
-      "Movimento Acrobático": "Corre por paredes e líquidos durante seu deslocamento.",
-      "Foco Aprimorado": "Suas técnicas de foco ficam mais eficientes.",
-      "Restauro Pessoal": "Remove certos estados negativos com disciplina interior.",
-      "Defletir Energia": "Passa a desviar ataques energéticos, não apenas físicos.",
-      "Sobrevivente Disciplinado": "Adquire proficiência em todas as salvaguardas.",
-      "Foco Perfeito": "Recupera foco com consistência quando a batalha começa.",
-      "Defesa Superior": "Investe foco para resistir a quase todo tipo de dano.",
+      "Golpe Atordoante": "Uma vez por turno ao atingir com arma de monge ou ataque desarmado, gasta 1 Foco; em falha de Constituição, o alvo fica Atordoado, e em sucesso tem deslocamento reduzido e concede Vantagem ao próximo ataque.",
+      "Golpes Potencializados": "Ataques desarmados podem causar dano Energético ou o tipo normal.",
+      "Evasão": "Em salvaguardas de Destreza para metade do dano, sofre 0 em sucesso e metade em falha; não funciona se estiver Incapacitado.",
+      "Movimento Acrobático": "Sem armadura nem escudo, pode mover por superfícies verticais e líquidos no turno sem cair durante o movimento.",
+      "Foco Aprimorado": "Torrente de Golpes faz 3 ataques; Defesa Paciente concede PV temporários iguais a 2 dados marciais; Passo do Vento pode levar uma criatura voluntária Grande ou menor próxima.",
+      "Restauro Pessoal": "No fim de cada turno, pode encerrar Enfeitiçado, Amedrontado ou Envenenado em si; ficar sem comida e bebida não causa Exaustão.",
+      "Defletir Energia": "Defletir Ataques passa a funcionar contra ataques de qualquer tipo de dano.",
+      "Sobrevivente Disciplinado": "Ganha proficiência em todas as salvaguardas; ao falhar em salvaguarda, pode gastar 1 Foco para refazer e usar o novo resultado.",
+      "Foco Perfeito": "Ao rolar Iniciativa sem usar Metabolismo Incomum, recupera Foco gasto até ficar com 4 pontos se tiver 3 ou menos.",
+      "Defesa Superior": "No início do turno, gasta 3 Foco para ganhar Resistência a todo dano exceto Energético por 1 minuto ou até ficar Incapacitado.",
       "Dádiva Épica": "Recebe uma Dádiva Épica ou outro talento elegível.",
-      "Corpo e Mente": "Eleva Destreza e Sabedoria além dos limites normais."
+      "Corpo e Mente": "Destreza e Sabedoria aumentam em 4, até o máximo de 25."
     },
     "paladino": {
       "Conjuração": "Conjura magias sagradas usando Carisma.",
@@ -491,10 +491,10 @@ export const FEATURE_SUMMARIES_2024 = {
       "Realidade Ilusória": "Ao conjurar uma magia Ilusão com um espaço de magia, você pode escolher um objeto inanimado e não mágico que faça parte da ilusão e tornar esse objeto real"
     },
     "monge-palma-aberta": {
-      "Técnica da Palma Aberta": "Sua Torrente de Golpes pode empurrar, derrubar ou impedir reações do alvo.",
-      "Integridade Corporal": "Ganha a capacidade de se curar. Como uma Ação Bônus, você pode jogar seu dado de Artes Marciais",
-      "Passo Veloz": "Combina Passo do Vento com outra Ação Bônus para reposicionar-se com agilidade extrema.",
-      "Palma Vibrante": "Ao acertar uma criatura com um Ataque Desarmado, você pode gastar 4 Pontos de Foco para iniciar essas vibrações imperceptíveis, que duram por um número de dias igual ao seu nível de Monge"
+      "Técnica da Palma Aberta": "Ao atingir com ataque concedido por Torrente de Golpes, pode impedir ataques de oportunidade, empurrar até 4,5 m em falha de Força ou derrubar em falha de Destreza.",
+      "Integridade Corporal": "Como ação bônus, cura PV iguais ao dado de Artes Marciais + Sabedoria, mínimo 1; usos iguais ao modificador de Sabedoria, mínimo 1, por descanso longo.",
+      "Passo Veloz": "Quando usa uma ação bônus que não seja Passo do Vento, também pode usar Passo do Vento imediatamente depois.",
+      "Palma Vibrante": "Ao atingir com ataque desarmado, gasta 4 Foco para iniciar vibrações por dias iguais ao nível de Monge; ao encerrá-las, o alvo sofre 10d12 Energético em falha de Constituição, metade em sucesso."
     },
     "monge-misericordia": {
       "Implementos da Misericórdia": "Ganha proficiências médicas e ferramentas ligadas a cura e tratamento.",

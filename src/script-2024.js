@@ -73,6 +73,11 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     indomitable: [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3],
     attacks: [0, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4],
   };
+  const MONK_PROGRESSION_2024 = {
+    martialArtsDie: [0, 6, 6, 6, 6, 8, 8, 8, 8, 8, 8, 10, 10, 10, 10, 10, 10, 12, 12, 12, 12],
+    focusPoints: [0, 0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
+    unarmoredMovementFeet: [0, 0, 10, 10, 10, 10, 15, 15, 15, 15, 20, 20, 20, 20, 25, 25, 25, 25, 30, 30, 30],
+  };
   const BARD_BARDIC_DIE_BY_LEVEL_2024 = [0, 6, 6, 6, 6, 8, 8, 8, 8, 8, 10, 10, 10, 10, 10, 12, 12, 12, 12, 12, 12];
   const BARD_MAGICAL_SECRETS_CLASS_IDS_2024 = ["bardo", "clerigo", "druida", "mago"];
   const BARD_WORDS_OF_CREATION_SPELL_IDS_2024 = ["palavra-do-poder-cura", "palavra-do-poder-matar"];
@@ -1556,6 +1561,14 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
       const actionSurgeText = actionSurge ? `Surto de Ação: ${actionSurge} uso(s).` : "Surto de Ação: —.";
       const indomitableText = indomitable ? `Indomável: ${indomitable} uso(s).` : "Indomável: —.";
       return `Recuperar Fôlego: ${secondWind} uso(s). Maestrias de arma: ${masteries}. Ataques por ação Atacar: ${attacks}. ${actionSurgeText} ${indomitableText}`;
+    }
+    if (classId === "monge") {
+      const martialArtsDie = MONK_PROGRESSION_2024.martialArtsDie[level] || 6;
+      const focusPoints = MONK_PROGRESSION_2024.focusPoints[level] || 0;
+      const movementFeet = MONK_PROGRESSION_2024.unarmoredMovementFeet[level] || 0;
+      const focusText = focusPoints ? `${focusPoints} ponto(s)` : "—";
+      const movementText = movementFeet ? `+${formatDistanceFromFeet2024(movementFeet)}` : "—";
+      return `Artes Marciais: d${martialArtsDie}. Foco: ${focusText}. Movimento sem Armadura: ${movementText}. CD do Foco: 8 + SAB + prof.`;
     }
     return "";
   }
@@ -5155,9 +5168,9 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
         previewItem("Distribuição", classDistribution || "—"),
         previewItem("Dados de Vida", derivedCombat.hitDicePool || "—"),
         previewItem(
-          "Salvaguardas da classe inicial",
+          "Salvaguardas",
           formatList(Array.from(new Set([
-            ...((primaryEntry?.classData?.salvaguardas || []).map(formatAbilityLabel)),
+            ...Array.from(collectClassSavingThrowProficiencyIds2024(classEntries)).map(formatAbilityLabel),
             ...Array.from(collectFeatSavingThrowProficiencies2024()).map(formatAbilityLabel),
           ]))) || "—"
         ),
@@ -7550,17 +7563,26 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     renderProficiencySummary2024();
   }
 
+  function collectClassSavingThrowProficiencyIds2024(classEntries = getResolvedClassEntries2024()) {
+    const resolvedEntries = normalizeClassEntriesArgument2024(classEntries);
+    const primaryEntry = getPrimaryClassEntry2024(classEntries);
+    const saveIds = new Set(primaryEntry?.classData?.salvaguardas || []);
+    if (resolvedEntries.some((entry) => entry.classId === "monge" && entry.level >= 14)) {
+      ABILITY_ORDER.forEach((ability) => saveIds.add(ability));
+    }
+    return saveIds;
+  }
+
   function renderProficiencySummary2024() {
     if (!el.proficiencySummary) return;
 
     const background = getSelectedBackground();
     const race = getSelectedRace();
     const classEntries = getResolvedClassEntries2024();
-    const primaryEntry = getPrimaryClassEntry2024(classEntries);
     const cards = [];
 
     const savingThrows = formatList(Array.from(new Set([
-      ...(primaryEntry?.classData?.salvaguardas || []).map(formatAbilityLabel),
+      ...Array.from(collectClassSavingThrowProficiencyIds2024(classEntries)).map(formatAbilityLabel),
       ...Array.from(collectFeatSavingThrowProficiencies2024()).map(formatAbilityLabel),
     ])));
     if (savingThrows) {
@@ -8703,36 +8725,80 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     if (!weapon) return false;
     if (weapon.categoria === "simples" && weaponTrainingTags.has("simples")) return true;
     if (weapon.categoria === "marcial" && weaponTrainingTags.has("marcial")) return true;
+    if ((weapon.propriedades || []).includes("light") && weapon.categoria === "marcial" && weaponTrainingTags.has("marcial-leve")) return true;
     if (weapon.categoria === "marcial-leve" && (weaponTrainingTags.has("marcial") || weaponTrainingTags.has("marcial-leve"))) return true;
     if (weaponTrainingTags.has("marcial-leve-ou-acuidade")) {
-      return weapon.categoria === "marcial-leve" || (weapon.propriedades || []).includes("finesse");
+      return weapon.categoria === "marcial-leve"
+        || (weapon.categoria === "marcial" && (weapon.propriedades || []).includes("light"))
+        || (weapon.propriedades || []).includes("finesse");
     }
     return false;
   }
 
-  function getWeaponAttackAbilityKey2024(weapon, abilityScores = {}) {
+  function getMonkLevelFromEntries2024(classEntries = getResolvedClassEntries2024()) {
+    return normalizeClassEntriesArgument2024(classEntries)
+      .filter((entry) => entry.classId === "monge")
+      .reduce((highest, entry) => Math.max(highest, clampInt(entry.level, 0, 20)), 0);
+  }
+
+  function getMonkMartialArtsDieSides2024(level = 0) {
+    return MONK_PROGRESSION_2024.martialArtsDie[clampInt(level, 0, 20)] || 0;
+  }
+
+  function isMonkWeapon2024(weapon) {
+    if (!weapon || weapon.tipo !== "corpo-a-corpo") return false;
+    if (weapon.categoria === "simples") return true;
+    return weapon.categoria === "marcial-leve" || (weapon.categoria === "marcial" && (weapon.propriedades || []).includes("light"));
+  }
+
+  function hasActiveMonkMartialArts2024(cls, classEntries = getResolvedClassEntries2024()) {
+    if (!getMonkLevelFromEntries2024(classEntries)) return false;
+    const armorItems = getSelectedArmorItems2024(cls);
+    const isWearingArmor = armorItems.some((armor) => armor?.categoria && armor.categoria !== "escudo");
+    const hasShield = armorItems.some((armor) => armor?.categoria === "escudo");
+    return !isWearingArmor && !hasShield;
+  }
+
+  function getDieSidesFromText2024(dieText) {
+    const match = String(dieText || "").match(/d(\d+)/i);
+    return match ? Number(match[1]) : 0;
+  }
+
+  function getMonkMartialArtsDamageDie2024(weapon, cls, classEntries = getResolvedClassEntries2024()) {
+    const monkLevel = getMonkLevelFromEntries2024(classEntries);
+    if (!monkLevel || !hasActiveMonkMartialArts2024(cls, classEntries) || !isMonkWeapon2024(weapon)) return "";
+    const martialSides = getMonkMartialArtsDieSides2024(monkLevel);
+    return martialSides ? `1d${martialSides}` : "";
+  }
+
+  function getWeaponAttackAbilityKey2024(weapon, abilityScores = {}, classEntries = getResolvedClassEntries2024(), cls = getSelectedClass()) {
     const strengthMod = getAbilityModifier(abilityScores.for);
     const dexterityMod = getAbilityModifier(abilityScores.des);
     const hasFinesse = (weapon?.propriedades || []).includes("finesse");
+    const canUseMonkDexterity = hasActiveMonkMartialArts2024(cls, classEntries) && isMonkWeapon2024(weapon);
 
     if (weapon?.tipo === "distancia") {
       if (hasFinesse && Number.isFinite(strengthMod) && strengthMod > dexterityMod) return "for";
       return "des";
     }
 
-    if (hasFinesse && Number.isFinite(dexterityMod) && dexterityMod > strengthMod) {
+    if ((hasFinesse || canUseMonkDexterity) && Number.isFinite(dexterityMod) && dexterityMod > strengthMod) {
       return "des";
     }
 
     return "for";
   }
 
-  function formatWeaponDamageField2024(weapon, abilityModifier) {
+  function formatWeaponDamageField2024(weapon, abilityModifier, damageDieOverride = "") {
     if (!weapon?.dano?.dado) return "";
+    const baseDie = weapon.dano.dado;
+    const damageDie = getDieSidesFromText2024(damageDieOverride) > getDieSidesFromText2024(baseDie)
+      ? damageDieOverride
+      : baseDie;
     const modifierText = Number.isFinite(abilityModifier) && abilityModifier !== 0
       ? (abilityModifier > 0 ? `+${abilityModifier}` : `${abilityModifier}`)
       : "";
-    return `${weapon.dano.dado}${modifierText} ${formatDamageTypeLabel2024(weapon.dano.tipo)}`.trim();
+    return `${damageDie}${modifierText} ${formatDamageTypeLabel2024(weapon.dano.tipo)}`.trim();
   }
 
   function formatWeaponRangeNote2024(weapon) {
@@ -8860,14 +8926,37 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     return `Maestria ${masteryLabel}`;
   }
 
-  function formatWeaponNotes2024(weapon, quantity, masteryState) {
+  function formatWeaponNotes2024(weapon, quantity, masteryState, extraNotes = []) {
     const parts = [];
     if (quantity > 1) parts.push(`Qtd. ${quantity}`);
     const rangeNote = formatWeaponRangeNote2024(weapon);
     if (rangeNote) parts.push(rangeNote);
     const masteryNote = formatWeaponMasteryNote2024(weapon, masteryState);
     if (masteryNote) parts.push(masteryNote);
+    (extraNotes || []).filter(Boolean).forEach((note) => parts.push(note));
     return parts.join(" • ");
+  }
+
+  function buildMonkUnarmedStrikeRow2024(cls, abilityScores = {}, proficiencyBonus = 0, classEntries = getResolvedClassEntries2024()) {
+    const monkLevel = getMonkLevelFromEntries2024(classEntries);
+    if (!monkLevel || !hasActiveMonkMartialArts2024(cls, classEntries)) return null;
+
+    const strengthMod = getAbilityModifier(abilityScores.for);
+    const dexterityMod = getAbilityModifier(abilityScores.des);
+    const abilityKey = Number.isFinite(dexterityMod) && dexterityMod > strengthMod ? "des" : "for";
+    const abilityModifier = getAbilityModifier(abilityScores?.[abilityKey]);
+    const martialArtsDie = getMonkMartialArtsDieSides2024(monkLevel);
+    const damageType = monkLevel >= 6 ? "Concussão ou Energético" : "Concussão";
+    const modifierText = Number.isFinite(abilityModifier) && abilityModifier !== 0
+      ? (abilityModifier > 0 ? `+${abilityModifier}` : `${abilityModifier}`)
+      : "";
+
+    return {
+      nome: "Ataque Desarmado",
+      bonusAtaque: Number.isFinite(abilityModifier) ? formatSignedNumber(abilityModifier + proficiencyBonus, "") : "",
+      danoTipo: martialArtsDie ? `1d${martialArtsDie}${modifierText} ${damageType}` : "",
+      notas: "Artes Marciais",
+    };
   }
 
   function getWeaponRowsForPdf2024(
@@ -8881,10 +8970,12 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     const weaponTrainingTags = getActiveWeaponTrainingTags2024(resolvedEntries);
     const weaponCounts = getSelectedWeaponCounts2024(cls, background);
     const masteryState = getWeaponMasteryState2024(cls, background, abilityScores, resolvedEntries);
+    const monkUnarmedStrike = buildMonkUnarmedStrikeRow2024(cls, abilityScores, proficiencyBonus, resolvedEntries);
 
-    return Array.from(weaponCounts.entries()).map(([weaponId, quantity]) => {
+    const weaponRows = Array.from(weaponCounts.entries()).map(([weaponId, quantity]) => {
       const weapon = WEAPON_BY_ID_2024.get(weaponId);
-      const abilityKey = getWeaponAttackAbilityKey2024(weapon, abilityScores);
+      const martialArtsDie = getMonkMartialArtsDamageDie2024(weapon, cls, resolvedEntries);
+      const abilityKey = getWeaponAttackAbilityKey2024(weapon, abilityScores, resolvedEntries, cls);
       const abilityModifier = getAbilityModifier(abilityScores?.[abilityKey]);
       const attackBonus = Number.isFinite(abilityModifier)
         ? abilityModifier + (isCharacterProficientWithWeapon2024(weapon, weaponTrainingTags) ? proficiencyBonus : 0)
@@ -8893,10 +8984,12 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
       return {
         nome: quantity > 1 ? `${weapon?.nome || labelFromSlug(weaponId)} x${quantity}` : (weapon?.nome || labelFromSlug(weaponId)),
         bonusAtaque: Number.isFinite(attackBonus) ? formatSignedNumber(attackBonus, "") : "",
-        danoTipo: formatWeaponDamageField2024(weapon, abilityModifier),
-        notas: formatWeaponNotes2024(weapon, quantity, masteryState),
+        danoTipo: formatWeaponDamageField2024(weapon, abilityModifier, martialArtsDie),
+        notas: formatWeaponNotes2024(weapon, quantity, masteryState, martialArtsDie ? [`Artes Marciais ${martialArtsDie}`] : []),
       };
     });
+
+    return monkUnarmedStrike ? [monkUnarmedStrike, ...weaponRows] : weaponRows;
   }
 
   function getBaseSpeedFeet2024(race = getSelectedRace(), subrace = getSelectedSubrace()) {
@@ -8912,13 +9005,7 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
   }
 
   function getMonkUnarmoredMovementBonusFeet2024(level = 0) {
-    const classLevel = clampInt(level, 0, 20);
-    if (classLevel < 2) return 0;
-    if (classLevel >= 18) return 30;
-    if (classLevel >= 14) return 25;
-    if (classLevel >= 10) return 20;
-    if (classLevel >= 6) return 15;
-    return 10;
+    return MONK_PROGRESSION_2024.unarmoredMovementFeet[clampInt(level, 0, 20)] || 0;
   }
 
   function getDerivedMovementState2024(
@@ -10355,7 +10442,7 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     const currencyBreakdown = getRemainingCurrencyBreakdown2024(cls, background);
     const historyAndPersonality = buildHistoryAndPersonalityText2024(el.notes.value.trim());
     const selectedFeatEntries = collectSelectedFeatEntries2024({ background, race, cls, subclass, level, classEntries });
-    const saveProficiencies = new Set(primaryEntry?.classData?.salvaguardas || []);
+    const saveProficiencies = collectClassSavingThrowProficiencyIds2024(classEntries);
     collectFeatSavingThrowProficiencies2024(selectedFeatEntries).forEach((ability) => saveProficiencies.add(ability));
 
     return {
