@@ -2175,6 +2175,88 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
       });
   }
 
+  function bindDropdownSuggestionInteraction2024(node, { container, value, preview, hidePreview, commit, useTouchPreview = true }) {
+    let pointerStart = null;
+    let suppressClick = false;
+    let suppressMouseUntil = 0;
+
+    const clearPreviewState = () => {
+      container?.querySelectorAll(".dropdown-suggestion").forEach((item) => {
+        item.classList.remove("is-active", "is-touch-preview");
+      });
+    };
+
+    const showPreview = () => {
+      clearPreviewState();
+      node.classList.add("is-active", "is-touch-preview");
+      return preview ? preview(value) !== false : false;
+    };
+
+    node.addEventListener("mouseenter", () => {
+      if (preview) preview(value);
+      container?.querySelectorAll(".dropdown-suggestion").forEach((item) => item.classList.remove("is-active"));
+      node.classList.add("is-active");
+    });
+
+    node.addEventListener("mouseleave", () => {
+      if (node.classList.contains("is-touch-preview")) return;
+      node.classList.remove("is-active");
+      if (hidePreview) hidePreview();
+    });
+
+    node.addEventListener("mousedown", (event) => {
+      if (Date.now() < suppressMouseUntil) {
+        event.preventDefault();
+        return;
+      }
+      if (event.button === 0) event.preventDefault();
+    });
+
+    node.addEventListener("pointerdown", (event) => {
+      if (event.pointerType === "mouse") return;
+      if (event.cancelable) event.preventDefault();
+      pointerStart = {
+        id: event.pointerId,
+        x: event.clientX,
+        y: event.clientY,
+      };
+    });
+
+    node.addEventListener("pointercancel", () => {
+      pointerStart = null;
+    });
+
+    node.addEventListener("pointerup", (event) => {
+      if (!pointerStart || event.pointerId !== pointerStart.id) return;
+
+      const moved = Math.hypot(event.clientX - pointerStart.x, event.clientY - pointerStart.y);
+      pointerStart = null;
+      if (moved > 10) return;
+
+      suppressClick = true;
+      suppressMouseUntil = Date.now() + 600;
+      event.preventDefault();
+      event.stopPropagation();
+
+      if (useTouchPreview && !node.classList.contains("is-touch-preview")) {
+        const hasPreview = showPreview();
+        if (hasPreview) return;
+      }
+
+      commit(value);
+    });
+
+    node.addEventListener("click", (event) => {
+      if (suppressClick || Date.now() < suppressMouseUntil) {
+        event.preventDefault();
+        suppressClick = false;
+        return;
+      }
+      event.preventDefault();
+      commit(value);
+    });
+  }
+
   function renderCustomSelectSuggestions2024(field, query, { allowEmpty = false } = {}) {
     if (!field?.suggestions || !field?.input || field.input.disabled) {
       hideCustomSelectSuggestions2024(field);
@@ -2212,28 +2294,14 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     field.suggestions.hidden = false;
 
     field.suggestions.querySelectorAll(".dropdown-suggestion").forEach((node) => {
-      node.addEventListener("mouseenter", () => {
-        showCustomSelectHoverCard2024(field, node.getAttribute("data-value"));
-        field.suggestions.querySelectorAll(".dropdown-suggestion").forEach((item) => item.classList.remove("is-active"));
-        node.classList.add("is-active");
+      const value = node.getAttribute("data-value");
+      bindDropdownSuggestionInteraction2024(node, {
+        container: field.suggestions,
+        value,
+        preview: (nextValue) => showCustomSelectHoverCard2024(field, nextValue),
+        hidePreview: () => hideCustomSelectHoverCard2024(field),
+        commit: (nextValue) => commitCustomSelectValue2024(field, nextValue),
       });
-      node.addEventListener("mouseleave", () => {
-        node.classList.remove("is-active");
-        hideCustomSelectHoverCard2024(field);
-      });
-      let committedFromPointer = false;
-      const commitFromPointer = (event) => {
-        if (committedFromPointer) return;
-        committedFromPointer = true;
-        event.preventDefault();
-        commitCustomSelectValue2024(field, node.getAttribute("data-value"));
-        window.setTimeout(() => {
-          committedFromPointer = false;
-        }, 0);
-      };
-      node.addEventListener("pointerdown", commitFromPointer);
-      node.addEventListener("mousedown", commitFromPointer);
-      node.addEventListener("touchstart", commitFromPointer, { passive: false });
     });
   }
 
@@ -2253,7 +2321,7 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     );
     if (!hasExtraInfo || !field?.hoverCard) {
       hideCustomSelectHoverCard2024(field);
-      return;
+      return false;
     }
 
     field.hoverCard.innerHTML = `
@@ -2262,6 +2330,7 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
       ${option.details.body ? `<p>${escapeHtml(option.details.body)}</p>` : ""}
     `;
     field.hoverCard.hidden = false;
+    return true;
   }
 
   function hideCustomSelectHoverCard2024(field) {
@@ -2610,7 +2679,7 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     const divinity = DIVINITY_BY_NAME_2024.get(normalizePt(name));
     if (!divinity || !el.divindadeHoverCard) {
       hideDivinityHoverCard2024();
-      return;
+      return false;
     }
 
     el.divindadeHoverCard.innerHTML = `
@@ -2621,6 +2690,7 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
       ${divinity.descricaoCurta ? `<p>${escapeHtml(divinity.descricaoCurta)}</p>` : ""}
     `;
     el.divindadeHoverCard.hidden = false;
+    return true;
   }
 
   function syncDivinityInfo2024() {
@@ -2665,18 +2735,13 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     el.divindadeSuggestions.hidden = false;
 
     el.divindadeSuggestions.querySelectorAll(".dropdown-suggestion").forEach((item) => {
-      item.addEventListener("mouseenter", () => {
-        showDivinityHoverCard2024(item.getAttribute("data-divinity"));
-        el.divindadeSuggestions.querySelectorAll(".dropdown-suggestion").forEach((node) => node.classList.remove("is-active"));
-        item.classList.add("is-active");
-      });
-      item.addEventListener("mouseleave", () => {
-        item.classList.remove("is-active");
-        hideDivinityHoverCard2024();
-      });
-      item.addEventListener("mousedown", (event) => {
-        event.preventDefault();
-        selectDivinity2024(item.getAttribute("data-divinity"));
+      const value = item.getAttribute("data-divinity");
+      bindDropdownSuggestionInteraction2024(item, {
+        container: el.divindadeSuggestions,
+        value,
+        preview: showDivinityHoverCard2024,
+        hidePreview: hideDivinityHoverCard2024,
+        commit: selectDivinity2024,
       });
     });
   }
@@ -4564,29 +4629,14 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     controls.suggestions.hidden = false;
 
     controls.suggestions.querySelectorAll(".equipment-item-suggestion").forEach((node) => {
-      node.addEventListener("mouseenter", () => {
-        showEquipmentShoppingHoverCard2024(row, node.getAttribute("data-value"));
-        controls.suggestions.querySelectorAll(".equipment-item-suggestion").forEach((item) => item.classList.remove("is-active"));
-        node.classList.add("is-active");
+      const value = node.getAttribute("data-value");
+      bindDropdownSuggestionInteraction2024(node, {
+        container: controls.suggestions,
+        value,
+        preview: (nextValue) => showEquipmentShoppingHoverCard2024(row, nextValue),
+        hidePreview: () => hideEquipmentShoppingHoverCard2024(row),
+        commit: (nextValue) => commitEquipmentShoppingItem2024(row, nextValue),
       });
-      node.addEventListener("mouseleave", () => {
-        node.classList.remove("is-active");
-        hideEquipmentShoppingHoverCard2024(row);
-      });
-
-      let committedFromPointer = false;
-      const commitFromPointer = (event) => {
-        if (committedFromPointer) return;
-        committedFromPointer = true;
-        event.preventDefault();
-        commitEquipmentShoppingItem2024(row, node.getAttribute("data-value"));
-        window.setTimeout(() => {
-          committedFromPointer = false;
-        }, 0);
-      };
-      node.addEventListener("pointerdown", commitFromPointer);
-      node.addEventListener("mousedown", commitFromPointer);
-      node.addEventListener("touchstart", commitFromPointer, { passive: false });
     });
   }
 
@@ -4595,7 +4645,7 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     const item = EQUIPMENT_PURCHASE_BY_ID_2024.get(value);
     if (!controls?.hoverCard || !item) {
       hideEquipmentShoppingHoverCard2024(row);
-      return;
+      return false;
     }
 
     const option = getShoppingOptionNode2024(controls.select, item.id);
@@ -4608,6 +4658,7 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
       ${disabledReason ? `<p class="dropdown-hover-warning">${escapeHtml(disabledReason)}</p>` : ""}
     `;
     controls.hoverCard.hidden = false;
+    return true;
   }
 
   function commitEquipmentShoppingItem2024(row, value) {

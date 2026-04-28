@@ -3708,6 +3708,88 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       });
   }
 
+  function bindDropdownSuggestionInteraction(node, { container, value, preview, hidePreview, commit, useTouchPreview = true }) {
+    let pointerStart = null;
+    let suppressClick = false;
+    let suppressMouseUntil = 0;
+
+    const clearPreviewState = () => {
+      container?.querySelectorAll(".dropdown-suggestion").forEach((item) => {
+        item.classList.remove("is-active", "is-touch-preview");
+      });
+    };
+
+    const showPreview = () => {
+      clearPreviewState();
+      node.classList.add("is-active", "is-touch-preview");
+      return preview ? preview(value) !== false : false;
+    };
+
+    node.addEventListener("mouseenter", () => {
+      if (preview) preview(value);
+      container?.querySelectorAll(".dropdown-suggestion").forEach((item) => item.classList.remove("is-active"));
+      node.classList.add("is-active");
+    });
+
+    node.addEventListener("mouseleave", () => {
+      if (node.classList.contains("is-touch-preview")) return;
+      node.classList.remove("is-active");
+      if (hidePreview) hidePreview();
+    });
+
+    node.addEventListener("mousedown", (event) => {
+      if (Date.now() < suppressMouseUntil) {
+        event.preventDefault();
+        return;
+      }
+      if (event.button === 0) event.preventDefault();
+    });
+
+    node.addEventListener("pointerdown", (event) => {
+      if (event.pointerType === "mouse") return;
+      if (event.cancelable) event.preventDefault();
+      pointerStart = {
+        id: event.pointerId,
+        x: event.clientX,
+        y: event.clientY,
+      };
+    });
+
+    node.addEventListener("pointercancel", () => {
+      pointerStart = null;
+    });
+
+    node.addEventListener("pointerup", (event) => {
+      if (!pointerStart || event.pointerId !== pointerStart.id) return;
+
+      const moved = Math.hypot(event.clientX - pointerStart.x, event.clientY - pointerStart.y);
+      pointerStart = null;
+      if (moved > 10) return;
+
+      suppressClick = true;
+      suppressMouseUntil = Date.now() + 600;
+      event.preventDefault();
+      event.stopPropagation();
+
+      if (useTouchPreview && !node.classList.contains("is-touch-preview")) {
+        const hasPreview = showPreview();
+        if (hasPreview) return;
+      }
+
+      commit(value);
+    });
+
+    node.addEventListener("click", (event) => {
+      if (suppressClick || Date.now() < suppressMouseUntil) {
+        event.preventDefault();
+        suppressClick = false;
+        return;
+      }
+      event.preventDefault();
+      commit(value);
+    });
+  }
+
   function renderCustomSelectSuggestions(field, query, { allowEmpty = false } = {}) {
     if (!query && !allowEmpty) {
       hideCustomSelectSuggestions(field);
@@ -3738,28 +3820,14 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     field.suggestions.hidden = false;
 
     field.suggestions.querySelectorAll(".dropdown-suggestion").forEach((node) => {
-      node.addEventListener("mouseenter", () => {
-        showCustomSelectHoverCard(field, node.getAttribute("data-value"));
-        field.suggestions.querySelectorAll(".dropdown-suggestion").forEach((item) => item.classList.remove("is-active"));
-        node.classList.add("is-active");
+      const value = node.getAttribute("data-value");
+      bindDropdownSuggestionInteraction(node, {
+        container: field.suggestions,
+        value,
+        preview: (nextValue) => showCustomSelectHoverCard(field, nextValue),
+        hidePreview: () => hideCustomSelectHoverCard(field),
+        commit: (nextValue) => commitCustomSelectValue(field, nextValue),
       });
-      node.addEventListener("mouseleave", () => {
-        node.classList.remove("is-active");
-        hideCustomSelectHoverCard(field);
-      });
-      let committedFromPointer = false;
-      const commitFromPointer = (event) => {
-        if (committedFromPointer) return;
-        committedFromPointer = true;
-        event.preventDefault();
-        commitCustomSelectValue(field, node.getAttribute("data-value"));
-        window.setTimeout(() => {
-          committedFromPointer = false;
-        }, 0);
-      };
-      node.addEventListener("pointerdown", commitFromPointer);
-      node.addEventListener("mousedown", commitFromPointer);
-      node.addEventListener("touchstart", commitFromPointer, { passive: false });
     });
   }
 
@@ -3780,7 +3848,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     );
     if (!hasExtraInfo) {
       hideCustomSelectHoverCard(field);
-      return;
+      return false;
     }
 
     field.hoverCard.innerHTML = `
@@ -3789,6 +3857,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       ${option.details.body ? `<p>${escapeHtml(option.details.body)}</p>` : ""}
     `;
     field.hoverCard.hidden = false;
+    return true;
   }
 
   function hideCustomSelectHoverCard(field) {
@@ -8855,18 +8924,13 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     el.alinhamentoSuggestions.hidden = false;
 
     el.alinhamentoSuggestions.querySelectorAll(".dropdown-suggestion").forEach((node) => {
-      node.addEventListener("mouseenter", () => {
-        showAlignmentHoverCard(node.getAttribute("data-alignment"));
-        el.alinhamentoSuggestions.querySelectorAll(".dropdown-suggestion").forEach((item) => item.classList.remove("is-active"));
-        node.classList.add("is-active");
-      });
-      node.addEventListener("mouseleave", () => {
-        node.classList.remove("is-active");
-        hideAlignmentHoverCard();
-      });
-      node.addEventListener("mousedown", (event) => {
-        event.preventDefault();
-        selectAlignment(node.getAttribute("data-alignment"));
+      const value = node.getAttribute("data-alignment");
+      bindDropdownSuggestionInteraction(node, {
+        container: el.alinhamentoSuggestions,
+        value,
+        preview: showAlignmentHoverCard,
+        hidePreview: hideAlignmentHoverCard,
+        commit: selectAlignment,
       });
     });
   }
@@ -8879,7 +8943,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     const item = ALIGNMENT_BY_NAME.get(normalizePt(name));
     if (!item) {
       hideAlignmentHoverCard();
-      return;
+      return false;
     }
 
     el.alinhamentoHoverCard.innerHTML = `
@@ -8887,6 +8951,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       <p>${escapeHtml(item.descricao)}</p>
     `;
     el.alinhamentoHoverCard.hidden = false;
+    return true;
   }
 
   function hideAlignmentHoverCard() {
@@ -9022,18 +9087,13 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     el.divindadeSuggestions.hidden = false;
 
     el.divindadeSuggestions.querySelectorAll(".dropdown-suggestion").forEach((item) => {
-      item.addEventListener("mouseenter", () => {
-        showDivinityHoverCard(item.getAttribute("data-divinity"));
-        el.divindadeSuggestions.querySelectorAll(".dropdown-suggestion").forEach((node) => node.classList.remove("is-active"));
-        item.classList.add("is-active");
-      });
-      item.addEventListener("mouseleave", () => {
-        item.classList.remove("is-active");
-        hideDivinityHoverCard();
-      });
-      item.addEventListener("mousedown", (event) => {
-        event.preventDefault();
-        selectDivinity(item.getAttribute("data-divinity"));
+      const value = item.getAttribute("data-divinity");
+      bindDropdownSuggestionInteraction(item, {
+        container: el.divindadeSuggestions,
+        value,
+        preview: showDivinityHoverCard,
+        hidePreview: hideDivinityHoverCard,
+        commit: selectDivinity,
       });
     });
   }
@@ -9046,7 +9106,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     const divinity = DIVINITY_BY_NAME.get(normalizePt(name));
     if (!divinity) {
       hideDivinityHoverCard();
-      return;
+      return false;
     }
 
     el.divindadeHoverCard.innerHTML = `
@@ -9057,6 +9117,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       ${divinity.descricaoCurta ? `<p>${escapeHtml(divinity.descricaoCurta)}</p>` : ""}
     `;
     el.divindadeHoverCard.hidden = false;
+    return true;
   }
 
   function hideDivinityHoverCard() {

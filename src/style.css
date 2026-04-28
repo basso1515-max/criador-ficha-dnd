@@ -1224,6 +1224,11 @@ select[multiple] option {
   background: rgba(139,94,52,0.12);
 }
 
+.dropdown-suggestion.is-touch-preview {
+  background: rgba(139,94,52,0.16);
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
 .dropdown-suggestion.is-empty {
   cursor: default;
   color: var(--muted);
@@ -3561,6 +3566,11 @@ body[data-active-screen="5e-2024"] .dropdown-suggestion.is-active {
   background: rgba(180, 35, 47, 0.08);
 }
 
+body[data-active-screen="5e-2024"] .dropdown-suggestion.is-touch-preview {
+  background: rgba(180, 35, 47, 0.12);
+  box-shadow: inset 3px 0 0 #b4232f;
+}
+
 body[data-active-screen="5e-2024"] .unit-toggle-btn.is-active,
 body[data-active-screen="5e-2024"] .method-option.is-active,
 body[data-active-screen="5e-2024"] .asi-method-option.is-active,
@@ -3771,13 +3781,21 @@ body[data-active-screen="5e-2024"] button:not(.secondary-button):not(.ghost-butt
 
   .dropdown-suggestions {
     max-height: min(260px, 48vh);
+    z-index: 120;
+    overscroll-behavior: contain;
+    touch-action: pan-y;
   }
 
   .dropdown-hover-card:not(.magic-spell-hover-card) {
-    position: static;
-    width: 100%;
-    max-height: 42vh;
-    margin-top: 8px;
+    position: fixed;
+    top: auto;
+    right: max(10px, env(safe-area-inset-right, 0px));
+    bottom: calc(190px + env(safe-area-inset-bottom, 0px));
+    left: max(10px, env(safe-area-inset-left, 0px));
+    z-index: 90;
+    width: auto;
+    max-height: min(220px, 32vh);
+    margin: 0;
     overflow: auto;
     transform: none;
   }
@@ -3931,6 +3949,10 @@ body[data-active-screen="5e-2024"] button:not(.secondary-button):not(.ghost-butt
   body[data-standalone-route="5e"],
   body[data-active-screen="5e-2024"] {
     padding-bottom: calc(198px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .dropdown-hover-card:not(.magic-spell-hover-card) {
+    bottom: calc(206px + env(safe-area-inset-bottom, 0px));
   }
 
   .container {
