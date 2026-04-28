@@ -1,5 +1,3 @@
-/* global PDFLib */
-
 import { RACAS, SUBRACAS as RACE_SUBRACAS, ENUMS_RACAS } from "./data/5e/racas.js";
 import { CLASSES } from "./data/5e/classes.js";
 import { SUBCLASSES } from "./data/5e/subclasses.js";
@@ -3754,31 +3752,39 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       if (event.button === 0) event.preventDefault();
     });
 
-    node.addEventListener("pointerdown", (event) => {
-      if (event.pointerType === "mouse") return;
+    const getTouchPoint = (event) => {
+      if (event.type.startsWith("touch")) {
+        const touch = event.changedTouches?.[0];
+        if (!touch) return null;
+        return { id: touch.identifier, x: touch.clientX, y: touch.clientY };
+      }
+      return { id: event.pointerId, x: event.clientX, y: event.clientY };
+    };
+
+    const handleDown = (event) => {
+      if (event.type === "pointerdown" && event.pointerType === "mouse") return;
       if (event.cancelable) event.preventDefault();
       if (input) input.blur();
-      pointerStart = {
-        id: event.pointerId,
-        x: event.clientX,
-        y: event.clientY,
-      };
-    });
+      const point = getTouchPoint(event);
+      if (!point) return;
+      pointerStart = point;
+    };
 
-    node.addEventListener("pointercancel", () => {
+    const handleCancel = () => {
       pointerStart = null;
-    });
+    };
 
-    node.addEventListener("pointerup", (event) => {
-      if (!pointerStart || event.pointerId !== pointerStart.id) return;
+    const handleUp = (event) => {
+      const point = getTouchPoint(event);
+      if (!pointerStart || !point || point.id !== pointerStart.id) return;
 
-      const moved = Math.hypot(event.clientX - pointerStart.x, event.clientY - pointerStart.y);
+      const moved = Math.hypot(point.x - pointerStart.x, point.y - pointerStart.y);
       pointerStart = null;
       if (moved > 10) return;
 
       suppressClick = true;
       suppressMouseUntil = Date.now() + 600;
-      event.preventDefault();
+      if (event.cancelable) event.preventDefault();
       event.stopPropagation();
 
       if (useTouchPreview && !node.classList.contains("is-touch-preview")) {
@@ -3787,7 +3793,14 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       }
 
       commit(value);
-    });
+    };
+
+    node.addEventListener("pointerdown", handleDown);
+    node.addEventListener("touchstart", handleDown, { passive: false });
+    node.addEventListener("pointercancel", handleCancel);
+    node.addEventListener("touchcancel", handleCancel);
+    node.addEventListener("pointerup", handleUp);
+    node.addEventListener("touchend", handleUp);
 
     node.addEventListener("click", (event) => {
       if (suppressClick || Date.now() < suppressMouseUntil) {
