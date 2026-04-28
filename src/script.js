@@ -3717,7 +3717,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       });
   }
 
-  function bindDropdownSuggestionInteraction(node, { container, value, preview, hidePreview, commit, useTouchPreview = true }) {
+  function bindDropdownSuggestionInteraction(node, { container, value, input, preview, hidePreview, commit, useTouchPreview = true }) {
     let pointerStart = null;
     let suppressClick = false;
     let suppressMouseUntil = 0;
@@ -3757,6 +3757,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     node.addEventListener("pointerdown", (event) => {
       if (event.pointerType === "mouse") return;
       if (event.cancelable) event.preventDefault();
+      if (input) input.blur();
       pointerStart = {
         id: event.pointerId,
         x: event.clientX,
@@ -3832,6 +3833,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       const value = node.getAttribute("data-value");
       bindDropdownSuggestionInteraction(node, {
         container: field.suggestions,
+        input: field.input,
         value,
         preview: (nextValue) => showCustomSelectHoverCard(field, nextValue),
         hidePreview: () => hideCustomSelectHoverCard(field),
@@ -8936,6 +8938,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       const value = node.getAttribute("data-alignment");
       bindDropdownSuggestionInteraction(node, {
         container: el.alinhamentoSuggestions,
+        input: el.alinhamento,
         value,
         preview: showAlignmentHoverCard,
         hidePreview: hideAlignmentHoverCard,
@@ -9099,6 +9102,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       const value = item.getAttribute("data-divinity");
       bindDropdownSuggestionInteraction(item, {
         container: el.divindadeSuggestions,
+        input: el.divindade,
         value,
         preview: showDivinityHoverCard,
         hidePreview: hideDivinityHoverCard,
