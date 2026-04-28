@@ -2175,7 +2175,7 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
       });
   }
 
-  function bindDropdownSuggestionInteraction2024(node, { container, value, preview, hidePreview, commit, useTouchPreview = true }) {
+  function bindDropdownSuggestionInteraction2024(node, { container, value, input, preview, hidePreview, commit, useTouchPreview = true }) {
     let pointerStart = null;
     let suppressClick = false;
     let suppressMouseUntil = 0;
@@ -2215,6 +2215,7 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     node.addEventListener("pointerdown", (event) => {
       if (event.pointerType === "mouse") return;
       if (event.cancelable) event.preventDefault();
+      if (input) input.blur();
       pointerStart = {
         id: event.pointerId,
         x: event.clientX,
@@ -2298,6 +2299,7 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
       bindDropdownSuggestionInteraction2024(node, {
         container: field.suggestions,
         value,
+        input: field.input,
         preview: (nextValue) => showCustomSelectHoverCard2024(field, nextValue),
         hidePreview: () => hideCustomSelectHoverCard2024(field),
         commit: (nextValue) => commitCustomSelectValue2024(field, nextValue),
@@ -2739,6 +2741,7 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
       bindDropdownSuggestionInteraction2024(item, {
         container: el.divindadeSuggestions,
         value,
+        input: el.divindadeInput,
         preview: showDivinityHoverCard2024,
         hidePreview: hideDivinityHoverCard2024,
         commit: selectDivinity2024,
@@ -4633,6 +4636,7 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
       bindDropdownSuggestionInteraction2024(node, {
         container: controls.suggestions,
         value,
+        input: controls.itemInput,
         preview: (nextValue) => showEquipmentShoppingHoverCard2024(row, nextValue),
         hidePreview: () => hideEquipmentShoppingHoverCard2024(row),
         commit: (nextValue) => commitEquipmentShoppingItem2024(row, nextValue),
