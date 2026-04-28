@@ -216,7 +216,7 @@ export const SUBRACAS = {
       { 
         id: "sopro-eletrico", 
         nome: "Sopro Elétrico", 
-        resumo: "Sopro em linha de 1,5 m x 9 m (5 ft x 30 ft); salvaguarda Destreza CD 8 + mod CON + proficiência; dano 2d6 elétrico (3d6 no 6º, 4d6 no 11º, 5d6 no 16º nível)." 
+        resumo: "Ataque de Sopro com dano elétrico; escolha cone de 4,5 m ou linha de 9 m a cada uso, com dano em d10s conforme o nível." 
       },
       { 
         id: "resistencia-eletrica", 
@@ -331,7 +331,7 @@ export const SUBRACAS = {
     race: "draconato",
     nome: "Draconato Branco",
     tracos: [
-      { id: "sopro-frio", nome: "Sopro Frio", resumo: "Sopro em linha de 1,5 m x 9 m (5 ft x 30 ft); salvaguarda Destreza CD 8 + mod CON + proficiência; dano 2d6 frio (3d6 no 6º, 4d6 no 11º, 5d6 no 16º nível)." },
+      { id: "sopro-frio", nome: "Sopro Frio", resumo: "Ataque de Sopro com dano gélido; escolha cone de 4,5 m ou linha de 9 m a cada uso, com dano em d10s conforme o nível." },
       { id: "resistencia-frio", nome: "Resistência ao Frio", resumo: "Resistência a dano de frio." }
     ],
   }),
@@ -340,7 +340,7 @@ export const SUBRACAS = {
     race: "draconato",
     nome: "Draconato Bronze",
     tracos: [
-      { id: "sopro-eletrico", nome: "Sopro Elétrico", resumo: "Sopro em linha de 1,5 m x 9 m; salvaguarda Destreza CD 8 + mod CON + proficiência; dano 2d6 elétrico (escala com o nível)." },
+      { id: "sopro-eletrico", nome: "Sopro Elétrico", resumo: "Ataque de Sopro com dano elétrico; escolha cone de 4,5 m ou linha de 9 m a cada uso, com dano em d10s conforme o nível." },
       { id: "resistencia-eletrica", nome: "Resistência Elétrica", resumo: "Resistência a dano elétrico." }
     ],
   }),
@@ -349,7 +349,7 @@ export const SUBRACAS = {
     race: "draconato",
     nome: "Draconato Cobre",
     tracos: [
-      { id: "sopro-acido", nome: "Sopro Ácido", resumo: "Sopro em linha de 1,5 m x 9 m; salvaguarda Destreza CD 8 + mod CON + proficiência; dano 2d6 ácido (escala com o nível)." },
+      { id: "sopro-acido", nome: "Sopro Ácido", resumo: "Ataque de Sopro com dano ácido; escolha cone de 4,5 m ou linha de 9 m a cada uso, com dano em d10s conforme o nível." },
       { id: "resistencia-acida", nome: "Resistência Ácida", resumo: "Resistência a dano ácido." }
     ],
   }),
@@ -358,7 +358,7 @@ export const SUBRACAS = {
     race: "draconato",
     nome: "Draconato Latão",
     tracos: [
-      { id: "sopro-fogo", nome: "Sopro Ígneo", resumo: "Sopro em linha de 1,5 m x 9 m; salvaguarda Destreza CD 8 + mod CON + proficiência; dano 2d6 de fogo (escala com o nível)." },
+      { id: "sopro-fogo", nome: "Sopro Ígneo", resumo: "Ataque de Sopro com dano de fogo; escolha cone de 4,5 m ou linha de 9 m a cada uso, com dano em d10s conforme o nível." },
       { id: "resistencia-fogo", nome: "Resistência ao Fogo", resumo: "Resistência a dano de fogo." }
     ],
   }),
@@ -367,7 +367,7 @@ export const SUBRACAS = {
     race: "draconato",
     nome: "Draconato Negro",
     tracos: [
-      { id: "sopro-acido", nome: "Sopro Ácido", resumo: "Sopro em linha de 1,5 m x 9 m; salvaguarda Destreza CD 8 + mod CON + proficiência; dano 2d6 ácido (escala com o nível)." },
+      { id: "sopro-acido", nome: "Sopro Ácido", resumo: "Ataque de Sopro com dano ácido; escolha cone de 4,5 m ou linha de 9 m a cada uso, com dano em d10s conforme o nível." },
       { id: "resistencia-acida", nome: "Resistência Ácida", resumo: "Resistência a dano ácido." }
     ],
   }),
@@ -376,7 +376,7 @@ export const SUBRACAS = {
     race: "draconato",
     nome: "Draconato de Ouro",
     tracos: [
-      { id: "sopro-fogo", nome: "Sopro Ígneo", resumo: "Sopro em linha de 1,5 m x 9 m; salvaguarda Destreza CD 8 + mod CON + proficiência; dano 2d6 de fogo (escala com o nível)." },
+      { id: "sopro-fogo", nome: "Sopro Ígneo", resumo: "Ataque de Sopro com dano de fogo; escolha cone de 4,5 m ou linha de 9 m a cada uso, com dano em d10s conforme o nível." },
       { id: "resistencia-fogo", nome: "Resistência ao Fogo", resumo: "Resistência a dano de fogo." }
     ],
   }),
@@ -385,7 +385,7 @@ export const SUBRACAS = {
     race: "draconato",
     nome: "Draconato Prata",
     tracos: [
-      { id: "sopro-frio", nome: "Sopro Frio", resumo: "Sopro em linha de 1,5 m x 9 m; salvaguarda Destreza CD 8 + mod CON + proficiência; dano 2d6 frio (escala com o nível)." },
+      { id: "sopro-frio", nome: "Sopro Frio", resumo: "Ataque de Sopro com dano gélido; escolha cone de 4,5 m ou linha de 9 m a cada uso, com dano em d10s conforme o nível." },
       { id: "resistencia-frio", nome: "Resistência ao Frio", resumo: "Resistência a dano de frio." }
     ],
   }),
@@ -394,7 +394,7 @@ export const SUBRACAS = {
     race: "draconato",
     nome: "Draconato Verde",
     tracos: [
-      { id: "sopro-veneno", nome: "Sopro Venenoso", resumo: "Sopro em linha de 1,5 m x 9 m; salvaguarda Destreza CD 8 + mod CON + proficiência; dano 2d6 venenoso (escala com o nível)." },
+      { id: "sopro-veneno", nome: "Sopro Venenoso", resumo: "Ataque de Sopro com dano venenoso; escolha cone de 4,5 m ou linha de 9 m a cada uso, com dano em d10s conforme o nível." },
       { id: "resistencia-veneno", nome: "Resistência a Veneno", resumo: "Resistência a dano venenoso." }
     ],
   }),
@@ -403,7 +403,7 @@ export const SUBRACAS = {
     race: "draconato",
     nome: "Draconato Vermelho",
     tracos: [
-      { id: "sopro-fogo", nome: "Sopro Ígneo", resumo: "Sopro em linha de 1,5 m x 9 m; salvaguarda Destreza CD 8 + mod CON + proficiência; dano 2d6 de fogo (escala com o nível)." },
+      { id: "sopro-fogo", nome: "Sopro Ígneo", resumo: "Ataque de Sopro com dano de fogo; escolha cone de 4,5 m ou linha de 9 m a cada uso, com dano em d10s conforme o nível." },
       { id: "resistencia-fogo", nome: "Resistência ao Fogo", resumo: "Resistência a dano de fogo." }
     ],
   }),
