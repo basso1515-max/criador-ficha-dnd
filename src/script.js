@@ -11,6 +11,7 @@ import { ARMADURAS } from "./data/5e/armaduras.js";
 import { EQUIPMENT_OPTION_LISTS, CLASS_EQUIPMENT_RULES, BACKGROUND_EQUIPMENT_RULES } from "./data/5e/equipamento-inicial.js";
 import { EXTRA_EQUIPMENT_CATALOG_2024, EXTRA_EQUIPMENT_GROUP_LABELS_2024 } from "./data/5.5e/equipment-compendium.js";
 import { TALENTOS } from "./data/5e/talentos.js";
+import { buildRandomCharacterNameForRace } from "./data/character-name-randomizer.js";
 
 const DEFAULT_TEMPLATE_URL = "./assets/pdf/5e/ficha5e.pdf";
 const PDF_MAP_URL = "./assets/pdf/5e/pdf-map.json";
@@ -1944,6 +1945,9 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     optDebug: $("optDebug"),
 
     nome: $("nome"),
+    nomeRandomMasculino: $("nomeRandomMasculino"),
+    nomeRandomFeminino: $("nomeRandomFeminino"),
+    nomeRandomNeutro: $("nomeRandomNeutro"),
     classe: $("classe"),
     classeInput: $("classeInput"),
     classeSuggestions: $("classeSuggestions"),
@@ -2217,6 +2221,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     renderLanguageChoices();
     renderExpertiseChoices();
     renderFightingStyleChoices();
+    updateNameRandomizerButtonsState();
     el.skillsExtra.addEventListener("change", onSkillSelectionChanged);
 
     el.raca.addEventListener("change", onRaceChanged);
@@ -2308,6 +2313,9 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     el.attrStandardShuffleBtn.addEventListener("click", shuffleStandardArray);
     if (el.btnRandomizeAll) el.btnRandomizeAll.addEventListener("click", () => randomizeSheet({ mode: "all" }));
     if (el.btnRandomizeRemaining) el.btnRandomizeRemaining.addEventListener("click", () => randomizeSheet({ mode: "remaining" }));
+    if (el.nomeRandomMasculino) el.nomeRandomMasculino.addEventListener("click", () => applyGeneratedCharacterName("masculino"));
+    if (el.nomeRandomFeminino) el.nomeRandomFeminino.addEventListener("click", () => applyGeneratedCharacterName("feminino"));
+    if (el.nomeRandomNeutro) el.nomeRandomNeutro.addEventListener("click", () => applyGeneratedCharacterName("neutro"));
 
     el.form.addEventListener("input", () => {
       atualizarPreview();
@@ -3493,6 +3501,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     });
     el.subraca.disabled = subraces.length === 0;
     syncCustomSelectField("subraca");
+    updateNameRandomizerButtonsState();
 
     const speed = race?.velocidade?.ft ? formatDistanceFromFeet(race.velocidade.ft) : null;
     const traits = (race?.tracos || []).map((trait) => trait.nome);
@@ -9345,8 +9354,32 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     return commitCustomSelectValueByKey(key, nextValue);
   }
 
-  function buildRandomCharacterName() {
-    return `${pickRandom(RANDOM_NAME_PREFIXES)} ${pickRandom(RANDOM_NAME_SUFFIXES)}`.trim();
+  function buildRandomCharacterName(gender = pickRandom(["masculino", "feminino", "neutro"]) || "neutro") {
+    const race = getSelectedRaceData();
+    const subrace = getSelectedSubraceData();
+    const raceId = subrace?.race || subrace?.base || race?.id || "";
+    const subraceId = subrace?.id || "";
+    return buildRandomCharacterNameForRace({ raceId, subraceId, gender });
+  }
+
+  function updateNameRandomizerButtonsState() {
+    const enabled = Boolean(getSelectedRaceData());
+    [
+      el.nomeRandomMasculino,
+      el.nomeRandomFeminino,
+      el.nomeRandomNeutro,
+    ].forEach((button) => {
+      if (!button) return;
+      button.disabled = !enabled;
+      button.tabIndex = enabled ? 0 : -1;
+      button.closest(".name-randomizer-option")?.classList.toggle("is-disabled", !enabled);
+    });
+  }
+
+  function applyGeneratedCharacterName(gender = "neutro") {
+    if (!getSelectedRaceData() || !el.nome) return;
+    el.nome.value = buildRandomCharacterName(gender);
+    el.nome.dispatchEvent(new Event("input", { bubbles: true }));
   }
 
   function splitChoiceText(text = "") {
