@@ -5198,6 +5198,11 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     const shoppingState = getEquipmentShoppingState2024(cls, background);
     const currencyBreakdown = getRemainingCurrencyBreakdown2024(cls, background);
     const divinitySummary = buildDivinitySummary2024();
+    const initiativeBonus = getInitiativeBonus2024(
+      effectiveAbilityScores.scores,
+      proficiencyBonus,
+      new Set(getActiveChosenFeatIds2024())
+    );
 
     const buildItems = [
       previewItem("Fonte de dados", DATASET_SOURCE),
@@ -5256,7 +5261,7 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     const combatItems = [
       previewItem("Bônus de proficiência", formatSignedNumber(proficiencyBonus)),
       previewItem("Classe de Armadura", quickSheetData.ca || derivedCombat.armorClass || "Em branco"),
-      previewItem("Iniciativa", formatSignedNumber(getAbilityModifier(effectiveAbilityScores.scores.des))),
+      previewItem("Iniciativa", formatSignedNumber(initiativeBonus)),
       previewItem("Deslocamento", derivedCombat.movement?.label || formatRaceSpeed(race, subrace)),
       previewItem("HP atual", quickSheetData.hpAtual || "Em branco"),
       previewItem("HP máximo", quickSheetData.hpMax || derivedCombat.hpMax || "Em branco"),
@@ -7927,12 +7932,15 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
 
     const first = entries[0];
     const base = `Nível 1: d${first.hitDie} cheio + mod. de CON.`;
+    const characterLevel = entries.reduce((highest, entry) => Math.max(highest, Number(entry?.characterLevel || 0)), 0);
+    const hitPointBonus = getHitPointMaximumBonus2024({ level: characterLevel });
+    const bonusText = hitPointBonus ? ` Bônus permanentes ativos: +${hitPointBonus} PV.` : "";
     if (mode === "rolled") {
-      el.hpRuleHint.textContent = `${base} Níveis acima: resultado do dado de vida + mod. de CON.${missingRolls ? ` ${missingRolls} rolagem(ns) vazia(s) usam o valor fixo até você preencher.` : ""}`;
+      el.hpRuleHint.textContent = `${base} Níveis acima: resultado do dado de vida + mod. de CON.${missingRolls ? ` ${missingRolls} rolagem(ns) vazia(s) usam o valor fixo até você preencher.` : ""}${bonusText}`;
       return;
     }
 
-    el.hpRuleHint.textContent = `${base} Níveis acima: valor fixo médio do dado de vida + mod. de CON.`;
+    el.hpRuleHint.textContent = `${base} Níveis acima: valor fixo médio do dado de vida + mod. de CON.${bonusText}`;
   }
 
   function renderHitPointRollControls2024({ force = false } = {}) {
@@ -8054,6 +8062,35 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     });
 
     return Math.max(1, hpTotal || (1 + conMod));
+  }
+
+  function getCharacterLevelFromClassEntries2024(entries = getResolvedClassEntries2024()) {
+    const total = normalizeClassEntriesArgument2024(entries)
+      .reduce((sum, entry) => sum + clampInt(entry?.level || 0, 0, 20), 0);
+    return total ? clampInt(total, 1, 20) : getSelectedLevel();
+  }
+
+  function getHitPointMaximumBonus2024({
+    race = getSelectedRace(),
+    chosenFeatIds = new Set(getActiveChosenFeatIds2024()),
+    level = getSelectedLevel(),
+  } = {}) {
+    const characterLevel = clampInt(level, 1, 20);
+    const featIds = chosenFeatIds instanceof Set ? chosenFeatIds : new Set(chosenFeatIds || []);
+    let bonus = 0;
+
+    if (race?.id === "anao") bonus += characterLevel;
+    if (featIds.has("vigoroso")) bonus += characterLevel * 2;
+    if (featIds.has("dadiva-da-fortitude")) bonus += 40;
+
+    return bonus;
+  }
+
+  function getInitiativeBonus2024(abilityScores = {}, proficiencyBonus = getProficiencyBonus(getSelectedLevel()), chosenFeatIds = new Set(getActiveChosenFeatIds2024())) {
+    const featIds = chosenFeatIds instanceof Set ? chosenFeatIds : new Set(chosenFeatIds || []);
+    const dexMod = getAbilityModifier(abilityScores?.des);
+    if (!Number.isFinite(dexMod)) return null;
+    return dexMod + (featIds.has("alerta") ? Number(proficiencyBonus || 0) : 0);
   }
 
   function formatHitDicePool2024(entries = []) {
@@ -9216,6 +9253,7 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
   function getDerivedCombatData2024() {
     const cls = getSelectedClass();
     const classEntries = getResolvedClassEntries2024();
+    const race = getSelectedRace();
     const scores = getEffectiveAbilityScores().scores || {};
     const dexMod = getAbilityModifier(scores.des);
     const conMod = getAbilityModifier(scores.con);
@@ -9253,12 +9291,16 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     const defenseStyleBonus = chosenFeatIds.has("defesa") && isWearingArmor ? 1 : 0;
     const armorClass = Math.max(...baseArmorOptions) + shieldBonus + defenseStyleBonus;
 
+    const characterLevel = getCharacterLevelFromClassEntries2024(classEntries);
+    const baseHpMax = classEntries.length
+      ? calculateHitPointsFromClassEntries2024(
+        classEntries,
+        conMod,
+        { mode: getHitPointProgressionMode2024(), rolls: collectHitPointRollValues2024() }
+      )
+      : 0;
     const hpMax = classEntries.length
-      ? String(calculateHitPointsFromClassEntries2024(
-          classEntries,
-          conMod,
-          { mode: getHitPointProgressionMode2024(), rolls: collectHitPointRollValues2024() }
-        ))
+      ? String(baseHpMax + getHitPointMaximumBonus2024({ race, chosenFeatIds, level: characterLevel }))
       : "";
     const hitDicePool = formatHitDicePool2024(classEntries);
     const movement = getDerivedMovementState2024(classEntries, cls);
@@ -10697,6 +10739,8 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     const currencyBreakdown = getRemainingCurrencyBreakdown2024(cls, background);
     const historyAndPersonality = buildHistoryAndPersonalityText2024(el.notes.value.trim());
     const selectedFeatEntries = collectSelectedFeatEntries2024({ background, race, cls, subclass, level, classEntries });
+    const selectedFeatIds = getSelectedFeatIdSet2024(selectedFeatEntries);
+    const initiativeBonus = getInitiativeBonus2024(abilityScores, proficiencyBonus, selectedFeatIds);
     const saveProficiencies = collectClassSavingThrowProficiencyIds2024(classEntries);
     collectFeatSavingThrowProficiencies2024(selectedFeatEntries).forEach((ability) => saveProficiencies.add(ability));
     const auraProtectionBonus = getPaladinAuraProtectionBonus2024(abilityScores, classEntries);
@@ -10710,7 +10754,7 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
         xp: quickSheetData.xp,
         bonusProficiencia: formatSignedNumber(proficiencyBonus, ""),
         CA: quickSheetData.ca || derivedCombat.armorClass,
-        iniciativa: formatSignedNumber(abilityMods.des, ""),
+        iniciativa: formatSignedNumber(initiativeBonus, ""),
         deslocamento: speedLabel,
         hpMax: quickSheetData.hpMax || derivedCombat.hpMax,
         hpAtual: quickSheetData.hpAtual,
@@ -10738,7 +10782,7 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
       combate: {
         bonusProficiencia: formatSignedNumber(proficiencyBonus, ""),
         classeArmadura: quickSheetData.ca || derivedCombat.armorClass,
-        iniciativa: formatSignedNumber(abilityMods.des, ""),
+        iniciativa: formatSignedNumber(initiativeBonus, ""),
         deslocamento: speedLabel,
         percepcaoPassiva: Number.isFinite(passivePerception) ? String(10 + passivePerception) : "",
         escudoEquipado: derivedCombat.hasShield,
