@@ -117,6 +117,7 @@ export const FEATURE_SUMMARIES_2024 = {
     "ladino": {
       "Ataque Furtivo": "Uma vez por turno, causa dano extra com arma de Acuidade ou à distância quando tem Vantagem, ou quando um aliado não Incapacitado está a 1,5 m do alvo e você não tem Desvantagem.",
       "Especialista": "Recebe Expertise em duas perícias proficientes à sua escolha; no nível 6 escolhe mais duas.",
+      "Especialista Adicional": "Recebe Expertise em mais duas perícias nas quais tenha proficiência.",
       "Gíria do Ladrão": "Aprende Gíria dos Ladrões automaticamente e escolhe mais um idioma.",
       "Maestria em Arma": "Escolhe 2 armas proficientes para usar propriedades de maestria e pode trocar as escolhas ao terminar descanso longo.",
       "Ação Ardilosa": "Usa Correr, Desengajar ou Esconder como Ação Bônus.",
