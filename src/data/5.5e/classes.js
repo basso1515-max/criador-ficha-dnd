@@ -1,4 +1,4 @@
-export const DATASET_VERSION = "1.0.1";
+export const DATASET_VERSION = "1.0.2";
 
 export const META_CLASSES = {
   dataset: "dnd5e-2024-ptbr",
@@ -10,6 +10,7 @@ export const META_CLASSES = {
     referenciaLocal: "src/data/5.5e/DnD 5.5 - Livro do Jogador (2024).pdf",
   },
   changelog: [
+    "1.0.2: Revisao do Mago 5.5e, corrigindo magias preparadas no nivel 20 para 25 e detalhando Conjuracao, Adepto de Ritual, Recuperacao Arcana, Academico, Memorizar Magia, Maestria de Magias, Magias Assinatura e subclasses de Mago.",
     "1.0.1: Revisao do Feiticeiro 5.5e, corrigindo progressao inicial de magias preparadas e detalhando recursos de Feiticaria Inata, Fonte de Magia, Metamagia, Restauracao Feiticeira, Feiticaria Encarnada e Apoteose Arcana.",
     "1.0.0: Reescrita do dataset de classes para o PHB 2024/5.5e, removendo opções legadas e alinhando proficiências, equipamentos iniciais, progressão e subclasses oficiais do livro base.",
   ],
@@ -456,20 +457,20 @@ export const CLASSES = {
     escolhas: { estilosLuta: [], talentosSugestao: ["mente-agucada", "conjurador-de-rituais"] },
     features: {
       1: [
-        feature("Adepto de Ritual", "Conjura magias rituais a partir do livro de magias sem prepará-las."),
-        feature("Conjuração", "Conjura magias arcanas usando Inteligência e um grimório pessoal."),
-        feature("Recuperação Arcana", "Recupera parte dos espaços de magia após descansar."),
+        feature("Adepto de Ritual", "Conjura como ritual qualquer magia com marcador Ritual que esteja no grimório, mesmo sem prepará-la."),
+        feature("Conjuração", "Usa Inteligência para magias de Mago; começa com 3 truques, 4 magias preparadas e 6 magias de 1º círculo no grimório."),
+        feature("Recuperação Arcana", "Uma vez por descanso longo, ao terminar descanso curto, recupera espaços com soma de círculos até metade do nível de Mago, arredondada para cima; nenhum pode ser de 6º círculo ou maior."),
       ],
-      2: [feature("Acadêmico", "Expande sua formação arcana com estudo especializado.")],
+      2: [feature("Acadêmico", "Recebe Especialização em uma perícia proficiente entre Arcanismo, História, Investigação, Medicina, Natureza ou Religião.")],
       3: [feature("Subclasse de Mago", "Escolhe uma escola de magia para especialização.")],
       4: [feature("Aumento no Valor de Atributo", "Recebe Aumento no Valor de Atributo ou outro talento para o qual se qualifique.")],
-      5: [feature("Memorizar Magia", "Reconfigura seu preparo mágico com mais agilidade.")],
+      5: [feature("Memorizar Magia", "Ao terminar descanso curto, troca uma magia de Mago preparada de 1º círculo ou superior por outra do grimório.")],
       8: [feature("Aumento no Valor de Atributo", "Recebe Aumento no Valor de Atributo ou outro talento para o qual se qualifique.")],
       12: [feature("Aumento no Valor de Atributo", "Recebe Aumento no Valor de Atributo ou outro talento para o qual se qualifique.")],
       16: [feature("Aumento no Valor de Atributo", "Recebe Aumento no Valor de Atributo ou outro talento para o qual se qualifique.")],
-      18: [feature("Maestria de Magias", "Domina certas magias a ponto de torná-las triviais.")],
+      18: [feature("Maestria de Magias", "Escolhe uma magia de 1º círculo e uma de 2º círculo do grimório, ambas com tempo de conjuração de ação; elas ficam sempre preparadas e podem ser conjuradas sem espaço no círculo mínimo.")],
       19: [feature("Dádiva Épica", "Recebe uma Dádiva Épica ou outro talento elegível.")],
-      20: [feature("Assinatura Mágica", "Sua magia pessoal torna-se instantaneamente reconhecível e excepcional.")],
+      20: [feature("Magias Assinatura", "Escolhe duas magias de 3º círculo do grimório; elas ficam sempre preparadas e cada uma pode ser conjurada uma vez em 3º círculo sem espaço por descanso curto ou longo.")],
     },
     subclasses: ["mago-abjuracao", "mago-adivinhacao", "mago-evocacao", "mago-ilusao"],
   },

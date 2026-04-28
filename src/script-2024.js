@@ -153,6 +153,14 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
       9: ["restauracao-maior", "muralha-de-energia"],
     },
   };
+  const WIZARD_SUBCLASS_GRANTED_SPELL_IDS_2024 = {
+    "mago-abjuracao": {
+      10: ["contramagica", "dissipar-magia"],
+    },
+    "mago-ilusao": {
+      6: ["invocar-besta", "invocar-fada"],
+    },
+  };
   const PALADIN_CHANNEL_DIVINITY_BY_LEVEL_2024 = [0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3];
   const PALADIN_DEVOTION_GRANTED_SPELL_IDS_2024 = {
     3: ["protecao-contra-o-bem-e-o-mal", "escudo-da-fe"],
@@ -358,7 +366,7 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
   };
   const PREPARED_FULL_SPELLS_2024 = [0, 4, 5, 6, 7, 9, 10, 11, 12, 14, 15, 16, 16, 17, 17, 18, 18, 19, 20, 21, 22];
   const PREPARED_SORCERER_SPELLS_2024 = [0, 2, 4, 6, 7, 9, 10, 11, 12, 14, 15, 16, 16, 17, 17, 18, 18, 19, 20, 21, 22];
-  const PREPARED_WIZARD_SPELLS_2024 = [0, 4, 5, 6, 7, 9, 10, 11, 12, 14, 15, 16, 16, 17, 18, 19, 21, 22, 23, 24, 26];
+  const PREPARED_WIZARD_SPELLS_2024 = [0, 4, 5, 6, 7, 9, 10, 11, 12, 14, 15, 16, 16, 17, 18, 19, 21, 22, 23, 24, 25];
   const PREPARED_HALF_SPELLS_2024 = [0, 2, 3, 4, 5, 6, 6, 7, 7, 9, 9, 10, 10, 11, 11, 12, 12, 14, 14, 15, 15];
   const SPELLCASTING_RULES_2024 = {
     bardo: {
@@ -1598,6 +1606,16 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
       const incarnate = level >= 7 ? " Feitiçaria Encarnada: 2 pontos para ativar Feitiçaria Inata sem usos; até duas Metamagias por magia enquanto ativa." : "";
       const apotheosis = level >= 20 ? " Apoteose Arcana: uma Metamagia grátis por turno enquanto Feitiçaria Inata está ativa." : "";
       return `Feitiçaria Inata: 2 usos por descanso longo. Pontos de Feitiçaria: ${sorceryPoints || "—"}. Metamagias conhecidas: ${metamagicOptions || "—"}. Truques: ${cantrips}. Magias preparadas: ${prepared}.${restoration}${incarnate}${apotheosis}`;
+    }
+    if (classId === "mago") {
+      const wizardRule = SPELLCASTING_RULES_2024.mago || {};
+      const cantrips = Number(wizardRule.cantripsByLevel?.[level] || 0);
+      const prepared = Number(wizardRule.preparedByLevel?.[level] || 0);
+      const spellbookSpells = 6 + Math.max(0, level - 1) * 2;
+      const arcaneRecovery = Math.ceil(level / 2);
+      const mastery = level >= 18 ? " Maestria de Magias: 1 magia de 1º e 1 de 2º círculo sem espaço no círculo mínimo." : "";
+      const signature = level >= 20 ? " Magias Assinatura: 2 magias de 3º círculo, 1 uso gratuito cada por descanso curto ou longo." : "";
+      return `Grimório: pelo menos ${spellbookSpells} magia(s). Recuperação Arcana: até ${arcaneRecovery} círculo(s) de espaços, sem recuperar 6º+. Truques: ${cantrips}. Magias preparadas: ${prepared}.${mastery}${signature}`;
     }
     if (classId === "paladino") {
       const paladinRule = SPELLCASTING_RULES_2024.paladino || {};
@@ -9381,6 +9399,12 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
         mergeGrantedSpellIdsIntoConfig2024(
           config,
           collectGrantedSpellIdsByLevel2024(SORCERER_SUBCLASS_GRANTED_SPELL_IDS_2024[entry.subclassId], entry.level)
+        );
+      }
+      if (entry.classId === "mago" && entry.subclassId) {
+        mergeGrantedSpellIdsIntoConfig2024(
+          config,
+          collectGrantedSpellIdsByLevel2024(WIZARD_SUBCLASS_GRANTED_SPELL_IDS_2024[entry.subclassId], entry.level)
         );
       }
       if (entry.classId === "bruxo") {

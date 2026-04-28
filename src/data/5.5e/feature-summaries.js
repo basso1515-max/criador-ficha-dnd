@@ -135,16 +135,17 @@ export const FEATURE_SUMMARIES_2024 = {
       "Golpe de Sorte": "Ao falhar em um Teste de d20, transforma a jogada em 20; recupera o uso em descanso curto ou longo."
     },
     "mago": {
-      "Adepto de Ritual": "Conjura magias rituais a partir do livro de magias sem prepará-las.",
-      "Conjuração": "Conjura magias arcanas usando Inteligência e um grimório pessoal.",
-      "Recuperação Arcana": "Recupera parte dos espaços de magia após descansar.",
-      "Acadêmico": "Expande sua formação arcana com estudo especializado.",
+      "Adepto de Ritual": "Conjura como ritual qualquer magia com marcador Ritual que esteja no grimório, mesmo sem prepará-la.",
+      "Conjuração": "Usa Inteligência, começa com 3 truques, 4 magias preparadas e 6 magias de 1º círculo no grimório.",
+      "Recuperação Arcana": "Após descanso curto, 1 vez por descanso longo, recupera espaços cuja soma de círculos é até metade do nível de Mago, arredondada para cima; nenhum de 6º+.",
+      "Acadêmico": "Recebe Especialização em uma perícia proficiente entre Arcanismo, História, Investigação, Medicina, Natureza ou Religião.",
       "Subclasse de Mago": "Escolhe uma escola de magia para especialização.",
       "Aumento no Valor de Atributo": "Recebe Aumento no Valor de Atributo ou outro talento para o qual se qualifique.",
-      "Memorizar Magia": "Reconfigura seu preparo mágico com mais agilidade.",
-      "Maestria de Magias": "Domina certas magias a ponto de torná-las triviais.",
+      "Memorizar Magia": "Ao terminar descanso curto, troca uma magia de Mago preparada de 1º círculo ou superior por outra do grimório.",
+      "Maestria de Magias": "Escolhe uma magia de 1º e uma de 2º círculo do grimório, ambas de ação; ficam sempre preparadas e podem ser conjuradas sem espaço no círculo mínimo.",
       "Dádiva Épica": "Recebe uma Dádiva Épica ou outro talento elegível.",
-      "Assinatura Mágica": "Sua magia pessoal torna-se instantaneamente reconhecível e excepcional."
+      "Magias Assinatura": "Escolhe duas magias de 3º círculo do grimório; ficam sempre preparadas e cada uma tem 1 conjuração gratuita por descanso curto ou longo.",
+      "Assinatura Mágica": "Usado em versões anteriores do cadastro; veja Magias Assinatura."
     },
     "monge": {
       "Artes Marciais": "Sem armadura nem escudo e usando ataques desarmados ou armas de monge, pode atacar com Destreza, usar o dado marcial no dano e fazer ataque desarmado como ação bônus.",
@@ -470,32 +471,32 @@ export const FEATURE_SUMMARIES_2024 = {
       "Ladrão de Magias": "Imediatamente após uma criatura conjurar uma magia que tenha como alvo você ou a inclua em sua área de efeito, você pode executar uma Reação para forçá-la a realizar uma salvaguarda de Inteligência, com CD equivalente à sua CD para evitar sua magia"
     },
     "mago-abjuracao": {
-      "Erudito da Abjuração": "Aprende magias de Abjuração com mais facilidade e reforça o grimório dessa escola.",
-      "Proteção Arcana": "Ao conjurar uma magia de Abjuração com um espaço de magia, você pode usar simultaneamente um fio da magia para criar uma proteção mágica em si que dura até você completar um Descanso Longo",
-      "Proteção Projetada": "Quando uma criatura à sua vista a até 9 metros de você sofrer dano, você pode executar uma Reação para que sua Proteção Arcana absorva esse dano",
-      "Quebrador de Magias": "Aprimora suas magias de Abjuração usadas para desfazer ou interromper magia hostil.",
-      "Resistência a Feitiços": "Ganha vantagem para resistir a magias e mais proteção contra dano mágico."
+      "Erudito da Abjuração": "Adiciona 2 magias de Abjuração de Mago de até 2º círculo ao grimório e ganha outra da escola ao acessar novos círculos.",
+      "Proteção Arcana": "Cria uma proteção com PV iguais a 2 x nível de Mago + INT; pode recarregá-la ao conjurar Abjuração ou gastar espaço como ação bônus.",
+      "Proteção Projetada": "Reação quando criatura visível a até 9 m sofre dano; a Proteção Arcana absorve esse dano até acabar.",
+      "Quebrador de Magias": "Sempre prepara Contramagia e Dissipar Magia; Dissipar Magia pode ser ação bônus e falhas com essas magias não gastam espaço.",
+      "Resistência a Feitiços": "Tem vantagem em salvaguardas contra magias e resistência a dano de magias."
     },
     "mago-adivinhacao": {
-      "Erudito da Adivinhação": "Aprende magias de Adivinhação com facilidade e amplia o grimório nessa escola.",
-      "Presságio": "Rola dados após descanso longo e depois substitui testes importantes por esses resultados.",
-      "Adivinhação Especializada": "Recupera recursos com mais facilidade ao usar magias de Adivinhação.",
-      "Terceiro Olho": "Ativa sentidos arcanos temporários para enxergar ou perceber além do normal.",
-      "Presságio Maior": "Aumenta o número de presságios disponíveis entre descansos."
+      "Erudito da Adivinhação": "Adiciona 2 magias de Adivinhação de Mago de até 2º círculo ao grimório e ganha outra da escola ao acessar novos círculos.",
+      "Presságio": "Após descanso longo, rola dois d20 e pode substituir testes de d20 de criaturas visíveis por esses resultados.",
+      "Adivinhação Especializada": "Ao conjurar Adivinhação de 2º círculo ou superior com espaço, recupera um espaço gasto de círculo inferior ao usado.",
+      "Terceiro Olho": "Como ação bônus, ativa um sentido arcano temporário, como visão no escuro aprimorada ou Ver Invisibilidade sem espaço.",
+      "Presságio Maior": "Rola três d20 de Presságio após cada descanso longo."
     },
     "mago-evocacao": {
-      "Erudito da Evocação": "Aprende magias de Evocação com facilidade e reforça sua escola ofensiva.",
-      "Moldar Magias": "Molda áreas de explosão para poupar aliados das próprias magias.",
-      "Truque Potente": "Seus truques ofensivos continuam pressionando o alvo mesmo quando ele resiste.",
-      "Evocação Potencializada": "Ao conjurar uma magia de Mago da escola de Evocação, você pode adicionar seu modificador de Inteligência a uma jogada de dano dessa magia",
-      "Sobrecarregar": "Amplifica uma magia ofensiva para causar um pico de dano decisivo."
+      "Erudito da Evocação": "Adiciona 2 magias de Evocação de Mago de até 2º círculo ao grimório e ganha outra da escola ao acessar novos círculos.",
+      "Moldar Magias": "Ao conjurar Evocação que afeta criaturas visíveis, escolhe 1 + círculo da magia para passarem na salvaguarda e não sofrerem dano em sucesso.",
+      "Truque Potente": "Truques de dano ainda causam metade do dano se você errar o ataque ou o alvo passar na salvaguarda.",
+      "Evocação Potencializada": "Ao conjurar magia de Mago de Evocação, soma o modificador de Inteligência a uma rolagem de dano dela.",
+      "Sobrecarregar": "Maximiza o dano de magia de Mago de 1º a 5º círculo; usos extras antes do descanso longo causam dano necrótico cumulativo."
     },
     "mago-ilusao": {
-      "Erudito da Ilusão": "Aprende magias de Ilusão com facilidade e aprofunda o grimório nessa escola.",
-      "Ilusão Aprimorada": "Suas ilusões ganham truques extras e ficam mais convincentes.",
-      "Criaturas Fantasmagóricas": "Suas ilusões podem criar ameaças fantasmagóricas mais convincentes e úteis em combate.",
-      "Eu Ilusório": "Cria um duplo ilusório para enganar ataques e escapar de perigo.",
-      "Realidade Ilusória": "Ao conjurar uma magia Ilusão com um espaço de magia, você pode escolher um objeto inanimado e não mágico que faça parte da ilusão e tornar esse objeto real"
+      "Erudito da Ilusão": "Adiciona 2 magias de Ilusão de Mago de até 2º círculo ao grimório e ganha outra da escola ao acessar novos círculos.",
+      "Ilusão Aprimorada": "Melhora Ilusão Menor, permite ignorar componentes verbais em magias de Ilusão e aumenta o alcance de certas ilusões.",
+      "Criaturas Fantasmagóricas": "Sempre prepara Invocar Fera e Convocar Feérico, pode tratá-las como Ilusão e conjurar cada uma 1 vez sem espaço por descanso longo.",
+      "Eu Ilusório": "Quando um ataque atinge você, usa reação para transformar o acerto em erro; pode restaurar gastando espaço de 2º círculo ou superior.",
+      "Realidade Ilusória": "Ao conjurar Ilusão com espaço, torna real por 1 minuto um objeto inanimado e não mágico que faça parte da ilusão."
     },
     "monge-palma-aberta": {
       "Técnica da Palma Aberta": "Ao atingir com ataque concedido por Torrente de Golpes, pode impedir ataques de oportunidade, empurrar até 4,5 m em falha de Força ou derrubar em falha de Destreza.",

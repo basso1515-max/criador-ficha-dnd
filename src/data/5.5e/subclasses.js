@@ -494,10 +494,13 @@ const SUBCLASS_LIST = [
     3,
     "Ergue barreiras, dissipa ameaças e transforma proteção arcana em resistência confiável.",
     {
-      3: [feature("Erudito da Abjuração"), feature("Proteção Arcana")],
-      6: [feature("Proteção Projetada")],
-      10: [feature("Quebrador de Magias", "Aprimora suas magias de Abjuração usadas para desfazer ou interromper magia hostil.")],
-      14: [feature("Resistência a Feitiços")],
+      3: [
+        feature("Erudito da Abjuração", "Adiciona 2 magias de Abjuração de Mago de até 2º círculo ao grimório e ganha outra da escola ao acessar novos círculos."),
+        feature("Proteção Arcana", "Cria uma proteção com PV iguais a 2 x nível de Mago + INT; pode recarregá-la ao conjurar Abjuração ou gastar espaço como ação bônus."),
+      ],
+      6: [feature("Proteção Projetada", "Reação quando criatura visível a até 9 m sofre dano; a Proteção Arcana absorve esse dano até acabar.")],
+      10: [feature("Quebrador de Magias", "Sempre prepara Contramagia e Dissipar Magia; Dissipar Magia pode ser ação bônus e falhas com essas magias não gastam espaço.")],
+      14: [feature("Resistência a Feitiços", "Tem vantagem em salvaguardas contra magias e resistência a dano de magias.")],
     }
   ),
   subclass(
@@ -507,10 +510,13 @@ const SUBCLASS_LIST = [
     3,
     "Lê presságios, altera resultados e enxerga sinais do futuro antes que surjam.",
     {
-      3: [feature("Erudito da Adivinhação"), feature("Presságio")],
-      6: [feature("Adivinhação Especializada")],
-      10: [feature("Terceiro Olho")],
-      14: [feature("Presságio Maior")],
+      3: [
+        feature("Erudito da Adivinhação", "Adiciona 2 magias de Adivinhação de Mago de até 2º círculo ao grimório e ganha outra da escola ao acessar novos círculos."),
+        feature("Presságio", "Após descanso longo, rola dois d20 e pode substituir testes de d20 de criaturas visíveis por esses resultados."),
+      ],
+      6: [feature("Adivinhação Especializada", "Ao conjurar Adivinhação de 2º círculo ou superior com espaço, recupera um espaço gasto de círculo inferior ao usado.")],
+      10: [feature("Terceiro Olho", "Como ação bônus, ativa um sentido arcano temporário, como visão no escuro aprimorada ou Ver Invisibilidade sem espaço.")],
+      14: [feature("Presságio Maior", "Rola três d20 de Presságio após cada descanso longo.")],
     }
   ),
   subclass(
@@ -520,10 +526,13 @@ const SUBCLASS_LIST = [
     3,
     "Concentra energia destrutiva com precisão, intensidade e segurança para aliados próximos.",
     {
-      3: [feature("Erudito da Evocação"), feature("Truque Potente")],
-      6: [feature("Moldar Magias")],
-      10: [feature("Evocação Potencializada")],
-      14: [feature("Sobrecarregar")],
+      3: [
+        feature("Erudito da Evocação", "Adiciona 2 magias de Evocação de Mago de até 2º círculo ao grimório e ganha outra da escola ao acessar novos círculos."),
+        feature("Truque Potente", "Truques de dano ainda causam metade do dano se você errar o ataque ou o alvo passar na salvaguarda."),
+      ],
+      6: [feature("Moldar Magias", "Ao conjurar Evocação que afeta criaturas visíveis, escolhe 1 + círculo da magia para passarem na salvaguarda e não sofrerem dano em sucesso.")],
+      10: [feature("Evocação Potencializada", "Ao conjurar magia de Mago de Evocação, soma o modificador de Inteligência a uma rolagem de dano dela.")],
+      14: [feature("Sobrecarregar", "Maximiza o dano de magia de Mago de 1º a 5º círculo; usos extras antes do descanso longo causam dano necrótico cumulativo.")],
     }
   ),
   subclass(
@@ -533,10 +542,13 @@ const SUBCLASS_LIST = [
     3,
     "Cria imagens convincentes, dobra percepções e transforma truques em enganos perigosos.",
     {
-      3: [feature("Erudito da Ilusão"), feature("Ilusão Aprimorada")],
-      6: [feature("Criaturas Fantasmagóricas", "Suas ilusões podem criar ameaças fantasmagóricas mais convincentes e úteis em combate.")],
-      10: [feature("Eu Ilusório")],
-      14: [feature("Realidade Ilusória")],
+      3: [
+        feature("Erudito da Ilusão", "Adiciona 2 magias de Ilusão de Mago de até 2º círculo ao grimório e ganha outra da escola ao acessar novos círculos."),
+        feature("Ilusão Aprimorada", "Melhora Ilusão Menor, permite ignorar componentes verbais em magias de Ilusão e aumenta o alcance de certas ilusões."),
+      ],
+      6: [feature("Criaturas Fantasmagóricas", "Sempre prepara Invocar Fera e Convocar Feérico, pode tratá-las como Ilusão e conjurar cada uma 1 vez sem espaço por descanso longo.")],
+      10: [feature("Eu Ilusório", "Quando um ataque atinge você, usa reação para transformar o acerto em erro; pode restaurar gastando espaço de 2º círculo ou superior.")],
+      14: [feature("Realidade Ilusória", "Ao conjurar Ilusão com espaço, torna real por 1 minuto um objeto inanimado e não mágico que faça parte da ilusão.")],
     }
   ),
   subclass(
