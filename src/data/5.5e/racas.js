@@ -216,7 +216,7 @@ export const SUBRACAS = {
       { 
         id: "sopro-eletrico", 
         nome: "Sopro Elétrico", 
-        resumo: "Ataque de Sopro com dano elétrico; escolha cone de 4,5 m ou linha de 9 m a cada uso, com dano em d10s conforme o nível." 
+        resumo: "Ataque de Sopro com dano elétrico; escolha cone de 4,5 m ou linha de 9 m a cada uso, com dano em d10s conforme o nível."
       },
       { 
         id: "resistencia-eletrica", 
