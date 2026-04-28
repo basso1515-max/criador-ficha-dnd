@@ -1,15 +1,16 @@
-export const DATASET_VERSION = "1.0.0";
+export const DATASET_VERSION = "1.0.1";
 
 export const META_CLASSES = {
   dataset: "dnd5e-2024-ptbr",
   version: DATASET_VERSION,
   locale: "pt-BR",
-  builtAt: "2026-04-16",
+  builtAt: "2026-04-28",
   sources: {
     phb2024: "Player's Handbook (2024)",
     referenciaLocal: "src/data/5.5e/DnD 5.5 - Livro do Jogador (2024).pdf",
   },
   changelog: [
+    "1.0.1: Revisao do Feiticeiro 5.5e, corrigindo progressao inicial de magias preparadas e detalhando recursos de Feiticaria Inata, Fonte de Magia, Metamagia, Restauracao Feiticeira, Feiticaria Encarnada e Apoteose Arcana.",
     "1.0.0: Reescrita do dataset de classes para o PHB 2024/5.5e, removendo opções legadas e alinhando proficiências, equipamentos iniciais, progressão e subclasses oficiais do livro base.",
   ],
 };
@@ -291,24 +292,24 @@ export const CLASSES = {
     escolhas: { estilosLuta: [], talentosSugestao: ["telecinetico", "toque-feerico"] },
     features: {
       1: [
-        feature("Conjuração", "Conjura magias por meio de uma lista preparada alimentada por magia inata."),
-        feature("Feitiçaria Inata", "Ativa um estado mágico que impulsiona seu potencial arcano."),
+        feature("Conjuração", "Usa Carisma para conjurar magias de Feiticeiro; começa com 4 truques e 2 magias preparadas de 1º círculo."),
+        feature("Feitiçaria Inata", "Ação bônus, 2 usos por descanso longo: por 1 minuto, suas magias de Feiticeiro recebem +1 na CD e Vantagem em ataques de magia."),
       ],
       2: [
-        feature("Fonte de Magia", "Converte energia arcana em pontos e espaços de magia."),
-        feature("Metamagia", "Modifica suas magias para ampliar alcance, precisão ou efeito."),
+        feature("Fonte de Magia", "Ganha Pontos de Feitiçaria, converte espaços em pontos sem ação e cria espaços de até 5º círculo como ação bônus."),
+        feature("Metamagia", "Aprende 2 opções de Metamagia e pode trocar uma opção ao ganhar nível de Feiticeiro."),
       ],
       3: [feature("Subclasse de Feiticeiro", "Escolhe uma origem sobrenatural que molda seus poderes.")],
       4: [feature("Aumento no Valor de Atributo", "Recebe Aumento no Valor de Atributo ou outro talento para o qual se qualifique.")],
-      5: [feature("Restauração Feiticeira", "Recupera recursos mágicos com mais consistência.")],
-      7: [feature("Feitiçaria Encarnada", "Sua magia passa a se manifestar de forma mais intensa e constante.")],
+      5: [feature("Restauração Feiticeira", "Uma vez por descanso longo, ao concluir descanso curto, recupera Pontos de Feitiçaria até metade do nível de Feiticeiro, arredondado para baixo.")],
+      7: [feature("Feitiçaria Encarnada", "Se estiver sem usos de Feitiçaria Inata, pode ativá-la gastando 2 Pontos de Feitiçaria; enquanto ativa, pode usar até duas Metamagias em cada magia.")],
       8: [feature("Aumento no Valor de Atributo", "Recebe Aumento no Valor de Atributo ou outro talento para o qual se qualifique.")],
-      10: [feature("Metamagia Adicional", "Aprende mais opções de Metamagia para modificar suas magias.")],
+      10: [feature("Metamagia Adicional", "Aprende duas opções adicionais de Metamagia, totalizando 4 opções conhecidas.")],
       12: [feature("Aumento no Valor de Atributo", "Recebe Aumento no Valor de Atributo ou outro talento para o qual se qualifique.")],
       16: [feature("Aumento no Valor de Atributo", "Recebe Aumento no Valor de Atributo ou outro talento para o qual se qualifique.")],
-      17: [feature("Metamagia Superior", "Aprende novas opções de Metamagia para ampliar ainda mais sua flexibilidade arcana.")],
+      17: [feature("Metamagia Superior", "Aprende duas opções adicionais de Metamagia, totalizando 6 opções conhecidas.")],
       19: [feature("Dádiva Épica", "Recebe uma Dádiva Épica ou outro talento elegível.")],
-      20: [feature("Apoteose Arcana", "Seu corpo e sua magia atingem o ápice feiticeiro.")],
+      20: [feature("Apoteose Arcana", "Enquanto Feitiçaria Inata está ativa, usa uma opção de Metamagia em cada um dos seus turnos sem gastar Pontos de Feitiçaria.")],
     },
     subclasses: ["feiticeiro-mente-aberrante", "feiticeiro-draconico", "feiticeiro-alma-mecanica", "feiticeiro-magia-selvagem"],
   },

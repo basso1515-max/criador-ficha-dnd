@@ -81,16 +81,18 @@ export const FEATURE_SUMMARIES_2024 = {
       "Arquidruida": "Ao rolar Iniciativa sem usos de Forma Selvagem, recupera 1 uso; também pode converter usos em um espaço de magia uma vez por Descanso Longo e envelhece mais devagar."
     },
     "feiticeiro": {
-      "Conjuração": "Conjura magias por meio de uma lista preparada alimentada por magia inata.",
-      "Feitiçaria Inata": "Ativa um estado mágico que impulsiona seu potencial arcano.",
-      "Fonte de Magia": "Converte energia arcana em pontos e espaços de magia.",
-      "Metamagia": "Modifica suas magias para ampliar alcance, precisão ou efeito.",
+      "Conjuração": "Conjura magias de Feiticeiro usando Carisma e foco arcano; começa com 4 truques, 2 magias preparadas de 1º círculo e pode trocar 1 truque e 1 magia preparada ao ganhar nível de Feiticeiro.",
+      "Feitiçaria Inata": "Ação bônus, 2 usos por descanso longo: por 1 minuto, suas magias de Feiticeiro recebem +1 na CD e você tem Vantagem nas jogadas de ataque dessas magias.",
+      "Fonte de Magia": "A partir do nível 2, seus Pontos de Feitiçaria igualam seu nível de Feiticeiro; recupera todos no descanso longo, converte espaços em pontos sem ação e cria espaços de 1º a 5º círculo como ação bônus.",
+      "Metamagia": "Aprende 2 opções no nível 2, +2 no nível 10 e +2 no nível 17; pode trocar 1 opção ao ganhar nível de Feiticeiro e normalmente usa só uma Metamagia por magia.",
+      "Metamagia Adicional": "No nível 10, aprende duas opções adicionais de Metamagia, totalizando 4 opções conhecidas.",
+      "Metamagia Superior": "No nível 17, aprende duas opções adicionais de Metamagia, totalizando 6 opções conhecidas.",
       "Subclasse de Feiticeiro": "Escolhe uma origem sobrenatural que molda seus poderes.",
       "Aumento no Valor de Atributo": "Recebe Aumento no Valor de Atributo ou outro talento para o qual se qualifique.",
-      "Restauração Feiticeira": "Recupera recursos mágicos com mais consistência.",
-      "Feitiçaria Encarnada": "Sua magia passa a se manifestar de forma mais intensa e constante.",
+      "Restauração Feiticeira": "Uma vez por descanso longo, ao concluir descanso curto, recupera Pontos de Feitiçaria gastos até metade do nível de Feiticeiro, arredondado para baixo.",
+      "Feitiçaria Encarnada": "Se estiver sem usos de Feitiçaria Inata, pode ativá-la gastando 2 Pontos de Feitiçaria; enquanto ela está ativa, pode aplicar até duas opções de Metamagia em cada magia.",
       "Dádiva Épica": "Recebe uma Dádiva Épica ou outro talento elegível.",
-      "Apoteose Arcana": "Seu corpo e sua magia atingem o ápice feiticeiro."
+      "Apoteose Arcana": "Enquanto Feitiçaria Inata está ativa, pode usar uma opção de Metamagia em cada um dos seus turnos sem gastar Pontos de Feitiçaria."
     },
     "guerreiro": {
       "Estilo de Luta": "Escolhe um talento de Estilo de Luta e pode trocá-lo sempre que ganha um nível de Guerreiro.",
@@ -346,33 +348,34 @@ export const FEATURE_SUMMARIES_2024 = {
       "Dádiva Oceânica": "Pode manifestar Ira do Mar ao redor de uma criatura voluntária a até 18 m; ela usa sua CD de magia e seu modificador de Sabedoria. Ao gastar 2 usos de Forma Selvagem, manifesta a Emanação nela e em você."
     },
     "feiticeiro-mente-aberrante": {
-      "Fala Telepática": "Pode estabelecer comunicação telepática com outras criaturas. Como uma Ação Bônus, escolha uma criatura que esteja à sua vista e a até 9 metros de você",
-      "Magias Psiônicas": "Ao atingir um nível de Feiticeiro detalhado na tabela Magias Psiônicas, você tem as magias listadas sempre preparadas",
-      "Defesas Psíquicas": "Tem Resistência a dano Psíquico e Vantagem em salvaguardas para evitar ou encerrar as condições Amedrontado ou Enfeitiçado",
-      "Feitiçaria Psiônica": "Ao conjurar qualquer magia de 1º círculo ou superior com sua característica Magias Psiônicas, você pode conjurá-la gastando um espaço de magia normal ou gastando um número de Pontos de Feitiçaria igual ao círculo da magia",
-      "Revelação em Carne": "Ação bônus para gastar 1 Ponto de Feitiçaria ou mais para alterar magicamente seu corpo por 10 minutos",
-      "Implosão de Distorção": "Como uma ação Usar Magia, você se teleporta para um espaço desocupado à sua vista a até 36 metros de distância de si"
+      "Fala Telepática": "Como ação bônus, cria vínculo telepático com uma criatura à vista a até 9 m; o alcance do vínculo depende do seu modificador de Carisma e dura minutos iguais ao seu nível de Feiticeiro.",
+      "Magias Psiônicas": "Sempre deixa preparadas magias psíquicas da subclasse; no nível 3 inclui Talho Mental e quatro magias de 1º/2º círculo, e recebe novas magias nos níveis 5, 7 e 9.",
+      "Defesas Psíquicas": "Tem Resistência a dano Psíquico e Vantagem em salvaguardas para evitar ou encerrar Amedrontado ou Enfeitiçado.",
+      "Feitiçaria Psiônica": "Ao conjurar magia de 1º círculo ou superior de Magias Psiônicas, pode gastar Pontos de Feitiçaria iguais ao círculo da magia em vez de espaço; nessa forma, dispensa componentes verbais, somáticos e materiais sem custo e não consumidos.",
+      "Revelação em Carne": "Ação bônus para gastar Pontos de Feitiçaria e ganhar adaptações aberrantes por 10 minutos, como deslocamento especial, percepção ou transformação corporal.",
+      "Implosão de Distorção": "Ação de Usar Magia para se teleportar até 36 m e criar uma distorção que pode puxar e causar dano a criaturas próximas do ponto de origem."
     },
     "feiticeiro-draconico": {
-      "Magias Dracônicas": "Ao atingir um nível de Feiticeiro detalhado na tabela Magias Dracônicas, você tem as magias listadas sempre preparadas",
-      "Resiliência Dracônica": "A magia em seu corpo manifesta traços físicos da bênção dracônica",
-      "Afinidade Elemental": "Sua magia dracônica tem relação com um tipo de dano associado a dragões",
-      "Asas de Dragão": "Ação bônus para fazer com que asas dracônicas apareçam em suas costas",
-      "Companheiro Dracônico": "Além disso, pode conjurá-la uma vez sem gastar um espaço de magia, recuperando a capacidade de conjurá-la deste modo ao completar um Descanso Longo"
+      "Magias Dracônicas": "Sempre deixa preparadas Alterar-se, Orbe Cromático, Comando e Sopro do Dragão no nível 3; Medo e Voo no 5; Olho Arcano e Enfeitiçar Monstro no 7; Lendas e Histórias e Invocar Dragão no 9.",
+      "Resiliência Dracônica": "No nível 3, seu máximo de PV aumenta em 3 e depois em +1 a cada novo nível de Feiticeiro; sem armadura, sua CA base é 10 + Destreza + Carisma.",
+      "Afinidade Elemental": "Escolhe Ácido, Gélido, Ígneo, Elétrico ou Venenoso; ganha Resistência ao tipo escolhido e soma Carisma a uma rolagem de dano de magias que causem esse tipo.",
+      "Asas de Dragão": "Como ação bônus, manifesta asas por 1 hora, recebendo deslocamento de voo de 18 m; recupera o uso no descanso longo ou gastando 3 Pontos de Feitiçaria.",
+      "Companheiro Dracônico": "Pode conjurar Invocar Dragão sem componente material e uma vez sem espaço por descanso longo; ao conjurar, pode remover Concentração e reduzir a duração para 1 minuto."
     },
     "feiticeiro-alma-mecanica": {
-      "Magias Mecânicas": "Ao atingir um nível de Feiticeiro detalhado na tabela Magias Mecânicas, você tem as magias listadas sempre preparadas",
-      "Restaurar Equilíbrio": "Quando uma criatura à sua vista a até 18 metros de você estiver prestes a jogar um d20 com Vantagem ou Desvantagem, você pode executar uma Reação para evitar que o teste seja afetado por Vantagem e Desvantagem",
-      "Bastião da Lei": "Pode acessar a grande equação da existência para imbuir uma criatura com um escudo cintilante de ordem",
-      "Transe da Ordem": "Ação bônus para entrar neste estado por 1 minuto",
-      "Cavalgada Mecânica": "Como uma ação Usar Magia, você convoca os espíritos em um Cubo de 9 metros de lado originado em você"
+      "Magias Mecânicas": "Sempre deixa preparadas Alarme, Proteção contra o Bem e o Mal, Ajuda e Restauração Menor no nível 3; recebe novas magias nos níveis 5, 7 e 9.",
+      "Restaurar Equilíbrio": "Como reação, quando criatura à vista a até 18 m faria um teste de d20 com Vantagem ou Desvantagem, neutraliza ambas para aquela rolagem.",
+      "Bastião da Lei": "Como ação, gasta de 1 a 5 Pontos de Feitiçaria para criar uma proteção em criatura à vista; cada ponto vira um d8 que pode reduzir dano recebido.",
+      "Transe da Ordem": "Ação bônus para entrar em estado ordeiro por 1 minuto, melhorando rolagens baixas de ataque, teste de atributo e salvaguarda.",
+      "Cavalgada Mecânica": "Ação de Usar Magia para convocar espíritos de ordem em um cubo de 9 m, restaurando criaturas e encerrando efeitos hostis conforme a característica."
     },
     "feiticeiro-magia-selvagem": {
-      "Marés do Caos": "Após utilizar esta característica, você deve conjurar uma magia de Feiticeiro com um espaço de magia ou concluir um Descanso Longo para recuperá-la",
-      "Surto de Magia Selvagem": "Uma vez por turno, você pode jogar 1d20 imediatamente após conjurar uma magia de Feiticeiro com um espaço de magia",
-      "Distorcer a Sorte": "Você consegue distorcer o destino usando sua magia selvagem",
-      "Caos Controlado": "Ganha um pequeno controle sobre seus surtos de magia selvagem",
-      "Surto Controlado": "13-16 Criaturas têm Desvantagem em salvaguardas contra a próxima magia que você conjurar no minuto seguinte, que envolva uma salvaguarda"
+      "Marés do Caos": "Uma vez por descanso longo, concede Vantagem a si em um Teste de d20; depois disso, a próxima magia de Feiticeiro com espaço causa Surto de Magia Selvagem automaticamente e recupera o uso.",
+      "Surto de Magia Selvagem": "Uma vez por turno, após conjurar magia de Feiticeiro com espaço, pode rolar 1d20; em 20, rola na tabela de Surto de Magia Selvagem.",
+      "Distorcer a Sorte": "Como reação quando criatura visível faz Teste de d20, gasta 1 Ponto de Feitiçaria para adicionar ou subtrair 1d4 da rolagem.",
+      "Caos Controlado": "Quando rola na tabela de Surto de Magia Selvagem, rola duas vezes e escolhe qual resultado usar.",
+      "Surto Controlado": "Uma vez por descanso longo, ao ativar um Surto de Magia Selvagem, escolhe o resultado da tabela, exceto efeitos que exigem uma rolagem adicional.",
+      "Surto Domado": "Uma vez por descanso longo, ao ativar um Surto de Magia Selvagem, escolhe o resultado da tabela, exceto efeitos que exigem uma rolagem adicional."
     },
     "patrulheiro-andarilho-feerico": {
       "Glamour Transcendental": "Sempre que você realiza um teste de Carisma, recebe um bônus no teste igual ao seu modificador de Sabedoria (mínimo de +1)",

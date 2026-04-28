@@ -131,6 +131,28 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
       9: ["conjurar-elementais", "imobilizar-monstro"],
     },
   };
+  const SORCERER_SORCERY_POINTS_BY_LEVEL_2024 = [0, 0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20];
+  const SORCERER_METAMAGIC_OPTIONS_BY_LEVEL_2024 = [0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 4, 4, 4, 4, 6, 6, 6, 6];
+  const SORCERER_SUBCLASS_GRANTED_SPELL_IDS_2024 = {
+    "feiticeiro-mente-aberrante": {
+      3: ["bracos-de-hadar", "acalmar-emocoes", "detectar-pensamentos", "sussurros-dissonantes", "estilhaco-mental"],
+      5: ["fome-de-hadar", "enviar-mensagem"],
+      7: ["tentaculos-negros", "invocar-aberracao"],
+      9: ["elo-telepatico", "telecinese"],
+    },
+    "feiticeiro-draconico": {
+      3: ["alterar-se", "esfera-cromatica", "comando", "sopro-do-dragao"],
+      5: ["medo", "voo"],
+      7: ["olho-arcano", "enfeiticar-monstro"],
+      9: ["conhecimento-da-lenda", "invocar-dragao"],
+    },
+    "feiticeiro-alma-mecanica": {
+      3: ["alarme", "protecao-contra-o-bem-e-o-mal", "ajuda", "restauracao-menor"],
+      5: ["dissipar-magia", "protecao-contra-energia"],
+      7: ["movimento-livre", "invocar-construto"],
+      9: ["restauracao-maior", "muralha-de-energia"],
+    },
+  };
   const PALADIN_CHANNEL_DIVINITY_BY_LEVEL_2024 = [0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3];
   const PALADIN_DEVOTION_GRANTED_SPELL_IDS_2024 = {
     3: ["protecao-contra-o-bem-e-o-mal", "escudo-da-fe"],
@@ -335,6 +357,7 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     ],
   };
   const PREPARED_FULL_SPELLS_2024 = [0, 4, 5, 6, 7, 9, 10, 11, 12, 14, 15, 16, 16, 17, 17, 18, 18, 19, 20, 21, 22];
+  const PREPARED_SORCERER_SPELLS_2024 = [0, 2, 4, 6, 7, 9, 10, 11, 12, 14, 15, 16, 16, 17, 17, 18, 18, 19, 20, 21, 22];
   const PREPARED_WIZARD_SPELLS_2024 = [0, 4, 5, 6, 7, 9, 10, 11, 12, 14, 15, 16, 16, 17, 18, 19, 21, 22, 23, 24, 26];
   const PREPARED_HALF_SPELLS_2024 = [0, 2, 3, 4, 5, 6, 6, 7, 7, 9, 9, 10, 10, 11, 11, 12, 12, 14, 14, 15, 15];
   const SPELLCASTING_RULES_2024 = {
@@ -386,7 +409,7 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
       multiclassProgression: "full",
       slotTable: SLOT_TABLES_2024.full,
       cantripsByLevel: [0, 4, 4, 4, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
-      preparedByLevel: PREPARED_FULL_SPELLS_2024,
+      preparedByLevel: PREPARED_SORCERER_SPELLS_2024,
       selectionLabel: "Magias preparadas",
     },
     mago: {
@@ -1564,6 +1587,17 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
             ? "4 formas conhecidas, ND máx. 1/4, sem voo"
             : "liberada no nível 2";
       return `Forma Selvagem: ${wildShapeUses ? `${wildShapeUses} uso(s)` : "—"}; ${beastShapes}. Truques: ${cantrips}. Magias preparadas: ${prepared}. Falar com Animais sempre preparada.`;
+    }
+    if (classId === "feiticeiro") {
+      const sorcererRule = SPELLCASTING_RULES_2024.feiticeiro || {};
+      const cantrips = Number(sorcererRule.cantripsByLevel?.[level] || 0);
+      const prepared = Number(sorcererRule.preparedByLevel?.[level] || 0);
+      const sorceryPoints = SORCERER_SORCERY_POINTS_BY_LEVEL_2024[level] || 0;
+      const metamagicOptions = SORCERER_METAMAGIC_OPTIONS_BY_LEVEL_2024[level] || 0;
+      const restoration = level >= 5 ? ` Restauração Feiticeira: recupera até ${Math.floor(level / 2)} ponto(s) em descanso curto, 1 vez por descanso longo.` : "";
+      const incarnate = level >= 7 ? " Feitiçaria Encarnada: 2 pontos para ativar Feitiçaria Inata sem usos; até duas Metamagias por magia enquanto ativa." : "";
+      const apotheosis = level >= 20 ? " Apoteose Arcana: uma Metamagia grátis por turno enquanto Feitiçaria Inata está ativa." : "";
+      return `Feitiçaria Inata: 2 usos por descanso longo. Pontos de Feitiçaria: ${sorceryPoints || "—"}. Metamagias conhecidas: ${metamagicOptions || "—"}. Truques: ${cantrips}. Magias preparadas: ${prepared}.${restoration}${incarnate}${apotheosis}`;
     }
     if (classId === "paladino") {
       const paladinRule = SPELLCASTING_RULES_2024.paladino || {};
@@ -9342,6 +9376,12 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
           grantedSpellIds.push(...collectGrantedSpellIdsByLevel2024(DRUID_CIRCLE_GRANTED_SPELL_IDS_2024[entry.subclassId], entry.level));
         }
         mergeGrantedSpellIdsIntoConfig2024(config, grantedSpellIds);
+      }
+      if (entry.classId === "feiticeiro" && entry.subclassId) {
+        mergeGrantedSpellIdsIntoConfig2024(
+          config,
+          collectGrantedSpellIdsByLevel2024(SORCERER_SUBCLASS_GRANTED_SPELL_IDS_2024[entry.subclassId], entry.level)
+        );
       }
       if (entry.classId === "bruxo") {
         const grantedSpellIds = [];

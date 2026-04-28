@@ -316,7 +316,7 @@ const SUBCLASS_LIST = [
       3: [feature("Marés do Caos"), feature("Surto de Magia Selvagem")],
       6: [feature("Distorcer a Sorte")],
       14: [feature("Caos Controlado")],
-      18: [feature("Surto Controlado")],
+      18: [feature("Surto Domado")],
     }
   ),
 
