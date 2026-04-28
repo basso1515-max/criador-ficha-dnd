@@ -2279,8 +2279,10 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
       if (event.type === "pointerdown" && event.pointerType === "mouse") return;
       input.blur();
     };
+    const onScroll = () => input.blur();
     suggestions.addEventListener("pointerdown", onStart, { passive: true });
     suggestions.addEventListener("touchstart", onStart, { passive: true });
+    suggestions.addEventListener("scroll", onScroll, { passive: true });
   }
 
   function renderCustomSelectSuggestions2024(field, query, { allowEmpty = false } = {}) {
