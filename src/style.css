@@ -1276,7 +1276,7 @@ select[multiple] option {
   .dropdown-hover-card {
     left: 0;
     right: 0;
-    top: calc(100% + 48px);
+    top: calc(-250px - 10px);
     width: auto;
   }
 }
