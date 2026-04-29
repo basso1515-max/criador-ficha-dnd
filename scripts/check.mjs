@@ -7,6 +7,7 @@ const requiredFiles = [
   "index.html",
   "5e.html",
   "5.5e-2024.html",
+  "minha-conta.html",
   "usuario.html",
   "src/script.js",
   "src/script-2024.js",
