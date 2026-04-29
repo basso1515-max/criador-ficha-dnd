@@ -11,6 +11,7 @@ import { FEATURE_SUMMARIES_2024 } from "./data/5.5e/feature-summaries.js";
 import { EQUIPMENT_OPTION_LISTS, CLASS_EQUIPMENT_RULES, BACKGROUND_EQUIPMENT_RULES } from "./data/5.5e/equipamento-inicial.js";
 import { EXTRA_EQUIPMENT_CATALOG_2024, EXTRA_EQUIPMENT_GROUP_LABELS_2024 } from "./data/5.5e/equipment-compendium.js";
 import { buildRandomCharacterNameForRace } from "./data/character-name-randomizer.js";
+import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggleButtons } from "./user-area.js";
 
 (() => {
   "use strict";
@@ -1178,9 +1179,123 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     appearance: document.getElementById("appearance2024"),
     notes: document.getElementById("notes2024"),
     status: document.getElementById("status2024"),
+    userArea: document.getElementById("userArea2024"),
+    authPanel: document.getElementById("authPanel2024"),
+    loginForm: document.getElementById("loginForm2024"),
+    registerForm: document.getElementById("registerForm2024"),
+    userPanel: document.getElementById("userPanel2024"),
+    accountName: document.getElementById("accountName2024"),
+    accountEmail: document.getElementById("accountEmail2024"),
+    userAreaCount: document.getElementById("userAreaCount2024"),
+    logoutAccount: document.getElementById("logoutAccount2024"),
+    saveCharacter: document.getElementById("saveCharacter2024"),
+    quickSaveCharacter: document.getElementById("quickSaveCharacter2024"),
+    emptySaves: document.getElementById("emptySaves2024"),
+    savedCharactersList: document.getElementById("savedCharactersList2024"),
   };
 
   if (!el.form) return;
+
+  function captureSavedCharacterPreset2024() {
+    return {
+      ...captureFormPreset(el.form),
+      extra: {
+        multiclassRowIds: getAdditionalMulticlassRows2024().map((row) => row.getAttribute("data-row-id") || ""),
+        selectedSpellsBySource: getSpellSelectionSnapshot2024(),
+      },
+    };
+  }
+
+  function buildSavedCharacterSummary2024() {
+    const cls = getSelectedClass();
+    const subclass = getSelectedSubclass();
+    const background = getSelectedBackground();
+    const race = getSelectedRace();
+    const subrace = getSelectedSubrace();
+    const classDistribution = buildClassLevelDistributionSummary2024(getResolvedClassEntries2024());
+
+    return [
+      race?.nome || "",
+      subrace?.nome || "",
+      classDistribution || (cls ? `${cls.nome} ${getSelectedLevel()}` : ""),
+      subclass?.nome || "",
+      background?.nome || "",
+    ].filter(Boolean).join(" • ");
+  }
+
+  function restoreSavedCharacterPreset2024(preset) {
+    withDeferredHeavyUi2024(() => {
+      ensureMulticlassRowsForPreset2024(preset?.extra?.multiclassRowIds || []);
+      restoreSpellSelectionSnapshot2024(preset?.extra?.selectedSpellsBySource || {});
+
+      restoreFormPreset(el.form, preset);
+      renderAll();
+      restoreFormPreset(el.form, preset);
+      renderAll();
+      restoreFormPreset(el.form, preset);
+      syncAllCustomSelectFields2024();
+      syncUnitToggleButtons(document);
+      updateAbilityScoreInfo();
+      renderMagicSection2024();
+    });
+
+    restoreFormPreset(el.form, preset);
+    syncUnitToggleButtons(document);
+    updatePreview();
+  }
+
+  function ensureMulticlassRowsForPreset2024(rowIds = []) {
+    if (!el.multiclassRows) return;
+    const ids = Array.isArray(rowIds) ? rowIds.filter(Boolean) : [];
+
+    while (getAdditionalMulticlassRows2024().length < ids.length) {
+      const row = createMulticlassRow2024();
+      if (!row) break;
+      el.multiclassRows.appendChild(row);
+    }
+
+    while (getAdditionalMulticlassRows2024().length > ids.length) {
+      const row = getAdditionalMulticlassRows2024().at(-1);
+      spellSelectionState2024.delete(row?.getAttribute("data-row-id") || "");
+      row?.remove();
+    }
+
+    getAdditionalMulticlassRows2024().forEach((row, index) => {
+      if (ids[index]) row.setAttribute("data-row-id", ids[index]);
+    });
+
+    const highestSavedId = ids.reduce((highest, id) => {
+      const match = String(id).match(/^mc-(\d+)$/);
+      return match ? Math.max(highest, Number(match[1])) : highest;
+    }, multiclassRowCounter2024);
+    multiclassRowCounter2024 = Math.max(multiclassRowCounter2024, highestSavedId);
+  }
+
+  function getSpellSelectionSnapshot2024() {
+    const snapshot = {};
+    spellSelectionState2024.forEach((selection, sourceKey) => {
+      snapshot[sourceKey] = {
+        cantrips: Array.from(selection.cantrips || []),
+        spells: Array.from(selection.spells || []),
+      };
+    });
+    return snapshot;
+  }
+
+  function restoreSpellSelectionSnapshot2024(snapshot = {}) {
+    spellSelectionState2024.clear();
+    Object.entries(snapshot || {}).forEach(([sourceKey, selection]) => {
+      if (!sourceKey) return;
+      spellSelectionState2024.set(sourceKey, {
+        cantrips: new Set(Array.isArray(selection?.cantrips) ? selection.cantrips : []),
+        spells: new Set(Array.isArray(selection?.spells) ? selection.spells : []),
+      });
+    });
+  }
+
+  function syncAllCustomSelectFields2024() {
+    Object.keys(CUSTOM_SELECT_FIELDS_2024).forEach((key) => syncCustomSelectField2024(key));
+  }
 
   initialize();
 
@@ -1282,6 +1397,31 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     el.nomeRandomFeminino?.addEventListener("click", () => applyGeneratedCharacterName2024("feminino"));
     el.nomeRandomNeutro?.addEventListener("click", () => applyGeneratedCharacterName2024("neutro"));
     el.form.addEventListener("submit", handlePdfSubmit);
+
+    initializeUserArea({
+      edition: "5.5e-2024",
+      form: el.form,
+      elements: {
+        root: el.userArea,
+        authPanel: el.authPanel,
+        loginForm: el.loginForm,
+        registerForm: el.registerForm,
+        userPanel: el.userPanel,
+        accountName: el.accountName,
+        accountEmail: el.accountEmail,
+        count: el.userAreaCount,
+        logoutButton: el.logoutAccount,
+        saveButton: el.saveCharacter,
+        saveButtons: [el.quickSaveCharacter],
+        empty: el.emptySaves,
+        list: el.savedCharactersList,
+      },
+      capture: captureSavedCharacterPreset2024,
+      restore: restoreSavedCharacterPreset2024,
+      getCharacterName: () => String(el.nome?.value || "").trim(),
+      getCharacterSummary: buildSavedCharacterSummary2024,
+      setStatus: setStatus2024,
+    });
 
     renderAll();
     initializeFloatingSubmitButton2024();
