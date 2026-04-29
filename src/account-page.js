@@ -18,6 +18,7 @@ const el = {
   logoutButton: document.getElementById("accountLogoutButton"),
   loginForm: document.getElementById("accountLoginForm"),
   registerForm: document.getElementById("accountRegisterForm"),
+  authSection: document.querySelector(".account-split"),
   status: document.getElementById("accountPageStatus"),
 };
 
@@ -38,6 +39,7 @@ function renderAccountPage() {
   const saves2024 = user ? listCharactersForCurrentUser("5.5e-2024").length : 0;
 
   if (el.currentPanel) el.currentPanel.hidden = !user;
+  if (el.authSection) el.authSection.hidden = Boolean(user);
   if (el.currentName) el.currentName.textContent = user?.displayName || "";
   if (el.currentEmail) el.currentEmail.textContent = user?.email || "";
   if (el.count5e) el.count5e.textContent = `${saves5e}/${ACCOUNT_LIMIT_PER_EDITION}`;
