@@ -6,6 +6,7 @@
   <title>Criador de ficha D&D 5e / 5.5e</title>
   <link rel="stylesheet" href="./src/style.css" />
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=EB+Garamond:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Libre+Baskerville:wght@400;700&family=Uncial+Antiqua&display=swap" rel="stylesheet">
+  <script type="module" defer src="./src/home.js"></script>
 </head>
 
 <body data-active-screen="home">
@@ -18,6 +19,67 @@
           Monte sua ficha do jeito que preferir: use a experiência clássica de D&D 5e ou experimente a versão baseada nas regras de 2024 para começar sua próxima aventura.
         </p>
       </div>
+
+      <section id="homeAccountPanel" class="home-account-panel" aria-label="Sua conta">
+        <div class="home-account-copy">
+          <h2>Sua conta</h2>
+          <p>Entre ou crie uma conta local para salvar até 10 personagens por edição neste navegador. Você ainda pode gerar fichas sem conta.</p>
+        </div>
+
+        <div id="homeAuthPanel" class="home-account-auth">
+          <form id="homeLoginForm" class="home-account-form">
+            <h3>Entrar</h3>
+            <label class="row">
+              <span>E-mail</span>
+              <input name="email" type="email" autocomplete="email" required />
+            </label>
+            <label class="row">
+              <span>Senha</span>
+              <input name="password" type="password" autocomplete="current-password" required />
+            </label>
+            <button type="submit" class="secondary-button">Entrar</button>
+          </form>
+
+          <form id="homeRegisterForm" class="home-account-form">
+            <h3>Registro</h3>
+            <label class="row">
+              <span>Nome</span>
+              <input name="displayName" type="text" autocomplete="name" required />
+            </label>
+            <label class="row">
+              <span>E-mail</span>
+              <input name="email" type="email" autocomplete="email" required />
+            </label>
+            <label class="row">
+              <span>Senha</span>
+              <input name="password" type="password" autocomplete="new-password" minlength="4" required />
+            </label>
+            <button type="submit" class="primary home-account-primary">Criar conta</button>
+          </form>
+        </div>
+
+        <div id="homeUserPanel" class="home-user-panel" hidden>
+          <div class="home-user-session">
+            <div>
+              <strong id="homeAccountName"></strong>
+              <span id="homeAccountEmail"></span>
+            </div>
+            <button id="homeLogoutAccount" type="button" class="ghost-button">Sair</button>
+          </div>
+
+          <div class="home-save-counts" aria-label="Personagens salvos">
+            <span><strong id="homeCount5e">0/10</strong> D&D 5e</span>
+            <span><strong id="homeCount2024">0/10</strong> D&D 5.5e</span>
+          </div>
+
+          <div class="home-user-actions">
+            <a href="./5e.html#userArea5e" class="secondary-button">Ver salvos 5e</a>
+            <a href="./5.5e-2024.html#userArea2024" class="secondary-button">Ver salvos 5.5e</a>
+          </div>
+        </div>
+
+        <p id="homeAccountStatus" class="note home-account-status" aria-live="polite"></p>
+      </section>
 
       <div class="version-option-grid" role="list" aria-label="Escolha da edição">
         <a 
