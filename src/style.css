@@ -3787,12 +3787,12 @@ body[data-active-screen="5e-2024"] button:not(.secondary-button):not(.ghost-butt
   }
 
   .dropdown-hover-card:not(.magic-spell-hover-card) {
-    position: fixed;
+    position: absolute;
     top: auto;
-    right: max(10px, env(safe-area-inset-right, 0px));
-    bottom: calc(190px + env(safe-area-inset-bottom, 0px));
-    left: max(10px, env(safe-area-inset-left, 0px));
-    z-index: 90;
+    right: 0;
+    bottom: calc(100% + 8px);
+    left: 0;
+    z-index: 140;
     width: auto;
     max-height: min(220px, 32vh);
     margin: 0;
@@ -3952,7 +3952,7 @@ body[data-active-screen="5e-2024"] button:not(.secondary-button):not(.ghost-butt
   }
 
   .dropdown-hover-card:not(.magic-spell-hover-card) {
-    bottom: calc(206px + env(safe-area-inset-bottom, 0px));
+    bottom: calc(100% + 8px);
   }
 
   .container {
