@@ -25,6 +25,8 @@ const MIME_TYPES = {
   ".txt": "text/plain; charset=utf-8",
 };
 
+const DEV_NO_CACHE_EXTENSIONS = new Set([".css", ".html", ".js"]);
+
 function sendError(res, statusCode, message) {
   res.writeHead(statusCode, { "Content-Type": "text/plain; charset=utf-8" });
   res.end(message);
@@ -494,8 +496,22 @@ const server = createServer(async (req, res) => {
   }
 
   const ext = path.extname(filePath).toLowerCase();
+  if (ext === ".js" && req.headers["sec-fetch-dest"] === "document") {
+    const fallbackPath = path.basename(filePath) === "user-page.js" ? "/minha-conta.html" : "/index.html";
+    res.writeHead(302, { Location: fallbackPath });
+    res.end();
+    return;
+  }
+
   const contentType = MIME_TYPES[ext] || "application/octet-stream";
-  res.writeHead(200, { "Content-Type": contentType });
+  const headers = {
+    "Content-Type": contentType,
+    "X-Content-Type-Options": "nosniff",
+  };
+  if (DEV_NO_CACHE_EXTENSIONS.has(ext)) {
+    headers["Cache-Control"] = "no-cache";
+  }
+  res.writeHead(200, headers);
   createReadStream(filePath).pipe(res);
 });
 
