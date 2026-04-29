@@ -23,6 +23,68 @@
       <h1>Criador de ficha D&D 5.5e (2024)</h1>
     </header>
 
+    <section class="container user-area-container">
+      <div id="userArea2024" class="card user-area" aria-label="Área do usuário">
+        <div class="user-area-header">
+          <div>
+            <h2>Área do usuário</h2>
+            <p class="note subtle">Conta local para salvar até 10 personagens desta edição neste navegador.</p>
+          </div>
+          <span id="userAreaCount2024" class="user-area-count">Sem conta</span>
+        </div>
+
+        <div id="authPanel2024" class="user-auth-grid">
+          <form id="loginForm2024" class="user-auth-form">
+            <h3>Entrar</h3>
+            <label class="row">
+              <span>E-mail</span>
+              <input name="email" type="email" autocomplete="email" required />
+            </label>
+            <label class="row">
+              <span>Senha</span>
+              <input name="password" type="password" autocomplete="current-password" required />
+            </label>
+            <button type="submit" class="secondary-button">Entrar</button>
+          </form>
+
+          <form id="registerForm2024" class="user-auth-form">
+            <h3>Criar conta</h3>
+            <label class="row">
+              <span>Nome</span>
+              <input name="displayName" type="text" autocomplete="name" required />
+            </label>
+            <label class="row">
+              <span>E-mail</span>
+              <input name="email" type="email" autocomplete="email" required />
+            </label>
+            <label class="row">
+              <span>Senha</span>
+              <input name="password" type="password" autocomplete="new-password" minlength="4" required />
+            </label>
+            <button type="submit" class="primary user-auth-primary">Criar conta</button>
+          </form>
+        </div>
+
+        <div id="userPanel2024" class="user-saves-panel" hidden>
+          <div class="user-session-row">
+            <p>
+              <strong id="accountName2024"></strong>
+              <span id="accountEmail2024"></span>
+            </p>
+            <button id="logoutAccount2024" type="button" class="ghost-button">Sair</button>
+          </div>
+
+          <div class="user-save-controls">
+            <button id="saveCharacter2024" type="button" class="secondary-button">Salvar personagem atual</button>
+            <p class="note subtle">O salvamento guarda as escolhas e textos inseridos, não o PDF gerado.</p>
+          </div>
+
+          <p id="emptySaves2024" class="note subtle">Nenhum personagem salvo nesta edição.</p>
+          <div id="savedCharactersList2024" class="saved-character-list"></div>
+        </div>
+      </div>
+    </section>
+
     <main class="container grid edition-beta-grid">
       <section class="card">
         <h2>Base do personagem</h2>

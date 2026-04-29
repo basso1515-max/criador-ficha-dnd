@@ -1,5 +1,3 @@
-/* global PDFLib */
-
 import { RACAS, SUBRACAS as RACE_SUBRACAS, ENUMS_RACAS } from "./data/5e/racas.js";
 import { CLASSES } from "./data/5e/classes.js";
 import { SUBCLASSES } from "./data/5e/subclasses.js";
@@ -12,6 +10,7 @@ import { EQUIPMENT_OPTION_LISTS, CLASS_EQUIPMENT_RULES, BACKGROUND_EQUIPMENT_RUL
 import { EXTRA_EQUIPMENT_CATALOG_2024, EXTRA_EQUIPMENT_GROUP_LABELS_2024 } from "./data/5.5e/equipment-compendium.js";
 import { TALENTOS } from "./data/5e/talentos.js";
 import { buildRandomCharacterNameForRace } from "./data/character-name-randomizer.js";
+import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggleButtons } from "./user-area.js";
 
 const DEFAULT_TEMPLATE_URL = "./assets/pdf/5e/ficha5e.pdf";
 const PDF_MAP_URL = "./assets/pdf/5e/pdf-map.json";
@@ -1936,6 +1935,18 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     version2024Screen: $("version2024Screen"),
     form: $("sheetForm"),
     status: $("status"),
+    userArea: $("userArea5e"),
+    authPanel: $("authPanel5e"),
+    loginForm: $("loginForm5e"),
+    registerForm: $("registerForm5e"),
+    userPanel: $("userPanel5e"),
+    accountName: $("accountName5e"),
+    accountEmail: $("accountEmail5e"),
+    userAreaCount: $("userAreaCount5e"),
+    logoutAccount: $("logoutAccount5e"),
+    saveCharacter: $("saveCharacter5e"),
+    emptySaves: $("emptySaves5e"),
+    savedCharactersList: $("savedCharactersList5e"),
     nomeJogador: $("nomeJogador"),
 
     templateUrl: $("templateUrl"),
@@ -2203,6 +2214,126 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     }
   }
 
+  function captureSavedCharacterPreset() {
+    collectState();
+    return {
+      ...captureFormPreset(el.form),
+      extra: {
+        multiclassRowIds: getAdditionalMulticlassRows().map((row) => row.getAttribute("data-row-id") || ""),
+        selectedSpellsBySource: getSpellSelectionSnapshot(),
+      },
+    };
+  }
+
+  function buildSavedCharacterSummary() {
+    const state = collectState({ skipAutoTextareaSync: true });
+    return [
+      state.raca,
+      state.subraca,
+      state.classe ? `${state.classe} ${state.nivel}` : "",
+      state.arquetipo,
+      state.antecedente,
+    ].filter(Boolean).join(" • ");
+  }
+
+  function restoreSavedCharacterPreset(preset) {
+    selectedPortraitImage = null;
+    selectedSymbolImage = null;
+    if (el.aparenciaPersonagem) el.aparenciaPersonagem.value = "";
+    if (el.imagemSimbolo) el.imagemSimbolo.value = "";
+
+    withDeferredHeavyUi(() => {
+      ensureMulticlassRowsForPreset(preset?.extra?.multiclassRowIds || []);
+      restoreSpellSelectionSnapshot(preset?.extra?.selectedSpellsBySource || {});
+
+      restoreFormPreset(el.form, preset);
+      rerenderAfterPresetRestore();
+      restoreFormPreset(el.form, preset);
+      rerenderAfterPresetRestore();
+      restoreFormPreset(el.form, preset);
+      syncAllCustomSelectFields();
+      syncUnitToggleButtons(document);
+      previousDistanceUnit = getPreferredDistanceUnit();
+      previousWeightUnit = getPreferredWeightUnit();
+      updateAttributeMethodUi();
+      renderMagicSection();
+    });
+
+    restoreFormPreset(el.form, preset);
+    syncAllCustomSelectFields();
+    syncUnitToggleButtons(document);
+    atualizarPreview();
+  }
+
+  function ensureMulticlassRowsForPreset(rowIds = []) {
+    if (!el.multiclassRows) return;
+    const ids = Array.isArray(rowIds) ? rowIds.filter(Boolean) : [];
+
+    while (getAdditionalMulticlassRows().length < ids.length) {
+      const row = createMulticlassRow();
+      if (!row) break;
+      el.multiclassRows.appendChild(row);
+    }
+
+    while (getAdditionalMulticlassRows().length > ids.length) {
+      const row = getAdditionalMulticlassRows().at(-1);
+      cleanupSpellSelectionForSource(row?.getAttribute("data-row-id"));
+      row?.remove();
+    }
+
+    getAdditionalMulticlassRows().forEach((row, index) => {
+      if (ids[index]) row.setAttribute("data-row-id", ids[index]);
+    });
+
+    const highestSavedId = ids.reduce((highest, id) => {
+      const match = String(id).match(/^mc-(\d+)$/);
+      return match ? Math.max(highest, Number(match[1])) : highest;
+    }, multiclassRowCounter);
+    multiclassRowCounter = Math.max(multiclassRowCounter, highestSavedId);
+  }
+
+  function restoreSpellSelectionSnapshot(snapshot = {}) {
+    spellSelectionState.clear();
+    Object.entries(snapshot || {}).forEach(([sourceKey, selection]) => {
+      if (!sourceKey) return;
+      spellSelectionState.set(sourceKey, {
+        cantrips: new Set(Array.isArray(selection?.cantrips) ? selection.cantrips : []),
+        spells: new Set(Array.isArray(selection?.spells) ? selection.spells : []),
+      });
+    });
+  }
+
+  function syncAllCustomSelectFields() {
+    Object.keys(CUSTOM_SELECT_FIELDS).forEach((key) => syncCustomSelectField(key));
+  }
+
+  function rerenderAfterPresetRestore() {
+    syncUnitToggleButtons(document);
+    previousDistanceUnit = getPreferredDistanceUnit();
+    previousWeightUnit = getPreferredWeightUnit();
+    syncXpWithLevel();
+    syncMulticlassUi();
+    onRaceChanged();
+    onSubraceChanged();
+    onClassChanged();
+    onSubclassChanged();
+    onBackgroundChanged();
+    renderAsiOptions();
+    renderFeatChoices();
+    renderFeatDetailChoices();
+    renderSubclassDetailChoices();
+    renderRaceDetailChoices();
+    renderLanguageChoices();
+    renderExpertiseChoices();
+    renderFightingStyleChoices();
+    renderEquipmentChoices();
+    renderHitPointRollControls({ force: true });
+    updateAttributeMethodUi();
+    onAlignmentChanged();
+    onDivinityChanged();
+    syncAllCustomSelectFields();
+  }
+
   document.addEventListener("DOMContentLoaded", () => {
     populateSelect(el.raca, RACES.map((race) => race.nome), "Selecione...");
     populateSelect(el.classe, CLASS_LIST.map((cls) => cls.nome), "Selecione...");
@@ -2275,16 +2406,20 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     el.alinhamento.addEventListener("focus", () => onAlignmentChanged({ showSuggestions: true, allowEmptySuggestions: true, showAllOnFocus: true }));
     el.alinhamento.addEventListener("click", () => onAlignmentChanged({ showSuggestions: true, allowEmptySuggestions: true, showAllOnFocus: true }));
     el.alinhamento.addEventListener("blur", () => {
+      if (consumeDropdownInteractionBlur(el.alinhamento)) return;
       window.setTimeout(hideAlignmentSuggestions, 120);
       window.setTimeout(hideAlignmentHoverCard, 140);
     });
+    attachDropdownSuggestionContainerTouchBlur(el.alinhamentoSuggestions, el.alinhamento);
     el.divindade.addEventListener("input", () => onDivinityChanged({ showSuggestions: true }));
     el.divindade.addEventListener("focus", () => onDivinityChanged({ showSuggestions: true, allowEmptySuggestions: true, showAllOnFocus: true }));
     el.divindade.addEventListener("click", () => onDivinityChanged({ showSuggestions: true, allowEmptySuggestions: true, showAllOnFocus: true }));
     el.divindade.addEventListener("blur", () => {
+      if (consumeDropdownInteractionBlur(el.divindade)) return;
       window.setTimeout(hideDivinitySuggestions, 120);
       window.setTimeout(hideDivinityHoverCard, 140);
     });
+    attachDropdownSuggestionContainerTouchBlur(el.divindadeSuggestions, el.divindade);
     [el.traitsSelect, el.ideaisSelect, el.vinculosSelect, el.defeitosSelect].forEach((select) => {
       select.addEventListener("change", atualizarPreview);
     });
@@ -2354,6 +2489,30 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
         writeErrorScreen(tab, err);
         setStatus("Não foi possível gerar a ficha.");
       }
+    });
+
+    initializeUserArea({
+      edition: "5e",
+      form: el.form,
+      elements: {
+        root: el.userArea,
+        authPanel: el.authPanel,
+        loginForm: el.loginForm,
+        registerForm: el.registerForm,
+        userPanel: el.userPanel,
+        accountName: el.accountName,
+        accountEmail: el.accountEmail,
+        count: el.userAreaCount,
+        logoutButton: el.logoutAccount,
+        saveButton: el.saveCharacter,
+        empty: el.emptySaves,
+        list: el.savedCharactersList,
+      },
+      capture: captureSavedCharacterPreset,
+      restore: restoreSavedCharacterPreset,
+      getCharacterName: () => String(el.nome?.value || "").trim(),
+      getCharacterSummary: buildSavedCharacterSummary,
+      setStatus,
     });
 
     pdfMapLoadPromise = loadActivePdfMap();
@@ -3694,10 +3853,12 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     input.addEventListener("focus", () => renderCustomSelectSuggestions(field, "", { allowEmpty: true }));
     input.addEventListener("click", () => renderCustomSelectSuggestions(field, "", { allowEmpty: true }));
     input.addEventListener("blur", () => {
+      if (consumeDropdownInteractionBlur(input)) return;
       window.setTimeout(() => hideCustomSelectSuggestions(field), 120);
       window.setTimeout(() => hideCustomSelectHoverCard(field), 140);
       window.setTimeout(() => syncCustomSelectField(key), 150);
     });
+    attachDropdownSuggestionContainerTouchBlur(suggestions, input);
 
     return field;
   }
@@ -3715,6 +3876,88 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
           details,
         };
       });
+  }
+
+  function isTouchLikeDropdownEvent(event) {
+    if (!event) return false;
+    if (event.type.startsWith("touch")) return true;
+    return event.pointerType && event.pointerType !== "mouse";
+  }
+
+  function markDropdownInteractionBlur(input) {
+    if (!input) return;
+    input.dataset.keepDropdownOpenAfterBlur = "1";
+    window.clearTimeout(input.__dropdownInteractionBlurTimer);
+    input.__dropdownInteractionBlurTimer = window.setTimeout(() => {
+      delete input.dataset.keepDropdownOpenAfterBlur;
+    }, 500);
+  }
+
+  function consumeDropdownInteractionBlur(input) {
+    if (!input || input.dataset.keepDropdownOpenAfterBlur !== "1") return false;
+    window.clearTimeout(input.__dropdownInteractionBlurTimer);
+    delete input.dataset.keepDropdownOpenAfterBlur;
+    return true;
+  }
+
+  function blurDropdownInputForInteraction(input) {
+    if (!input) return;
+    markDropdownInteractionBlur(input);
+    input.blur();
+  }
+
+  function closeDropdownRoot(root, suggestions) {
+    if (suggestions) suggestions.hidden = true;
+    root?.querySelectorAll(".dropdown-hover-card").forEach((card) => {
+      card.hidden = true;
+    });
+    root?.querySelectorAll(".dropdown-suggestion").forEach((item) => {
+      item.classList.remove("is-active", "is-touch-preview");
+    });
+  }
+
+  function scheduleDropdownOutsideClose(suggestions, input) {
+    if (!suggestions) return;
+    if (suggestions.__outsideDropdownClose) suggestions.__outsideDropdownClose();
+
+    const root = suggestions.closest(".generic-dropdown-field") || suggestions.closest(".dropdown-anchor") || suggestions.parentElement;
+    const close = (event) => {
+      const target = event.target;
+      if ((root && root.contains(target)) || target === input) return;
+      closeDropdownRoot(root, suggestions);
+      cleanup();
+    };
+    const cleanup = () => {
+      document.removeEventListener("pointerdown", close, true);
+      document.removeEventListener("touchstart", close, true);
+      suggestions.__outsideDropdownClose = null;
+    };
+
+    suggestions.__outsideDropdownClose = cleanup;
+    window.setTimeout(() => {
+      document.addEventListener("pointerdown", close, true);
+      document.addEventListener("touchstart", close, true);
+    }, 0);
+  }
+
+  function attachDropdownSuggestionContainerTouchBlur(suggestions, input) {
+    if (!suggestions || !input) return;
+    const onStart = (event) => {
+      if (!isTouchLikeDropdownEvent(event)) return;
+      blurDropdownInputForInteraction(input);
+      scheduleDropdownOutsideClose(suggestions, input);
+    };
+    const onScroll = () => {
+      blurDropdownInputForInteraction(input);
+      scheduleDropdownOutsideClose(suggestions, input);
+    };
+
+    if (window.PointerEvent) {
+      suggestions.addEventListener("pointerdown", onStart, { passive: true });
+    } else {
+      suggestions.addEventListener("touchstart", onStart, { passive: true });
+    }
+    suggestions.addEventListener("scroll", onScroll, { passive: true });
   }
 
   function bindDropdownSuggestionInteraction(node, { container, value, input, preview, hidePreview, commit, useTouchPreview = true }) {
@@ -3754,31 +3997,38 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       if (event.button === 0) event.preventDefault();
     });
 
-    node.addEventListener("pointerdown", (event) => {
-      if (event.pointerType === "mouse") return;
-      if (event.cancelable) event.preventDefault();
-      if (input) input.blur();
-      pointerStart = {
-        id: event.pointerId,
-        x: event.clientX,
-        y: event.clientY,
-      };
-    });
+    const getTouchPoint = (event) => {
+      if (event.type.startsWith("touch")) {
+        const touch = event.changedTouches?.[0];
+        if (!touch) return null;
+        return { id: touch.identifier, x: touch.clientX, y: touch.clientY };
+      }
+      return { id: event.pointerId, x: event.clientX, y: event.clientY };
+    };
 
-    node.addEventListener("pointercancel", () => {
+    const handleDown = (event) => {
+      if (!isTouchLikeDropdownEvent(event)) return;
+      blurDropdownInputForInteraction(input);
+      const point = getTouchPoint(event);
+      if (!point) return;
+      pointerStart = point;
+    };
+
+    const handleCancel = () => {
       pointerStart = null;
-    });
+    };
 
-    node.addEventListener("pointerup", (event) => {
-      if (!pointerStart || event.pointerId !== pointerStart.id) return;
+    const handleUp = (event) => {
+      const point = getTouchPoint(event);
+      if (!pointerStart || !point || point.id !== pointerStart.id) return;
 
-      const moved = Math.hypot(event.clientX - pointerStart.x, event.clientY - pointerStart.y);
+      const moved = Math.hypot(point.x - pointerStart.x, point.y - pointerStart.y);
       pointerStart = null;
       if (moved > 10) return;
 
       suppressClick = true;
       suppressMouseUntil = Date.now() + 600;
-      event.preventDefault();
+      if (event.cancelable) event.preventDefault();
       event.stopPropagation();
 
       if (useTouchPreview && !node.classList.contains("is-touch-preview")) {
@@ -3787,7 +4037,17 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       }
 
       commit(value);
-    });
+    };
+
+    if (window.PointerEvent) {
+      node.addEventListener("pointerdown", handleDown);
+      node.addEventListener("pointercancel", handleCancel);
+      node.addEventListener("pointerup", handleUp);
+    } else {
+      node.addEventListener("touchstart", handleDown, { passive: true });
+      node.addEventListener("touchcancel", handleCancel);
+      node.addEventListener("touchend", handleUp);
+    }
 
     node.addEventListener("click", (event) => {
       if (suppressClick || Date.now() < suppressMouseUntil) {
