@@ -1253,9 +1253,11 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     el.divindadeInput?.addEventListener("focus", () => onDivinityChanged2024({ showSuggestions: true, allowEmptySuggestions: true, showAllOnFocus: true }));
     el.divindadeInput?.addEventListener("click", () => onDivinityChanged2024({ showSuggestions: true, allowEmptySuggestions: true, showAllOnFocus: true }));
     el.divindadeInput?.addEventListener("blur", () => {
+      if (consumeDropdownInteractionBlur2024(el.divindadeInput)) return;
       window.setTimeout(hideDivinitySuggestions2024, 120);
       window.setTimeout(hideDivinityHoverCard2024, 140);
     });
+    attachDropdownSuggestionContainerTouchBlur2024(el.divindadeSuggestions, el.divindadeInput);
     el.abilityScores?.addEventListener("input", onAbilityScoresChanged);
     el.abilityScores?.addEventListener("change", onAbilityScoresChanged);
     [el.abilityChoices, el.speciesChoices, el.featChoices, el.languageChoices].forEach((container) => {
@@ -2152,10 +2154,12 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     input.addEventListener("focus", () => renderCustomSelectSuggestions2024(field, "", { allowEmpty: true }));
     input.addEventListener("click", () => renderCustomSelectSuggestions2024(field, "", { allowEmpty: true }));
     input.addEventListener("blur", () => {
+      if (consumeDropdownInteractionBlur2024(input)) return;
       window.setTimeout(() => hideCustomSelectSuggestions2024(field), 120);
       window.setTimeout(() => hideCustomSelectHoverCard2024(field), 140);
       window.setTimeout(() => syncCustomSelectField2024(key), 150);
     });
+    attachDropdownSuggestionContainerTouchBlur2024(suggestions, input);
 
     return field;
   }
@@ -2173,6 +2177,68 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
           details,
         };
       });
+  }
+
+  function isTouchLikeDropdownEvent2024(event) {
+    if (!event) return false;
+    if (event.type.startsWith("touch")) return true;
+    return event.pointerType && event.pointerType !== "mouse";
+  }
+
+  function markDropdownInteractionBlur2024(input) {
+    if (!input) return;
+    input.dataset.keepDropdownOpenAfterBlur = "1";
+    window.clearTimeout(input.__dropdownInteractionBlurTimer);
+    input.__dropdownInteractionBlurTimer = window.setTimeout(() => {
+      delete input.dataset.keepDropdownOpenAfterBlur;
+    }, 500);
+  }
+
+  function consumeDropdownInteractionBlur2024(input) {
+    if (!input || input.dataset.keepDropdownOpenAfterBlur !== "1") return false;
+    window.clearTimeout(input.__dropdownInteractionBlurTimer);
+    delete input.dataset.keepDropdownOpenAfterBlur;
+    return true;
+  }
+
+  function blurDropdownInputForInteraction2024(input) {
+    if (!input) return;
+    markDropdownInteractionBlur2024(input);
+    input.blur();
+  }
+
+  function closeDropdownRoot2024(root, suggestions) {
+    if (suggestions) suggestions.hidden = true;
+    root?.querySelectorAll(".dropdown-hover-card").forEach((card) => {
+      card.hidden = true;
+    });
+    root?.querySelectorAll(".dropdown-suggestion").forEach((item) => {
+      item.classList.remove("is-active", "is-touch-preview");
+    });
+  }
+
+  function scheduleDropdownOutsideClose2024(suggestions, input) {
+    if (!suggestions) return;
+    if (suggestions.__outsideDropdownClose) suggestions.__outsideDropdownClose();
+
+    const root = suggestions.closest(".generic-dropdown-field") || suggestions.closest(".dropdown-anchor") || suggestions.parentElement;
+    const close = (event) => {
+      const target = event.target;
+      if ((root && root.contains(target)) || target === input) return;
+      closeDropdownRoot2024(root, suggestions);
+      cleanup();
+    };
+    const cleanup = () => {
+      document.removeEventListener("pointerdown", close, true);
+      document.removeEventListener("touchstart", close, true);
+      suggestions.__outsideDropdownClose = null;
+    };
+
+    suggestions.__outsideDropdownClose = cleanup;
+    window.setTimeout(() => {
+      document.addEventListener("pointerdown", close, true);
+      document.addEventListener("touchstart", close, true);
+    }, 0);
   }
 
   function bindDropdownSuggestionInteraction2024(node, { container, value, input, preview, hidePreview, commit, useTouchPreview = true }) {
@@ -2222,9 +2288,8 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     };
 
     const handleDown = (event) => {
-      if (event.type === "pointerdown" && event.pointerType === "mouse") return;
-      if (event.cancelable) event.preventDefault();
-      if (input) input.blur();
+      if (!isTouchLikeDropdownEvent2024(event)) return;
+      blurDropdownInputForInteraction2024(input);
       const point = getTouchPoint(event);
       if (!point) return;
       pointerStart = point;
@@ -2255,12 +2320,15 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
       commit(value);
     };
 
-    node.addEventListener("pointerdown", handleDown);
-    node.addEventListener("touchstart", handleDown, { passive: false });
-    node.addEventListener("pointercancel", handleCancel);
-    node.addEventListener("touchcancel", handleCancel);
-    node.addEventListener("pointerup", handleUp);
-    node.addEventListener("touchend", handleUp);
+    if (window.PointerEvent) {
+      node.addEventListener("pointerdown", handleDown);
+      node.addEventListener("pointercancel", handleCancel);
+      node.addEventListener("pointerup", handleUp);
+    } else {
+      node.addEventListener("touchstart", handleDown, { passive: true });
+      node.addEventListener("touchcancel", handleCancel);
+      node.addEventListener("touchend", handleUp);
+    }
 
     node.addEventListener("click", (event) => {
       if (suppressClick || Date.now() < suppressMouseUntil) {
@@ -2276,12 +2344,20 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
   function attachDropdownSuggestionContainerTouchBlur2024(suggestions, input) {
     if (!suggestions || !input) return;
     const onStart = (event) => {
-      if (event.type === "pointerdown" && event.pointerType === "mouse") return;
-      input.blur();
+      if (!isTouchLikeDropdownEvent2024(event)) return;
+      blurDropdownInputForInteraction2024(input);
+      scheduleDropdownOutsideClose2024(suggestions, input);
     };
-    const onScroll = () => input.blur();
-    suggestions.addEventListener("pointerdown", onStart, { passive: true });
-    suggestions.addEventListener("touchstart", onStart, { passive: true });
+    const onScroll = () => {
+      blurDropdownInputForInteraction2024(input);
+      scheduleDropdownOutsideClose2024(suggestions, input);
+    };
+
+    if (window.PointerEvent) {
+      suggestions.addEventListener("pointerdown", onStart, { passive: true });
+    } else {
+      suggestions.addEventListener("touchstart", onStart, { passive: true });
+    }
     suggestions.addEventListener("scroll", onScroll, { passive: true });
   }
 
@@ -4115,7 +4191,6 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     suggestions.className = "dropdown-suggestions";
     suggestions.hidden = true;
     suggestions.setAttribute("data-feat-suggestions", "1");
-    attachDropdownSuggestionContainerTouchBlur2024(suggestions, input);
     dropdownAnchor.appendChild(suggestions);
 
     const hoverCard = document.createElement("div");
@@ -4447,6 +4522,7 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
     itemInput.addEventListener("click", () => renderEquipmentShoppingSuggestions2024(row, "", { allowEmpty: true }));
     itemInput.addEventListener("keydown", (event) => handleEquipmentShoppingInputKeydown2024(event, row));
     itemInput.addEventListener("blur", () => {
+      if (consumeDropdownInteractionBlur2024(itemInput)) return;
       window.setTimeout(() => hideEquipmentShoppingSuggestions2024(row), 120);
       window.setTimeout(() => hideEquipmentShoppingHoverCard2024(row), 140);
       window.setTimeout(() => syncEquipmentShoppingInput2024(getShoppingRowControls2024(row), EQUIPMENT_PURCHASE_BY_ID_2024.get(select.value), { canShop: !select.disabled }), 150);
