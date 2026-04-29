@@ -9,6 +9,7 @@ const requiredFiles = [
   "5.5e-2024.html",
   "src/script.js",
   "src/script-2024.js",
+  "src/analytics.js",
   "src/style.css",
   "assets/pdf/5e/ficha5e.pdf",
   "assets/pdf/5e/pdf-map.json",
