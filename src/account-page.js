@@ -43,7 +43,7 @@ function renderAccountPage() {
   if (el.count5e) el.count5e.textContent = `${saves5e}/${ACCOUNT_LIMIT_PER_EDITION}`;
   if (el.count2024) el.count2024.textContent = `${saves2024}/${ACCOUNT_LIMIT_PER_EDITION}`;
   if (el.continueLink) {
-    el.continueLink.href = returnTo || "./usuario.html";
+    el.continueLink.href = returnTo || "./usuario.html?v=2";
     el.continueLink.textContent = returnTo ? "Continuar" : "Minha página";
   }
 }
