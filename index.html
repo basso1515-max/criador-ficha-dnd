@@ -20,67 +20,6 @@
         </p>
       </div>
 
-      <section id="homeAccountPanel" class="home-account-panel" aria-label="Sua conta">
-        <div class="home-account-copy">
-          <h2>Sua conta</h2>
-          <p>Entre ou crie uma conta local para salvar até 10 personagens por edição neste navegador. Você ainda pode gerar fichas sem conta.</p>
-        </div>
-
-        <div id="homeAuthPanel" class="home-account-auth">
-          <form id="homeLoginForm" class="home-account-form">
-            <h3>Entrar</h3>
-            <label class="row">
-              <span>E-mail</span>
-              <input name="email" type="email" autocomplete="email" required />
-            </label>
-            <label class="row">
-              <span>Senha</span>
-              <input name="password" type="password" autocomplete="current-password" required />
-            </label>
-            <button type="submit" class="secondary-button">Entrar</button>
-          </form>
-
-          <form id="homeRegisterForm" class="home-account-form">
-            <h3>Registro</h3>
-            <label class="row">
-              <span>Nome</span>
-              <input name="displayName" type="text" autocomplete="name" required />
-            </label>
-            <label class="row">
-              <span>E-mail</span>
-              <input name="email" type="email" autocomplete="email" required />
-            </label>
-            <label class="row">
-              <span>Senha</span>
-              <input name="password" type="password" autocomplete="new-password" minlength="4" required />
-            </label>
-            <button type="submit" class="primary home-account-primary">Criar conta</button>
-          </form>
-        </div>
-
-        <div id="homeUserPanel" class="home-user-panel" hidden>
-          <div class="home-user-session">
-            <div>
-              <strong id="homeAccountName"></strong>
-              <span id="homeAccountEmail"></span>
-            </div>
-            <button id="homeLogoutAccount" type="button" class="ghost-button">Sair</button>
-          </div>
-
-          <div class="home-save-counts" aria-label="Personagens salvos">
-            <span><strong id="homeCount5e">0/10</strong> D&D 5e</span>
-            <span><strong id="homeCount2024">0/10</strong> D&D 5.5e</span>
-          </div>
-
-          <div class="home-user-actions">
-            <a href="./5e.html#userArea5e" class="secondary-button">Ver salvos 5e</a>
-            <a href="./5.5e-2024.html#userArea2024" class="secondary-button">Ver salvos 5.5e</a>
-          </div>
-        </div>
-
-        <p id="homeAccountStatus" class="note home-account-status" aria-live="polite"></p>
-      </section>
-
       <div class="version-option-grid" role="list" aria-label="Escolha da edição">
         <a 
         href="./5e.html" 
@@ -117,6 +56,64 @@
           </ul>
         </a>
       </div>
+    </div>
+
+    <div class="home-account-widget" aria-live="polite">
+      <div id="homeAccountPopup" class="home-account-popup" role="dialog" aria-label="Minha conta" hidden>
+        <button id="homeAccountClose" type="button" class="home-account-close" aria-label="Fechar painel de conta">
+          <span aria-hidden="true">×</span>
+        </button>
+
+        <div class="home-popup-brand" aria-hidden="true">
+          <span class="home-popup-mark">D20</span>
+          <strong>Minha conta</strong>
+        </div>
+
+        <div id="homeAuthPanel" class="home-popup-card">
+          <form id="homeLoginForm" class="home-popup-form" method="post">
+            <h2>Entrar</h2>
+            <p>Use sua conta local para acessar personagens salvos neste navegador.</p>
+            <label class="row">
+              <span>E-mail</span>
+              <input name="email" type="email" autocomplete="email" required />
+            </label>
+            <label class="row">
+              <span>Senha</span>
+              <input name="password" type="password" autocomplete="current-password" required />
+            </label>
+            <button type="submit" class="primary home-popup-primary">Entrar</button>
+          </form>
+          <a href="./conta.html" class="home-popup-link">Criar conta ou registrar outro usuário</a>
+        </div>
+
+        <div id="homeUserPanel" class="home-popup-card home-user-panel" hidden>
+          <div class="home-user-session">
+            <div>
+              <strong id="homeAccountName"></strong>
+              <span id="homeAccountEmail"></span>
+            </div>
+            <button id="homeLogoutAccount" type="button" class="ghost-button">Sair</button>
+          </div>
+
+          <div class="home-save-counts" aria-label="Personagens salvos">
+            <span><strong id="homeCount5e">0/10</strong> D&D 5e</span>
+            <span><strong id="homeCount2024">0/10</strong> D&D 5.5e</span>
+          </div>
+
+          <div class="home-user-actions">
+            <a href="./5e.html#userArea5e" class="secondary-button">Ver salvos 5e</a>
+            <a href="./5.5e-2024.html#userArea2024" class="secondary-button">Ver salvos 5.5e</a>
+          </div>
+        </div>
+
+        <p id="homeAccountStatus" class="note home-account-status" aria-live="polite"></p>
+      </div>
+
+      <button id="homeAccountToggle" type="button" class="home-account-toggle" aria-label="Abrir minha conta" aria-controls="homeAccountPopup" aria-expanded="false">
+        <svg viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+          <path d="M32 6 8 18v28l24 12 24-12V18L32 6Zm0 6.8 14.6 7.3L32 27.4l-14.6-7.3L32 12.8Zm-18 12.5 15 7.5v17.7l-15-7.5V25.3Zm21 25.2V32.8l15-7.5V43l-15 7.5Z" />
+        </svg>
+      </button>
     </div>
   </section>
 </body>

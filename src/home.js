@@ -4,13 +4,14 @@ import {
   listCharactersForCurrentUser,
   loginAccount,
   logoutAccount,
-  registerAccount,
 } from "./account-storage.js";
 
 const el = {
+  toggleButton: document.getElementById("homeAccountToggle"),
+  closeButton: document.getElementById("homeAccountClose"),
+  popup: document.getElementById("homeAccountPopup"),
   authPanel: document.getElementById("homeAuthPanel"),
   loginForm: document.getElementById("homeLoginForm"),
-  registerForm: document.getElementById("homeRegisterForm"),
   userPanel: document.getElementById("homeUserPanel"),
   accountName: document.getElementById("homeAccountName"),
   accountEmail: document.getElementById("homeAccountEmail"),
@@ -27,6 +28,12 @@ function setStatus(message, tone = "info") {
   if (message) {
     el.status.classList.add(tone === "success" ? "status-success" : tone === "warning" ? "status-warning" : "status-info");
   }
+}
+
+function setPopupOpen(open) {
+  if (!el.popup || !el.toggleButton) return;
+  el.popup.hidden = !open;
+  el.toggleButton.setAttribute("aria-expanded", String(open));
 }
 
 function renderHomeAccount() {
@@ -59,28 +66,24 @@ el.loginForm?.addEventListener("submit", async (event) => {
   }
 });
 
-el.registerForm?.addEventListener("submit", async (event) => {
-  event.preventDefault();
-  const formData = new FormData(el.registerForm);
-
-  try {
-    await registerAccount({
-      displayName: formData.get("displayName"),
-      email: formData.get("email"),
-      password: formData.get("password"),
-    });
-    el.registerForm.reset();
-    renderHomeAccount();
-    setStatus("Conta local criada.", "success");
-  } catch (error) {
-    setStatus(error?.message || "Não foi possível criar a conta local.", "warning");
-  }
-});
-
 el.logoutButton?.addEventListener("click", () => {
   logoutAccount();
   renderHomeAccount();
   setStatus("Você saiu da conta local.", "info");
+});
+
+el.toggleButton?.addEventListener("click", () => {
+  setPopupOpen(el.popup?.hidden !== false);
+});
+
+el.closeButton?.addEventListener("click", () => {
+  setPopupOpen(false);
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && el.popup?.hidden === false) {
+    setPopupOpen(false);
+  }
 });
 
 renderHomeAccount();
