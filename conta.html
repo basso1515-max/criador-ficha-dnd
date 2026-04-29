@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Minha conta | Criador de ficha D&D</title>
+  <link rel="stylesheet" href="./src/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=EB+Garamond:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Libre+Baskerville:wght@400;700&family=Uncial+Antiqua&display=swap" rel="stylesheet">
+  <script type="module" defer src="./src/account-page.js"></script>
+</head>
+
+<body data-active-screen="account">
+  <main class="account-page-shell">
+    <header class="container account-page-header">
+      <div class="version-toolbar">
+        <div class="version-toolbar-actions">
+          <a href="./index.html" class="ghost-button">Voltar para a seleção</a>
+          <a href="./5e.html" class="secondary-button">Editor 5e</a>
+          <a href="./5.5e-2024.html" class="secondary-button">Editor 5.5e</a>
+        </div>
+      </div>
+
+      <div class="account-page-intro">
+        <p class="version-kicker">Área do usuário</p>
+        <h1>Minha conta</h1>
+        <p>Entre ou crie uma conta local para salvar suas definições de personagem. A geração de ficha continua disponível sem cadastro.</p>
+      </div>
+    </header>
+
+    <section class="container">
+      <div id="accountCurrentPanel" class="account-current-panel" hidden>
+        <div>
+          <strong id="accountCurrentName"></strong>
+          <span id="accountCurrentEmail"></span>
+        </div>
+        <div class="account-current-counts">
+          <span><strong id="accountCount5e">0/10</strong> D&D 5e</span>
+          <span><strong id="accountCount2024">0/10</strong> D&D 5.5e</span>
+        </div>
+        <div class="account-current-actions">
+          <a id="accountContinueLink" href="./index.html" class="secondary-button">Continuar</a>
+          <button id="accountLogoutButton" type="button" class="ghost-button">Sair</button>
+        </div>
+      </div>
+
+      <p id="accountPageStatus" class="note account-page-status" aria-live="polite"></p>
+    </section>
+
+    <section class="container account-split" aria-label="Login e registro">
+      <form id="accountLoginForm" class="account-form-panel account-login-panel" method="post">
+        <div class="account-form-heading">
+          <span>Já tenho conta</span>
+          <h2>Login</h2>
+          <p>Acesse os personagens salvos neste navegador.</p>
+        </div>
+
+        <label class="row">
+          <span>E-mail</span>
+          <input name="email" type="email" autocomplete="email" required />
+        </label>
+
+        <label class="row">
+          <span>Senha</span>
+          <input name="password" type="password" autocomplete="current-password" required />
+        </label>
+
+        <button type="submit" class="primary account-submit-button">Entrar</button>
+      </form>
+
+      <form id="accountRegisterForm" class="account-form-panel account-register-panel" method="post">
+        <div class="account-form-heading">
+          <span>Primeiro acesso</span>
+          <h2>Registro</h2>
+          <p>Crie uma conta local para guardar até 10 personagens por edição.</p>
+        </div>
+
+        <label class="row">
+          <span>Nome</span>
+          <input name="displayName" type="text" autocomplete="name" required />
+        </label>
+
+        <label class="row">
+          <span>E-mail</span>
+          <input name="email" type="email" autocomplete="email" required />
+        </label>
+
+        <label class="row">
+          <span>Senha</span>
+          <input name="password" type="password" autocomplete="new-password" minlength="4" required />
+        </label>
+
+        <button type="submit" class="primary account-submit-button">Criar conta</button>
+      </form>
+    </section>
+  </main>
+</body>
+</html>
