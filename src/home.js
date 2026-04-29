@@ -1,6 +1,7 @@
 import {
   ACCOUNT_LIMIT_PER_EDITION,
   getCurrentUser,
+  hydrateAccountStorage,
   listCharactersForCurrentUser,
   loginAccount,
   logoutAccount,
@@ -60,7 +61,7 @@ el.loginForm?.addEventListener("submit", async (event) => {
     });
     el.loginForm.reset();
     renderHomeAccount();
-    setStatus("Conta local acessada.", "success");
+    setStatus("Conta acessada.", "success");
   } catch (error) {
     setStatus(error?.message || "Não foi possível entrar na conta.", "warning");
   }
@@ -69,7 +70,7 @@ el.loginForm?.addEventListener("submit", async (event) => {
 el.logoutButton?.addEventListener("click", () => {
   logoutAccount();
   renderHomeAccount();
-  setStatus("Você saiu da conta local.", "info");
+  setStatus("Você saiu da conta.", "info");
 });
 
 el.toggleButton?.addEventListener("click", () => {
@@ -86,4 +87,5 @@ document.addEventListener("keydown", (event) => {
   }
 });
 
+await hydrateAccountStorage();
 renderHomeAccount();
