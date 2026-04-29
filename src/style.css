@@ -142,6 +142,125 @@ fieldset,
   line-height: 1.45;
 }
 
+.home-account-panel {
+  display: grid;
+  grid-template-columns: minmax(240px, 0.72fr) minmax(360px, 1.28fr);
+  gap: 18px;
+  align-items: start;
+  padding: 18px;
+  border: 2px solid rgba(90, 62, 36, 0.22);
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(255, 251, 242, 0.94), rgba(244, 235, 214, 0.9)),
+    rgba(253, 246, 227, 0.9);
+  box-shadow: 0 16px 34px rgba(74, 52, 28, 0.12);
+}
+
+.home-account-copy {
+  display: grid;
+  gap: 8px;
+}
+
+.home-account-copy h2,
+.home-account-form h3 {
+  margin: 0;
+}
+
+.home-account-copy p,
+.home-account-status {
+  margin: 0;
+}
+
+.home-account-auth {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.home-account-form {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid rgba(90, 62, 36, 0.18);
+  border-radius: 8px;
+  background: rgba(255, 250, 238, 0.55);
+}
+
+.home-account-primary {
+  width: fit-content;
+  min-width: 150px;
+}
+
+.home-user-panel {
+  display: grid;
+  gap: 12px;
+}
+
+.home-user-session,
+.home-save-counts,
+.home-user-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.home-user-session {
+  justify-content: space-between;
+  padding: 12px;
+  border: 1px solid rgba(90, 62, 36, 0.16);
+  border-radius: 8px;
+  background: rgba(255, 250, 238, 0.58);
+}
+
+.home-user-session div {
+  display: grid;
+  gap: 2px;
+}
+
+.home-user-session span {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.home-save-counts span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 8px 10px;
+  border: 1px solid rgba(90, 62, 36, 0.18);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.42);
+}
+
+.home-save-counts strong {
+  color: var(--accent);
+}
+
+.home-account-status:not(:empty) {
+  grid-column: 1 / -1;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(255, 250, 238, 0.72);
+}
+
+.home-account-status.status-success {
+  color: #205a38;
+  border: 1px solid rgba(32, 90, 56, 0.24);
+}
+
+.home-account-status.status-warning {
+  color: #8b2f20;
+  border: 1px solid rgba(139, 47, 32, 0.28);
+}
+
+.home-account-status.status-info {
+  color: var(--accent);
+  border: 1px solid rgba(90, 62, 36, 0.2);
+}
+
 .version-option-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -482,6 +601,12 @@ fieldset,
 @media (max-width: 980px) {
   .grid { grid-template-columns: 1fr; }
   .version-option-grid { grid-template-columns: 1fr; }
+  .home-account-panel {
+    grid-template-columns: 1fr;
+  }
+  .home-account-auth {
+    grid-template-columns: 1fr;
+  }
 }
 
 .card {
@@ -490,6 +615,133 @@ fieldset,
   border-radius: 6px;
   padding: 16px;
   box-shadow: 2px 2px 8px rgba(0,0,0,0.2);
+}
+
+.user-area-container {
+  padding-top: 0;
+}
+
+.user-area {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.user-area-header,
+.user-session-row,
+.user-save-controls,
+.saved-character-main,
+.saved-character-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-area-header,
+.user-session-row {
+  justify-content: space-between;
+}
+
+.user-area-header h2,
+.user-auth-form h3 {
+  margin: 0;
+}
+
+.user-area-header .note,
+.user-save-controls .note,
+.user-session-row p,
+.saved-character-item p {
+  margin: 0;
+}
+
+.user-area-count {
+  flex: 0 0 auto;
+  min-width: 104px;
+  padding: 7px 10px;
+  border: 1px solid rgba(90, 62, 36, 0.22);
+  border-radius: 999px;
+  background: rgba(255, 250, 238, 0.72);
+  color: var(--accent);
+  text-align: center;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.user-auth-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.user-auth-form,
+.saved-character-item {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid rgba(90, 62, 36, 0.18);
+  border-radius: 8px;
+  background: rgba(255, 250, 238, 0.42);
+}
+
+.user-auth-primary {
+  width: fit-content;
+  min-width: 150px;
+}
+
+.user-saves-panel {
+  display: grid;
+  gap: 12px;
+}
+
+.user-session-row {
+  padding: 10px 12px;
+  border: 1px solid rgba(90, 62, 36, 0.16);
+  border-radius: 8px;
+  background: rgba(255, 250, 238, 0.5);
+}
+
+.user-session-row p {
+  display: grid;
+  gap: 2px;
+}
+
+.user-session-row span {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.user-save-controls {
+  flex-wrap: wrap;
+}
+
+.saved-character-list {
+  display: grid;
+  gap: 10px;
+}
+
+.saved-character-item.is-selected {
+  border-color: rgba(90, 62, 36, 0.5);
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+.saved-character-main {
+  justify-content: space-between;
+}
+
+.saved-character-main span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.saved-character-actions {
+  flex-wrap: wrap;
+}
+
+.saved-character-actions .secondary-button,
+.saved-character-actions .ghost-button {
+  min-height: 38px;
+  padding: 8px 10px;
 }
 
 h1 { margin: 0 0 10px; font-size: 22px; font-family: var(--heading-font);}
@@ -1049,6 +1301,31 @@ button:hover { border-color: #5a3e24; }
   .preview-panel,
   .floating-submit-bar {
     position: static;
+  }
+
+  .user-auth-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .user-area-header,
+  .user-session-row,
+  .user-save-controls,
+  .saved-character-main,
+  .home-user-session,
+  .home-user-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .user-area-count,
+  .user-auth-primary,
+  .home-account-primary,
+  .home-user-actions .secondary-button,
+  .home-user-session .ghost-button,
+  .user-save-controls .secondary-button,
+  .saved-character-actions .secondary-button,
+  .saved-character-actions .ghost-button {
+    width: 100%;
   }
 
   .floating-submit-bar {
