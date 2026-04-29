@@ -2273,16 +2273,20 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     el.alinhamento.addEventListener("focus", () => onAlignmentChanged({ showSuggestions: true, allowEmptySuggestions: true, showAllOnFocus: true }));
     el.alinhamento.addEventListener("click", () => onAlignmentChanged({ showSuggestions: true, allowEmptySuggestions: true, showAllOnFocus: true }));
     el.alinhamento.addEventListener("blur", () => {
+      if (consumeDropdownInteractionBlur(el.alinhamento)) return;
       window.setTimeout(hideAlignmentSuggestions, 120);
       window.setTimeout(hideAlignmentHoverCard, 140);
     });
+    attachDropdownSuggestionContainerTouchBlur(el.alinhamentoSuggestions, el.alinhamento);
     el.divindade.addEventListener("input", () => onDivinityChanged({ showSuggestions: true }));
     el.divindade.addEventListener("focus", () => onDivinityChanged({ showSuggestions: true, allowEmptySuggestions: true, showAllOnFocus: true }));
     el.divindade.addEventListener("click", () => onDivinityChanged({ showSuggestions: true, allowEmptySuggestions: true, showAllOnFocus: true }));
     el.divindade.addEventListener("blur", () => {
+      if (consumeDropdownInteractionBlur(el.divindade)) return;
       window.setTimeout(hideDivinitySuggestions, 120);
       window.setTimeout(hideDivinityHoverCard, 140);
     });
+    attachDropdownSuggestionContainerTouchBlur(el.divindadeSuggestions, el.divindade);
     [el.traitsSelect, el.ideaisSelect, el.vinculosSelect, el.defeitosSelect].forEach((select) => {
       select.addEventListener("change", atualizarPreview);
     });
@@ -3692,10 +3696,12 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     input.addEventListener("focus", () => renderCustomSelectSuggestions(field, "", { allowEmpty: true }));
     input.addEventListener("click", () => renderCustomSelectSuggestions(field, "", { allowEmpty: true }));
     input.addEventListener("blur", () => {
+      if (consumeDropdownInteractionBlur(input)) return;
       window.setTimeout(() => hideCustomSelectSuggestions(field), 120);
       window.setTimeout(() => hideCustomSelectHoverCard(field), 140);
       window.setTimeout(() => syncCustomSelectField(key), 150);
     });
+    attachDropdownSuggestionContainerTouchBlur(suggestions, input);
 
     return field;
   }
@@ -3713,6 +3719,88 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
           details,
         };
       });
+  }
+
+  function isTouchLikeDropdownEvent(event) {
+    if (!event) return false;
+    if (event.type.startsWith("touch")) return true;
+    return event.pointerType && event.pointerType !== "mouse";
+  }
+
+  function markDropdownInteractionBlur(input) {
+    if (!input) return;
+    input.dataset.keepDropdownOpenAfterBlur = "1";
+    window.clearTimeout(input.__dropdownInteractionBlurTimer);
+    input.__dropdownInteractionBlurTimer = window.setTimeout(() => {
+      delete input.dataset.keepDropdownOpenAfterBlur;
+    }, 500);
+  }
+
+  function consumeDropdownInteractionBlur(input) {
+    if (!input || input.dataset.keepDropdownOpenAfterBlur !== "1") return false;
+    window.clearTimeout(input.__dropdownInteractionBlurTimer);
+    delete input.dataset.keepDropdownOpenAfterBlur;
+    return true;
+  }
+
+  function blurDropdownInputForInteraction(input) {
+    if (!input) return;
+    markDropdownInteractionBlur(input);
+    input.blur();
+  }
+
+  function closeDropdownRoot(root, suggestions) {
+    if (suggestions) suggestions.hidden = true;
+    root?.querySelectorAll(".dropdown-hover-card").forEach((card) => {
+      card.hidden = true;
+    });
+    root?.querySelectorAll(".dropdown-suggestion").forEach((item) => {
+      item.classList.remove("is-active", "is-touch-preview");
+    });
+  }
+
+  function scheduleDropdownOutsideClose(suggestions, input) {
+    if (!suggestions) return;
+    if (suggestions.__outsideDropdownClose) suggestions.__outsideDropdownClose();
+
+    const root = suggestions.closest(".generic-dropdown-field") || suggestions.closest(".dropdown-anchor") || suggestions.parentElement;
+    const close = (event) => {
+      const target = event.target;
+      if ((root && root.contains(target)) || target === input) return;
+      closeDropdownRoot(root, suggestions);
+      cleanup();
+    };
+    const cleanup = () => {
+      document.removeEventListener("pointerdown", close, true);
+      document.removeEventListener("touchstart", close, true);
+      suggestions.__outsideDropdownClose = null;
+    };
+
+    suggestions.__outsideDropdownClose = cleanup;
+    window.setTimeout(() => {
+      document.addEventListener("pointerdown", close, true);
+      document.addEventListener("touchstart", close, true);
+    }, 0);
+  }
+
+  function attachDropdownSuggestionContainerTouchBlur(suggestions, input) {
+    if (!suggestions || !input) return;
+    const onStart = (event) => {
+      if (!isTouchLikeDropdownEvent(event)) return;
+      blurDropdownInputForInteraction(input);
+      scheduleDropdownOutsideClose(suggestions, input);
+    };
+    const onScroll = () => {
+      blurDropdownInputForInteraction(input);
+      scheduleDropdownOutsideClose(suggestions, input);
+    };
+
+    if (window.PointerEvent) {
+      suggestions.addEventListener("pointerdown", onStart, { passive: true });
+    } else {
+      suggestions.addEventListener("touchstart", onStart, { passive: true });
+    }
+    suggestions.addEventListener("scroll", onScroll, { passive: true });
   }
 
   function bindDropdownSuggestionInteraction(node, { container, value, input, preview, hidePreview, commit, useTouchPreview = true }) {
@@ -3762,9 +3850,8 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     };
 
     const handleDown = (event) => {
-      if (event.type === "pointerdown" && event.pointerType === "mouse") return;
-      if (event.cancelable) event.preventDefault();
-      if (input) input.blur();
+      if (!isTouchLikeDropdownEvent(event)) return;
+      blurDropdownInputForInteraction(input);
       const point = getTouchPoint(event);
       if (!point) return;
       pointerStart = point;
@@ -3795,12 +3882,15 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       commit(value);
     };
 
-    node.addEventListener("pointerdown", handleDown);
-    node.addEventListener("touchstart", handleDown, { passive: false });
-    node.addEventListener("pointercancel", handleCancel);
-    node.addEventListener("touchcancel", handleCancel);
-    node.addEventListener("pointerup", handleUp);
-    node.addEventListener("touchend", handleUp);
+    if (window.PointerEvent) {
+      node.addEventListener("pointerdown", handleDown);
+      node.addEventListener("pointercancel", handleCancel);
+      node.addEventListener("pointerup", handleUp);
+    } else {
+      node.addEventListener("touchstart", handleDown, { passive: true });
+      node.addEventListener("touchcancel", handleCancel);
+      node.addEventListener("touchend", handleUp);
+    }
 
     node.addEventListener("click", (event) => {
       if (suppressClick || Date.now() < suppressMouseUntil) {
