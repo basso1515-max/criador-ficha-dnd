@@ -20,15 +20,16 @@
           <a href="./index.html" class="ghost-button">Voltar para a seleção</a>
           <a href="./minha-conta.html" class="secondary-button">Minha conta</a>
           <a href="./5.5e-2024.html" class="secondary-button">Abrir editor 5.5e</a>
+          <button id="editorLogout5e" type="button" class="ghost-button editor-logout-button" hidden>Sair</button>
         </div>
       </div>
 
       <h1>Criador de ficha D&D 5e</h1>
     </header>
 
-    <section class="container user-area-container">
+    <section id="userAreaContainer5e" class="container user-area-container">
       <div id="userArea5e" class="card user-area" aria-label="Área do usuário">
-        <div class="user-area-header">
+        <div id="userAreaHeader5e" class="user-area-header">
           <div>
             <h2>Área do usuário</h2>
             <p class="note subtle">Conta para salvar até 10 personagens desta edição no servidor local.</p>
@@ -45,7 +46,7 @@
         </div>
 
         <div id="userPanel5e" class="user-saves-panel" hidden>
-          <div class="user-session-row">
+          <div id="userSessionRow5e" class="user-session-row">
             <p>
               <strong id="accountName5e"></strong>
               <span id="accountEmail5e"></span>
