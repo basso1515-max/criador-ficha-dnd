@@ -566,6 +566,10 @@ fieldset,
   margin-left: auto;
 }
 
+.mobile-editor-menu-shell {
+  display: none;
+}
+
 .version-coming-screen {
   display: grid;
 }
@@ -4826,5 +4830,171 @@ body[data-active-screen="5e-2024"] button:not(.secondary-button):not(.ghost-butt
 
   .floating-submit-actions {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  body[data-standalone-route="5e"] .app-screen > header.container,
+  body[data-active-screen="5e-2024"] .app-screen > header.container {
+    padding-top: 12px;
+  }
+
+  body[data-standalone-route="5e"] .version-toolbar,
+  body[data-active-screen="5e-2024"] .version-toolbar {
+    justify-content: flex-start;
+    margin-bottom: 8px;
+  }
+
+  body[data-standalone-route="5e"] .version-toolbar-actions,
+  body[data-active-screen="5e-2024"] .version-toolbar-actions {
+    display: none;
+  }
+
+  body[data-standalone-route="5e"] .mobile-editor-menu-shell,
+  body[data-active-screen="5e-2024"] .mobile-editor-menu-shell {
+    display: block;
+    position: relative;
+    width: max-content;
+    z-index: 90;
+  }
+
+  .mobile-menu-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 46px;
+    padding: 10px 12px;
+    border: 1px solid rgba(90, 62, 36, 0.26);
+    border-radius: 999px;
+    background: rgba(255, 250, 238, 0.94);
+    color: var(--accent);
+    box-shadow: 0 10px 24px rgba(52, 30, 12, 0.18);
+    font-weight: 700;
+  }
+
+  .mobile-menu-bars {
+    display: grid;
+    gap: 4px;
+    width: 18px;
+  }
+
+  .mobile-menu-bars span {
+    display: block;
+    width: 18px;
+    height: 2px;
+    border-radius: 999px;
+    background: currentColor;
+    transition: transform 160ms ease, opacity 160ms ease;
+  }
+
+  .mobile-menu-toggle.is-open .mobile-menu-bars span:nth-child(1) {
+    transform: translateY(6px) rotate(45deg);
+  }
+
+  .mobile-menu-toggle.is-open .mobile-menu-bars span:nth-child(2) {
+    opacity: 0;
+  }
+
+  .mobile-menu-toggle.is-open .mobile-menu-bars span:nth-child(3) {
+    transform: translateY(-6px) rotate(-45deg);
+  }
+
+  .mobile-editor-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    display: grid;
+    gap: 8px;
+    width: min(calc(100vw - 24px), 340px);
+    max-height: calc(100svh - 88px);
+    padding: 10px;
+    overflow: auto;
+    border: 1px solid rgba(90, 62, 36, 0.24);
+    border-radius: 14px;
+    background:
+      linear-gradient(180deg, rgba(255, 251, 242, 0.98), rgba(244, 236, 218, 0.98)),
+      var(--card);
+    box-shadow: 0 18px 44px rgba(52, 30, 12, 0.24);
+  }
+
+  .mobile-menu-section {
+    display: grid;
+    gap: 6px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(90, 62, 36, 0.14);
+  }
+
+  .mobile-menu-section:last-child {
+    padding-bottom: 0;
+    border-bottom: 0;
+  }
+
+  .mobile-menu-label {
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0;
+    text-transform: uppercase;
+  }
+
+  .mobile-menu-link,
+  .mobile-menu-button {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 40px;
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid rgba(90, 62, 36, 0.2);
+    border-radius: 10px;
+    background: rgba(255, 250, 238, 0.72);
+    color: var(--text);
+    font: inherit;
+    font-weight: 700;
+    text-align: left;
+    text-decoration: none;
+  }
+
+  .mobile-menu-link:active,
+  .mobile-menu-button:active {
+    transform: translateY(1px);
+  }
+
+  .mobile-menu-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.52;
+  }
+
+  .mobile-menu-current {
+    padding: 8px;
+    border: 1px solid rgba(90, 62, 36, 0.16);
+    border-radius: 12px;
+    background: rgba(255, 250, 238, 0.54);
+  }
+
+  .mobile-menu-current strong {
+    color: var(--accent);
+    font-size: 16px;
+    line-height: 1.2;
+  }
+
+  .mobile-menu-current small {
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.35;
+  }
+
+  .mobile-menu-logout {
+    color: #8b2f20;
+  }
+
+  body[data-standalone-route="5e"] #quickSaveCharacter5e,
+  body[data-active-screen="5e-2024"] #quickSaveCharacter2024 {
+    display: none;
+  }
+
+  body[data-standalone-route="5e"] .floating-submit-actions,
+  body[data-active-screen="5e-2024"] .floating-submit-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
