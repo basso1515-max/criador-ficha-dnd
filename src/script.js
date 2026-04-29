@@ -10,6 +10,7 @@ import { EQUIPMENT_OPTION_LISTS, CLASS_EQUIPMENT_RULES, BACKGROUND_EQUIPMENT_RUL
 import { EXTRA_EQUIPMENT_CATALOG_2024, EXTRA_EQUIPMENT_GROUP_LABELS_2024 } from "./data/5.5e/equipment-compendium.js";
 import { TALENTOS } from "./data/5e/talentos.js";
 import { buildRandomCharacterNameForRace } from "./data/character-name-randomizer.js";
+import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggleButtons } from "./user-area.js";
 
 const DEFAULT_TEMPLATE_URL = "./assets/pdf/5e/ficha5e.pdf";
 const PDF_MAP_URL = "./assets/pdf/5e/pdf-map.json";
@@ -1934,6 +1935,19 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     version2024Screen: $("version2024Screen"),
     form: $("sheetForm"),
     status: $("status"),
+    userArea: $("userArea5e"),
+    authPanel: $("authPanel5e"),
+    loginForm: $("loginForm5e"),
+    registerForm: $("registerForm5e"),
+    userPanel: $("userPanel5e"),
+    accountName: $("accountName5e"),
+    accountEmail: $("accountEmail5e"),
+    userAreaCount: $("userAreaCount5e"),
+    logoutAccount: $("logoutAccount5e"),
+    saveCharacter: $("saveCharacter5e"),
+    quickSaveCharacter: $("quickSaveCharacter5e"),
+    emptySaves: $("emptySaves5e"),
+    savedCharactersList: $("savedCharactersList5e"),
     nomeJogador: $("nomeJogador"),
 
     templateUrl: $("templateUrl"),
@@ -2201,6 +2215,126 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     }
   }
 
+  function captureSavedCharacterPreset() {
+    collectState();
+    return {
+      ...captureFormPreset(el.form),
+      extra: {
+        multiclassRowIds: getAdditionalMulticlassRows().map((row) => row.getAttribute("data-row-id") || ""),
+        selectedSpellsBySource: getSpellSelectionSnapshot(),
+      },
+    };
+  }
+
+  function buildSavedCharacterSummary() {
+    const state = collectState({ skipAutoTextareaSync: true });
+    return [
+      state.raca,
+      state.subraca,
+      state.classe ? `${state.classe} ${state.nivel}` : "",
+      state.arquetipo,
+      state.antecedente,
+    ].filter(Boolean).join(" • ");
+  }
+
+  function restoreSavedCharacterPreset(preset) {
+    selectedPortraitImage = null;
+    selectedSymbolImage = null;
+    if (el.aparenciaPersonagem) el.aparenciaPersonagem.value = "";
+    if (el.imagemSimbolo) el.imagemSimbolo.value = "";
+
+    withDeferredHeavyUi(() => {
+      ensureMulticlassRowsForPreset(preset?.extra?.multiclassRowIds || []);
+      restoreSpellSelectionSnapshot(preset?.extra?.selectedSpellsBySource || {});
+
+      restoreFormPreset(el.form, preset);
+      rerenderAfterPresetRestore();
+      restoreFormPreset(el.form, preset);
+      rerenderAfterPresetRestore();
+      restoreFormPreset(el.form, preset);
+      syncAllCustomSelectFields();
+      syncUnitToggleButtons(document);
+      previousDistanceUnit = getPreferredDistanceUnit();
+      previousWeightUnit = getPreferredWeightUnit();
+      updateAttributeMethodUi();
+      renderMagicSection();
+    });
+
+    restoreFormPreset(el.form, preset);
+    syncAllCustomSelectFields();
+    syncUnitToggleButtons(document);
+    atualizarPreview();
+  }
+
+  function ensureMulticlassRowsForPreset(rowIds = []) {
+    if (!el.multiclassRows) return;
+    const ids = Array.isArray(rowIds) ? rowIds.filter(Boolean) : [];
+
+    while (getAdditionalMulticlassRows().length < ids.length) {
+      const row = createMulticlassRow();
+      if (!row) break;
+      el.multiclassRows.appendChild(row);
+    }
+
+    while (getAdditionalMulticlassRows().length > ids.length) {
+      const row = getAdditionalMulticlassRows().at(-1);
+      cleanupSpellSelectionForSource(row?.getAttribute("data-row-id"));
+      row?.remove();
+    }
+
+    getAdditionalMulticlassRows().forEach((row, index) => {
+      if (ids[index]) row.setAttribute("data-row-id", ids[index]);
+    });
+
+    const highestSavedId = ids.reduce((highest, id) => {
+      const match = String(id).match(/^mc-(\d+)$/);
+      return match ? Math.max(highest, Number(match[1])) : highest;
+    }, multiclassRowCounter);
+    multiclassRowCounter = Math.max(multiclassRowCounter, highestSavedId);
+  }
+
+  function restoreSpellSelectionSnapshot(snapshot = {}) {
+    spellSelectionState.clear();
+    Object.entries(snapshot || {}).forEach(([sourceKey, selection]) => {
+      if (!sourceKey) return;
+      spellSelectionState.set(sourceKey, {
+        cantrips: new Set(Array.isArray(selection?.cantrips) ? selection.cantrips : []),
+        spells: new Set(Array.isArray(selection?.spells) ? selection.spells : []),
+      });
+    });
+  }
+
+  function syncAllCustomSelectFields() {
+    Object.keys(CUSTOM_SELECT_FIELDS).forEach((key) => syncCustomSelectField(key));
+  }
+
+  function rerenderAfterPresetRestore() {
+    syncUnitToggleButtons(document);
+    previousDistanceUnit = getPreferredDistanceUnit();
+    previousWeightUnit = getPreferredWeightUnit();
+    syncXpWithLevel();
+    syncMulticlassUi();
+    onRaceChanged();
+    onSubraceChanged();
+    onClassChanged();
+    onSubclassChanged();
+    onBackgroundChanged();
+    renderAsiOptions();
+    renderFeatChoices();
+    renderFeatDetailChoices();
+    renderSubclassDetailChoices();
+    renderRaceDetailChoices();
+    renderLanguageChoices();
+    renderExpertiseChoices();
+    renderFightingStyleChoices();
+    renderEquipmentChoices();
+    renderHitPointRollControls({ force: true });
+    updateAttributeMethodUi();
+    onAlignmentChanged();
+    onDivinityChanged();
+    syncAllCustomSelectFields();
+  }
+
   document.addEventListener("DOMContentLoaded", () => {
     populateSelect(el.raca, RACES.map((race) => race.nome), "Selecione...");
     populateSelect(el.classe, CLASS_LIST.map((cls) => cls.nome), "Selecione...");
@@ -2356,6 +2490,31 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
         writeErrorScreen(tab, err);
         setStatus("Não foi possível gerar a ficha.");
       }
+    });
+
+    initializeUserArea({
+      edition: "5e",
+      form: el.form,
+      elements: {
+        root: el.userArea,
+        authPanel: el.authPanel,
+        loginForm: el.loginForm,
+        registerForm: el.registerForm,
+        userPanel: el.userPanel,
+        accountName: el.accountName,
+        accountEmail: el.accountEmail,
+        count: el.userAreaCount,
+        logoutButton: el.logoutAccount,
+        saveButton: el.saveCharacter,
+        saveButtons: [el.quickSaveCharacter],
+        empty: el.emptySaves,
+        list: el.savedCharactersList,
+      },
+      capture: captureSavedCharacterPreset,
+      restore: restoreSavedCharacterPreset,
+      getCharacterName: () => String(el.nome?.value || "").trim(),
+      getCharacterSummary: buildSavedCharacterSummary,
+      setStatus,
     });
 
     pdfMapLoadPromise = loadActivePdfMap();
