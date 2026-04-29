@@ -92,6 +92,7 @@ export function initializeUserArea({
     summary: getCharacterSummary?.() || "",
     snapshot: capture?.() || captureFormPreset(form),
   });
+  const closeMobileMenu = setupMobileMenu(elements);
 
   const render = () => {
     renderUserArea({
@@ -170,11 +171,12 @@ export function initializeUserArea({
     logoutAccount();
     state.selectedCharacterId = "";
     state.showSavedPanel = false;
+    closeMobileMenu();
     render();
     notify("Você saiu da conta.", "info");
   };
 
-  [elements.logoutButton, elements.pageLogoutButton]
+  [elements.logoutButton, elements.pageLogoutButton, elements.mobileLogoutButton]
     .filter(Boolean)
     .forEach((button) => {
       button.addEventListener("click", handleLogout);
@@ -185,6 +187,7 @@ export function initializeUserArea({
       const saved = await saveCharacterForCurrentUser(edition, buildPayload());
       state.selectedCharacterId = saved.id;
       render();
+      closeMobileMenu();
       notify(`Personagem salvo: ${saved.name}.`, "success");
     } catch (error) {
       notify(error?.message || "Não foi possível salvar o personagem.", "warning");
@@ -253,8 +256,11 @@ export function initializeUserArea({
 function renderUserArea({ edition, elements, saveButtons = [], selectedCharacterId, showSavedPanel = false }) {
   const user = getCurrentUser();
   const saves = user ? listCharactersForCurrentUser(edition) : [];
-  const selectedCharacter = showSavedPanel
+  const activeCharacter = selectedCharacterId
     ? saves.find((character) => character.id === selectedCharacterId)
+    : null;
+  const selectedCharacter = showSavedPanel
+    ? activeCharacter
     : null;
   const shouldShowSavedPanel = Boolean(user && selectedCharacter);
 
@@ -264,6 +270,8 @@ function renderUserArea({ edition, elements, saveButtons = [], selectedCharacter
   if (elements.authPanel) elements.authPanel.hidden = true;
   if (elements.sessionRow) elements.sessionRow.hidden = true;
   if (elements.pageLogoutButton) elements.pageLogoutButton.hidden = !user;
+  if (elements.mobileLogoutButton) elements.mobileLogoutButton.hidden = !user;
+  renderMobileMenuState(elements, { user, character: activeCharacter });
 
   if (elements.userPanel) elements.userPanel.hidden = !shouldShowSavedPanel;
 
@@ -288,6 +296,63 @@ function renderUserArea({ edition, elements, saveButtons = [], selectedCharacter
   elements.list.innerHTML = shouldShowSavedPanel
     ? renderSavedCharacter(selectedCharacter, { selected: true })
     : "";
+}
+
+function setupMobileMenu(elements) {
+  const toggle = elements.mobileMenuToggle;
+  const menu = elements.mobileMenu;
+  const shell = elements.mobileMenuShell;
+  if (!toggle || !menu) return () => {};
+
+  const setOpen = (isOpen) => {
+    menu.hidden = !isOpen;
+    toggle.setAttribute("aria-expanded", String(isOpen));
+    toggle.classList.toggle("is-open", isOpen);
+    shell?.classList.toggle("is-open", isOpen);
+  };
+
+  toggle.addEventListener("click", (event) => {
+    event.stopPropagation();
+    setOpen(menu.hidden);
+  });
+
+  document.addEventListener("click", (event) => {
+    if (menu.hidden || shell?.contains(event.target)) return;
+    setOpen(false);
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") setOpen(false);
+  });
+
+  return () => setOpen(false);
+}
+
+function renderMobileMenuState(elements, { user, character }) {
+  if (elements.mobileCharacterBlock) {
+    elements.mobileCharacterBlock.hidden = false;
+  }
+
+  if (!user) {
+    if (elements.mobileCharacterName) elements.mobileCharacterName.textContent = "Sem conta conectada";
+    if (elements.mobileCharacterSummary) {
+      elements.mobileCharacterSummary.textContent = "Entre na sua conta para salvar e abrir personagens.";
+    }
+    return;
+  }
+
+  if (!character) {
+    if (elements.mobileCharacterName) elements.mobileCharacterName.textContent = "Nenhum personagem salvo aberto";
+    if (elements.mobileCharacterSummary) {
+      elements.mobileCharacterSummary.textContent = "Abra um personagem salvo pela sua página.";
+    }
+    return;
+  }
+
+  if (elements.mobileCharacterName) elements.mobileCharacterName.textContent = character.name;
+  if (elements.mobileCharacterSummary) {
+    elements.mobileCharacterSummary.textContent = character.summary || `Atualizado em ${formatDate(character.updatedAt)}`;
+  }
 }
 
 function getRequestedCharacterId() {
