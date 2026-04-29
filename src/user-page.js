@@ -39,6 +39,7 @@ const el = {
   profileForm: document.getElementById("userProfileForm"),
   passwordForm: document.getElementById("userPasswordForm"),
   deleteForm: document.getElementById("userDeleteForm"),
+  authLink: document.getElementById("userPageAuthLink"),
   status: document.getElementById("userPageStatus"),
 };
 
@@ -58,6 +59,7 @@ function renderUserPage() {
 
   if (el.guest) el.guest.hidden = Boolean(user);
   if (el.content) el.content.hidden = !user;
+  if (el.authLink) el.authLink.hidden = Boolean(user);
   if (!user) return;
 
   if (el.name) el.name.textContent = user.displayName || "Minha conta";
