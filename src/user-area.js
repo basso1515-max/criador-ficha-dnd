@@ -2,6 +2,7 @@ import {
   ACCOUNT_LIMIT_PER_EDITION,
   deleteCharacterForCurrentUser,
   getCurrentUser,
+  hydrateAccountStorage,
   listCharactersForCurrentUser,
   loginAccount,
   logoutAccount,
@@ -73,7 +74,13 @@ export function initializeUserArea({
 
   const state = {
     selectedCharacterId: "",
+    didAutoLoad: false,
   };
+  const saveButtons = [
+    elements.saveButton,
+    ...(Array.isArray(elements.saveButtons) ? elements.saveButtons : []),
+  ].filter(Boolean);
+  const requestedCharacterId = getRequestedCharacterId();
 
   const notify = (message, tone = "info") => {
     if (typeof setStatus === "function") setStatus(message, tone);
@@ -89,9 +96,33 @@ export function initializeUserArea({
     renderUserArea({
       edition,
       elements,
+      saveButtons,
       selectedCharacterId: state.selectedCharacterId,
     });
   };
+
+  const loadRequestedCharacter = () => {
+    if (!requestedCharacterId || state.didAutoLoad) return;
+    const character = listCharactersForCurrentUser(edition).find((item) => item.id === requestedCharacterId);
+
+    state.didAutoLoad = true;
+    if (!character) {
+      if (getCurrentUser()) {
+        notify("Personagem salvo não encontrado nesta edição.", "warning");
+      }
+      return;
+    }
+
+    restore?.(character.snapshot);
+    state.selectedCharacterId = character.id;
+    render();
+    notify(`Personagem carregado: ${character.name}.`, "success");
+  };
+
+  hydrateAccountStorage().then(() => {
+    render();
+    loadRequestedCharacter();
+  });
 
   elements.loginForm?.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -105,7 +136,7 @@ export function initializeUserArea({
       elements.loginForm.reset();
       state.selectedCharacterId = "";
       render();
-      notify("Conta local acessada.", "success");
+      notify("Conta acessada.", "success");
     } catch (error) {
       notify(error?.message || "Não foi possível entrar na conta.", "warning");
     }
@@ -124,9 +155,9 @@ export function initializeUserArea({
       elements.registerForm.reset();
       state.selectedCharacterId = "";
       render();
-      notify("Conta local criada.", "success");
+      notify("Conta criada.", "success");
     } catch (error) {
-      notify(error?.message || "Não foi possível criar a conta local.", "warning");
+      notify(error?.message || "Não foi possível criar a conta.", "warning");
     }
   });
 
@@ -134,21 +165,25 @@ export function initializeUserArea({
     logoutAccount();
     state.selectedCharacterId = "";
     render();
-    notify("Você saiu da conta local.", "info");
+    notify("Você saiu da conta.", "info");
   });
 
-  elements.saveButton?.addEventListener("click", () => {
+  const handleSave = async () => {
     try {
-      const saved = saveCharacterForCurrentUser(edition, buildPayload());
+      const saved = await saveCharacterForCurrentUser(edition, buildPayload());
       state.selectedCharacterId = saved.id;
       render();
       notify(`Personagem salvo: ${saved.name}.`, "success");
     } catch (error) {
       notify(error?.message || "Não foi possível salvar o personagem.", "warning");
     }
+  };
+
+  saveButtons.forEach((button) => {
+    button.addEventListener("click", handleSave);
   });
 
-  elements.list?.addEventListener("click", (event) => {
+  elements.list?.addEventListener("click", async (event) => {
     const button = event.target.closest("[data-character-action]");
     if (!button) return;
 
@@ -172,7 +207,7 @@ export function initializeUserArea({
     if (action === "overwrite") {
       if (!window.confirm(`Atualizar "${character.name}" com os campos atuais?`)) return;
       try {
-        const saved = saveCharacterForCurrentUser(edition, buildPayload(), { overwriteId: character.id });
+        const saved = await saveCharacterForCurrentUser(edition, buildPayload(), { overwriteId: character.id });
         state.selectedCharacterId = saved.id;
         render();
         notify(`Personagem atualizado: ${saved.name}.`, "success");
@@ -185,7 +220,7 @@ export function initializeUserArea({
     if (action === "delete") {
       if (!window.confirm(`Excluir "${character.name}"?`)) return;
       try {
-        deleteCharacterForCurrentUser(edition, character.id);
+        await deleteCharacterForCurrentUser(edition, character.id);
         if (state.selectedCharacterId === character.id) state.selectedCharacterId = "";
         render();
         notify("Personagem excluído.", "success");
@@ -198,7 +233,7 @@ export function initializeUserArea({
   render();
 }
 
-function renderUserArea({ edition, elements, selectedCharacterId }) {
+function renderUserArea({ edition, elements, saveButtons = [], selectedCharacterId }) {
   const user = getCurrentUser();
   const saves = user ? listCharactersForCurrentUser(edition) : [];
 
@@ -216,9 +251,9 @@ function renderUserArea({ edition, elements, selectedCharacterId }) {
       ? `${saves.length}/${ACCOUNT_LIMIT_PER_EDITION} salvos`
       : "Sem conta";
   }
-  if (elements.saveButton) {
-    elements.saveButton.disabled = !user || saves.length >= ACCOUNT_LIMIT_PER_EDITION;
-  }
+  saveButtons.forEach((button) => {
+    button.disabled = !user || saves.length >= ACCOUNT_LIMIT_PER_EDITION;
+  });
   if (elements.empty) {
     elements.empty.hidden = !user || saves.length > 0;
   }
@@ -227,6 +262,15 @@ function renderUserArea({ edition, elements, selectedCharacterId }) {
   elements.list.innerHTML = saves.map((character) => renderSavedCharacter(character, {
     selected: character.id === selectedCharacterId,
   })).join("");
+}
+
+function getRequestedCharacterId() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("characterId") || "";
+  } catch {
+    return "";
+  }
 }
 
 function renderSavedCharacter(character, { selected = false } = {}) {
