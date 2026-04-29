@@ -43,7 +43,7 @@ function renderAccountPage() {
   if (el.count5e) el.count5e.textContent = `${saves5e}/${ACCOUNT_LIMIT_PER_EDITION}`;
   if (el.count2024) el.count2024.textContent = `${saves2024}/${ACCOUNT_LIMIT_PER_EDITION}`;
   if (el.continueLink) {
-    el.continueLink.href = returnTo || "./usuario.html?v=2";
+    el.continueLink.href = returnTo || "./minha-conta.html";
     el.continueLink.textContent = returnTo ? "Continuar" : "Minha página";
   }
 }
@@ -55,7 +55,7 @@ function getSafeReturnTo() {
 
   try {
     const url = new URL(candidate, window.location.href);
-    const allowedPages = new Set(["index.html", "5e.html", "5.5e-2024.html", "conta.html", "usuario.html"]);
+    const allowedPages = new Set(["index.html", "5e.html", "5.5e-2024.html", "conta.html", "usuario.html", "minha-conta.html"]);
     const page = url.pathname.split("/").pop();
 
     if (url.origin !== window.location.origin || !allowedPages.has(page)) return "";
