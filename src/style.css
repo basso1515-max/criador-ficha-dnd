@@ -559,6 +559,11 @@ fieldset,
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
+  width: 100%;
+}
+
+.editor-logout-button {
+  margin-left: auto;
 }
 
 .version-coming-screen {
@@ -1440,6 +1445,10 @@ label.row > span { color: var(--muted); font-size: 13px; }
   .version-coming-actions {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .editor-logout-button {
+    margin-left: 0;
   }
 
   .version-option {
