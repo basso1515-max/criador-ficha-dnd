@@ -271,8 +271,11 @@ function renderUserArea({ edition, elements, saveButtons = [], selectedCharacter
   if (elements.sessionRow) elements.sessionRow.hidden = true;
   if (elements.pageLogoutButton) elements.pageLogoutButton.hidden = !user;
   if (elements.mobileLogoutButton) elements.mobileLogoutButton.hidden = !user;
-  renderMobileMenuState(elements, { user, character: activeCharacter });
-
+  renderMobileMenuState(elements, {
+    user,
+    character: activeCharacter,
+    canManageCharacter: shouldShowSavedPanel,
+  });
   if (elements.userPanel) elements.userPanel.hidden = !shouldShowSavedPanel;
 
   if (elements.accountName) {
@@ -328,7 +331,10 @@ function setupMobileMenu(elements) {
   return () => setOpen(false);
 }
 
-function renderMobileMenuState(elements, { user, character }) {
+function renderMobileMenuState(elements, { user, character, canManageCharacter = false }) {
+  elements.mobileMenuShell?.classList.toggle("is-floating", canManageCharacter);
+  document.body.classList.toggle("has-floating-editor-menu", canManageCharacter);
+
   if (elements.mobileCharacterBlock) {
     elements.mobileCharacterBlock.hidden = false;
   }
