@@ -4838,6 +4838,11 @@ body[data-active-screen="5e-2024"] button:not(.secondary-button):not(.ghost-butt
   body[data-active-screen="5e-2024"] .app-screen > header.container {
     padding-top: 12px;
   }
+  
+  body.has-floating-editor-menu[data-standalone-route="5e"] .app-screen > header.container,
+  body.has-floating-editor-menu[data-active-screen="5e-2024"] .app-screen > header.container {
+    padding-top: calc(72px + env(safe-area-inset-top, 0px));
+  }
 
   body[data-standalone-route="5e"] .version-toolbar,
   body[data-active-screen="5e-2024"] .version-toolbar {
