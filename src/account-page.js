@@ -1,6 +1,7 @@
 import {
   ACCOUNT_LIMIT_PER_EDITION,
   getCurrentUser,
+  hydrateAccountStorage,
   listCharactersForCurrentUser,
   loginAccount,
   logoutAccount,
@@ -41,7 +42,10 @@ function renderAccountPage() {
   if (el.currentEmail) el.currentEmail.textContent = user?.email || "";
   if (el.count5e) el.count5e.textContent = `${saves5e}/${ACCOUNT_LIMIT_PER_EDITION}`;
   if (el.count2024) el.count2024.textContent = `${saves2024}/${ACCOUNT_LIMIT_PER_EDITION}`;
-  if (el.continueLink) el.continueLink.href = returnTo || "./index.html";
+  if (el.continueLink) {
+    el.continueLink.href = returnTo || "./usuario.html";
+    el.continueLink.textContent = returnTo ? "Continuar" : "Minha página";
+  }
 }
 
 function getSafeReturnTo() {
@@ -51,7 +55,7 @@ function getSafeReturnTo() {
 
   try {
     const url = new URL(candidate, window.location.href);
-    const allowedPages = new Set(["index.html", "5e.html", "5.5e-2024.html", "conta.html"]);
+    const allowedPages = new Set(["index.html", "5e.html", "5.5e-2024.html", "conta.html", "usuario.html"]);
     const page = url.pathname.split("/").pop();
 
     if (url.origin !== window.location.origin || !allowedPages.has(page)) return "";
@@ -82,7 +86,7 @@ el.loginForm?.addEventListener("submit", async (event) => {
       password: formData.get("password"),
     });
     el.loginForm.reset();
-    completeAuth("Conta local acessada.");
+    completeAuth("Conta acessada.");
   } catch (error) {
     setStatus(error?.message || "Não foi possível entrar na conta.", "warning");
   }
@@ -99,16 +103,17 @@ el.registerForm?.addEventListener("submit", async (event) => {
       password: formData.get("password"),
     });
     el.registerForm.reset();
-    completeAuth("Conta local criada.");
+    completeAuth("Conta criada.");
   } catch (error) {
-    setStatus(error?.message || "Não foi possível criar a conta local.", "warning");
+    setStatus(error?.message || "Não foi possível criar a conta.", "warning");
   }
 });
 
 el.logoutButton?.addEventListener("click", () => {
   logoutAccount();
   renderAccountPage();
-  setStatus("Você saiu da conta local.", "info");
+  setStatus("Você saiu da conta.", "info");
 });
 
+await hydrateAccountStorage();
 renderAccountPage();
