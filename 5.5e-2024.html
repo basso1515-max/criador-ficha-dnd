@@ -21,6 +21,37 @@
           <a href="./5e.html" class="secondary-button">Abrir editor 5e</a>
           <button id="editorLogout2024" type="button" class="ghost-button editor-logout-button" hidden>Sair</button>
         </div>
+
+        <div id="mobileEditorMenuShell2024" class="mobile-editor-menu-shell">
+          <button id="mobileMenuToggle2024" type="button" class="mobile-menu-toggle" aria-label="Abrir menu do editor" aria-controls="mobileEditorMenu2024" aria-expanded="false">
+            <span class="mobile-menu-bars" aria-hidden="true">
+              <span></span>
+              <span></span>
+              <span></span>
+            </span>
+            <span>Menu</span>
+          </button>
+
+          <nav id="mobileEditorMenu2024" class="mobile-editor-menu" aria-label="Menu do editor" hidden>
+            <div class="mobile-menu-section">
+              <span class="mobile-menu-label">Navegação</span>
+              <a href="./index.html" class="mobile-menu-link">Voltar para a seleção</a>
+              <a href="./5e.html" class="mobile-menu-link">Abrir editor 5e</a>
+              <a href="./minha-conta.html" class="mobile-menu-link">Minha conta e salvos</a>
+            </div>
+
+            <div id="mobileCurrentCharacter2024" class="mobile-menu-section mobile-menu-current">
+              <span class="mobile-menu-label">Personagem atual</span>
+              <strong id="mobileCurrentCharacterName2024">Sem personagem salvo aberto</strong>
+              <small id="mobileCurrentCharacterSummary2024">Abra um personagem salvo pela sua página.</small>
+            </div>
+
+            <div class="mobile-menu-section mobile-menu-actions">
+              <button id="mobileSaveCharacter2024" type="button" class="mobile-menu-button">Salvar personagem atual</button>
+              <button id="mobileLogout2024" type="button" class="mobile-menu-button mobile-menu-logout" hidden>Sair da conta</button>
+            </div>
+          </nav>
+        </div>
       </div>
 
       <h1>Criador de ficha D&D 5.5e (2024)</h1>
