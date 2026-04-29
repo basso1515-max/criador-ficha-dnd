@@ -75,6 +75,7 @@ export function initializeUserArea({
   const state = {
     selectedCharacterId: "",
     didAutoLoad: false,
+    showSavedPanel: false,
   };
   const saveButtons = [
     elements.saveButton,
@@ -98,6 +99,7 @@ export function initializeUserArea({
       elements,
       saveButtons,
       selectedCharacterId: state.selectedCharacterId,
+      showSavedPanel: state.showSavedPanel,
     });
   };
 
@@ -115,6 +117,7 @@ export function initializeUserArea({
 
     restore?.(character.snapshot);
     state.selectedCharacterId = character.id;
+    state.showSavedPanel = true;
     render();
     notify(`Personagem carregado: ${character.name}.`, "success");
   };
@@ -135,6 +138,7 @@ export function initializeUserArea({
       });
       elements.loginForm.reset();
       state.selectedCharacterId = "";
+      state.showSavedPanel = false;
       render();
       notify("Conta acessada.", "success");
     } catch (error) {
@@ -154,6 +158,7 @@ export function initializeUserArea({
       });
       elements.registerForm.reset();
       state.selectedCharacterId = "";
+      state.showSavedPanel = false;
       render();
       notify("Conta criada.", "success");
     } catch (error) {
@@ -161,12 +166,19 @@ export function initializeUserArea({
     }
   });
 
-  elements.logoutButton?.addEventListener("click", () => {
+  const handleLogout = () => {
     logoutAccount();
     state.selectedCharacterId = "";
+    state.showSavedPanel = false;
     render();
     notify("Você saiu da conta.", "info");
-  });
+  };
+
+  [elements.logoutButton, elements.pageLogoutButton]
+    .filter(Boolean)
+    .forEach((button) => {
+      button.addEventListener("click", handleLogout);
+    });
 
   const handleSave = async () => {
     try {
@@ -199,6 +211,7 @@ export function initializeUserArea({
     if (action === "load") {
       restore?.(character.snapshot);
       state.selectedCharacterId = character.id;
+      state.showSavedPanel = true;
       render();
       notify(`Personagem carregado: ${character.name}.`, "success");
       return;
@@ -209,6 +222,7 @@ export function initializeUserArea({
       try {
         const saved = await saveCharacterForCurrentUser(edition, buildPayload(), { overwriteId: character.id });
         state.selectedCharacterId = saved.id;
+        state.showSavedPanel = true;
         render();
         notify(`Personagem atualizado: ${saved.name}.`, "success");
       } catch (error) {
@@ -221,7 +235,10 @@ export function initializeUserArea({
       if (!window.confirm(`Excluir "${character.name}"?`)) return;
       try {
         await deleteCharacterForCurrentUser(edition, character.id);
-        if (state.selectedCharacterId === character.id) state.selectedCharacterId = "";
+        if (state.selectedCharacterId === character.id) {
+          state.selectedCharacterId = "";
+          state.showSavedPanel = false;
+        }
         render();
         notify("Personagem excluído.", "success");
       } catch (error) {
@@ -233,35 +250,44 @@ export function initializeUserArea({
   render();
 }
 
-function renderUserArea({ edition, elements, saveButtons = [], selectedCharacterId }) {
+function renderUserArea({ edition, elements, saveButtons = [], selectedCharacterId, showSavedPanel = false }) {
   const user = getCurrentUser();
   const saves = user ? listCharactersForCurrentUser(edition) : [];
+  const selectedCharacter = showSavedPanel
+    ? saves.find((character) => character.id === selectedCharacterId)
+    : null;
+  const shouldShowSavedPanel = Boolean(user && selectedCharacter);
 
-  if (elements.authPanel) elements.authPanel.hidden = Boolean(user);
-  if (elements.userPanel) elements.userPanel.hidden = !user;
+  if (elements.container) elements.container.hidden = !shouldShowSavedPanel;
+  if (elements.root) elements.root.hidden = !shouldShowSavedPanel;
+  if (elements.header) elements.header.hidden = true;
+  if (elements.authPanel) elements.authPanel.hidden = true;
+  if (elements.sessionRow) elements.sessionRow.hidden = true;
+  if (elements.pageLogoutButton) elements.pageLogoutButton.hidden = !user;
+
+  if (elements.userPanel) elements.userPanel.hidden = !shouldShowSavedPanel;
 
   if (elements.accountName) {
-    elements.accountName.textContent = user?.displayName || "";
+    elements.accountName.textContent = "";
   }
   if (elements.accountEmail) {
-    elements.accountEmail.textContent = user?.email || "";
+    elements.accountEmail.textContent = "";
   }
   if (elements.count) {
-    elements.count.textContent = user
-      ? `${saves.length}/${ACCOUNT_LIMIT_PER_EDITION} salvos`
-      : "Sem conta";
+    elements.count.textContent = "";
+    elements.count.hidden = true;
   }
   saveButtons.forEach((button) => {
     button.disabled = !user || saves.length >= ACCOUNT_LIMIT_PER_EDITION;
   });
   if (elements.empty) {
-    elements.empty.hidden = !user || saves.length > 0;
+    elements.empty.hidden = true;
   }
   if (!elements.list) return;
 
-  elements.list.innerHTML = saves.map((character) => renderSavedCharacter(character, {
-    selected: character.id === selectedCharacterId,
-  })).join("");
+  elements.list.innerHTML = shouldShowSavedPanel
+    ? renderSavedCharacter(selectedCharacter, { selected: true })
+    : "";
 }
 
 function getRequestedCharacterId() {
