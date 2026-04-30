@@ -3253,6 +3253,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
             <div>${escapeHtml(s.nome)}</div>
             <small>${escapeHtml(s.atributo.toUpperCase())}</small>
           </div>
+          <span class="skill-lock-hover-card" role="tooltip" hidden></span>
         </label>
       `;
     }).join("");
@@ -3287,6 +3288,21 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       .map((skillKey) => resolveSkillKey(skillKey))
       .filter(Boolean)
       .map(skillKeyToLabel);
+  }
+
+  function addSkillLockSource(sourceMap, skillKey, sourceLabel) {
+    if (!sourceMap || !skillKey || !sourceLabel) return;
+    if (!sourceMap.has(skillKey)) sourceMap.set(skillKey, []);
+    const labels = sourceMap.get(skillKey);
+    if (!labels.includes(sourceLabel)) labels.push(sourceLabel);
+  }
+
+  function describeSkillLockReason(sourceLabels = []) {
+    const labels = dedupeStringList(sourceLabels).filter(Boolean);
+    if (!labels.length) {
+      return "Esta perícia está bloqueada porque já foi concedida automaticamente pela combinação atual.";
+    }
+    return `Esta perícia está bloqueada porque já foi selecionada por ${formatList(labels)}.`;
   }
 
   function buildSkillChoiceSource(label, picks, pool, sourceType) {
@@ -3512,9 +3528,24 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     const subclassFixedSkills = Array.from(subclassAdjustments.fixedSkills);
 
     const fixedSkills = new Set(backgroundFixedSkills);
-    racialFixedSkills.forEach((skillKey) => fixedSkills.add(skillKey));
-    subclassFixedSkills.forEach((skillKey) => fixedSkills.add(skillKey));
-    featFixedSkills.forEach((skillKey) => fixedSkills.add(skillKey));
+    const fixedSkillSources = new Map();
+    backgroundFixedSkills.forEach((skillKey) => {
+      addSkillLockSource(fixedSkillSources, skillKey, bg?.nome ? `Antecedente ${bg.nome}` : "Antecedente");
+    });
+    racialFixedSkills.forEach((skillKey) => {
+      fixedSkills.add(skillKey);
+      addSkillLockSource(fixedSkillSources, skillKey, race?.nome ? `Raça ${race.nome}` : "Origem racial");
+    });
+    subclassFixedSkills.forEach((skillKey) => {
+      fixedSkills.add(skillKey);
+      addSkillLockSource(fixedSkillSources, skillKey, "Subclasse");
+    });
+    selectedFeatDetails.forEach((entry) => {
+      const skillKey = extractSkillKeyFromFeatDetailValue(entry?.value);
+      if (!skillKey) return;
+      fixedSkills.add(skillKey);
+      addSkillLockSource(fixedSkillSources, skillKey, `Talento ${entry.featLabel || "selecionado"}`);
+    });
     const choiceSources = [];
 
     if (cls?.proficiencias?.periciasEscolha) {
@@ -3560,6 +3591,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
 
     return {
       fixedSkills,
+      fixedSkillSources,
       choiceSources,
       fixedExpertises: subclassAdjustments.fixedExpertises,
       hintHtml: hintParts.join("<br>"),
@@ -3656,11 +3688,21 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       const checkbox = item.querySelector("input[data-skill]");
       const skillKey = checkbox?.getAttribute("data-skill");
       const isFixed = Boolean(skillKey) && skillContext.fixedSkills.has(skillKey);
+      const lockReason = isFixed
+        ? describeSkillLockReason(skillContext.fixedSkillSources?.get(skillKey) || [])
+        : "";
+      const hoverCard = item.querySelector(".skill-lock-hover-card");
       if (checkbox) {
         checkbox.disabled = isFixed;
-        checkbox.title = isFixed ? "Proficiência concedida automaticamente pelas regras oficiais atuais." : "";
+        checkbox.title = lockReason;
+      }
+      item.setAttribute("aria-disabled", isFixed ? "true" : "false");
+      if (hoverCard) {
+        hoverCard.textContent = lockReason;
+        hoverCard.hidden = !lockReason;
       }
       item.classList.toggle("is-fixed", isFixed);
+      item.classList.toggle("is-blocked", isFixed);
       item.classList.toggle("is-class-option", Boolean(skillKey) && classChoiceSkills.has(skillKey));
     });
 
@@ -6869,6 +6911,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
         select.value = "";
         setStatus("Essa escolha já foi usada neste mesmo talento.");
         renderFeatDetailChoices();
+        syncSuggestedSkillSelections();
         atualizarPreview();
         return;
       }
@@ -6876,6 +6919,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
 
     setStatus("");
     renderFeatDetailChoices();
+    syncSuggestedSkillSelections();
     atualizarPreview();
   }
 
