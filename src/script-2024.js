@@ -7311,14 +7311,52 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     return primaryEntry?.classData?.proficiencias?.periciasEscolha || null;
   }
 
-  function getFixedSkillIds2024(background = getSelectedBackground(), race = getSelectedRace()) {
-    const fixed = new Set(background?.pericias || []);
+  function addSkillLockSource2024(sourceMap, skillId, sourceLabel) {
+    if (!sourceMap || !skillId || !sourceLabel) return;
+    if (!sourceMap.has(skillId)) sourceMap.set(skillId, []);
+    const labels = sourceMap.get(skillId);
+    if (!labels.includes(sourceLabel)) labels.push(sourceLabel);
+  }
+
+  function describeSkillLockReason2024(sourceLabels = []) {
+    const labels = Array.from(new Set((sourceLabels || []).filter(Boolean)));
+    if (!labels.length) {
+      return "Esta perícia está bloqueada porque já foi concedida automaticamente pela build atual.";
+    }
+    return `Esta perícia está bloqueada porque já foi selecionada por ${formatList(labels)}.`;
+  }
+
+  function getFixedSkillSourceMap2024(background = getSelectedBackground(), race = getSelectedRace()) {
+    const fixedSources = new Map();
+
+    (background?.pericias || []).forEach((skillId) => {
+      if (!SKILL_LABEL_BY_ID.has(skillId)) return;
+      addSkillLockSource2024(fixedSources, skillId, background?.nome ? `Antecedente ${background.nome}` : "Antecedente");
+    });
+
     getSpeciesChoiceDefinitions(race, getSelectedSubrace())
-      .map((choice) => getDynamicSelectValue(el.speciesChoices, "data-species-choice-id", choice.id))
-      .filter((value) => SKILL_LABEL_BY_ID.has(value))
-      .forEach((skillId) => fixed.add(skillId));
-    collectFeatGrantedSkillIds2024().forEach((skillId) => fixed.add(skillId));
-    return fixed;
+      .forEach((choice) => {
+        const skillId = getDynamicSelectValue(el.speciesChoices, "data-species-choice-id", choice.id);
+        if (!SKILL_LABEL_BY_ID.has(skillId)) return;
+        addSkillLockSource2024(fixedSources, skillId, choice.label || race?.nome || "Espécie / linhagem");
+      });
+
+    findSelectedFeatDetailValues2024(collectSelectedFeatDetails2024())
+      .filter((detail) => detail?.featId === "habilidoso" || detail?.featId === "especialista-em-pericia")
+      .forEach((detail) => {
+        const skillId = extractSkillIdFromFeatDetailValue2024(detail?.value);
+        if (!skillId) return;
+        const sourceLabel = detail?.sourceLabel
+          ? `Talento ${detail.featLabel || "selecionado"} (${detail.sourceLabel})`
+          : `Talento ${detail.featLabel || "selecionado"}`;
+        addSkillLockSource2024(fixedSources, skillId, sourceLabel);
+      });
+
+    return fixedSources;
+  }
+
+  function getFixedSkillIds2024(background = getSelectedBackground(), race = getSelectedRace()) {
+    return new Set(getFixedSkillSourceMap2024(background, race).keys());
   }
 
   function getSkillChoiceSources2024(classEntries = getResolvedClassEntries2024()) {
@@ -7434,7 +7472,8 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     race = getSelectedRace(),
     classEntries = getResolvedClassEntries2024(),
   } = {}) {
-    const fixedSkills = getFixedSkillIds2024(background, race);
+    const fixedSkillSources = getFixedSkillSourceMap2024(background, race);
+    const fixedSkills = new Set(fixedSkillSources.keys());
     const sources = getSkillChoiceSources2024(classEntries);
     const allowedSkills = new Set(sources.flatMap((source) => source.options || []).filter(Boolean));
     const selectedSkills = Array.from(new Set(
@@ -7447,6 +7486,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
 
     return {
       fixedSkills,
+      fixedSkillSources,
       sources,
       allowedSkills,
       selectedSkills,
@@ -7961,8 +8001,15 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
       const isAllowed = selectionState.allowedSkills.has(skill.id);
       const isSelected = isFixed || selectionState.selectedSkills.includes(skill.id);
       const canSelectMore = selectionState.selectedSkills.length < selectionState.totalPicks;
+      const fixedLockReason = isFixed
+        ? describeSkillLockReason2024(selectionState.fixedSkillSources?.get(skill.id) || [])
+        : "";
+      const blockedReason = fixedLockReason
+        || (!isAllowed && selectionState.totalPicks ? "Esta perícia está bloqueada porque não faz parte das opções oficiais das classes selecionadas." : "")
+        || (selectionState.totalPicks && !isSelected && !canSelectMore ? "Esta perícia está bloqueada porque todas as escolhas de perícia desta build já foram preenchidas." : "");
       checkbox.checked = isSelected;
       checkbox.disabled = isFixed || !isAllowed || (!isSelected && !canSelectMore);
+      checkbox.title = blockedReason;
 
       const textWrap = document.createElement("div");
       const strong = document.createElement("strong");
@@ -7985,8 +8032,16 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
       }
       textWrap.appendChild(small);
 
-      item.append(checkbox, textWrap);
+      const hoverCard = document.createElement("span");
+      hoverCard.className = "skill-lock-hover-card";
+      hoverCard.setAttribute("role", "tooltip");
+      hoverCard.textContent = blockedReason;
+      hoverCard.hidden = !blockedReason;
+
+      item.append(checkbox, textWrap, hoverCard);
+      item.setAttribute("aria-disabled", blockedReason ? "true" : "false");
       item.classList.toggle("is-fixed", isFixed);
+      item.classList.toggle("is-blocked", Boolean(blockedReason));
       item.classList.toggle("is-class-option", isAllowed);
       el.skillsExtra.appendChild(item);
     });
