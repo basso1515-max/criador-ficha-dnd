@@ -312,6 +312,12 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     label: abilityKeyToLabel(abilityKey),
   }));
   const RACIAL_DETAIL_DEFINITIONS = {
+    "humano-variante": {
+      detailType: "skill",
+      label: "Perícia Extra",
+      description: "Escolha a perícia concedida pela característica Perícia Extra do Humano Variante.",
+      options: SKILLS.map((skill) => ({ value: skill.key, label: skill.nome })),
+    },
     fada: {
       detailType: "spellAbility",
       label: "Atributo de Conjuração",
@@ -3519,8 +3525,14 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     const selectedFeats = collectSelectedFeatChoices(featGrants);
     const featDetailSources = collectFeatDetailSources(selectedFeats);
     const selectedFeatDetails = collectSelectedFeatDetails(featDetailSources);
+    const raceDetailSources = collectRaceDetailSources({ race, subrace });
+    const selectedRaceDetails = collectSelectedRaceDetails(raceDetailSources);
     const featSkillChoiceSources = collectFeatSkillChoiceSources(selectedFeats);
     const featFixedSkills = Array.from(collectFeatFixedSkillSelections(selectedFeatDetails));
+    const racialDetailFixedSkills = selectedRaceDetails
+      .filter((entry) => entry?.detailType === "skill")
+      .map((entry) => resolveSkillKey(entry.value))
+      .filter(Boolean);
     const raceTraits = getRaceTraitList(race, subrace);
     const subclassAdjustments = collectSubclassSkillAdjustments(classEntries);
     const backgroundFixedSkills = Array.from((bg?.pericias || []).map((skillKey) => resolveSkillKey(skillKey)).filter(Boolean));
@@ -3546,6 +3558,13 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       fixedSkills.add(skillKey);
       addSkillLockSource(fixedSkillSources, skillKey, `Talento ${entry.featLabel || "selecionado"}`);
     });
+    selectedRaceDetails.forEach((entry) => {
+      if (entry?.detailType !== "skill") return;
+      const skillKey = resolveSkillKey(entry.value);
+      if (!skillKey) return;
+      fixedSkills.add(skillKey);
+      addSkillLockSource(fixedSkillSources, skillKey, `Raça ${entry.targetLabel || race?.nome || "selecionada"}: ${entry.label || "perícia"}`);
+    });
     const choiceSources = [];
 
     if (cls?.proficiencias?.periciasEscolha) {
@@ -3553,8 +3572,14 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       choiceSources.push(buildSkillChoiceSource(`Classe ${cls.nome}`, classRule.picks, classRule.from, "classe"));
     }
 
-    choiceSources.push(...extractSkillChoiceSourcesFromTraits(`Raça ${race?.nome || ""}`.trim(), race?.tracos));
-    choiceSources.push(...extractSkillChoiceSourcesFromTraits(`Sub-raça ${subrace?.nome || ""}`.trim(), subrace?.tracos));
+    choiceSources.push(...extractSkillChoiceSourcesFromTraits(
+      `Raça ${race?.nome || ""}`.trim(),
+      RACIAL_DETAIL_DEFINITIONS[race?.id]?.detailType === "skill" ? [] : race?.tracos
+    ));
+    choiceSources.push(...extractSkillChoiceSourcesFromTraits(
+      `Sub-raça ${subrace?.nome || ""}`.trim(),
+      RACIAL_DETAIL_DEFINITIONS[subrace?.id]?.detailType === "skill" ? [] : subrace?.tracos
+    ));
     choiceSources.push(...collectMulticlassSkillChoiceSources(classEntries));
     choiceSources.push(...subclassAdjustments.choiceSources);
     choiceSources.push(...featSkillChoiceSources);
@@ -3574,6 +3599,10 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
 
     if (featFixedSkills.length) {
       hintParts.push(`<strong>Talentos</strong>: concede ${escapeHtml(formatList(featFixedSkills.map(skillKeyToLabel)))} automaticamente.`);
+    }
+
+    if (racialDetailFixedSkills.length) {
+      hintParts.push(`<strong>Escolha racial</strong>: concede ${escapeHtml(formatList(racialDetailFixedSkills.map(skillKeyToLabel)))}.`);
     }
 
     choiceSources.forEach((source) => {
@@ -6750,7 +6779,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       ? "1 escolha oficial de raça precisa ser definida."
       : `${detailSources.length} escolhas oficiais de raça precisam ser definidas.`;
     if (el.raceDetailChoicesInfo) {
-      el.raceDetailChoicesInfo.textContent = "Este bloco resolve raças e sub-raças com atributo de conjuração ou outra escolha que altera magias raciais.";
+      el.raceDetailChoicesInfo.textContent = "Este bloco resolve raças e sub-raças com escolhas oficiais que afetam proficiências, conjuração ou outros detalhes da origem.";
     }
 
     el.raceDetailChoicesContainer.innerHTML = detailSources.map((source) => {
@@ -6939,6 +6968,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
 
     setStatus("");
     renderRaceDetailChoices();
+    syncSuggestedSkillSelections();
     renderMagicSection();
     atualizarPreview();
   }
