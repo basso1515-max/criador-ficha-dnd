@@ -3406,9 +3406,13 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
 
       const select = document.createElement("select");
       select.setAttribute("data-species-choice-id", choice.id);
-      populateSelect(select, choice.options, "Selecione...");
-      if (savedValues.has(choice.id)) {
-        select.value = savedValues.get(choice.id);
+      const fixedSkillSources = getFixedSkillSourceMap2024(getSelectedBackground(), race, {
+        excludeSpeciesChoiceId: choice.id,
+      });
+      populateSelect(select, buildBlockedSkillChoiceOptions2024(choice.options, fixedSkillSources), "Selecione...");
+      const savedValue = savedValues.get(choice.id) || "";
+      if (savedValue && listOptionValues2024(select).includes(savedValue)) {
+        select.value = savedValue;
       }
       label.appendChild(select);
 
@@ -3417,6 +3421,14 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
         help.className = "note subtle";
         help.textContent = choice.help;
         label.appendChild(help);
+      }
+
+      const blockedNoteText = formatBlockedSkillChoiceNote2024(choice.options, fixedSkillSources);
+      if (blockedNoteText) {
+        const blockedNote = document.createElement("small");
+        blockedNote.className = "note subtle";
+        blockedNote.textContent = blockedNoteText;
+        label.appendChild(blockedNote);
       }
 
       el.speciesChoices.appendChild(label);
@@ -4615,6 +4627,17 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     meta.textContent = source.description || "Escolha os detalhes exigidos por este talento.";
     card.appendChild(meta);
 
+    const fixedSkillSources = getFixedSkillSourceMap2024(getSelectedBackground(), getSelectedRace(), {
+      excludeFeatDetailSourceKey: source.key,
+    });
+    const blockedNoteText = formatBlockedSkillChoiceNote2024(source.options, fixedSkillSources);
+    if (blockedNoteText) {
+      const blockedNote = document.createElement("small");
+      blockedNote.className = "note subtle";
+      blockedNote.textContent = blockedNoteText;
+      card.appendChild(blockedNote);
+    }
+
     for (let slotIndex = 0; slotIndex < source.picks; slotIndex += 1) {
       const fieldName = buildFeatDetailFieldName2024(source, slotIndex);
       const label = document.createElement("label");
@@ -4628,7 +4651,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
       select.name = fieldName;
       select.setAttribute("data-feat-detail-source-key", source.key);
       select.setAttribute("data-feat-detail-slot-key", `${source.key}:${slotIndex}`);
-      populateSelect(select, source.options, "Selecione...");
+      populateSelect(select, buildBlockedSkillChoiceOptions2024(source.options, fixedSkillSources), "Selecione...");
 
       const selectedValue = String(detailValues.get(fieldName) || "").trim();
       if (selectedValue && listOptionValues2024(select).includes(selectedValue)) {
@@ -7675,7 +7698,41 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     return `Esta perícia está bloqueada porque já foi selecionada por ${formatList(labels)}.`;
   }
 
-  function getFixedSkillSourceMap2024(background = getSelectedBackground(), race = getSelectedRace()) {
+  function getSkillIdFromChoiceOptionValue2024(value) {
+    const raw = String(value || "").trim();
+    const skillId = raw.startsWith("skill:") ? raw.slice("skill:".length) : raw;
+    return SKILL_LABEL_BY_ID.has(skillId) ? skillId : "";
+  }
+
+  function buildBlockedSkillChoiceOptions2024(options = [], fixedSkillSources = new Map()) {
+    return (options || []).map((option) => {
+      const skillId = getSkillIdFromChoiceOptionValue2024(option?.value);
+      if (!skillId || !fixedSkillSources.has(skillId)) return option;
+      const reason = describeSkillLockReason2024(fixedSkillSources.get(skillId));
+      return {
+        ...option,
+        disabled: true,
+        title: reason,
+        label: `${option.label || formatSkillLabel(skillId)} (já concedida)`,
+      };
+    });
+  }
+
+  function formatBlockedSkillChoiceNote2024(options = [], fixedSkillSources = new Map()) {
+    const blockedLabels = (options || [])
+      .map((option) => getSkillIdFromChoiceOptionValue2024(option?.value))
+      .filter((skillId) => skillId && fixedSkillSources.has(skillId))
+      .map((skillId) => `${formatSkillLabel(skillId)} (${formatList(fixedSkillSources.get(skillId) || [])})`);
+    return blockedLabels.length
+      ? `Opções já concedidas e bloqueadas: ${formatList(blockedLabels)}.`
+      : "";
+  }
+
+  function getFixedSkillSourceMap2024(
+    background = getSelectedBackground(),
+    race = getSelectedRace(),
+    { excludeSpeciesChoiceId = "", excludeFeatDetailSourceKey = "" } = {}
+  ) {
     const fixedSources = new Map();
 
     (background?.pericias || []).forEach((skillId) => {
@@ -7685,6 +7742,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
 
     getSpeciesChoiceDefinitions(race, getSelectedSubrace())
       .forEach((choice) => {
+        if (excludeSpeciesChoiceId && choice.id === excludeSpeciesChoiceId) return;
         const skillId = getDynamicSelectValue(el.speciesChoices, "data-species-choice-id", choice.id);
         if (!SKILL_LABEL_BY_ID.has(skillId)) return;
         addSkillLockSource2024(fixedSources, skillId, choice.label || race?.nome || "Espécie / linhagem");
@@ -7693,6 +7751,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     findSelectedFeatDetailValues2024(collectSelectedFeatDetails2024())
       .filter((detail) => detail?.featId === "habilidoso" || detail?.featId === "especialista-em-pericia")
       .forEach((detail) => {
+        if (excludeFeatDetailSourceKey && detail?.sourceKey === excludeFeatDetailSourceKey) return;
         const skillId = extractSkillIdFromFeatDetailValue2024(detail?.value);
         if (!skillId) return;
         const sourceLabel = detail?.sourceLabel
@@ -12437,6 +12496,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
       option.value = optionConfig?.value ?? "";
       option.textContent = optionConfig?.label ?? "";
       if (optionConfig?.disabled) option.disabled = true;
+      if (optionConfig?.title) option.title = optionConfig.title;
       select.appendChild(option);
     });
 
