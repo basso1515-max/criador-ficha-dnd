@@ -1,764 +1,825 @@
-<!doctype html>
-<html lang="pt-BR">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Criador de ficha D&D 5e (PDF)</title>
-  <link rel="stylesheet" href="./src/style.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=EB+Garamond:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Libre+Baskerville:wght@400;700&family=Uncial+Antiqua&display=swap" rel="stylesheet">
-
-  <script defer src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-  <script type="module" defer src="./src/script.js"></script>
-  <script type="module" defer src="./src/analytics.js"></script>
-</head>
-
-<body data-standalone-route="5e">
-  <section id="version5eScreen" class="app-screen">
-    <header class="container">
-      <div class="version-toolbar">
-        <div class="version-toolbar-actions">
-          <a href="./index.html" class="ghost-button">Voltar para a seleção</a>
-          <a href="./minha-conta.html" class="secondary-button">Minha conta</a>
-          <a href="./5.5e-2024.html" class="secondary-button">Abrir editor 5.5e</a>
-          <button id="editorLogout5e" type="button" class="ghost-button editor-logout-button" hidden>Sair</button>
-        </div>
-
-        <div id="mobileEditorMenuShell5e" class="mobile-editor-menu-shell">
-          <button id="mobileMenuToggle5e" type="button" class="mobile-menu-toggle" aria-label="Abrir menu do editor" aria-controls="mobileEditorMenu5e" aria-expanded="false">
-            <span class="mobile-menu-bars" aria-hidden="true">
-              <span></span>
-              <span></span>
-              <span></span>
-            </span>
-            <span>Menu</span>
-          </button>
-
-          <nav id="mobileEditorMenu5e" class="mobile-editor-menu" aria-label="Menu do editor" hidden>
-            <div class="mobile-menu-section">
-              <span class="mobile-menu-label">Navegação</span>
-              <a href="./index.html" class="mobile-menu-link">Voltar para a seleção</a>
-              <a href="./5.5e-2024.html" class="mobile-menu-link">Abrir editor 5.5e</a>
-              <a href="./minha-conta.html" class="mobile-menu-link">Minha conta e salvos</a>
-            </div>
-
-            <div id="mobileCurrentCharacter5e" class="mobile-menu-section mobile-menu-current">
-              <span class="mobile-menu-label">Personagem atual</span>
-              <strong id="mobileCurrentCharacterName5e">Sem personagem salvo aberto</strong>
-              <small id="mobileCurrentCharacterSummary5e">Abra um personagem salvo pela sua página.</small>
-            </div>
-
-            <div class="mobile-menu-section mobile-menu-actions">
-              <button id="mobileSaveCharacter5e" type="button" class="mobile-menu-button">Salvar personagem atual</button>
-              <button id="mobileLogout5e" type="button" class="mobile-menu-button mobile-menu-logout" hidden>Sair da conta</button>
-            </div>
-          </nav>
-        </div>
-      </div>
-
-      <h1>Criador de ficha D&D 5e</h1>
-    </header>
-
-    <section id="userAreaContainer5e" class="container user-area-container">
-      <div id="userArea5e" class="card user-area" aria-label="Área do usuário">
-        <div id="userAreaHeader5e" class="user-area-header">
-          <div>
-            <h2>Área do usuário</h2>
-            <p class="note subtle">Conta para salvar até 10 personagens desta edição no servidor local.</p>
-          </div>
-          <span id="userAreaCount5e" class="user-area-count">Sem conta</span>
-        </div>
-
-        <div id="authPanel5e" class="user-account-link-panel">
-          <div>
-            <strong>Entre para salvar personagens</strong>
-            <p class="note subtle">Você pode continuar gerando fichas sem conta. O login serve para guardar as definições preenchidas.</p>
-          </div>
-          <a href="./conta.html?returnTo=5e.html%23userArea5e" class="secondary-button">Minha conta</a>
-        </div>
-
-        <div id="userPanel5e" class="user-saves-panel" hidden>
-          <div id="userSessionRow5e" class="user-session-row">
-            <p>
-              <strong id="accountName5e"></strong>
-              <span id="accountEmail5e"></span>
-            </p>
-            <button id="logoutAccount5e" type="button" class="ghost-button">Sair</button>
-          </div>
-
-          <div class="user-save-controls">
-            <button id="saveCharacter5e" type="button" class="secondary-button">Salvar personagem atual</button>
-            <p class="note subtle">As imagens enviadas não entram no salvamento para manter os presets leves.</p>
-          </div>
-
-          <p id="emptySaves5e" class="note subtle">Nenhum personagem salvo nesta edição.</p>
-          <div id="savedCharactersList5e" class="saved-character-list"></div>
-        </div>
-      </div>
-    </section>
-
-    <main class="container grid">
-    <section class="card">
-      <h2>Dados do personagem</h2>
-
-      <form id="sheetForm">
-        <fieldset>
-          <legend>Unidades e Exibição</legend>
-
-          <div class="row-inline">
-            <label class="row">
-              <span>Distância</span>
-              <input id="distanceUnit" type="hidden" value="m" />
-              <div class="unit-toggle" data-target="distanceUnit" role="group" aria-label="Unidade de distância">
-                <button type="button" class="unit-toggle-btn" data-value="ft">Feet (ft)</button>
-                <button type="button" class="unit-toggle-btn is-active" data-value="m">Metros (m)</button>
-              </div>
-            </label>
-
-            <label class="row">
-              <span>Peso</span>
-              <input id="weightUnit" type="hidden" value="kg" />
-              <div class="unit-toggle" data-target="weightUnit" role="group" aria-label="Unidade de peso">
-                <button type="button" class="unit-toggle-btn" data-value="lb">Libras (lb)</button>
-                <button type="button" class="unit-toggle-btn is-active" data-value="kg">Quilos (kg)</button>
-              </div>
-            </label>
-          </div>
-
-          <p class="note subtle">Escolha as unidades logo no início para ver altura, peso, deslocamento e prévia no formato desejado.</p>
-        </fieldset>
-
-        <fieldset>
-          <legend>Identificação</legend>
-
-          <div class="row-inline identification-name-row">
-            <label class="row">
-              <span>Nome do personagem</span>
-              <input id="nome" type="text" placeholder="Ex.: Sabrina" required />
-              <div class="name-randomizer-group" role="group" aria-label="Gerar nome aleatório por gênero">
-                <span class="name-randomizer-option is-disabled">
-                  <button id="nomeRandomMasculino" type="button" class="secondary-button name-randomizer-button" aria-label="Gerar nome masculino" title="Masculino" disabled>♂</button>
-                  <span class="name-randomizer-tooltip">Criação de nome liberado após escolher a raça</span>
-                </span>
-                <span class="name-randomizer-option is-disabled">
-                  <button id="nomeRandomFeminino" type="button" class="secondary-button name-randomizer-button" aria-label="Gerar nome feminino" title="Feminino" disabled>♀</button>
-                  <span class="name-randomizer-tooltip">Criação de nome liberado após escolher a raça</span>
-                </span>
-                <span class="name-randomizer-option is-disabled">
-                  <button id="nomeRandomNeutro" type="button" class="secondary-button name-randomizer-button" aria-label="Gerar nome neutro" title="Neutro" disabled>◈</button>
-                  <span class="name-randomizer-tooltip">Criação de nome liberado após escolher a raça</span>
-                </span>
-              </div>
-            </label>
-
-            <label class="row">
-              <span>Nome do jogador</span>
-              <input id="nomeJogador" type="text" placeholder="Ex.: Guilherme" />
-            </label>
-          </div>
-
-          <div class="row-inline">
-            <label class="row generic-dropdown-field">
-              <span>Classe</span>
-              <input id="classeInput" type="text" autocomplete="off" placeholder="Selecione a classe..." />
-              <div id="classeSuggestions" class="dropdown-suggestions" hidden></div>
-              <div id="classeHoverCard" class="dropdown-hover-card" hidden></div>
-              <select id="classe" class="native-select-hidden" required tabindex="-1" aria-hidden="true"></select>
-            </label>
-
-            <label class="row">
-              <span>Nível total</span>
-              <input id="nivel" type="number" min="1" max="20" value="1" required />
-            </label>
-          </div>
-
-          <div class="row-inline">
-            <label class="row generic-dropdown-field">
-              <span>Subclasse / Arquétipo</span>
-              <input id="arquetipoInput" type="text" autocomplete="off" placeholder="Selecione a subclasse..." />
-              <div id="arquetipoSuggestions" class="dropdown-suggestions" hidden></div>
-              <div id="arquetipoHoverCard" class="dropdown-hover-card" hidden></div>
-              <select id="arquetipo" class="native-select-hidden" tabindex="-1" aria-hidden="true"></select>
-            </label>
-
-            <label class="row generic-dropdown-field">
-              <span>Antecedente</span>
-              <input id="antecedenteInput" type="text" autocomplete="off" placeholder="Selecione o antecedente..." />
-              <div id="antecedenteSuggestions" class="dropdown-suggestions" hidden></div>
-              <div id="antecedenteHoverCard" class="dropdown-hover-card" hidden></div>
-              <select id="antecedente" class="native-select-hidden" required tabindex="-1" aria-hidden="true"></select>
-            </label>
-          </div>
-
-          <div class="row-inline">
-            <label class="row generic-dropdown-field">
-              <span>Raça</span>
-              <input id="racaInput" type="text" autocomplete="off" placeholder="Selecione a raça..." />
-              <div id="racaSuggestions" class="dropdown-suggestions" hidden></div>
-              <div id="racaHoverCard" class="dropdown-hover-card" hidden></div>
-              <select id="raca" class="native-select-hidden" required tabindex="-1" aria-hidden="true"></select>
-            </label>
-
-            <label class="row generic-dropdown-field">
-              <span>Sub-raça</span>
-              <input id="subracaInput" type="text" autocomplete="off" placeholder="Selecione a sub-raça..." />
-              <div id="subracaSuggestions" class="dropdown-suggestions" hidden></div>
-              <div id="subracaHoverCard" class="dropdown-hover-card" hidden></div>
-              <select id="subraca" class="native-select-hidden" tabindex="-1" aria-hidden="true"></select>
-            </label>
-          </div>
-
-          <fieldset id="featChoicesPanel" class="feat-choices-fieldset" hidden>
-            <legend>Talentos</legend>
-            <div id="featChoicesSummary" class="note subtle"></div>
-            <div id="featChoicesContainer" class="feat-choice-list"></div>
-            <div id="featChoicesInfo" class="note subtle"></div>
-          </fieldset>
-
-          <fieldset id="featDetailChoicesPanel" class="feat-choices-fieldset" hidden>
-            <legend>Detalhes de Talentos</legend>
-            <div id="featDetailChoicesSummary" class="note subtle"></div>
-            <div id="featDetailChoicesContainer" class="feat-choice-list"></div>
-            <div id="featDetailChoicesInfo" class="note subtle"></div>
-          </fieldset>
-
-          <fieldset id="subclassDetailChoicesPanel" class="feat-choices-fieldset" hidden>
-            <legend>Detalhes de Subclasse</legend>
-            <div id="subclassDetailChoicesSummary" class="note subtle"></div>
-            <div id="subclassDetailChoicesContainer" class="feat-choice-list"></div>
-            <div id="subclassDetailChoicesInfo" class="note subtle"></div>
-          </fieldset>
-
-          <fieldset id="raceDetailChoicesPanel" class="feat-choices-fieldset" hidden>
-            <legend>Detalhes Raciais</legend>
-            <div id="raceDetailChoicesSummary" class="note subtle"></div>
-            <div id="raceDetailChoicesContainer" class="feat-choice-list"></div>
-            <div id="raceDetailChoicesInfo" class="note subtle"></div>
-          </fieldset>
-
-          <fieldset id="warlockChoicesPanel" class="feat-choices-fieldset" hidden>
-            <legend>Pacto e Invocações do Bruxo</legend>
-            <div id="warlockChoicesSummary" class="note subtle"></div>
-            <div id="warlockChoicesContainer" class="feat-choice-list"></div>
-            <div id="warlockChoicesInfo" class="note subtle"></div>
-          </fieldset>
-
-          <fieldset id="languageChoicesPanel" class="feat-choices-fieldset" hidden>
-            <legend>Idiomas Extras</legend>
-            <div id="languageChoicesSummary" class="note subtle"></div>
-            <div id="languageChoicesContainer" class="feat-choice-list"></div>
-            <div id="languageChoicesInfo" class="note subtle"></div>
-          </fieldset>
-
-          <fieldset id="multiclassPanel" class="multiclass-fieldset" hidden>
-            <legend>Multiclasse</legend>
-
-            <div class="multiclass-toolbar">
-              <p class="note subtle">Quando o nível total for maior que 1, você pode distribuir níveis entre a classe principal e classes adicionais.</p>
-              <button id="btnAddMulticlass" type="button">Adicionar multiclasse</button>
-            </div>
-
-            <div class="row-inline">
-              <label class="row">
-                <span>Nível na classe principal</span>
-                <input id="classeNivelPrincipal" type="number" min="1" max="20" value="1" />
-              </label>
-            </div>
-
-            <div id="multiclassSummary" class="note subtle"></div>
-            <div id="multiclassRows" class="multiclass-rows"></div>
-          </fieldset>
-
-          <div id="classeInfo" class="note subtle"></div>
-          <div id="racaInfo" class="note subtle"></div>
-          <div id="antecedenteInfo" class="note subtle"></div>
-
-          <fieldset class="physical-fieldset">
-            <legend>Características físicas</legend>
-
-            <div class="row-inline">
-              <label class="row">
-                <span>Idade</span>
-                <input id="idade" type="number" min="0" step="1" placeholder="Ex.: 35" />
-              </label>
-
-              <label class="row">
-                <span>Altura</span>
-                <input id="altura" type="number" min="0" step="any" placeholder="Ex.: 1,75" />
-              </label>
-
-              <label class="row">
-                <span>Peso</span>
-                <input id="peso" type="number" min="0" step="any" placeholder="Ex.: 72" />
-              </label>
-            </div>
-
-            <div class="row-inline">
-              <label class="row">
-                <span>Cor dos olhos</span>
-                <input id="olhos" type="text" placeholder="Ex.: verdes" />
-              </label>
-
-              <label class="row">
-                <span>Cor da pele</span>
-                <input id="pele" type="text" placeholder="Ex.: bronzeada" />
-              </label>
-
-              <label class="row">
-                <span>Cor do cabelo</span>
-                <input id="cabelo" type="text" placeholder="Ex.: castanho escuro" />
-              </label>
-            </div>
-
-            <div id="caracteristicasFisicasInfo" class="note subtle">
-              Selecione uma raça ou sub-raça para preencher sugestões médias. Você pode editar qualquer campo manualmente.
-            </div>
-            <div id="idadeAviso" class="note subtle physical-warning" hidden></div>
-            <div id="alturaAviso" class="note subtle physical-warning" hidden></div>
-            <div id="pesoAviso" class="note subtle physical-warning" hidden></div>
-          </fieldset>
-
-          <label class="row alignment-field">
-            <span>Alinhamento</span>
-            <input id="alinhamento" type="text" autocomplete="off" placeholder="Digite para buscar..." />
-            <div id="alinhamentoSuggestions" class="dropdown-suggestions" hidden></div>
-            <div id="alinhamentoHoverCard" class="dropdown-hover-card" hidden></div>
-          </label>
-
-          <div id="alinhamentoInfo" class="note subtle"></div>
-          
-
-            <label class="row">
-              <span>XP</span>
-              <input id="xp" type="number" min="0" value="0" />
-            </label>
-
-          <label class="row divinity-field">
-            <span>Divindade</span>
-            <input id="divindade" type="text" autocomplete="off" placeholder="Digite para buscar..." />
-            <div id="divindadeSuggestions" class="dropdown-suggestions" hidden></div>
-            <div id="divindadeHoverCard" class="dropdown-hover-card" hidden></div>
-          </label>
-
-          <div id="divindadeInfo" class="note subtle"></div>
-        </fieldset>
-
-        <fieldset>
-          <legend>Atributos</legend>
-
-          <div class="attribute-methods">
-            <label class="method-option">
-              <input id="attr-method-free" name="attr-method" type="radio" value="free" checked />
-              <div>
-                <strong>Livre</strong>
-                <small>Escolha todos os valores manualmente, como hoje.</small>
-              </div>
-            </label>
-
-            <label class="method-option">
-              <input id="attr-method-roll" name="attr-method" type="radio" value="roll" />
-              <div>
-                <strong>Rolagem</strong>
-                <small>Role 4d6, descarte o menor e some os 3 maiores. Repita 6 vezes.</small>
-              </div>
-            </label>
-
-            <label class="method-option">
-              <input id="attr-method-standard" name="attr-method" type="radio" value="standard" />
-              <div>
-                <strong>Conjunto padrão</strong>
-                <small>Use 15, 14, 13, 12, 10, 8 e distribua entre os atributos.</small>
-              </div>
-            </label>
-
-            <label class="method-option">
-              <input id="attr-method-pointbuy" name="attr-method" type="radio" value="pointbuy" />
-              <div>
-                <strong>Compra de Pontos</strong>
-                <small>Use 27 pontos para comprar valores entre 8 e 15.</small>
-              </div>
-            </label>
-          </div>
-
-          <div class="attribute-tools">
-            <button id="attrRollBtn" type="button">Rolar 6 valores</button>
-            <button id="attrStandardShuffleBtn" type="button">Aleatorizar conjunto padrão</button>
-            <div id="attrMethodInfo" class="note subtle"></div>
-          </div>
-          <div id="attrRollVisuals" class="attr-roll-visuals" hidden></div>
-
-          <div class="attrs">
-            <label class="attr" data-ability="for"><span>FOR</span><input id="for" type="number" min="1" max="20" value="10" /></label>
-            <label class="attr" data-ability="des"><span>DES</span><input id="des" type="number" min="1" max="20" value="10" /></label>
-            <label class="attr" data-ability="con"><span>CON</span><input id="con" type="number" min="1" max="20" value="10" /></label>
-            <label class="attr" data-ability="int"><span>INT</span><input id="int" type="number" min="1" max="20" value="10" /></label>
-            <label class="attr" data-ability="sab"><span>SAB</span><input id="sab" type="number" min="1" max="20" value="10" /></label>
-            <label class="attr" data-ability="car"><span>CAR</span><input id="car" type="number" min="1" max="20" value="10" /></label>
-          </div>
-        </fieldset>
-
-        <fieldset id="asiSection" class="asi-section" style="display:none;">
-          <legend>Melhoria de Atributos</legend>
-
-          <div class="asi-panel">
-            <div class="asi-panel-header">
-              <span class="asi-kicker">Bônus flexível</span>
-              <h3>Distribuição da melhoria</h3>
-              <p id="asiSourceDescription" class="asi-panel-copy"></p>
-            </div>
-
-            <div class="asi-meta-grid">
-              <div class="asi-meta-item">
-                <span>Origem</span>
-                <strong id="asiSourceOrigin">-</strong>
-              </div>
-              <div class="asi-meta-item">
-                <span>Regra</span>
-                <strong id="asiSourceRule">-</strong>
-              </div>
-              <div class="asi-meta-item">
-                <span>Restrição</span>
-                <strong id="asiSourceRestriction">-</strong>
-              </div>
-            </div>
-
-            <div class="asi-methods" role="radiogroup" aria-label="Método da melhoria de atributos">
-              <label class="asi-method-option">
-                <input id="asi-2-1" name="asi-method" type="radio" value="2+1" checked />
-                <div>
-                  <strong>2 + 1</strong>
-                  <small>Coloca +2 em um atributo e +1 em outro atributo diferente.</small>
-                </div>
-              </label>
-
-              <label class="asi-method-option">
-                <input id="asi-1-1-1" name="asi-method" type="radio" value="1+1+1" />
-                <div>
-                  <strong>1 + 1 + 1</strong>
-                  <small>Distribui três bônus de +1 em atributos diferentes.</small>
-                </div>
-              </label>
-            </div>
-
-            <div class="asi-controls-stack">
-              <div class="asi-control-grid" id="asi-2-1-controls">
-                <label class="asi-select-field">
-                  <span>+2 em</span>
-                  <select id="asi-plus2"></select>
-                </label>
-                <label class="asi-select-field">
-                  <span>+1 em</span>
-                  <select id="asi-plus1"></select>
-                </label>
-              </div>
-
-              <div class="asi-control-grid" id="asi-1-1-1-controls" style="display:none;">
-                <label class="asi-select-field">
-                  <span>+1 em</span>
-                  <select id="asi-plusA"></select>
-                </label>
-                <label class="asi-select-field">
-                  <span>+1 em</span>
-                  <select id="asi-plusB"></select>
-                </label>
-                <label class="asi-select-field">
-                  <span>+1 em</span>
-                  <select id="asi-plusC"></select>
-                </label>
-              </div>
-            </div>
-
-            <p id="asiWarning" class="note warning-note" hidden></p>
-          </div>
-        </fieldset>
-
-        <fieldset>
-          <legend>Combate</legend>
-
-          <div class="row-inline">
-            <label class="row">
-              <span>Classe de Armadura (Calcula Automaticamente)</span>
-              <input id="ca" type="number" min="1" />
-            </label>
-
-            <label class="row">
-              <span>Deslocamento</span>
-              <input id="deslocamento" type="number" min="0" value="30" />
-            </label>
-          </div>
-
-          <div class="hp-progression-panel">
-            <div class="hp-progression-heading">
-              <span class="hp-progression-title">Progressão de HP</span>
-              <label class="hp-max-highlight">
-                <span>HP máximo</span>
-                <input id="hpMax" type="number" min="1" step="1" placeholder="Auto" />
-              </label>
-            </div>
-            <div class="hp-method-options">
-              <label class="method-option hp-method-option">
-                <input id="hp-method-fixed" name="hp-method" type="radio" value="fixed" checked />
-                <div>
-                  <strong>Valor fixo</strong>
-                  <small>Usa a média oficial do dado de vida em níveis acima do 1.</small>
-                </div>
-              </label>
-
-              <label class="method-option hp-method-option">
-                <input id="hp-method-rolled" name="hp-method" type="radio" value="rolled" />
-                <div>
-                  <strong>Rolagem</strong>
-                  <small>Preencha o resultado do dado de vida para cada nível acima do 1.</small>
-                </div>
-              </label>
-            </div>
-            <div id="hpRollsPanel" class="hp-rolls-panel" hidden></div>
-            <p id="hpRuleHint" class="note subtle"></p>
-          </div>
-
-          <p class="note subtle">Na ficha, HP atual, HP temporário e Dados de Vida gastos ficam em branco. Esses campos costumam ser atualizados durante a sessão.</p>
-
-          <div class="row">
-            <span>Perícias proficientes</span>
-            <p id="skillsRuleHint" class="note subtle"></p>
-            <p id="skillsRuleWarning" class="note warning-note" hidden></p>
-            <div id="skillsExtra" class="skills"></div>
-          </div>
-
-          <fieldset id="expertiseChoicesPanel" class="feat-choices-fieldset" hidden>
-            <legend>Expertise</legend>
-            <div id="expertiseChoicesSummary" class="note subtle"></div>
-            <div id="expertiseChoicesContainer" class="feat-choice-list"></div>
-            <div id="expertiseChoicesInfo" class="note subtle"></div>
-          </fieldset>
-
-          <fieldset id="fightingStylePanel" class="feat-choices-fieldset" hidden>
-            <legend>Estilo de Luta</legend>
-            <div id="fightingStyleSummary" class="note subtle"></div>
-            <div id="fightingStyleContainer" class="feat-choice-list"></div>
-            <div id="fightingStyleInfo" class="note subtle"></div>
-          </fieldset>
-        </fieldset>
-
-        <fieldset id="magicSection" class="magic-fieldset" style="display:none;">
-          <legend>Conjuração</legend>
-
-          <div class="magic-workspace">
-            <section class="spellbook-panel magic-hero-panel">
-              <div class="magic-hero-copy">
-                <p class="magic-panel-kicker">Grimório</p>
-                <h3>Painel de preparação e consulta</h3>
-                <p id="magicSummary" class="magic-hero-summary"></p>
-              </div>
-            </section>
-
-            <div class="magic-layout">
-              <div class="magic-main-column">
-                <div id="selectedSpellBook" class="spellbook-panel magic-panel"></div>
-
-                <div id="magicSlotsPanel" class="spellbook-panel magic-panel" hidden>
-                  <h3>Espaços utilizados</h3>
-                  <div id="magicSlotsGrid" class="magic-slot-grid"></div>
-                  <div class="note subtle">Os espaços totais são calculados automaticamente. Preencha apenas os que já foram gastos.</div>
-                </div>
-              </div>
-
-              <div id="availableSpellPanel" class="spellbook-panel magic-panel magic-sources-panel">
-                <div class="magic-panel-heading">
-                  <div>
-                    <p class="magic-panel-kicker">Fontes</p>
-                    <h3>Escolha de magias por classe</h3>
-                  </div>
-                  <div id="spellPickerHelp" class="note subtle"></div>
-                </div>
-                <div id="magicSourcesList" class="magic-sources-list"></div>
-              </div>
-            </div>
-          </div>
-
-          <div id="magicSpellHoverCard" class="dropdown-hover-card magic-spell-hover-card" hidden></div>
-        </fieldset>
-
-        <fieldset>
-          <legend>Textos para a ficha</legend>
-
-          <p class="note subtle">
-            Os campos abaixo podem ser pré-preenchidos automaticamente com base na raça, classe, antecedente e equipamento.
-            Você pode editar livremente; se apagar tudo, o preenchimento automático volta.
-          </p>
-
-          <div class="story-text-grid">
-            <label class="row generic-dropdown-field">
-              <span>Traços de personalidade</span>
-              <div class="dropdown-anchor">
-                <input id="traitsSelectInput" type="text" autocomplete="off" placeholder="Selecione um traço..." />
-                <div id="traitsSelectSuggestions" class="dropdown-suggestions" hidden></div>
-                <div id="traitsSelectHoverCard" class="dropdown-hover-card" hidden></div>
-              </div>
-              <select id="traitsSelect" class="native-select-hidden" tabindex="-1" aria-hidden="true"></select>
-              <textarea id="traits" rows="2" placeholder="Complemento opcional ou texto personalizado"></textarea>
-            </label>
-
-            <label class="row generic-dropdown-field">
-              <span>Ideais</span>
-              <div class="dropdown-anchor">
-                <input id="ideaisSelectInput" type="text" autocomplete="off" placeholder="Selecione um ideal..." />
-                <div id="ideaisSelectSuggestions" class="dropdown-suggestions" hidden></div>
-                <div id="ideaisSelectHoverCard" class="dropdown-hover-card" hidden></div>
-              </div>
-              <select id="ideaisSelect" class="native-select-hidden" tabindex="-1" aria-hidden="true"></select>
-              <textarea id="ideais" rows="2" placeholder="Complemento opcional ou texto personalizado"></textarea>
-            </label>
-
-            <label class="row generic-dropdown-field">
-              <span>Vínculos</span>
-              <div class="dropdown-anchor">
-                <input id="vinculosSelectInput" type="text" autocomplete="off" placeholder="Selecione um vínculo..." />
-                <div id="vinculosSelectSuggestions" class="dropdown-suggestions" hidden></div>
-                <div id="vinculosSelectHoverCard" class="dropdown-hover-card" hidden></div>
-              </div>
-              <select id="vinculosSelect" class="native-select-hidden" tabindex="-1" aria-hidden="true"></select>
-              <textarea id="vinculos" rows="2" placeholder="Complemento opcional ou texto personalizado"></textarea>
-            </label>
-
-            <label class="row generic-dropdown-field">
-              <span>Defeitos</span>
-              <div class="dropdown-anchor">
-                <input id="defeitosSelectInput" type="text" autocomplete="off" placeholder="Selecione um defeito..." />
-                <div id="defeitosSelectSuggestions" class="dropdown-suggestions" hidden></div>
-                <div id="defeitosSelectHoverCard" class="dropdown-hover-card" hidden></div>
-              </div>
-              <select id="defeitosSelect" class="native-select-hidden" tabindex="-1" aria-hidden="true"></select>
-              <textarea id="defeitos" rows="2" placeholder="Complemento opcional ou texto personalizado"></textarea>
-            </label>
-          </div>
-
-          <label class="row">
-            <span>Características & Talentos</span>
-            <textarea id="featuresTraits" rows="4"></textarea>
-          </label>
-
-          <label class="row">
-            <span>Características e talentos adicionais</span>
-            <textarea id="caracteristicasTalentosAdicionais" rows="3"></textarea>
-          </label>
-
-          <label class="row">
-            <span>Nome da organização / facção (símbolo)</span>
-            <input id="nomeSimbolo" type="text" placeholder="Ex.: Force Grey" />
-          </label>
-
-          <label class="row">
-            <span>Símbolo da organização / facção</span>
-            <input id="imagemSimbolo" type="file" accept="image/png,image/jpeg" />
-            <small class="note">Use um emblema em JPG ou PNG. Recomendado: imagem quadrada ou quase quadrada, por exemplo 400 x 400 px.</small>
-          </label>
-
-          <label class="row">
-            <span>História do personagem</span>
-            <textarea id="historiaPersonagem" rows="4"></textarea>
-          </label>
-
-          <label class="row">
-            <span>Aliados e organizações</span>
-            <textarea id="aliadosOrganizacoes" rows="3"></textarea>
-          </label>
-
-          <label class="row">
-            <span>Tesouros</span>
-            <textarea id="tesouros" rows="3"></textarea>
-          </label>
-
-          <label class="row">
-            <span>Aparência do personagem</span>
-            <input id="aparenciaPersonagem" type="file" accept="image/png,image/jpeg" />
-            <small class="note">Use uma imagem vertical em JPG ou PNG. Recomendado: proporção próxima de 7:9, por exemplo 700 x 900 px.</small>
-          </label>
-
-          <label class="row">
-            <span>Outras proficiências & idiomas</span>
-            <textarea id="proficienciasIdiomas" rows="3"></textarea>
-          </label>
-
-          <fieldset id="equipmentChoicesPanel" class="equipment-choice-panel">
-            <legend>Equipamento inicial e escolhas</legend>
-            <p class="note">
-              As opções de classe e antecedente aparecem aqui. Itens fixos entram automaticamente; o campo abaixo continua livre para extras personalizados.
-            </p>
-          </fieldset>
-
-          <label class="row">
-            <span>Equipamento (texto livre)</span>
-            <textarea id="equipamento" rows="3"></textarea>
-          </label>
-        </fieldset>
-
-      </form>
-    </section>
-
-<section class="card preview-panel">
-  <h2>Prévia da ficha</h2>
-  <div id="preview" class="preview-box"></div>
-
-  <div id="floatingSubmitBar" class="floating-submit-bar" role="region" aria-label="Ação principal da ficha">
-    <button id="btnGerar" type="submit" form="sheetForm" class="primary floating-submit-button d20-submit-button">
-      <span class="d20-submit-icon" aria-hidden="true">
-        <svg class="d20-submit-svg" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg" focusable="false">
-          <g transform="rotate(-8 500 500)">
-            <polygon class="d20-face" points="500,90 160,255 500,195"></polygon>
-            <polygon class="d20-face" points="500,90 850,255 500,195"></polygon>
-
-            <polygon class="d20-face d20-face-center" points="500,195 255,650 745,650"></polygon>
-
-            <polygon class="d20-face" points="160,255 255,650 145,705"></polygon>
-            <polygon class="d20-face" points="850,255 855,705 745,650"></polygon>
-
-            <polygon class="d20-face" points="160,255 500,195 255,650"></polygon>
-            <polygon class="d20-face" points="850,255 500,195 745,650"></polygon>
-
-            <polygon class="d20-face" points="255,650 145,705 500,920"></polygon>
-            <polygon class="d20-face" points="745,650 855,705 500,920"></polygon>
-            <polygon class="d20-face" points="255,650 500,920 745,650"></polygon>
-
-            <text class="d20-num d20-num-small" x="390" y="170" transform="rotate(-12 390 170)">18</text>
-            <text class="d20-num d20-num-small" x="610" y="170" transform="rotate(12 610 170)">4</text>
-
-            <text class="d20-num d20-num-big" x="500" y="520">20</text>
-
-            <text class="d20-num d20-num-mid" x="310" y="395" transform="rotate(-58 310 395)">2</text>
-            <text class="d20-num d20-num-mid" x="690" y="395" transform="rotate(58 690 395)">14</text>
-
-            <text class="d20-num d20-num-small" x="180" y="575" transform="rotate(-75 180 575)">12</text>
-            <text class="d20-num d20-num-small" x="820" y="575" transform="rotate(75 820 575)">9</text>
-
-            <text class="d20-num d20-num-small" x="280" y="740" transform="rotate(-55 280 740)">10</text>
-            <text class="d20-num d20-num-mid d20-num-bottom" x="500" y="800">8</text>
-            <text class="d20-num d20-num-small" x="720" y="740" transform="rotate(55 720 740)">16</text>
-          </g>
-        </svg>
-      </span>
-      <span class="d20-submit-copy">
-        <strong>Gerar ficha</strong>
-        <small>Abre o PDF em uma nova aba</small>
-      </span>
-    </button>
-    <div class="floating-submit-actions" role="group" aria-label="Atalhos de aleatorização">
-      <button id="btnRandomizeAll" type="button" class="floating-quick-button">
-        <strong>Aleatorizar tudo</strong>
-        <small>Sobrescreve as escolhas atuais</small>
-      </button>
-      <button id="btnRandomizeRemaining" type="button" class="floating-quick-button">
-        <strong>Aleatorizar restante</strong>
-        <small>Preserva o que já foi definido</small>
-      </button>
-      <button id="quickSaveCharacter5e" type="button" class="floating-quick-button">
-        <strong>Salvar personagem</strong>
-        <small>Guarda na sua conta</small>
-      </button>
-    </div>
-    <p id="status" class="note floating-submit-status" aria-live="polite"></p>
-  </div>
-</section>
-    </main>
-  </section>
-</body>
-</html>
+// classes.js
+export const DATASET_VERSION = "0.2.3";
+export const META_CLASSES = {
+  dataset: "dnd5e-ptbr",
+  version: DATASET_VERSION,
+  locale: "pt-BR",
+  builtAt: "2026-04-08",
+  sources: {
+    srd: "https://media.wizards.com/2023/downloads/dnd/SRD_CC_v5.1.pdf",
+    drs: "https://aventureirosdosreinos.com/documento-de-referencia-de-sistema-drs/"
+  },
+  changelog: [
+    "0.2.3: Remoção de subclasses HB e UA sem publicação oficial do dataset principal, mantendo apenas material oficialmente publicado e sincronizando as listas de subclasses por classe.",
+    "0.2.2: Reclassificação de entradas HB inspiradas em material oficial/UA (incluindo Plane Shift: Kaladesh), atualização das fontes reimpressas do monge e redução do conjunto restante de HB para entradas realmente autorais.",
+    "0.2.1: Substituição de entradas HB confusas por subclasses oficiais equivalentes e remoção de duplicatas oficiais redundantes.",
+    "0.2.0: Auditoria completa de classes/subclasses; correções de nomes e fontes oficiais; inclusão de subclasses oficiais faltantes; ordenação alfabética das classes e subclasses.",
+    "0.1.0: Classes SRD (resumo), 1 subclasse SRD + 1 placeholder por classe; estilos de luta SRD; talento SRD (Agarrador)."
+  ]
+};
+export const CLASSES = {
+  "artifice": {
+    id: "artifice",
+    nome: "Artífice",
+    descricao: "Inventor arcano que combina magia, engenhocas e infusões para apoiar o grupo.",
+    dadoVida: 8,
+    atributoPrincipal: ["int"],
+    salvaguardas: ["con", "int"],
+    proficiencias: {
+      armaduras: ["leve", "media", "escudo"],
+      armas: ["simples"],
+      ferramentas: ["ferramentas-de-ladrao", "ferramentas-de-artesao"],
+      periciasEscolha: { picks: 2, from: ["arcanismo","historia","investigacao","medicina","natureza","percepcao"] }
+    },
+    equipamentoInicial: [
+      { grupo: "A", descr: "(a) besta leve e 20 virotes OU (b) duas armas simples", armas: ["besta-leve"] },
+      { grupo: "B", descr: "(a) armadura de couro batido OU (b) cota de escamas", armaduras: ["couro-batido"] },
+      { grupo: "C", descr: "(a) ferramentas de ladrão OU (b) ferramentas de artesão", armas: [] },
+      { grupo: "D", descr: "Pacote de explorador e foco arcano", armas: [] }
+    ],
+    escolhas: {
+      estilosLuta: [],
+      talentosSugestao: []
+    },
+    features: {
+      1: [
+        {
+          nome: "Conjuração Arcana",
+          descricao: "Prepara magias de artífice usando Inteligência.",
+          detalhes: []
+        },
+        {
+          nome: "Funilaria Mágica",
+          descricao: "Imbui pequenos objetos com efeitos mágicos utilitários simples.",
+          detalhes: []
+        }
+      ],
+      2: [
+        {
+          nome: "Infusões",
+          descricao: "Imbui itens com efeitos mágicos por meio de infusões.",
+          detalhes: [
+            "Mantém um número limitado de infusões ativas; esse limite aumenta com o nível."
+          ]
+        }
+      ]
+    },
+    subclasses: [
+      "artifice-alquimista",
+      "artifice-armeiro",
+      "artifice-artilheiro",
+      "artifice-ferreiro-batalha"
+    ]
+  },
+
+  "barbaro": {
+    id: "barbaro",
+    nome: "Bárbaro",
+    descricao: "Combatente feroz que canaliza a fúria para resistir mais e causar dano bruto.",
+    dadoVida: 12,
+    atributoPrincipal: ["for", "con"],
+    salvaguardas: ["for", "con"],
+    proficiencias: {
+      armaduras: ["leve", "media", "escudo"],
+      armas: ["simples", "marcial"],
+      ferramentas: [],
+      periciasEscolha: { picks: 2, from: ["atletismo","intimidacao","natureza","percepcao","sobrevivencia","adestrarAnimais"] }
+    },
+    equipamentoInicial: [
+      { grupo: "A", descr: "(a) machado grande OU (b) qualquer arma marcial corpo-a-corpo", armas: ["machado-grande"] },
+      { grupo: "B", descr: "(a) duas machadinhas OU (b) qualquer arma simples", armas: ["machadinha","machadinha"] },
+      { grupo: "C", descr: "Pacote do explorador e 4 azagaias", armas: ["azagaia","azagaia","azagaia","azagaia"] }
+    ],
+    escolhas: { estilosLuta: [], talentosSugestao: ["agarrador"] },
+    features: {
+      1: [
+        {
+          nome: "Fúria",
+          descricao: "Entra em fúria para causar dano extra e resistir a dano físico.",
+          detalhes: [
+            "Usos: recupera após descanso longo; aumentam com o nível."
+          ]
+        },
+        {
+          nome: "Defesa sem Armadura",
+          descricao: "Sem armadura, sua CA usa Destreza e Constituição; você ainda pode usar escudo.",
+          detalhes: []
+        }
+      ]
+    },
+    subclasses: [
+      "barbaro-arvore-mundo",
+      "barbaro-fera",
+      "barbaro-magia-selvagem",
+      "barbaro-arauto-tempestade",
+      "barbaro-espinhos",
+      "barbaro-berserker",
+      "barbaro-fanatico",
+      "barbaro-gigante",
+      "barbaro-guardiao-ancestral",
+      "barbaro-coracao-selvagem"
+    ]
+  },
+
+  "bardo": {
+    id: "bardo",
+    nome: "Bardo",
+    descricao: "Artista versátil que inspira aliados e usa magia por meio de talento, conhecimento e presença.",
+    dadoVida: 8,
+    atributoPrincipal: ["car"],
+    salvaguardas: ["des", "car"],
+    proficiencias: {
+      armaduras: ["leve"],
+      armas: ["simples", "besta-de-mao", "espada-longa", "rapieira", "espada-curta"],
+      ferramentas: ["instrumentos-musicais"],
+      periciasEscolha: { picks: 3, from: ["acrobacia","adestrarAnimais","arcanismo","atletismo","atuacao","enganacao","furtividade","historia","intimidacao","intuicao","investigacao","medicina","natureza","percepcao","persuasao","prestidigitacao","religiao","sobrevivencia"] }
+    },
+    equipamentoInicial: [
+      { grupo: "A", descr: "(a) rapieira OU (b) espada longa OU (c) qualquer arma simples", armas: ["rapieira"] },
+      { grupo: "B", descr: "(a) pacote do diplomata OU (b) pacote do artista", armas: [] },
+      { grupo: "C", descr: "(a) alaúde OU (b) qualquer instrumento musical", armas: [] },
+      { grupo: "D", descr: "Armadura de couro e adaga", armas: ["adaga"], armaduras: ["couro"] }
+    ],
+    escolhas: { estilosLuta: [], talentosSugestao: [] },
+    features: {
+      1: [
+        {
+          nome: "Inspiração Bárdica",
+          descricao: "Concede dados de inspiração que aliados gastam em testes, ataques ou salvamentos.",
+          detalhes: [
+            "Usos: várias vezes por descanso longo; aumentam com o nível.",
+            "O dado de inspiração melhora com o nível do bardo."
+          ]
+        },
+        {
+          nome: "Conjuração",
+          descricao: "Conjura magias usando Carisma.",
+          detalhes: []
+        }
+      ]
+    },
+    subclasses: [
+      "bardo-bravura",
+      "bardo-criacao",
+      "bardo-danca",
+      "bardo-eloquencia",
+      "bardo-espadas",
+      "bardo-conhecimento",
+      "bardo-glamour",
+      "bardo-espiritos",
+      "bardo-sussurros"
+    ]
+  },
+
+  "bruxo": {
+    id: "bruxo",
+    nome: "Bruxo",
+    descricao: "Conjurador que recebe poder de um patrono sobrenatural em troca de um pacto.",
+    dadoVida: 8,
+    atributoPrincipal: ["car"],
+    salvaguardas: ["sab", "car"],
+    proficiencias: {
+      armaduras: ["leve"],
+      armas: ["simples"],
+      ferramentas: [],
+      periciasEscolha: { picks: 2, from: ["arcanismo","enganacao","historia","intimidacao","investigacao","natureza","religiao"] }
+    },
+    equipamentoInicial: [
+      { grupo: "A", descr: "(a) besta leve e 20 virotes OU (b) qualquer arma simples", armas: ["besta-leve"] },
+      { grupo: "B", descr: "(a) bolsa de componentes OU (b) foco arcano", armas: [] },
+      { grupo: "C", descr: "(a) pacote do erudito OU (b) pacote do masmorrista", armas: [] },
+      { grupo: "D", descr: "Armadura de couro, qualquer arma simples e duas adagas", armaduras: ["couro"], armas: ["clava","adaga","adaga"] }
+    ],
+    escolhas: { estilosLuta: [], talentosSugestao: [] },
+    features: {
+      1: [
+        {
+          nome: "Patrocínio do Patrono",
+          descricao: "Recebe poderes do patrono sobrenatural escolhido.",
+          detalhes: [
+            "As habilidades variam conforme o patrono."
+          ]
+        },
+        {
+          nome: "Magia de Pacto",
+          descricao: "Usa espaços de pacto que se recuperam em descanso curto.",
+          detalhes: [
+            "O número de espaços e o nível deles aumentam com o nível."
+          ]
+        }
+      ],
+      2: [
+        {
+          nome: "Invocações Místicas",
+          descricao: "Escolhe invocações que concedem magias, melhorias de truques ou benefícios permanentes.",
+          detalhes: [
+            "Começa com 2 invocações e aprende mais conforme avança de nível.",
+            "Algumas invocações exigem nível mínimo, truque específico ou uma Dádiva de Pacto."
+          ]
+        }
+      ],
+      3: [
+        {
+          nome: "Dádiva de Pacto",
+          descricao: "Recebe uma dádiva do patrono: Lâmina, Corrente, Tomo ou opções adicionais permitidas pela mesa.",
+          detalhes: [
+            "A dádiva escolhida também libera invocações com pré-requisitos específicos."
+          ]
+        }
+      ],
+      4: [
+        { nome: "Incremento no Valor de Habilidade", descricao: "Aumenta atributos ou escolhe um talento, se a regra opcional estiver em uso." }
+      ],
+      8: [
+        { nome: "Incremento no Valor de Habilidade", descricao: "Aumenta atributos ou escolhe um talento, se a regra opcional estiver em uso." }
+      ],
+      11: [
+        { nome: "Arcano Místico (6º círculo)", descricao: "Escolhe uma magia de 6º círculo de bruxo para conjurar uma vez por descanso longo." }
+      ],
+      12: [
+        { nome: "Incremento no Valor de Habilidade", descricao: "Aumenta atributos ou escolhe um talento, se a regra opcional estiver em uso." }
+      ],
+      13: [
+        { nome: "Arcano Místico (7º círculo)", descricao: "Escolhe uma magia de 7º círculo de bruxo para conjurar uma vez por descanso longo." }
+      ],
+      15: [
+        { nome: "Arcano Místico (8º círculo)", descricao: "Escolhe uma magia de 8º círculo de bruxo para conjurar uma vez por descanso longo." }
+      ],
+      16: [
+        { nome: "Incremento no Valor de Habilidade", descricao: "Aumenta atributos ou escolhe um talento, se a regra opcional estiver em uso." }
+      ],
+      17: [
+        { nome: "Arcano Místico (9º círculo)", descricao: "Escolhe uma magia de 9º círculo de bruxo para conjurar uma vez por descanso longo." }
+      ],
+      19: [
+        { nome: "Incremento no Valor de Habilidade", descricao: "Aumenta atributos ou escolhe um talento, se a regra opcional estiver em uso." }
+      ],
+      20: [
+        {
+          nome: "Mestre Místico",
+          descricao: "Recupera todos os espaços de Magia de Pacto após 1 minuto suplicando ao patrono, uma vez por descanso longo."
+        }
+      ]
+    },
+    subclasses: [
+      "bruxo-arquifada",
+      "bruxo-lamina-maldita",
+      "bruxo-celestial",
+      "bruxo-genio",
+      "bruxo-grande-antigo",
+      "bruxo-imperecivel",
+      "bruxo-infernal",
+      "bruxo-abismal",
+      "bruxo-morto-vivo"
+    ]
+  },
+
+  "clerigo": {
+    id: "clerigo",
+    nome: "Clérigo",
+    descricao: "Servo divino que canaliza o poder de sua divindade para curar, proteger e punir.",
+    dadoVida: 8,
+    atributoPrincipal: ["sab"],
+    salvaguardas: ["sab", "car"],
+    proficiencias: {
+      armaduras: ["leve", "media", "escudo"],
+      armas: ["simples"],
+      ferramentas: [],
+      periciasEscolha: { picks: 2, from: ["historia","intuicao","medicina","persuasao","religiao"] }
+    },
+    equipamentoInicial: [
+      { grupo: "A", descr: "(a) maça OU (b) martelo de guerra (se proficiente)", armas: ["maca"] },
+      { grupo: "B", descr: "(a) armadura de escamas OU (b) armadura de couro OU (c) cota de malha (se proficiente)", armaduras: ["couro"] },
+      { grupo: "C", descr: "(a) besta leve e 20 virotes OU (b) qualquer arma simples", armas: ["besta-leve"] },
+      { grupo: "D", descr: "(a) pacote do sacerdote OU (b) pacote do explorador", armas: [] },
+      { grupo: "E", descr: "Escudo e símbolo sagrado", armaduras: ["escudo"] }
+    ],
+    escolhas: { estilosLuta: [], talentosSugestao: [] },
+    features: {
+      1: [
+        {
+          nome: "Conjuração",
+          descricao: "Prepara magias usando Sabedoria.",
+          detalhes: []
+        },
+        {
+          nome: "Domínio Divino",
+          descricao: "Recebe as habilidades iniciais do domínio escolhido.",
+          detalhes: [
+            "O domínio também concede magias e, em alguns casos, proficiências adicionais."
+          ]
+        }
+      ],
+      2: [
+        {
+          nome: "Canalizar Divindade",
+          descricao: "Canaliza poder divino para ativar efeitos do domínio.",
+          detalhes: [
+            "Usos: aumentam com o nível.",
+            "Os efeitos dependem do domínio escolhido."
+          ]
+        }
+      ]
+    },
+    subclasses: [
+      "clerigo-arcano",
+      "clerigo-enganacao",
+      "clerigo-forja",
+      "clerigo-guerra",
+      "clerigo-luz",
+      "clerigo-morte",
+      "clerigo-natureza",
+      "clerigo-ordem",
+      "clerigo-paz",
+      "clerigo-sepultura",
+      "clerigo-tempestade",
+      "clerigo-vida",
+      "clerigo-conhecimento",
+      "clerigo-crepusculo"
+    ]
+  },
+
+  "druida": {
+    id: "druida",
+    nome: "Druida",
+    descricao: "Guardião da natureza que manipula forças primordiais e pode assumir formas animais.",
+    dadoVida: 8,
+    atributoPrincipal: ["sab"],
+    salvaguardas: ["int", "sab"],
+    proficiencias: {
+      armaduras: ["leve", "media", "escudo"],
+      restricoes: ["Druidas não usam armaduras/escudos de metal por tradição."],
+      armas: ["clava","adaga","dardo","azagaia","maca","cajado","cimitarra","foice","funda","lanca"],
+      ferramentas: ["kit-de-herborismo"],
+      periciasEscolha: { picks: 2, from: ["arcanismo","adestrarAnimais","intuicao","medicina","natureza","percepcao","religiao","sobrevivencia"] }
+    },
+    equipamentoInicial: [
+      { grupo: "A", descr: "(a) escudo de madeira OU (b) qualquer arma simples", armaduras: ["escudo"], armas: [] },
+      { grupo: "B", descr: "(a) cimitarra OU (b) qualquer arma simples corpo-a-corpo", armas: ["cimitarra"] },
+      { grupo: "C", descr: "Armadura de couro, pacote do explorador e foco druídico", armaduras: ["couro"] }
+    ],
+    escolhas: { estilosLuta: [], talentosSugestao: [] },
+    features: {
+      1: [
+        {
+          nome: "Druídico",
+          descricao: "Aprende o idioma secreto dos druidas.",
+          detalhes: []
+        },
+        {
+          nome: "Conjuração",
+          descricao: "Prepara magias usando Sabedoria.",
+          detalhes: []
+        }
+      ],
+      2: [
+        {
+          nome: "Forma Selvagem",
+          descricao: "Assume formas animais e ganha capacidades físicas temporárias.",
+          detalhes: [
+            "Enquanto estiver na forma, você assume as estatísticas do animal, exceto seu tipo de criatura, proficiências e características de personalidade.",
+            "Usos: 2 por descanso curto.",
+            "Você não perde a capacidade de conjurar magias que não exijam concentração enquanto estiver em forma, salvo regras específicas."
+          ]
+        }
+      ]
+    },
+    subclasses: [
+      "druida-lua",
+      "druida-terra",
+      "druida-estrelas",
+      "druida-fogo-selvagem",
+      "druida-mar",
+      "druida-pastor",
+      "druida-esporos",
+      "druida-sonhos"
+    ]
+  },
+
+  "feiticeiro": {
+    id: "feiticeiro",
+    nome: "Feiticeiro",
+    descricao: "Conjurador cujo poder mágico é inato e flui do sangue, destino ou transformação.",
+    dadoVida: 6,
+    atributoPrincipal: ["car"],
+    salvaguardas: ["con", "car"],
+    proficiencias: {
+      armaduras: [],
+      armas: ["adaga","dardo","funda","cajado","besta-leve"],
+      ferramentas: [],
+      periciasEscolha: { picks: 2, from: ["arcanismo","enganacao","intuicao","intimidacao","persuasao","religiao"] }
+    },
+    equipamentoInicial: [
+      { grupo: "A", descr: "(a) besta leve e 20 virotes OU (b) qualquer arma simples", armas: ["besta-leve"] },
+      { grupo: "B", descr: "(a) bolsa de componentes OU (b) foco arcano", armas: [] },
+      { grupo: "C", descr: "(a) pacote do masmorrista OU (b) pacote do explorador", armas: [] },
+      { grupo: "D", descr: "Duas adagas", armas: ["adaga","adaga"] }
+    ],
+    escolhas: { estilosLuta: [], talentosSugestao: [] },
+    features: {
+      1: [
+        {
+          nome: "Conjuração",
+          descricao: "Conjura magias usando Carisma.",
+          detalhes: []
+        },
+        {
+          nome: "Origem Sorcerosa",
+          descricao: "Recebe os traços iniciais da linhagem ou manifestação mágica escolhida.",
+          detalhes: []
+        }
+      ],
+      2: [
+        {
+          nome: "Fonte de Magia",
+          descricao: "Ganha pontos de feitiçaria para alimentar Metamagia e outros efeitos.",
+          detalhes: [
+            "Pontos de feitiçaria: igual ao seu nível de feiticeiro; recupera em descanso longo."
+          ]
+        }
+      ]
+    },
+    subclasses: [
+      "feiticeiro-alma-favorecida",
+      "feiticeiro-alma-mecanica",
+      "feiticeiro-tempestade",
+      "feiticeiro-sombras",
+      "feiticeiro-lunar",
+      "feiticeiro-draconico",
+      "feiticeiro-magia-selvagem",
+      "feiticeiro-mente-aberrante"
+    ]
+  },
+
+  "guerreiro": {
+    id: "guerreiro",
+    nome: "Guerreiro",
+    descricao: "Especialista marcial flexível, treinado para dominar armas, armaduras e táticas.",
+    dadoVida: 10,
+    atributoPrincipal: ["for", "des"],
+    salvaguardas: ["for", "con"],
+    proficiencias: {
+      armaduras: ["leve", "media", "pesada", "escudo"],
+      armas: ["simples", "marcial"],
+      ferramentas: [],
+      periciasEscolha: { picks: 2, from: ["acrobacia","adestrarAnimais","atletismo","historia","intuicao","intimidacao","percepcao","sobrevivencia"] }
+    },
+    equipamentoInicial: [
+      { grupo: "A", descr: "(a) cota de malha OU (b) couro, arco longo e 20 flechas", armaduras: ["cota-de-malha"], armas: ["arco-longo"] },
+      { grupo: "B", descr: "(a) arma marcial e escudo OU (b) duas armas marciais", armas: ["espada-longa"], armaduras: ["escudo"] },
+      { grupo: "C", descr: "(a) besta leve e 20 virotes OU (b) duas machadinhas", armas: ["besta-leve"] },
+      { grupo: "D", descr: "(a) pacote do explorador OU (b) pacote do masmorrista", armas: [] }
+    ],
+    escolhas: {
+      estilosLuta: ["arquearia","defesa","duelismo","armas-grandes","protecao"],
+      talentosSugestao: ["agarrador"]
+    },
+    features: {
+      1: [
+        {
+          nome: "Estilo de Luta",
+          descricao: "Escolha um estilo de combate com bônus específicos.",
+          detalhes: []
+        },
+        {
+          nome: "Segunda Vontade (Second Wind)",
+          descricao: "Recupera pontos de vida como ação bônus.",
+          detalhes: ["Usos: 1 por descanso curto."]
+        }
+      ],
+      2: [
+        {
+          nome: "Investida de Ação (Action Surge)",
+          descricao: "Ganha uma ação adicional no turno.",
+          detalhes: ["Usos: 1 por descanso curto; 2 no nível 17."]
+        }
+      ]
+    },
+  subclasses: [
+      "guerreiro-arqueiro-arcano",
+      "guerreiro-campeao",
+      "guerreiro-cavaleiro",
+      "guerreiro-cavaleiro-arcano",
+      "guerreiro-cavaleiro-do-eco",
+      "guerreiro-cavaleiro-runico",
+      "guerreiro-guerreiro-psiquico",
+      "guerreiro-mestre-de-batalha",
+      "guerreiro-porta-estandarte",
+      "guerreiro-samurai"
+    ]
+  },
+
+  "ladino": {
+    id: "ladino",
+    nome: "Ladino",
+    descricao: "Especialista em precisão, furtividade e truques, brilhando fora e dentro de combate.",
+    dadoVida: 8,
+    atributoPrincipal: ["des"],
+    salvaguardas: ["des", "int"],
+    proficiencias: {
+      armaduras: ["leve"],
+      armas: ["simples", "besta-de-mao", "espada-longa", "rapieira", "espada-curta"],
+      ferramentas: ["ferramentas-de-ladrao"],
+      periciasEscolha: { picks: 4, from: ["acrobacia","atletismo","atuacao","enganacao","furtividade","intimidacao","intuicao","investigacao","percepcao","persuasao","prestidigitacao"] }
+    },
+    equipamentoInicial: [
+      { grupo: "A", descr: "(a) rapieira OU (b) espada curta", armas: ["rapieira"] },
+      { grupo: "B", descr: "(a) arco curto e 20 flechas OU (b) espada curta", armas: ["arco-curto"] },
+      { grupo: "C", descr: "(a) pacote do assaltante OU (b) pacote do masmorrista OU (c) pacote do explorador", armas: [] },
+      { grupo: "D", descr: "Armadura de couro, duas adagas e ferramentas de ladrão", armaduras: ["couro"], armas: ["adaga","adaga"] }
+    ],
+    escolhas: { estilosLuta: [], talentosSugestao: [] },
+    features: {
+      1: [
+        {
+          nome: "Ataque Furtivo",
+          descricao: "Ganha dano extra quando acerta um ataque que cumpre os requisitos de ataque furtivo.",
+          detalhes: ["O dano extra aumenta com o nível."]
+        },
+        {
+          nome: "Especialização",
+          descricao: "Escolhe duas proficiências para dobrar o bônus de proficiência.",
+          detalhes: []
+        },
+        {
+          nome: "Gíria de Ladrão",
+          descricao: "Aprende o código secreto usado entre ladinos.",
+          detalhes: []
+        }
+      ],
+      2: [
+        {
+          nome: "Ação Ardilosa (Cunning Action)",
+          descricao: "Como ação bônus, pode usar Dash, Disengage ou Hide.",
+          detalhes: []
+        }
+      ]
+    },
+    subclasses: [
+      "ladino-assassino",
+      "ladino-batedor",
+      "ladino-duelista",
+      "ladino-faca-alma",
+      "ladino-fantasma",
+      "ladino-inquiridor",
+      "ladino-ladrao",
+      "ladino-mentor",
+      "ladino-trapaceiro-arcano"
+    ]
+  },
+
+  "mago": {
+    id: "mago",
+    nome: "Mago",
+    descricao: "Estudioso da magia arcana que domina feitiços por pesquisa, preparo e disciplina.",
+    dadoVida: 6,
+    atributoPrincipal: ["int"],
+    salvaguardas: ["int", "sab"],
+    proficiencias: {
+      armaduras: [],
+      armas: ["adaga","dardo","funda","cajado","besta-leve"],
+      ferramentas: [],
+      periciasEscolha: { picks: 2, from: ["arcanismo","historia","intuicao","investigacao","medicina","religiao"] }
+    },
+    equipamentoInicial: [
+      { grupo: "A", descr: "(a) cajado OU (b) adaga", armas: ["cajado"] },
+      { grupo: "B", descr: "(a) bolsa de componentes OU (b) foco arcano", armas: [] },
+      { grupo: "C", descr: "(a) pacote do erudito OU (b) pacote do explorador", armas: [] },
+      { grupo: "D", descr: "Livro de magias", armas: [] }
+    ],
+    escolhas: { estilosLuta: [], talentosSugestao: [] },
+    features: {
+      1: [
+        {
+          nome: "Recuperação Arcana",
+          descricao: "Permite recuperar alguns espaços de magia após um descanso curto.",
+          detalhes: [
+            "Usos: 1 vez por dia após um descanso curto."
+          ]
+        },
+        {
+          nome: "Conjuração",
+          descricao: "Prepara magias usando Inteligência.",
+          detalhes: []
+        }
+      ]
+    },
+    subclasses: [
+      "mago-cronurgista",
+      "mago-abjuracao",
+      "mago-adivinhacao",
+      "mago-conjuracao",
+      "mago-evocacao",
+      "mago-ilusao",
+      "mago-necromancia",
+      "mago-transmutacao",
+      "mago-encantamento",
+      "mago-graviturgista",
+      "mago-lamina-cantante",
+      "mago-guerra",
+      "mago-escribas"
+    ]
+  },
+
+  "monge": {
+    id: "monge",
+    nome: "Monge",
+    descricao: "Lutador disciplinado que usa ki, mobilidade e técnica para superar inimigos.",
+    dadoVida: 8,
+    atributoPrincipal: ["des", "sab"],
+    salvaguardas: ["for", "des"],
+    proficiencias: {
+      armaduras: [],
+      armas: ["simples", "espada-curta"],
+      ferramentas: ["ferramenta-de-artesao-ou-instrumento"],
+      periciasEscolha: { picks: 2, from: ["acrobacia","atletismo","furtividade","historia","intuicao","religiao"] }
+    },
+    equipamentoInicial: [
+      { grupo: "A", descr: "(a) espada curta OU (b) qualquer arma simples", armas: ["espada-curta"] },
+      { grupo: "B", descr: "(a) pacote do masmorrista OU (b) pacote do explorador", armas: [] },
+      { grupo: "C", descr: "10 dardos", armas: ["dardo","dardo","dardo","dardo","dardo","dardo","dardo","dardo","dardo","dardo"] }
+    ],
+    escolhas: { estilosLuta: [], talentosSugestao: [] },
+    features: {
+      1: [
+        {
+          nome: "Defesa sem Armadura",
+          descricao: "Sua CA sem armadura usa Destreza e Sabedoria.",
+          detalhes: []
+        },
+        {
+          nome: "Artes Marciais",
+          descricao: "Usa Destreza em ataques desarmados e armas de monge, além de um dado marcial que cresce com o nível.",
+          detalhes: []
+        }
+      ],
+      2: [
+        {
+          nome: "Ki",
+          descricao: "Gasta Ki para técnicas como Rajada de Golpes, Passo do Vento e Defesa Paciente.",
+          detalhes: [
+            "Pontos de Ki: igual ao seu nível de monge; recuperam em descanso curto."
+          ]
+        },
+        {
+          nome: "Movimento sem Armadura",
+          descricao: "Seu deslocamento aumenta enquanto estiver sem armadura e sem escudo.",
+          detalhes: []
+        }
+      ]
+    },
+    subclasses: [
+      "monge-alma-solar",
+      "monge-forma-astral",
+      "monge-misericordia",
+      "monge-morte-ampla",
+      "monge-palma-aberta",
+      "monge-sombras",
+      "monge-dragao",
+      "monge-kensei",
+      "monge-mestre-bebado",
+      "monge-quatro-elementos"
+    ]
+  },
+
+  "paladino": {
+    id: "paladino",
+    nome: "Paladino",
+    descricao: "Guerreiro sagrado guiado por um juramento, capaz de proteger aliados e punir o mal.",
+    dadoVida: 10,
+    atributoPrincipal: ["for", "car"],
+    salvaguardas: ["sab", "car"],
+    proficiencias: {
+      armaduras: ["leve", "media", "pesada", "escudo"],
+      armas: ["simples", "marcial"],
+      ferramentas: [],
+      periciasEscolha: { picks: 2, from: ["atletismo","intuicao","intimidacao","medicina","persuasao","religiao"] }
+    },
+    equipamentoInicial: [
+      { grupo: "A", descr: "(a) arma marcial e escudo OU (b) duas armas marciais", armas: ["espada-longa"], armaduras: ["escudo"] },
+      { grupo: "B", descr: "(a) cinco azagaias OU (b) qualquer arma simples corpo-a-corpo", armas: ["azagaia","azagaia","azagaia","azagaia","azagaia"] },
+      { grupo: "C", descr: "(a) pacote do sacerdote OU (b) pacote do explorador", armas: [] },
+      { grupo: "D", descr: "Cota de malha e símbolo sagrado", armaduras: ["cota-de-malha"] }
+    ],
+    escolhas: {
+      estilosLuta: ["defesa","duelismo","armas-grandes","protecao"],
+      talentosSugestao: []
+    },
+    features: {
+      1: [
+        {
+          nome: "Sentido Divino",
+          descricao: "Detecta celestiais, corruptores e mortos-vivos, além de locais consagrados ou profanados.",
+          detalhes: []
+        },
+        {
+          nome: "Mão Curativa (Lay on Hands)",
+          descricao: "Possui uma reserva de cura para restaurar pontos de vida.",
+          detalhes: [
+            "Reserva de cura: nível de paladino × 5; recupera em descanso longo."
+          ]
+        }
+      ],
+      2: [
+        {
+          nome: "Conjuração",
+          descricao: "Prepara magias usando Carisma.",
+          detalhes: []
+        },
+        {
+          nome: "Estilo de Luta",
+          descricao: "Escolha um estilo de combate com bônus específicos.",
+          detalhes: []
+        },
+        {
+          nome: "Golpe Divino",
+          descricao: "Pode gastar espaços de magia para causar dano radiante extra ao acertar com arma corpo a corpo.",
+          detalhes: []
+        }
+      ],
+      3: [
+        {
+          nome: "Saúde Divina",
+          descricao: "Torna-se imune a doenças.",
+          detalhes: []
+        },
+        {
+          nome: "Juramento",
+          descricao: "O juramento define suas habilidades e magias adicionais.",
+          detalhes: ["Efeitos específicos dependem do juramento escolhido."]
+        }
+      ]
+    },
+    subclasses: [
+      "paladino-conquista",
+      "paladino-coroa",
+      "paladino-devocao",
+      "paladino-gloria",
+      "paladino-redencao",
+      "paladino-vinganca",
+      "paladino-ancioes",
+      "paladino-vigilantes",
+      "paladino-quebrador-de-juramento"
+    ]
+  },
+
+  "patrulheiro": {
+    id: "patrulheiro",
+    nome: "Patrulheiro",
+    descricao: "Caçador e explorador perito em sobrevivência, rastreamento e combate contra ameaças.",
+    dadoVida: 10,
+    atributoPrincipal: ["des", "sab"],
+    salvaguardas: ["for", "des"],
+    proficiencias: {
+      armaduras: ["leve", "media", "escudo"],
+      armas: ["simples", "marcial"],
+      ferramentas: [],
+      periciasEscolha: { picks: 3, from: ["adestrarAnimais","atletismo","furtividade","intuicao","investigacao","natureza","percepcao","sobrevivencia"] }
+    },
+    equipamentoInicial: [
+      { grupo: "A", descr: "(a) cota de malha OU (b) couro, arco longo e 20 flechas", armaduras: ["couro"], armas: ["arco-longo"] },
+      { grupo: "B", descr: "(a) duas espadas curtas OU (b) duas armas simples corpo-a-corpo", armas: ["espada-curta","espada-curta"] },
+      { grupo: "C", descr: "(a) pacote do masmorrista OU (b) pacote do explorador", armas: [] }
+    ],
+    escolhas: {
+      estilosLuta: ["arquearia","defesa","duelismo","duas-armas"],
+      talentosSugestao: []
+    },
+    features: {
+      1: [
+        {
+          nome: "Inimigo Favorito",
+          descricao: "Especializa-se em rastrear e lidar com certos tipos de inimigos.",
+          detalhes: []
+        },
+        {
+          nome: "Explorador Nato",
+          descricao: "Seu treinamento favorece deslocamento, navegação e sobrevivência em terrenos familiares.",
+          detalhes: []
+        }
+      ],
+      2: [
+        {
+          nome: "Conjuração",
+          descricao: "Conjura magias limitadas usando Sabedoria.",
+          detalhes: []
+        },
+        {
+          nome: "Estilo de Luta",
+          descricao: "Escolha um estilo de combate com bônus específicos.",
+          detalhes: []
+        }
+      ]
+    },
+    subclasses: [
+      "patrulheiro-andarilho-horizonte",
+      "patrulheiro-andarilho-feerico",
+      "patrulheiro-cacador",
+      "patrulheiro-exterminador",
+      "patrulheiro-enxame",
+      "patrulheiro-dracos",
+      "patrulheiro-mestre-feras",
+      "patrulheiro-perseguidor"
+    ]
+  }
+};
