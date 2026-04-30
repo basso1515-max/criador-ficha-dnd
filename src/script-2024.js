@@ -12,6 +12,7 @@ import { EQUIPMENT_OPTION_LISTS, CLASS_EQUIPMENT_RULES, BACKGROUND_EQUIPMENT_RUL
 import { EXTRA_EQUIPMENT_CATALOG_2024, EXTRA_EQUIPMENT_GROUP_LABELS_2024 } from "./data/5.5e/equipment-compendium.js";
 import { buildRandomCharacterNameForRace } from "./data/character-name-randomizer.js";
 import {
+  WARLOCK_INVOCATIONS_BY_LEVEL_2024,
   WARLOCK_INVOCATIONS_2024,
   formatWarlockInvocationPrerequisites,
   getWarlockInvocationById,
@@ -182,7 +183,6 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
   };
   const ROGUE_SNEAK_ATTACK_DICE_BY_LEVEL_2024 = [0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10];
   const RANGER_FAVORED_ENEMY_BY_LEVEL_2024 = [0, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6];
-  const WARLOCK_ELDRITCH_INVOCATIONS_BY_LEVEL_2024 = [0, 1, 3, 3, 3, 5, 5, 6, 6, 7, 7, 7, 8, 8, 8, 9, 9, 9, 10, 10, 10];
   const WARLOCK_PATRON_GRANTED_SPELL_IDS_2024 = {
     "bruxo-arquifada": {
       3: ["acalmar-emocoes", "fogo-feerico", "passo-da-neblina", "forca-fantasmagorica", "sono"],
@@ -1728,7 +1728,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     }
     if (classId === "bruxo") {
       const warlockRule = SPELLCASTING_RULES_2024.bruxo || {};
-      const invocations = WARLOCK_ELDRITCH_INVOCATIONS_BY_LEVEL_2024[level] || 0;
+      const invocations = WARLOCK_INVOCATIONS_BY_LEVEL_2024[level] || 0;
       const cantrips = Number(warlockRule.cantripsByLevel?.[level] || 0);
       const prepared = Number(warlockRule.preparedByLevel?.[level] || 0);
       const pactSlots = Number(warlockRule.pactSlotsByLevel?.[level] || 0);
@@ -2767,7 +2767,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     const activeEntries = warlockEntries
       .map((entry) => ({
         entry,
-        invocationCount: getWarlockInvocationCountByLevel(entry.level, WARLOCK_ELDRITCH_INVOCATIONS_BY_LEVEL_2024),
+        invocationCount: getWarlockInvocationCountByLevel(entry.level, WARLOCK_INVOCATIONS_BY_LEVEL_2024),
       }))
       .filter((item) => item.invocationCount > 0);
 
@@ -2860,7 +2860,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     const selections = getCurrentWarlockInvocationSelectionMap2024();
     return getWarlockClassEntriesForChoices2024(classEntries)
       .flatMap((entry) => {
-        const count = getWarlockInvocationCountByLevel(entry.level, WARLOCK_ELDRITCH_INVOCATIONS_BY_LEVEL_2024);
+        const count = getWarlockInvocationCountByLevel(entry.level, WARLOCK_INVOCATIONS_BY_LEVEL_2024);
         return Array.from({ length: count }, (_, slotIndex) => {
           const invocation = getWarlockInvocationById(WARLOCK_INVOCATIONS_2024, selections.get(buildWarlockInvocationSlotKey2024(entry, slotIndex)) || "");
           return invocation ? { entry, invocation, slotIndex } : null;
@@ -6012,7 +6012,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
 
     const warlockSelections = getCurrentWarlockInvocationSelectionMap2024();
     getWarlockClassEntriesForChoices2024(classEntries).forEach((entry) => {
-      const requiredInvocations = getWarlockInvocationCountByLevel(entry.level, WARLOCK_ELDRITCH_INVOCATIONS_BY_LEVEL_2024);
+      const requiredInvocations = getWarlockInvocationCountByLevel(entry.level, WARLOCK_INVOCATIONS_BY_LEVEL_2024);
       if (!requiredInvocations) return;
       const selectedCount = Array.from({ length: requiredInvocations }, (_, slotIndex) => (
         warlockSelections.get(buildWarlockInvocationSlotKey2024(entry, slotIndex)) || ""
