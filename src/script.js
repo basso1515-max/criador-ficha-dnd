@@ -127,245 +127,6 @@ const PDF_MAP_URL = "./assets/pdf/5e/pdf-map.json";
     "toque-gelido",
   ]);
 
-  const WARLOCK_INVOCATIONS_BY_LEVEL = [0, 0, 2, 2, 2, 3, 3, 4, 4, 5, 5, 5, 6, 6, 6, 7, 7, 7, 8, 8, 8];
-  const WARLOCK_PACT_BOON_OPTIONS = [
-    {
-      id: "pacto-da-lamina",
-      label: "Pacto da Lâmina",
-      summary: "Cria ou vincula uma arma de pacto; libera invocações voltadas a combate com arma.",
-    },
-    {
-      id: "pacto-da-corrente",
-      label: "Pacto da Corrente",
-      summary: "Aprende Encontrar Familiar e libera formas especiais e invocações ligadas ao familiar.",
-    },
-    {
-      id: "pacto-do-tomo",
-      label: "Pacto do Tomo",
-      summary: "Recebe o Livro das Sombras com truques adicionais e invocações de estudo oculto.",
-    },
-    {
-      id: "pacto-do-talisma",
-      label: "Pacto do Talismã",
-      summary: "Recebe um talismã que auxilia testes falhos e libera invocações opcionais do talismã.",
-    },
-  ];
-  const WARLOCK_PACT_LABEL_BY_ID = Object.fromEntries(WARLOCK_PACT_BOON_OPTIONS.map((option) => [option.id, option.label]));
-  const WARLOCK_INVOCATION_OPTIONS = [
-    {
-      id: "agonizing-blast",
-      label: "Explosão Agonizante",
-      requiresCantrip: "rajada-mistica",
-      summary: "Soma seu modificador de Carisma ao dano de Rajada Mística.",
-    },
-    {
-      id: "armor-of-shadows",
-      label: "Armadura das Sombras",
-      effects: { armorClass: "mage-armor" },
-      summary: "Pode conjurar Armadura Arcana em si sem gastar espaço de magia; a ficha considera CA 13 + DES sem armadura.",
-    },
-    {
-      id: "beast-speech",
-      label: "Fala das Bestas",
-      summary: "Pode conjurar Falar com Animais sem gastar espaço de magia.",
-    },
-    {
-      id: "beguiling-influence",
-      label: "Influência Enganadora",
-      effects: { skillProficiencies: ["enganacao", "persuasao"] },
-      summary: "Ganha proficiência em Enganação e Persuasão.",
-    },
-    {
-      id: "devils-sight",
-      label: "Visão do Diabo",
-      summary: "Enxerga normalmente em escuridão comum e mágica em alcance ampliado.",
-    },
-    {
-      id: "eldritch-sight",
-      label: "Visão Mística",
-      summary: "Pode conjurar Detectar Magia sem gastar espaço de magia.",
-    },
-    {
-      id: "eldritch-spear",
-      label: "Lança Mística",
-      requiresCantrip: "rajada-mistica",
-      summary: "Aumenta o alcance de Rajada Mística.",
-    },
-    {
-      id: "eyes-of-the-rune-keeper",
-      label: "Olhos do Guardião das Runas",
-      summary: "Pode ler todas as escritas.",
-    },
-    {
-      id: "fiendish-vigor",
-      label: "Vigor Infernal",
-      summary: "Pode conjurar Vida Falsa em si sem gastar espaço de magia.",
-    },
-    {
-      id: "gaze-of-two-minds",
-      label: "Olhar de Duas Mentes",
-      summary: "Usa uma ação para perceber pelos sentidos de humanoide voluntário próximo.",
-    },
-    {
-      id: "mask-of-many-faces",
-      label: "Máscara de Muitas Faces",
-      summary: "Pode conjurar Disfarçar-se sem gastar espaço de magia.",
-    },
-    {
-      id: "misty-visions",
-      label: "Visões Nebulosas",
-      summary: "Pode conjurar Imagem Silenciosa sem gastar espaço de magia.",
-    },
-    {
-      id: "repelling-blast",
-      label: "Rajada Repulsiva",
-      requiresCantrip: "rajada-mistica",
-      summary: "Quando acerta Rajada Mística, pode empurrar o alvo.",
-    },
-    {
-      id: "thief-of-five-fates",
-      label: "Ladrão dos Cinco Destinos",
-      summary: "Pode conjurar Perdição usando um espaço de Magia de Pacto.",
-    },
-    {
-      id: "book-of-ancient-secrets",
-      label: "Livro dos Segredos Antigos",
-      requiresPact: "pacto-do-tomo",
-      summary: "Adiciona rituais ao Livro das Sombras e permite copiar novos rituais.",
-    },
-    {
-      id: "voice-of-the-chain-master",
-      label: "Voz do Mestre da Corrente",
-      requiresPact: "pacto-da-corrente",
-      summary: "Melhora comunicação e percepção através do familiar do pacto.",
-    },
-    {
-      id: "improved-pact-weapon",
-      label: "Arma de Pacto Aprimorada",
-      requiresPact: "pacto-da-lamina",
-      summary: "A arma de pacto pode ser foco, recebe bônus mágico e pode assumir formas à distância.",
-    },
-    {
-      id: "investment-of-the-chain-master",
-      label: "Investimento do Mestre da Corrente",
-      requiresPact: "pacto-da-corrente",
-      summary: "Fortalece o familiar do pacto com voo/natação, dano mágico e comandos melhores.",
-    },
-    {
-      id: "rebuke-of-the-talisman",
-      label: "Repreensão do Talismã",
-      requiresPact: "pacto-do-talisma",
-      summary: "Quando o portador do talismã é atingido, pode causar dano psíquico e empurrar o atacante.",
-    },
-    {
-      id: "mire-the-mind",
-      label: "Lama da Mente",
-      minLevel: 5,
-      summary: "Pode conjurar Lentidão usando um espaço de Magia de Pacto.",
-    },
-    {
-      id: "one-with-shadows",
-      label: "Um com as Sombras",
-      minLevel: 5,
-      summary: "Em área de pouca luz ou escuridão, pode ficar invisível até se mover ou agir.",
-    },
-    {
-      id: "sign-of-ill-omen",
-      label: "Sinal de Mau Agouro",
-      minLevel: 5,
-      summary: "Pode conjurar Rogar Maldição usando um espaço de Magia de Pacto.",
-    },
-    {
-      id: "thirsting-blade",
-      label: "Lâmina Sedenta",
-      minLevel: 5,
-      requiresPact: "pacto-da-lamina",
-      summary: "Pode atacar duas vezes com a arma de pacto ao usar a ação Atacar.",
-    },
-    {
-      id: "eldritch-smite",
-      label: "Castigo Místico",
-      minLevel: 5,
-      requiresPact: "pacto-da-lamina",
-      summary: "Ao acertar com a arma de pacto, gasta espaço de pacto para causar dano de força extra e derrubar o alvo.",
-    },
-    {
-      id: "bewitching-whispers",
-      label: "Sussurros Enfeitiçantes",
-      minLevel: 7,
-      summary: "Pode conjurar Compulsão usando um espaço de Magia de Pacto.",
-    },
-    {
-      id: "dreadful-word",
-      label: "Palavra Terrível",
-      minLevel: 7,
-      summary: "Pode conjurar Confusão usando um espaço de Magia de Pacto.",
-    },
-    {
-      id: "sculptor-of-flesh",
-      label: "Escultor da Carne",
-      minLevel: 7,
-      summary: "Pode conjurar Polimorfia usando um espaço de Magia de Pacto.",
-    },
-    {
-      id: "ascendant-step",
-      label: "Passo Ascendente",
-      minLevel: 9,
-      summary: "Pode conjurar Levitação em si sem gastar espaço de magia.",
-    },
-    {
-      id: "minions-of-chaos",
-      label: "Servos do Caos",
-      minLevel: 9,
-      summary: "Pode conjurar Conjurar Elemental usando um espaço de Magia de Pacto.",
-    },
-    {
-      id: "otherworldly-leap",
-      label: "Salto Sobrenatural",
-      minLevel: 9,
-      summary: "Pode conjurar Salto em si sem gastar espaço de magia.",
-    },
-    {
-      id: "whispers-of-the-grave",
-      label: "Sussurros do Túmulo",
-      minLevel: 9,
-      summary: "Pode conjurar Falar com os Mortos sem gastar espaço de magia.",
-    },
-    {
-      id: "lifedrinker",
-      label: "Bebedor de Vida",
-      minLevel: 12,
-      requiresPact: "pacto-da-lamina",
-      summary: "Soma dano necrótico igual ao Carisma aos acertos com a arma de pacto.",
-    },
-    {
-      id: "master-of-myriad-forms",
-      label: "Mestre de Miríades de Formas",
-      minLevel: 15,
-      summary: "Pode conjurar Alterar-se sem gastar espaço de magia.",
-    },
-    {
-      id: "visions-of-distant-realms",
-      label: "Visões de Reinos Distantes",
-      minLevel: 15,
-      summary: "Pode conjurar Olho Arcano sem gastar espaço de magia.",
-    },
-    {
-      id: "witch-sight",
-      label: "Visão Bruxa",
-      minLevel: 15,
-      summary: "Enxerga a forma verdadeira de metamorfos e criaturas ocultas por ilusão ou transmutação.",
-    },
-    {
-      id: "chains-of-carceri",
-      label: "Correntes de Carceri",
-      minLevel: 15,
-      requiresPact: "pacto-da-corrente",
-      summary: "Pode conjurar Imobilizar Monstro contra certos tipos de criatura sem gastar espaço de magia.",
-    },
-  ];
-  const WARLOCK_INVOCATION_BY_ID = new Map(WARLOCK_INVOCATION_OPTIONS.map((option) => [option.id, option]));
-
   const TOOL_CHOICE_OPTIONS = [
     { value: "tool:suprimentos-de-alquimista", label: "Suprimentos de Alquimista", group: "artisan" },
     { value: "tool:ferramentas-de-cervejeiro", label: "Ferramentas de Cervejeiro", group: "artisan" },
@@ -551,12 +312,6 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     label: abilityKeyToLabel(abilityKey),
   }));
   const RACIAL_DETAIL_DEFINITIONS = {
-    "humano-variante": {
-      detailType: "skill",
-      label: "Perícia Extra",
-      description: "Escolha a perícia concedida pela característica Perícia Extra do Humano Variante.",
-      options: SKILLS.map((skill) => ({ value: skill.key, label: skill.nome })),
-    },
     fada: {
       detailType: "spellAbility",
       label: "Atributo de Conjuração",
@@ -2180,9 +1935,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     version2024Screen: $("version2024Screen"),
     form: $("sheetForm"),
     status: $("status"),
-    userAreaContainer: $("userAreaContainer5e"),
     userArea: $("userArea5e"),
-    userAreaHeader: $("userAreaHeader5e"),
     authPanel: $("authPanel5e"),
     loginForm: $("loginForm5e"),
     registerForm: $("registerForm5e"),
@@ -2191,18 +1944,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     accountEmail: $("accountEmail5e"),
     userAreaCount: $("userAreaCount5e"),
     logoutAccount: $("logoutAccount5e"),
-    editorLogout: $("editorLogout5e"),
-    mobileMenuShell: $("mobileEditorMenuShell5e"),
-    mobileMenuToggle: $("mobileMenuToggle5e"),
-    mobileMenu: $("mobileEditorMenu5e"),
-    mobileCharacterBlock: $("mobileCurrentCharacter5e"),
-    mobileCharacterName: $("mobileCurrentCharacterName5e"),
-    mobileCharacterSummary: $("mobileCurrentCharacterSummary5e"),
-    mobileSaveCharacter: $("mobileSaveCharacter5e"),
-    mobileLogout: $("mobileLogout5e"),
     saveCharacter: $("saveCharacter5e"),
-    userSessionRow: $("userSessionRow5e"),
-    quickSaveCharacter: $("quickSaveCharacter5e"),
     emptySaves: $("emptySaves5e"),
     savedCharactersList: $("savedCharactersList5e"),
     nomeJogador: $("nomeJogador"),
@@ -2264,10 +2006,6 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     raceDetailChoicesSummary: $("raceDetailChoicesSummary"),
     raceDetailChoicesContainer: $("raceDetailChoicesContainer"),
     raceDetailChoicesInfo: $("raceDetailChoicesInfo"),
-    warlockChoicesPanel: $("warlockChoicesPanel"),
-    warlockChoicesSummary: $("warlockChoicesSummary"),
-    warlockChoicesContainer: $("warlockChoicesContainer"),
-    warlockChoicesInfo: $("warlockChoicesInfo"),
     languageChoicesPanel: $("languageChoicesPanel"),
     languageChoicesSummary: $("languageChoicesSummary"),
     languageChoicesContainer: $("languageChoicesContainer"),
@@ -2585,7 +2323,6 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     renderFeatDetailChoices();
     renderSubclassDetailChoices();
     renderRaceDetailChoices();
-    renderWarlockChoices();
     renderLanguageChoices();
     renderExpertiseChoices();
     renderFightingStyleChoices();
@@ -2612,7 +2349,6 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     renderFeatDetailChoices();
     renderSubclassDetailChoices();
     renderRaceDetailChoices();
-    renderWarlockChoices();
     renderLanguageChoices();
     renderExpertiseChoices();
     renderFightingStyleChoices();
@@ -2645,7 +2381,6 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     if (el.featDetailChoicesContainer) el.featDetailChoicesContainer.addEventListener("change", onFeatDetailChoiceChanged);
     if (el.subclassDetailChoicesContainer) el.subclassDetailChoicesContainer.addEventListener("change", onSubclassDetailChoiceChanged);
     if (el.raceDetailChoicesContainer) el.raceDetailChoicesContainer.addEventListener("change", onRaceDetailChoiceChanged);
-    if (el.warlockChoicesContainer) el.warlockChoicesContainer.addEventListener("change", onWarlockChoiceChanged);
     if (el.languageChoicesContainer) el.languageChoicesContainer.addEventListener("change", onLanguageChoiceChanged);
     if (el.expertiseChoicesContainer) el.expertiseChoicesContainer.addEventListener("change", onExpertiseChoiceChanged);
     if (el.fightingStyleContainer) el.fightingStyleContainer.addEventListener("change", onFightingStyleChoiceChanged);
@@ -2761,27 +2496,15 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       form: el.form,
       elements: {
         root: el.userArea,
-        container: el.userAreaContainer,
-        header: el.userAreaHeader,
         authPanel: el.authPanel,
         loginForm: el.loginForm,
         registerForm: el.registerForm,
         userPanel: el.userPanel,
         accountName: el.accountName,
         accountEmail: el.accountEmail,
-        sessionRow: el.userSessionRow,
         count: el.userAreaCount,
         logoutButton: el.logoutAccount,
-        pageLogoutButton: el.editorLogout,
-        mobileLogoutButton: el.mobileLogout,
-        mobileMenuShell: el.mobileMenuShell,
-        mobileMenuToggle: el.mobileMenuToggle,
-        mobileMenu: el.mobileMenu,
-        mobileCharacterBlock: el.mobileCharacterBlock,
-        mobileCharacterName: el.mobileCharacterName,
-        mobileCharacterSummary: el.mobileCharacterSummary,
         saveButton: el.saveCharacter,
-        saveButtons: [el.quickSaveCharacter, el.mobileSaveCharacter],
         empty: el.emptySaves,
         list: el.savedCharactersList,
       },
@@ -2803,7 +2526,6 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     onClassChanged();
     onBackgroundChanged();
     onSubclassChanged();
-    renderWarlockChoices();
     renderLanguageChoices();
     onAlignmentChanged();
     onDivinityChanged();
@@ -3141,18 +2863,11 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     const mainAttrs = cls.atributoPrincipal?.map((attr) => attr.toUpperCase()) || [];
     const saves = cls.salvaguardas?.map((attr) => attr.toUpperCase()) || [];
     const unlockLevel = getSubclassUnlockLevel(cls);
-    const warlockBits = cls.id === "bruxo"
-      ? [
-        getWarlockInvocationLimit(classLevel) ? `Invocações: ${getWarlockInvocationLimit(classLevel)}` : null,
-        classLevel >= 3 ? "Dádiva de Pacto disponível" : null,
-      ].filter(Boolean)
-      : [];
     return [
       cls.dadoVida ? `Dado de vida: d${cls.dadoVida}` : null,
       `Nível na classe: ${classLevel}`,
       mainAttrs.length ? `Atributos principais: ${formatList(mainAttrs)}` : null,
       saves.length ? `Salvaguardas: ${formatList(saves)}` : null,
-      ...warlockBits,
       unlockLevel ? `Subclasse a partir do nível ${unlockLevel}` : "Sem subclasses cadastradas",
     ].filter(Boolean).join(" • ");
   }
@@ -3427,7 +3142,6 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     syncSuggestedSkillSelections();
     renderFightingStyleChoices();
     renderFeatChoices();
-    renderWarlockChoices();
     renderMagicSection();
     atualizarPreview();
   }
@@ -3440,7 +3154,6 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     syncSuggestedSkillSelections();
     renderFightingStyleChoices();
     renderFeatChoices();
-    renderWarlockChoices();
     renderMagicSection();
     atualizarPreview();
   }
@@ -3466,7 +3179,6 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     syncSuggestedSkillSelections();
     renderFightingStyleChoices();
     renderFeatChoices();
-    renderWarlockChoices();
     renderMagicSection();
     atualizarPreview();
   }
@@ -3481,7 +3193,6 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     syncSuggestedSkillSelections();
     renderFightingStyleChoices();
     renderFeatChoices();
-    renderWarlockChoices();
     renderMagicSection();
     atualizarPreview();
   }
@@ -3504,7 +3215,6 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     syncSuggestedSkillSelections();
     renderFightingStyleChoices();
     renderFeatChoices();
-    renderWarlockChoices();
     renderMagicSection();
     atualizarPreview();
   }
@@ -3518,7 +3228,6 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
             <div>${escapeHtml(s.nome)}</div>
             <small>${escapeHtml(s.atributo.toUpperCase())}</small>
           </div>
-          <span class="skill-lock-hover-card" role="tooltip" hidden></span>
         </label>
       `;
     }).join("");
@@ -3553,98 +3262,6 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       .map((skillKey) => resolveSkillKey(skillKey))
       .filter(Boolean)
       .map(skillKeyToLabel);
-  }
-
-  function addSkillLockSource(sourceMap, skillKey, sourceLabel) {
-    if (!sourceMap || !skillKey || !sourceLabel) return;
-    if (!sourceMap.has(skillKey)) sourceMap.set(skillKey, []);
-    const labels = sourceMap.get(skillKey);
-    if (!labels.includes(sourceLabel)) labels.push(sourceLabel);
-  }
-
-  function describeSkillLockReason(sourceLabels = []) {
-    const labels = dedupeStringList(sourceLabels).filter(Boolean);
-    if (!labels.length) {
-      return "Esta perícia está bloqueada porque já foi concedida automaticamente pela combinação atual.";
-    }
-    return `Esta perícia está bloqueada porque já foi selecionada por ${formatList(labels)}.`;
-  }
-
-  function getSkillKeyFromChoiceOptionValue(value) {
-    const raw = String(value || "").trim();
-    const skillKey = raw.startsWith("skill:") ? raw.slice("skill:".length) : raw;
-    return resolveSkillKey(skillKey) || "";
-  }
-
-  function buildBlockedSkillChoiceOptions(options = [], fixedSkillSources = new Map()) {
-    return (options || []).map((option) => {
-      const skillKey = getSkillKeyFromChoiceOptionValue(option?.value);
-      if (!skillKey || !fixedSkillSources.has(skillKey)) return option;
-      const reason = describeSkillLockReason(fixedSkillSources.get(skillKey));
-      return {
-        ...option,
-        disabled: true,
-        title: reason,
-        label: `${option.label || skillKeyToLabel(skillKey)} (já concedida)`,
-      };
-    });
-  }
-
-  function formatBlockedSkillChoiceNote(options = [], fixedSkillSources = new Map()) {
-    const blockedLabels = (options || [])
-      .map((option) => getSkillKeyFromChoiceOptionValue(option?.value))
-      .filter((skillKey) => skillKey && fixedSkillSources.has(skillKey))
-      .map((skillKey) => `${skillKeyToLabel(skillKey)} (${formatList(fixedSkillSources.get(skillKey) || [])})`);
-    return blockedLabels.length
-      ? `Opções já concedidas e bloqueadas: ${formatList(blockedLabels)}.`
-      : "";
-  }
-
-  function collectFixedSkillSourcesForChoiceOptions({
-    excludeRaceDetailSourceKey = "",
-    excludeFeatDetailSourceKey = "",
-  } = {}) {
-    const cls = getSelectedClassData();
-    const race = getSelectedRaceData();
-    const subrace = getSelectedSubraceData();
-    const bg = BACKGROUND_BY_NAME.get(el.antecedente.value) || null;
-    const subclass = getSelectedSubclassData();
-    const classEntries = collectClassEntries(cls, subclass, getTotalCharacterLevel());
-    const raceTraits = getRaceTraitList(race, subrace);
-    const subclassAdjustments = collectSubclassSkillAdjustments(classEntries);
-    const fixedSkillSources = new Map();
-
-    (bg?.pericias || [])
-      .map((skillKey) => resolveSkillKey(skillKey))
-      .filter(Boolean)
-      .forEach((skillKey) => addSkillLockSource(fixedSkillSources, skillKey, bg?.nome ? `Antecedente ${bg.nome}` : "Antecedente"));
-
-    collectFixedSkillProficienciesFromTraits(raceTraits)
-      .forEach((skillKey) => addSkillLockSource(fixedSkillSources, skillKey, race?.nome ? `Raça ${race.nome}` : "Origem racial"));
-
-    subclassAdjustments.fixedSkills
-      .forEach((skillKey) => addSkillLockSource(fixedSkillSources, skillKey, "Subclasse"));
-
-    const featGrants = collectFeatChoiceSources({ race, subrace, background: bg, classEntries });
-    const selectedFeats = collectSelectedFeatChoices(featGrants);
-    const selectedFeatDetails = collectSelectedFeatDetails(collectFeatDetailSources(selectedFeats));
-    selectedFeatDetails.forEach((entry) => {
-      if (excludeFeatDetailSourceKey && entry?.sourceKey === excludeFeatDetailSourceKey) return;
-      const skillKey = extractSkillKeyFromFeatDetailValue(entry?.value);
-      if (!skillKey) return;
-      addSkillLockSource(fixedSkillSources, skillKey, `Talento ${entry.featLabel || "selecionado"}`);
-    });
-
-    const selectedRaceDetails = collectSelectedRaceDetails(collectRaceDetailSources({ race, subrace }));
-    selectedRaceDetails.forEach((entry) => {
-      if (excludeRaceDetailSourceKey && entry?.sourceKey === excludeRaceDetailSourceKey) return;
-      if (entry?.detailType !== "skill") return;
-      const skillKey = resolveSkillKey(entry.value);
-      if (!skillKey) return;
-      addSkillLockSource(fixedSkillSources, skillKey, `Raça ${entry.targetLabel || race?.nome || "selecionada"}: ${entry.label || "perícia"}`);
-    });
-
-    return fixedSkillSources;
   }
 
   function buildSkillChoiceSource(label, picks, pool, sourceType) {
@@ -3861,52 +3478,18 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     const selectedFeats = collectSelectedFeatChoices(featGrants);
     const featDetailSources = collectFeatDetailSources(selectedFeats);
     const selectedFeatDetails = collectSelectedFeatDetails(featDetailSources);
-    const raceDetailSources = collectRaceDetailSources({ race, subrace });
-    const selectedRaceDetails = collectSelectedRaceDetails(raceDetailSources);
     const featSkillChoiceSources = collectFeatSkillChoiceSources(selectedFeats);
     const featFixedSkills = Array.from(collectFeatFixedSkillSelections(selectedFeatDetails));
-    const racialDetailFixedSkills = selectedRaceDetails
-      .filter((entry) => entry?.detailType === "skill")
-      .map((entry) => resolveSkillKey(entry.value))
-      .filter(Boolean);
     const raceTraits = getRaceTraitList(race, subrace);
     const subclassAdjustments = collectSubclassSkillAdjustments(classEntries);
     const backgroundFixedSkills = Array.from((bg?.pericias || []).map((skillKey) => resolveSkillKey(skillKey)).filter(Boolean));
     const racialFixedSkills = Array.from(collectFixedSkillProficienciesFromTraits(raceTraits));
     const subclassFixedSkills = Array.from(subclassAdjustments.fixedSkills);
-    const warlockChoiceState = collectSelectedWarlockChoiceState(classEntries);
-    const warlockFixedSkills = Array.from(collectWarlockInvocationSkillProficiencies(warlockChoiceState));
 
     const fixedSkills = new Set(backgroundFixedSkills);
-    const fixedSkillSources = new Map();
-    backgroundFixedSkills.forEach((skillKey) => {
-      addSkillLockSource(fixedSkillSources, skillKey, bg?.nome ? `Antecedente ${bg.nome}` : "Antecedente");
-    });
-    racialFixedSkills.forEach((skillKey) => {
-      fixedSkills.add(skillKey);
-      addSkillLockSource(fixedSkillSources, skillKey, race?.nome ? `Raça ${race.nome}` : "Origem racial");
-    });
-    subclassFixedSkills.forEach((skillKey) => {
-      fixedSkills.add(skillKey);
-      addSkillLockSource(fixedSkillSources, skillKey, "Subclasse");
-    });
-    warlockFixedSkills.forEach((skillKey) => {
-      fixedSkills.add(skillKey);
-      addSkillLockSource(fixedSkillSources, skillKey, "Invocação Mística");
-    });
-    selectedFeatDetails.forEach((entry) => {
-      const skillKey = extractSkillKeyFromFeatDetailValue(entry?.value);
-      if (!skillKey) return;
-      fixedSkills.add(skillKey);
-      addSkillLockSource(fixedSkillSources, skillKey, `Talento ${entry.featLabel || "selecionado"}`);
-    });
-    selectedRaceDetails.forEach((entry) => {
-      if (entry?.detailType !== "skill") return;
-      const skillKey = resolveSkillKey(entry.value);
-      if (!skillKey) return;
-      fixedSkills.add(skillKey);
-      addSkillLockSource(fixedSkillSources, skillKey, `Raça ${entry.targetLabel || race?.nome || "selecionada"}: ${entry.label || "perícia"}`);
-    });
+    racialFixedSkills.forEach((skillKey) => fixedSkills.add(skillKey));
+    subclassFixedSkills.forEach((skillKey) => fixedSkills.add(skillKey));
+    featFixedSkills.forEach((skillKey) => fixedSkills.add(skillKey));
     const choiceSources = [];
 
     if (cls?.proficiencias?.periciasEscolha) {
@@ -3914,14 +3497,8 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       choiceSources.push(buildSkillChoiceSource(`Classe ${cls.nome}`, classRule.picks, classRule.from, "classe"));
     }
 
-    choiceSources.push(...extractSkillChoiceSourcesFromTraits(
-      `Raça ${race?.nome || ""}`.trim(),
-      RACIAL_DETAIL_DEFINITIONS[race?.id]?.detailType === "skill" ? [] : race?.tracos
-    ));
-    choiceSources.push(...extractSkillChoiceSourcesFromTraits(
-      `Sub-raça ${subrace?.nome || ""}`.trim(),
-      RACIAL_DETAIL_DEFINITIONS[subrace?.id]?.detailType === "skill" ? [] : subrace?.tracos
-    ));
+    choiceSources.push(...extractSkillChoiceSourcesFromTraits(`Raça ${race?.nome || ""}`.trim(), race?.tracos));
+    choiceSources.push(...extractSkillChoiceSourcesFromTraits(`Sub-raça ${subrace?.nome || ""}`.trim(), subrace?.tracos));
     choiceSources.push(...collectMulticlassSkillChoiceSources(classEntries));
     choiceSources.push(...subclassAdjustments.choiceSources);
     choiceSources.push(...featSkillChoiceSources);
@@ -3939,16 +3516,8 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       hintParts.push(`<strong>Subclasse</strong>: concede ${escapeHtml(formatList(subclassFixedSkills.map(skillKeyToLabel)))} automaticamente.`);
     }
 
-    if (warlockFixedSkills.length) {
-      hintParts.push(`<strong>Invocação Mística</strong>: concede ${escapeHtml(formatList(warlockFixedSkills.map(skillKeyToLabel)))} automaticamente.`);
-    }
-
     if (featFixedSkills.length) {
       hintParts.push(`<strong>Talentos</strong>: concede ${escapeHtml(formatList(featFixedSkills.map(skillKeyToLabel)))} automaticamente.`);
-    }
-
-    if (racialDetailFixedSkills.length) {
-      hintParts.push(`<strong>Escolha racial</strong>: concede ${escapeHtml(formatList(racialDetailFixedSkills.map(skillKeyToLabel)))}.`);
     }
 
     choiceSources.forEach((source) => {
@@ -3966,7 +3535,6 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
 
     return {
       fixedSkills,
-      fixedSkillSources,
       choiceSources,
       fixedExpertises: subclassAdjustments.fixedExpertises,
       hintHtml: hintParts.join("<br>"),
@@ -4063,21 +3631,11 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       const checkbox = item.querySelector("input[data-skill]");
       const skillKey = checkbox?.getAttribute("data-skill");
       const isFixed = Boolean(skillKey) && skillContext.fixedSkills.has(skillKey);
-      const lockReason = isFixed
-        ? describeSkillLockReason(skillContext.fixedSkillSources?.get(skillKey) || [])
-        : "";
-      const hoverCard = item.querySelector(".skill-lock-hover-card");
       if (checkbox) {
         checkbox.disabled = isFixed;
-        checkbox.title = lockReason;
-      }
-      item.setAttribute("aria-disabled", isFixed ? "true" : "false");
-      if (hoverCard) {
-        hoverCard.textContent = lockReason;
-        hoverCard.hidden = !lockReason;
+        checkbox.title = isFixed ? "Proficiência concedida automaticamente pelas regras oficiais atuais." : "";
       }
       item.classList.toggle("is-fixed", isFixed);
-      item.classList.toggle("is-blocked", isFixed);
       item.classList.toggle("is-class-option", Boolean(skillKey) && classChoiceSkills.has(skillKey));
     });
 
@@ -4793,13 +4351,16 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       summary: [
         subrace.atributos ? `Atributos: ${Object.entries(subrace.atributos).map(([key, amount]) => `${key.toUpperCase()} ${fmtSigned(amount)}`).join(", ")}` : "",
         subrace.tracos?.length ? `Traços: ${subrace.tracos.map((trait) => trait.nome).join(", ")}` : "",
+        subrace.origem ? `Origem: ${subrace.origem}` : ""
       ].filter(Boolean).join(" • "),
       lines: [
         subrace.atributos ? `Bônus: ${Object.entries(subrace.atributos).map(([key, amount]) => `${key.toUpperCase()} ${fmtSigned(amount)}`).join(", ")}` : "",
         subrace.tracos?.length ? `Traços: ${subrace.tracos.map((trait) => trait.nome).join(", ")}` : "",
+        subrace.origem ? `Origem: ${subrace.origem}` : "",
+        subrace.descricaoFisica ? `Físico: ${subrace.descricaoFisica}` : ""
       ].filter(Boolean),
       body: subrace.descricao || "",
-      search: `${subrace.nome} ${subrace.descricao || ""} ${(subrace.tracos || []).map((trait) => trait.nome).join(" ")}`,
+      search: `${subrace.nome} ${subrace.descricao || ""} ${subrace.origem || ""} ${subrace.descricaoFisica || ""} ${(subrace.tracos || []).map((trait) => trait.nome).join(" ")}`,
     };
   }
 
@@ -5214,7 +4775,6 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     renderFightingStyleChoices();
     renderEquipmentChoices();
     renderFeatChoices();
-    renderWarlockChoices();
     renderMagicSection();
   }
 
@@ -5222,7 +4782,6 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     syncSuggestedSkillSelections();
     renderFightingStyleChoices();
     renderFeatChoices();
-    renderWarlockChoices();
     renderMagicSection();
     atualizarPreview();
   }
@@ -7030,15 +6589,11 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     }
 
     el.featDetailChoicesContainer.innerHTML = detailSources.map((source) => {
-      const fixedSkillSources = collectFixedSkillSourcesForChoiceOptions({
-        excludeFeatDetailSourceKey: source.key,
-      });
-      const blockedNote = formatBlockedSkillChoiceNote(source.options, fixedSkillSources);
       const fields = Array.from({ length: source.picks }, (_, slotIndex) => {
         const slotKey = buildFeatDetailSlotKey(source, slotIndex);
         const selectedValue = selections.get(slotKey) || "";
-        const options = buildBlockedSkillChoiceOptions(source.options, fixedSkillSources).map((option) => `
-          <option value="${escapeHtml(option.value)}"${option.disabled ? " disabled" : ""}${option.title ? ` title="${escapeHtml(option.title)}"` : ""}${!option.disabled && selectedValue === option.value ? " selected" : ""}>${escapeHtml(option.label)}</option>
+        const options = source.options.map((option) => `
+          <option value="${escapeHtml(option.value)}"${selectedValue === option.value ? " selected" : ""}>${escapeHtml(option.label)}</option>
         `).join("");
 
         return `
@@ -7056,7 +6611,6 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
         <article class="feat-choice-card">
           <strong>${escapeHtml(source.featLabel)}</strong>
           <p class="feat-choice-meta">${escapeHtml(source.description || "Escolha os detalhes exigidos por este talento.")}</p>
-          ${blockedNote ? `<small class="note subtle">${escapeHtml(blockedNote)}</small>` : ""}
           ${fields}
         </article>
       `;
@@ -7132,19 +6686,15 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       ? "1 escolha oficial de raça precisa ser definida."
       : `${detailSources.length} escolhas oficiais de raça precisam ser definidas.`;
     if (el.raceDetailChoicesInfo) {
-      el.raceDetailChoicesInfo.textContent = "Este bloco resolve raças e sub-raças com escolhas oficiais que afetam proficiências, conjuração ou outros detalhes da origem.";
+      el.raceDetailChoicesInfo.textContent = "Este bloco resolve raças e sub-raças com atributo de conjuração ou outra escolha que altera magias raciais.";
     }
 
     el.raceDetailChoicesContainer.innerHTML = detailSources.map((source) => {
       const slotKey = buildRaceDetailSlotKey(source, 0);
       const selectedValue = selections.get(slotKey) || "";
-      const fixedSkillSources = collectFixedSkillSourcesForChoiceOptions({
-        excludeRaceDetailSourceKey: source.key,
-      });
-      const options = buildBlockedSkillChoiceOptions(source.options, fixedSkillSources).map((option) => `
-        <option value="${escapeHtml(option.value)}"${option.disabled ? " disabled" : ""}${option.title ? ` title="${escapeHtml(option.title)}"` : ""}${!option.disabled && selectedValue === option.value ? " selected" : ""}>${escapeHtml(option.label)}</option>
+      const options = source.options.map((option) => `
+        <option value="${escapeHtml(option.value)}"${selectedValue === option.value ? " selected" : ""}>${escapeHtml(option.label)}</option>
       `).join("");
-      const blockedNote = formatBlockedSkillChoiceNote(source.options, fixedSkillSources);
 
       return `
         <article class="feat-choice-card">
@@ -7157,240 +6707,9 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
               ${options}
             </select>
           </label>
-          ${blockedNote ? `<small class="note subtle">${escapeHtml(blockedNote)}</small>` : ""}
         </article>
       `;
     }).join("");
-  }
-
-  function getWarlockClassEntries(classEntries = null) {
-    const entries = Array.isArray(classEntries)
-      ? classEntries
-      : collectClassEntries(getSelectedClassData(), getSelectedSubclassData(), getTotalCharacterLevel());
-    return (entries || []).filter((entry) => entry?.classId === "bruxo" && Number(entry.level || 0) > 0);
-  }
-
-  function getHighestWarlockLevel(classEntries = null) {
-    return getWarlockClassEntries(classEntries).reduce((highest, entry) => Math.max(highest, Number(entry.level || 0)), 0);
-  }
-
-  function getWarlockInvocationLimit(level) {
-    return WARLOCK_INVOCATIONS_BY_LEVEL[clampInt(level, 0, 20)] || 0;
-  }
-
-  function getCurrentWarlockPactBoonId() {
-    const select = el.warlockChoicesContainer?.querySelector("select[data-warlock-pact]");
-    return String(select?.value || "").trim();
-  }
-
-  function getSelectedWarlockInvocationIdsFromDom() {
-    return Array.from(el.warlockChoicesContainer?.querySelectorAll("select[data-warlock-invocation-slot]") || [])
-      .map((select) => String(select.value || "").trim())
-      .filter(Boolean);
-  }
-
-  function formatWarlockInvocationRequirement(invocation) {
-    const requirements = [];
-    if (invocation?.minLevel) requirements.push(`${invocation.minLevel}º nível`);
-    if (invocation?.requiresPact) requirements.push(WARLOCK_PACT_LABEL_BY_ID[invocation.requiresPact] || labelFromSlug(invocation.requiresPact));
-    if (invocation?.requiresCantrip) {
-      requirements.push(invocation.requiresCantrip === "rajada-mistica" ? "Rajada Mística" : labelFromSlug(invocation.requiresCantrip));
-    }
-    return requirements.length ? `Pré-requisito: ${requirements.join(" • ")}` : "Sem pré-requisito adicional";
-  }
-
-  function isWarlockInvocationEligible(invocation, { level, pactBoonId } = {}) {
-    if (!invocation) return false;
-    if (invocation.minLevel && Number(level || 0) < invocation.minLevel) return false;
-    if (invocation.requiresPact && invocation.requiresPact !== pactBoonId) return false;
-    return true;
-  }
-
-  function buildWarlockInvocationOptionHtml(invocation, context, selectedId, selectedIds, slotIndex) {
-    const isSelected = selectedId === invocation.id;
-    const duplicateElsewhere = selectedIds.some((id, index) => index !== slotIndex && id === invocation.id);
-    const eligible = isWarlockInvocationEligible(invocation, context);
-    const disabled = !isSelected && (!eligible || duplicateElsewhere);
-    const suffixParts = [
-      eligible ? "" : formatWarlockInvocationRequirement(invocation),
-      duplicateElsewhere ? "já escolhida" : "",
-    ].filter(Boolean);
-    const label = suffixParts.length
-      ? `${invocation.label} (${suffixParts.join("; ")})`
-      : invocation.label;
-
-    return `<option value="${escapeHtml(invocation.id)}"${isSelected ? " selected" : ""}${disabled ? " disabled" : ""}>${escapeHtml(label)}</option>`;
-  }
-
-  function collectSelectedWarlockChoiceState(classEntries = null) {
-    const level = getHighestWarlockLevel(classEntries);
-    const invocationLimit = getWarlockInvocationLimit(level);
-    const pactAvailable = level >= 3;
-    const pactBoonId = pactAvailable ? getCurrentWarlockPactBoonId() : "";
-    const selectedIds = getSelectedWarlockInvocationIdsFromDom().slice(0, invocationLimit);
-    const invocations = selectedIds
-      .map((id) => WARLOCK_INVOCATION_BY_ID.get(id))
-      .filter(Boolean);
-
-    return {
-      level,
-      invocationLimit,
-      pactAvailable,
-      pactBoonId,
-      pactLabel: WARLOCK_PACT_LABEL_BY_ID[pactBoonId] || "",
-      invocations,
-      invocationIds: invocations.map((invocation) => invocation.id),
-    };
-  }
-
-  function collectWarlockInvocationSkillProficiencies(choiceState = collectSelectedWarlockChoiceState()) {
-    const skills = new Set();
-    (choiceState?.invocations || []).forEach((invocation) => {
-      (invocation?.effects?.skillProficiencies || []).forEach((skillKey) => {
-        const resolved = resolveSkillKey(skillKey);
-        if (resolved) skills.add(resolved);
-      });
-    });
-    return skills;
-  }
-
-  function buildWarlockChoiceFeatureLines(choiceState = collectSelectedWarlockChoiceState()) {
-    const lines = [];
-    if (!choiceState?.level) return lines;
-
-    if (choiceState.pactLabel) {
-      const pact = WARLOCK_PACT_BOON_OPTIONS.find((option) => option.id === choiceState.pactBoonId);
-      lines.push(`Dádiva de Pacto: ${choiceState.pactLabel}. ${pact?.summary || ""}`.trim());
-    }
-
-    const invocationLines = (choiceState.invocations || [])
-      .map((invocation) => `${invocation.label}: ${invocation.summary}`)
-      .filter(Boolean);
-    if (invocationLines.length) {
-      lines.push(`Invocações Místicas (${invocationLines.length}/${choiceState.invocationLimit}):`);
-      lines.push(...invocationLines);
-    }
-
-    return lines;
-  }
-
-  function hasWarlockInvocation(state, invocationId) {
-    if (!invocationId) return false;
-    const ids = state?.warlockChoices?.invocationIds || collectSelectedWarlockChoiceState().invocationIds || [];
-    return ids.includes(invocationId);
-  }
-
-  function renderWarlockChoices() {
-    if (!el.warlockChoicesPanel || !el.warlockChoicesContainer) return;
-
-    const classEntries = collectClassEntries(getSelectedClassData(), getSelectedSubclassData(), getTotalCharacterLevel());
-    const level = getHighestWarlockLevel(classEntries);
-    const invocationLimit = getWarlockInvocationLimit(level);
-    const pactAvailable = level >= 3;
-
-    if (!level || (!invocationLimit && !pactAvailable)) {
-      el.warlockChoicesPanel.hidden = true;
-      el.warlockChoicesSummary.textContent = "";
-      el.warlockChoicesContainer.innerHTML = "";
-      if (el.warlockChoicesInfo) el.warlockChoicesInfo.textContent = "";
-      return;
-    }
-
-    const previousPact = getCurrentWarlockPactBoonId();
-    const pactBoonId = pactAvailable ? previousPact : "";
-    const selectedIds = getSelectedWarlockInvocationIdsFromDom().slice(0, invocationLimit);
-    const context = { level, pactBoonId };
-    const cards = [];
-
-    if (pactAvailable) {
-      const options = WARLOCK_PACT_BOON_OPTIONS.map((option) => `
-        <option value="${escapeHtml(option.id)}"${pactBoonId === option.id ? " selected" : ""}>${escapeHtml(option.label)}</option>
-      `).join("");
-      const selectedPact = WARLOCK_PACT_BOON_OPTIONS.find((option) => option.id === pactBoonId);
-      cards.push(`
-        <article class="feat-choice-card">
-          <strong>Dádiva de Pacto</strong>
-          <p class="feat-choice-meta">${escapeHtml(selectedPact?.summary || "Escolha a dádiva recebida no 3º nível de Bruxo.")}</p>
-          <label class="row feat-choice-field">
-            <span>Dádiva</span>
-            <select name="warlock-pact-boon" data-warlock-pact data-previous-value="${escapeHtml(pactBoonId)}">
-              <option value="" selected>Selecione...</option>
-              ${options}
-            </select>
-          </label>
-        </article>
-      `);
-    }
-
-    for (let slotIndex = 0; slotIndex < invocationLimit; slotIndex += 1) {
-      const selectedId = selectedIds[slotIndex] || "";
-      const selectedInvocation = WARLOCK_INVOCATION_BY_ID.get(selectedId) || null;
-      const options = WARLOCK_INVOCATION_OPTIONS
-        .map((invocation) => buildWarlockInvocationOptionHtml(invocation, context, selectedId, selectedIds, slotIndex))
-        .join("");
-      cards.push(`
-        <article class="feat-choice-card">
-          <strong>Invocação ${slotIndex + 1}</strong>
-          <p class="feat-choice-meta">${escapeHtml(selectedInvocation ? formatWarlockInvocationRequirement(selectedInvocation) : "Escolha uma invocação disponível para o nível de Bruxo atual.")}</p>
-          <label class="row feat-choice-field">
-            <span>Invocação</span>
-            <select name="warlock-invocation-${slotIndex + 1}" data-warlock-invocation-slot="${slotIndex}" data-previous-value="${escapeHtml(selectedId)}">
-              <option value="" selected>Selecione...</option>
-              ${options}
-            </select>
-          </label>
-          <p class="feat-choice-description${selectedInvocation ? "" : " is-empty"}">${escapeHtml(selectedInvocation?.summary || "As opções desabilitadas mostram pré-requisitos pendentes ou escolhas já usadas.")}</p>
-        </article>
-      `);
-    }
-
-    el.warlockChoicesPanel.hidden = false;
-    el.warlockChoicesSummary.textContent = [
-      `Bruxo nível ${level}`,
-      invocationLimit ? `${invocationLimit} invocação(ões) mística(s)` : "",
-      pactAvailable ? "Dádiva de Pacto ativa" : "Dádiva de Pacto no nível 3",
-    ].filter(Boolean).join(" • ");
-    if (el.warlockChoicesInfo) {
-      el.warlockChoicesInfo.textContent = "Invocações selecionadas entram nos recursos da ficha; bônus automatizados incluem perícias, CA sem armadura e ataques aplicáveis.";
-    }
-    el.warlockChoicesContainer.innerHTML = cards.join("");
-  }
-
-  function onWarlockChoiceChanged(event) {
-    const pactSelect = event.target.closest("select[data-warlock-pact]");
-    const invocationSelect = event.target.closest("select[data-warlock-invocation-slot]");
-    if (!pactSelect && !invocationSelect) return;
-
-    if (pactSelect) {
-      const pactBoonId = String(pactSelect.value || "").trim();
-      Array.from(el.warlockChoicesContainer?.querySelectorAll("select[data-warlock-invocation-slot]") || []).forEach((select) => {
-        const invocation = WARLOCK_INVOCATION_BY_ID.get(select.value);
-        if (invocation?.requiresPact && invocation.requiresPact !== pactBoonId) {
-          select.value = "";
-        }
-      });
-    }
-
-    if (invocationSelect && invocationSelect.value) {
-      const duplicate = Array.from(el.warlockChoicesContainer.querySelectorAll("select[data-warlock-invocation-slot]"))
-        .find((other) => other !== invocationSelect && other.value === invocationSelect.value);
-      if (duplicate) {
-        const invocation = WARLOCK_INVOCATION_BY_ID.get(invocationSelect.value);
-        invocationSelect.value = invocationSelect.dataset.previousValue || "";
-        setStatus(`${invocation?.label || "Essa invocação"} já foi escolhida em outro espaço.`, "warning");
-        renderWarlockChoices();
-        syncSuggestedSkillSelections();
-        renderMagicSection();
-        atualizarPreview();
-        return;
-      }
-    }
-
-    setStatus("");
-    renderWarlockChoices();
-    syncSuggestedSkillSelections();
-    renderMagicSection();
-    atualizarPreview();
   }
 
   function renderFeatChoices() {
@@ -7415,7 +6734,6 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       renderFeatDetailChoices();
       renderSubclassDetailChoices();
       renderRaceDetailChoices();
-      renderWarlockChoices();
       return;
     }
 
@@ -7481,7 +6799,6 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     renderFeatDetailChoices();
     renderSubclassDetailChoices();
     renderRaceDetailChoices();
-    renderWarlockChoices();
   }
 
   function onFeatChoiceChanged(event) {
@@ -7530,7 +6847,6 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
         select.value = "";
         setStatus("Essa escolha já foi usada neste mesmo talento.");
         renderFeatDetailChoices();
-        syncSuggestedSkillSelections();
         atualizarPreview();
         return;
       }
@@ -7538,7 +6854,6 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
 
     setStatus("");
     renderFeatDetailChoices();
-    syncSuggestedSkillSelections();
     atualizarPreview();
   }
 
@@ -7558,7 +6873,6 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
 
     setStatus("");
     renderRaceDetailChoices();
-    syncSuggestedSkillSelections();
     renderMagicSection();
     atualizarPreview();
   }
@@ -13652,30 +12966,11 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     return candidates.some((candidate) => candidate && proficiencyTags.has(candidate));
   }
 
-  function canUseHexbladeCharismaForWeapon(weapon, state, resolvedClassEntries = state ? getResolvedClassEntries(state) : []) {
-    const hasHexblade = (resolvedClassEntries || []).some((entry) =>
-      entry?.classId === "bruxo"
-      && entry?.subclassData?.id === "bruxo-lamina-maldita"
-      && Number(entry.level || 0) >= 1
-    );
-    if (!hasHexblade || weapon?.tipo !== "corpo-a-corpo") return false;
-
+  function getWeaponAttackAbilityKey(weapon, mods) {
     const properties = new Set(weapon?.propriedades || []);
-    const hasPactBlade = state?.warlockChoices?.pactBoonId === "pacto-da-lamina";
-    return hasPactBlade || !properties.has("twoHanded");
-  }
-
-  function getWeaponAttackAbilityKey(weapon, mods, state = null, resolvedClassEntries = state ? getResolvedClassEntries(state) : []) {
-    const properties = new Set(weapon?.propriedades || []);
-    let abilityKey = "for";
-    if (weapon?.tipo === "distancia" && !properties.has("finesse")) abilityKey = "des";
-    else if (properties.has("finesse")) abilityKey = (mods.des || 0) >= (mods.for || 0) ? "des" : "for";
-
-    if (canUseHexbladeCharismaForWeapon(weapon, state, resolvedClassEntries) && (mods.car || 0) >= (mods[abilityKey] || 0)) {
-      return "car";
-    }
-
-    return abilityKey;
+    if (weapon?.tipo === "distancia" && !properties.has("finesse")) return "des";
+    if (properties.has("finesse")) return (mods.des || 0) >= (mods.for || 0) ? "des" : "for";
+    return "for";
   }
 
   function getDamageTypeLabel(value) {
@@ -13693,10 +12988,10 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     return `${weapon.dano.dado}${damageBonus} ${typeLabel}`.trim();
   }
 
-  function buildWeaponAttackEntry(weapon, mods, pb, isProficient, activeStyles = new Set(), state = null, resolvedClassEntries = state ? getResolvedClassEntries(state) : []) {
+  function buildWeaponAttackEntry(weapon, mods, pb, isProficient, activeStyles = new Set()) {
     if (!weapon) return null;
 
-    const abilityKey = getWeaponAttackAbilityKey(weapon, mods, state, resolvedClassEntries);
+    const abilityKey = getWeaponAttackAbilityKey(weapon, mods);
     const abilityMod = mods[abilityKey] || 0;
     const styleAttackBonus = activeStyles.has("arquearia") && weapon.tipo === "distancia" ? 2 : 0;
     const attackBonus = abilityMod + (isProficient ? pb : 0) + styleAttackBonus;
@@ -13756,10 +13051,6 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     }
 
     if (!isWearingArmor && featIds.has("pele-de-dragao")) {
-      baseOptions.push(13 + (mods.des || 0));
-    }
-
-    if (!isWearingArmor && hasWarlockInvocation(state, "armor-of-shadows")) {
       baseOptions.push(13 + (mods.des || 0));
     }
 
@@ -13842,7 +13133,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     const proficiencyTags = collectWeaponProficiencyTags(state, resolvedClassEntries);
     const activeStyles = getActiveFightingStyleIds(state);
     const lines = (equipmentLoadout.weapons || [])
-      .map((weapon) => buildWeaponAttackEntry(weapon, mods, pb, hasWeaponProficiency(proficiencyTags, weapon), activeStyles, state, resolvedClassEntries))
+      .map((weapon) => buildWeaponAttackEntry(weapon, mods, pb, hasWeaponProficiency(proficiencyTags, weapon), activeStyles))
       .filter(Boolean)
       .slice(0, 3);
 
@@ -16131,7 +15422,6 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
     const selectedExpertises = collectSelectedExpertises(expertiseGrants, new Set([...skillRuleContext.fixedSkills, ...getSelectedSkillKeys()]));
     const fightingStyleGrants = collectFightingStyleChoiceSources({ classEntries, selectedFeats });
     const selectedFightingStyles = collectSelectedFightingStyles(fightingStyleGrants);
-    const warlockChoices = collectSelectedWarlockChoiceState(classEntries);
 
     const attrs = {
       for: clampInt(el.for.value, 1, 20),
@@ -16228,7 +15518,6 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
       selectedExpertises,
       fightingStyleGrants,
       selectedFightingStyles,
-      warlockChoices,
       equipmentSelections: collectEquipmentSelectionState(),
       selectedSpellsBySource: getSpellSelectionSnapshot(),
       spellSlotsUsed: collectSpellSlotUsageState(),
@@ -16831,15 +16120,6 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
         title: "Estilos de Luta",
         lines: selectedFightingStyleLines,
         bucket: "primary",
-      });
-    }
-
-    const warlockChoiceLines = buildWarlockChoiceFeatureLines(state.warlockChoices);
-    if (warlockChoiceLines.length) {
-      sections.push({
-        title: "Pacto e Invocações",
-        lines: warlockChoiceLines,
-        bucket: "secondary",
       });
     }
 
