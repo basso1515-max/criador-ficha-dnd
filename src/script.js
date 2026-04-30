@@ -3570,6 +3570,83 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     return `Esta perícia está bloqueada porque já foi selecionada por ${formatList(labels)}.`;
   }
 
+  function getSkillKeyFromChoiceOptionValue(value) {
+    const raw = String(value || "").trim();
+    const skillKey = raw.startsWith("skill:") ? raw.slice("skill:".length) : raw;
+    return resolveSkillKey(skillKey) || "";
+  }
+
+  function buildBlockedSkillChoiceOptions(options = [], fixedSkillSources = new Map()) {
+    return (options || []).map((option) => {
+      const skillKey = getSkillKeyFromChoiceOptionValue(option?.value);
+      if (!skillKey || !fixedSkillSources.has(skillKey)) return option;
+      const reason = describeSkillLockReason(fixedSkillSources.get(skillKey));
+      return {
+        ...option,
+        disabled: true,
+        title: reason,
+        label: `${option.label || skillKeyToLabel(skillKey)} (já concedida)`,
+      };
+    });
+  }
+
+  function formatBlockedSkillChoiceNote(options = [], fixedSkillSources = new Map()) {
+    const blockedLabels = (options || [])
+      .map((option) => getSkillKeyFromChoiceOptionValue(option?.value))
+      .filter((skillKey) => skillKey && fixedSkillSources.has(skillKey))
+      .map((skillKey) => `${skillKeyToLabel(skillKey)} (${formatList(fixedSkillSources.get(skillKey) || [])})`);
+    return blockedLabels.length
+      ? `Opções já concedidas e bloqueadas: ${formatList(blockedLabels)}.`
+      : "";
+  }
+
+  function collectFixedSkillSourcesForChoiceOptions({
+    excludeRaceDetailSourceKey = "",
+    excludeFeatDetailSourceKey = "",
+  } = {}) {
+    const cls = getSelectedClassData();
+    const race = getSelectedRaceData();
+    const subrace = getSelectedSubraceData();
+    const bg = BACKGROUND_BY_NAME.get(el.antecedente.value) || null;
+    const subclass = getSelectedSubclassData();
+    const classEntries = collectClassEntries(cls, subclass, getTotalCharacterLevel());
+    const raceTraits = getRaceTraitList(race, subrace);
+    const subclassAdjustments = collectSubclassSkillAdjustments(classEntries);
+    const fixedSkillSources = new Map();
+
+    (bg?.pericias || [])
+      .map((skillKey) => resolveSkillKey(skillKey))
+      .filter(Boolean)
+      .forEach((skillKey) => addSkillLockSource(fixedSkillSources, skillKey, bg?.nome ? `Antecedente ${bg.nome}` : "Antecedente"));
+
+    collectFixedSkillProficienciesFromTraits(raceTraits)
+      .forEach((skillKey) => addSkillLockSource(fixedSkillSources, skillKey, race?.nome ? `Raça ${race.nome}` : "Origem racial"));
+
+    subclassAdjustments.fixedSkills
+      .forEach((skillKey) => addSkillLockSource(fixedSkillSources, skillKey, "Subclasse"));
+
+    const featGrants = collectFeatChoiceSources({ race, subrace, background: bg, classEntries });
+    const selectedFeats = collectSelectedFeatChoices(featGrants);
+    const selectedFeatDetails = collectSelectedFeatDetails(collectFeatDetailSources(selectedFeats));
+    selectedFeatDetails.forEach((entry) => {
+      if (excludeFeatDetailSourceKey && entry?.sourceKey === excludeFeatDetailSourceKey) return;
+      const skillKey = extractSkillKeyFromFeatDetailValue(entry?.value);
+      if (!skillKey) return;
+      addSkillLockSource(fixedSkillSources, skillKey, `Talento ${entry.featLabel || "selecionado"}`);
+    });
+
+    const selectedRaceDetails = collectSelectedRaceDetails(collectRaceDetailSources({ race, subrace }));
+    selectedRaceDetails.forEach((entry) => {
+      if (excludeRaceDetailSourceKey && entry?.sourceKey === excludeRaceDetailSourceKey) return;
+      if (entry?.detailType !== "skill") return;
+      const skillKey = resolveSkillKey(entry.value);
+      if (!skillKey) return;
+      addSkillLockSource(fixedSkillSources, skillKey, `Raça ${entry.targetLabel || race?.nome || "selecionada"}: ${entry.label || "perícia"}`);
+    });
+
+    return fixedSkillSources;
+  }
+
   function buildSkillChoiceSource(label, picks, pool, sourceType) {
     const normalizedPool = Array.from(new Set(
       (Array.isArray(pool) ? pool : [])
@@ -6953,11 +7030,15 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     }
 
     el.featDetailChoicesContainer.innerHTML = detailSources.map((source) => {
+      const fixedSkillSources = collectFixedSkillSourcesForChoiceOptions({
+        excludeFeatDetailSourceKey: source.key,
+      });
+      const blockedNote = formatBlockedSkillChoiceNote(source.options, fixedSkillSources);
       const fields = Array.from({ length: source.picks }, (_, slotIndex) => {
         const slotKey = buildFeatDetailSlotKey(source, slotIndex);
         const selectedValue = selections.get(slotKey) || "";
-        const options = source.options.map((option) => `
-          <option value="${escapeHtml(option.value)}"${selectedValue === option.value ? " selected" : ""}>${escapeHtml(option.label)}</option>
+        const options = buildBlockedSkillChoiceOptions(source.options, fixedSkillSources).map((option) => `
+          <option value="${escapeHtml(option.value)}"${option.disabled ? " disabled" : ""}${option.title ? ` title="${escapeHtml(option.title)}"` : ""}${!option.disabled && selectedValue === option.value ? " selected" : ""}>${escapeHtml(option.label)}</option>
         `).join("");
 
         return `
@@ -6975,6 +7056,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
         <article class="feat-choice-card">
           <strong>${escapeHtml(source.featLabel)}</strong>
           <p class="feat-choice-meta">${escapeHtml(source.description || "Escolha os detalhes exigidos por este talento.")}</p>
+          ${blockedNote ? `<small class="note subtle">${escapeHtml(blockedNote)}</small>` : ""}
           ${fields}
         </article>
       `;
@@ -7056,9 +7138,13 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     el.raceDetailChoicesContainer.innerHTML = detailSources.map((source) => {
       const slotKey = buildRaceDetailSlotKey(source, 0);
       const selectedValue = selections.get(slotKey) || "";
-      const options = source.options.map((option) => `
-        <option value="${escapeHtml(option.value)}"${selectedValue === option.value ? " selected" : ""}>${escapeHtml(option.label)}</option>
+      const fixedSkillSources = collectFixedSkillSourcesForChoiceOptions({
+        excludeRaceDetailSourceKey: source.key,
+      });
+      const options = buildBlockedSkillChoiceOptions(source.options, fixedSkillSources).map((option) => `
+        <option value="${escapeHtml(option.value)}"${option.disabled ? " disabled" : ""}${option.title ? ` title="${escapeHtml(option.title)}"` : ""}${!option.disabled && selectedValue === option.value ? " selected" : ""}>${escapeHtml(option.label)}</option>
       `).join("");
+      const blockedNote = formatBlockedSkillChoiceNote(source.options, fixedSkillSources);
 
       return `
         <article class="feat-choice-card">
@@ -7071,6 +7157,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
               ${options}
             </select>
           </label>
+          ${blockedNote ? `<small class="note subtle">${escapeHtml(blockedNote)}</small>` : ""}
         </article>
       `;
     }).join("");
