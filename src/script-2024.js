@@ -11,6 +11,13 @@ import { FEATURE_SUMMARIES_2024 } from "./data/5.5e/feature-summaries.js";
 import { EQUIPMENT_OPTION_LISTS, CLASS_EQUIPMENT_RULES, BACKGROUND_EQUIPMENT_RULES } from "./data/5.5e/equipamento-inicial.js";
 import { EXTRA_EQUIPMENT_CATALOG_2024, EXTRA_EQUIPMENT_GROUP_LABELS_2024 } from "./data/5.5e/equipment-compendium.js";
 import { buildRandomCharacterNameForRace } from "./data/character-name-randomizer.js";
+import {
+  WARLOCK_INVOCATIONS_2024,
+  formatWarlockInvocationPrerequisites,
+  getWarlockInvocationById,
+  getWarlockInvocationCountByLevel,
+  getWarlockInvocationOptions,
+} from "./data/warlock-invocations.js";
 import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggleButtons } from "./user-area.js";
 
 (() => {
@@ -1032,7 +1039,9 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
   let multiclassRowCounter2024 = 0;
   const CUSTOM_SELECT_FIELDS_2024 = {};
   const FEAT_CUSTOM_SELECT_PREFIX_2024 = "feat-choice-2024:";
+  const WARLOCK_INVOCATION_CUSTOM_SELECT_PREFIX_2024 = "warlock-invocation-2024:";
   let featCustomSelectKeys2024 = [];
+  let warlockInvocationCustomSelectKeys2024 = [];
   let hitPointRollControlsSignature2024 = "";
   let deferredHeavyUiDepth2024 = 0;
   const pendingHeavyUiRefresh2024 = {
@@ -1164,6 +1173,10 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     speciesInfo: document.getElementById("speciesInfo2024"),
     featInfo: document.getElementById("featInfo2024"),
     featChoices: document.getElementById("featChoices2024"),
+    warlockInvocationsPanel: document.getElementById("warlockInvocationsPanel2024"),
+    warlockInvocationsSummary: document.getElementById("warlockInvocationsSummary2024"),
+    warlockInvocationsContainer: document.getElementById("warlockInvocationsContainer2024"),
+    warlockInvocationsInfo: document.getElementById("warlockInvocationsInfo2024"),
     equipmentChoices: document.getElementById("equipmentChoices2024"),
     magicSection: document.getElementById("magicSection2024"),
     magicSummary: document.getElementById("magicSummary2024"),
@@ -1377,6 +1390,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     [el.abilityChoices, el.speciesChoices, el.featChoices, el.languageChoices].forEach((container) => {
       container?.addEventListener("change", updatePreview);
     });
+    el.warlockInvocationsContainer?.addEventListener("change", onWarlockInvocationChoiceChanged2024);
     el.equipmentChoices?.addEventListener("change", onEquipmentChoicesChanged2024);
     el.equipmentChoices?.addEventListener("input", onEquipmentChoicesInput2024);
     el.featChoices?.addEventListener("change", onFeatChoiceChanged2024);
@@ -1436,6 +1450,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     renderAbilityChoices();
     renderSpeciesChoices();
     renderFeatChoices();
+    renderWarlockInvocationChoices2024();
     renderLanguageChoices2024();
     renderSkillChoices2024();
     renderExpertiseChoices2024();
@@ -2648,6 +2663,215 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
       });
       syncCustomSelectField2024(fieldKey);
     });
+  }
+
+  function cleanupWarlockInvocationChoiceFields2024() {
+    warlockInvocationCustomSelectKeys2024.forEach((key) => {
+      delete CUSTOM_SELECT_FIELDS_2024[key];
+    });
+    warlockInvocationCustomSelectKeys2024 = [];
+  }
+
+  function getWarlockClassEntriesForChoices2024(classEntries = null) {
+    const entries = Array.isArray(classEntries) ? classEntries : getResolvedClassEntries2024();
+    return (entries || []).filter((entry) => entry?.classId === "bruxo" && entry.level > 0);
+  }
+
+  function getWarlockInvocationSourceKey2024(entry) {
+    return `${entry?.uid || "bruxo"}:invocations`;
+  }
+
+  function buildWarlockInvocationSlotKey2024(entry, slotIndex) {
+    return `${getWarlockInvocationSourceKey2024(entry)}:${slotIndex}`;
+  }
+
+  function getCurrentWarlockInvocationSelectionMap2024() {
+    const selections = new Map();
+    el.warlockInvocationsContainer?.querySelectorAll("select[data-warlock-invocation-slot-key]").forEach((select) => {
+      selections.set(select.getAttribute("data-warlock-invocation-slot-key") || "", select.value || "");
+    });
+    return selections;
+  }
+
+  function describeWarlockInvocationOption2024(value) {
+    const invocation = getWarlockInvocationById(WARLOCK_INVOCATIONS_2024, value);
+    if (!invocation) return { summary: "", lines: [], body: "", search: String(value || "") };
+    const prerequisiteText = formatWarlockInvocationPrerequisites(invocation);
+
+    return {
+      group: invocation.group || "",
+      summary: invocation.summary || "",
+      lines: [
+        prerequisiteText ? `Pré-requisitos: ${prerequisiteText}` : "",
+        invocation.group ? `Categoria: ${invocation.group}` : "",
+      ].filter(Boolean),
+      body: invocation.description || "",
+      search: [
+        invocation.label,
+        invocation.summary,
+        invocation.description,
+        invocation.group,
+        prerequisiteText,
+      ].filter(Boolean).join(" "),
+    };
+  }
+
+  function renderWarlockInvocationOptionElements2024(options = [], selectedValue = "", usedValues = new Set()) {
+    const optionHtml = (options || [])
+      .filter((option) => option.value === selectedValue || !usedValues.has(option.value))
+      .map((option) => `
+        <option value="${escapeHtml(option.value)}"${selectedValue === option.value ? " selected" : ""}>${escapeHtml(option.label)}</option>
+      `).join("");
+    return `
+      <option value=""${selectedValue ? "" : " selected"} disabled>Selecione...</option>
+      ${optionHtml}
+    `;
+  }
+
+  function initializeWarlockInvocationChoiceFields2024() {
+    cleanupWarlockInvocationChoiceFields2024();
+    if (!el.warlockInvocationsContainer) return;
+
+    el.warlockInvocationsContainer.querySelectorAll("select[data-warlock-invocation-slot-key]").forEach((select) => {
+      const slotKey = select.getAttribute("data-warlock-invocation-slot-key");
+      const fieldRoot = select.closest("[data-warlock-invocation-field-key]");
+      const input = fieldRoot?.querySelector("[data-warlock-invocation-input]");
+      const suggestions = fieldRoot?.querySelector("[data-warlock-invocation-suggestions]");
+      const hoverCard = fieldRoot?.querySelector("[data-warlock-invocation-hover-card]");
+      if (!slotKey || !fieldRoot || !input || !suggestions || !hoverCard) return;
+
+      const fieldKey = `${WARLOCK_INVOCATION_CUSTOM_SELECT_PREFIX_2024}${slotKey}`;
+      warlockInvocationCustomSelectKeys2024.push(fieldKey);
+      CUSTOM_SELECT_FIELDS_2024[fieldKey] = createCustomSelectField2024({
+        key: fieldKey,
+        input,
+        select,
+        suggestions,
+        hoverCard,
+        placeholder: fieldRoot.getAttribute("data-warlock-invocation-placeholder") || "Selecione uma invocação...",
+        describeOption: describeWarlockInvocationOption2024,
+        onCommit: () => handleWarlockInvocationSelection2024(select),
+        showSuggestionSummary: false,
+      });
+      syncCustomSelectField2024(fieldKey);
+    });
+  }
+
+  function renderWarlockInvocationChoices2024() {
+    if (!el.warlockInvocationsPanel || !el.warlockInvocationsContainer) return;
+
+    const warlockEntries = getWarlockClassEntriesForChoices2024();
+    const selections = getCurrentWarlockInvocationSelectionMap2024();
+    cleanupWarlockInvocationChoiceFields2024();
+
+    const activeEntries = warlockEntries
+      .map((entry) => ({
+        entry,
+        invocationCount: getWarlockInvocationCountByLevel(entry.level, WARLOCK_ELDRITCH_INVOCATIONS_BY_LEVEL_2024),
+      }))
+      .filter((item) => item.invocationCount > 0);
+
+    if (!activeEntries.length) {
+      el.warlockInvocationsPanel.hidden = true;
+      el.warlockInvocationsSummary.textContent = "";
+      el.warlockInvocationsContainer.innerHTML = "";
+      if (el.warlockInvocationsInfo) el.warlockInvocationsInfo.textContent = "";
+      return;
+    }
+
+    const totalInvocations = activeEntries.reduce((sum, item) => sum + item.invocationCount, 0);
+    el.warlockInvocationsPanel.hidden = false;
+    el.warlockInvocationsSummary.textContent = totalInvocations === 1
+      ? "1 invocação mística precisa ser definida."
+      : `${totalInvocations} invocações místicas precisam ser definidas.`;
+    if (el.warlockInvocationsInfo) {
+      el.warlockInvocationsInfo.textContent = "Passe o mouse sobre uma invocação para ver pré-requisitos e resumo. No 2024, Pacto da Lâmina, Pacto da Corrente e Pacto do Tomo entram como invocações.";
+    }
+
+    el.warlockInvocationsContainer.innerHTML = activeEntries.map(({ entry, invocationCount }) => {
+      const sourceKey = getWarlockInvocationSourceKey2024(entry);
+      const selectedValues = Array.from({ length: invocationCount }, (_, slotIndex) => (
+        selections.get(buildWarlockInvocationSlotKey2024(entry, slotIndex)) || ""
+      )).filter(Boolean);
+      const selectedPactIds = selectedValues.filter((value) => value.startsWith("pact-of-the-"));
+      const invocationOptions = getWarlockInvocationOptions(WARLOCK_INVOCATIONS_2024, entry.level, {
+        pactBoonIds: selectedPactIds,
+        invocationIds: selectedValues,
+      });
+      const usedValues = new Set(selectedValues);
+      const fields = Array.from({ length: invocationCount }, (_, slotIndex) => {
+        const slotKey = buildWarlockInvocationSlotKey2024(entry, slotIndex);
+        const selectedValue = selections.get(slotKey) || "";
+        const blockedValues = new Set([...usedValues].filter((value) => value && value !== selectedValue));
+
+        return `
+          <label class="row generic-dropdown-field feat-choice-field" data-warlock-invocation-field-key="${escapeHtml(slotKey)}" data-warlock-invocation-placeholder="Selecione uma invocação...">
+            <span>${escapeHtml(invocationCount === 1 ? "Invocação Mística" : `Invocação Mística ${slotIndex + 1}`)}</span>
+            <input data-warlock-invocation-input type="text" autocomplete="off" placeholder="Selecione uma invocação..." />
+            <div data-warlock-invocation-suggestions class="dropdown-suggestions" hidden></div>
+            <div data-warlock-invocation-hover-card class="dropdown-hover-card" hidden></div>
+            <select class="native-select-hidden" tabindex="-1" aria-hidden="true" data-warlock-invocation-slot-key="${escapeHtml(slotKey)}" data-warlock-invocation-source-key="${escapeHtml(sourceKey)}">
+              ${renderWarlockInvocationOptionElements2024(invocationOptions, selectedValue, blockedValues)}
+            </select>
+          </label>
+        `;
+      }).join("");
+
+      return `
+        <article class="feat-choice-card">
+          <strong>${escapeHtml(entry.classLabel)} nível ${entry.level}</strong>
+          <p class="feat-choice-meta">${escapeHtml("Defina as invocações místicas disponíveis para este nível de bruxo.")}</p>
+          ${fields}
+        </article>
+      `;
+    }).join("");
+
+    initializeWarlockInvocationChoiceFields2024();
+  }
+
+  function handleWarlockInvocationSelection2024(select) {
+    if (!select) return;
+    const sourceKey = select.getAttribute("data-warlock-invocation-source-key") || "";
+    const selectedId = select.value || "";
+    if (selectedId && sourceKey) {
+      const duplicate = Array.from(el.warlockInvocationsContainer?.querySelectorAll("select[data-warlock-invocation-slot-key]") || [])
+        .some((other) => other !== select && other.getAttribute("data-warlock-invocation-source-key") === sourceKey && other.value === selectedId);
+      if (duplicate) {
+        const invocation = getWarlockInvocationById(WARLOCK_INVOCATIONS_2024, selectedId);
+        setStatus2024(`${invocation?.label || "Essa invocação"} já foi escolhida para esse bruxo.`, "warning");
+        select.value = "";
+        renderWarlockInvocationChoices2024();
+        updatePreview();
+        return;
+      }
+    }
+
+    setStatus2024("");
+    renderWarlockInvocationChoices2024();
+    updatePreview();
+  }
+
+  function onWarlockInvocationChoiceChanged2024(event) {
+    const invocationSelect = event?.target?.closest?.("select[data-warlock-invocation-slot-key]");
+    if (invocationSelect) handleWarlockInvocationSelection2024(invocationSelect);
+  }
+
+  function collectSelectedWarlockInvocations2024(classEntries = null) {
+    const selections = getCurrentWarlockInvocationSelectionMap2024();
+    return getWarlockClassEntriesForChoices2024(classEntries)
+      .flatMap((entry) => {
+        const count = getWarlockInvocationCountByLevel(entry.level, WARLOCK_ELDRITCH_INVOCATIONS_BY_LEVEL_2024);
+        return Array.from({ length: count }, (_, slotIndex) => {
+          const invocation = getWarlockInvocationById(WARLOCK_INVOCATIONS_2024, selections.get(buildWarlockInvocationSlotKey2024(entry, slotIndex)) || "");
+          return invocation ? { entry, invocation, slotIndex } : null;
+        }).filter(Boolean);
+      });
+  }
+
+  function buildSelectedWarlockInvocationLines2024(classEntries = getResolvedClassEntries2024()) {
+    return Array.from(new Set(collectSelectedWarlockInvocations2024(classEntries)
+      .map(({ invocation }) => `${invocation.label}: ${invocation.summary || invocation.description || ""}`.trim())
+      .filter(Boolean)));
   }
 
   function describeClassOption2024(value) {
@@ -5786,6 +6010,18 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
       }
     });
 
+    const warlockSelections = getCurrentWarlockInvocationSelectionMap2024();
+    getWarlockClassEntriesForChoices2024(classEntries).forEach((entry) => {
+      const requiredInvocations = getWarlockInvocationCountByLevel(entry.level, WARLOCK_ELDRITCH_INVOCATIONS_BY_LEVEL_2024);
+      if (!requiredInvocations) return;
+      const selectedCount = Array.from({ length: requiredInvocations }, (_, slotIndex) => (
+        warlockSelections.get(buildWarlockInvocationSlotKey2024(entry, slotIndex)) || ""
+      )).filter(Boolean).length;
+      if (selectedCount < requiredInvocations) {
+        pending.push(`Complete as Invocações Místicas de ${entry.classLabel} (${selectedCount}/${requiredInvocations}).`);
+      }
+    });
+
     const expertiseSelectionState = getExpertiseSelectionState2024({ background, race, classEntries });
     if (expertiseSelectionState.duplicates.length) {
       pending.push("Revise as escolhas de expertise: a mesma perícia foi marcada mais de uma vez.");
@@ -6767,6 +7003,38 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     });
   }
 
+  function applyRandomWarlockInvocationChoices2024({ overwrite = false } = {}) {
+    if (!el.warlockInvocationsContainer) return;
+
+    if (overwrite) {
+      el.warlockInvocationsContainer.querySelectorAll("select[data-warlock-invocation-slot-key]").forEach((select) => {
+        select.value = "";
+      });
+      renderWarlockInvocationChoices2024();
+    }
+
+    let guard = 0;
+    while (guard < 32) {
+      const selects = Array.from(el.warlockInvocationsContainer.querySelectorAll("select[data-warlock-invocation-slot-key]"));
+      const target = selects.find((select) => !select.value);
+      if (!target) break;
+
+      const sourceKey = target.getAttribute("data-warlock-invocation-source-key") || "";
+      const used = new Set(
+        selects
+          .filter((select) => select !== target && select.getAttribute("data-warlock-invocation-source-key") === sourceKey)
+          .map((select) => select.value)
+          .filter(Boolean)
+      );
+      const selectedValue = pickRandom2024(listOptionValues2024(target, { filter: (value) => !used.has(value) }));
+      if (!selectedValue) break;
+
+      target.value = selectedValue;
+      handleWarlockInvocationSelection2024(target);
+      guard += 1;
+    }
+  }
+
   function applyRandomExpertiseChoices2024({ overwrite = false } = {}) {
     const selects = Array.from(el.expertiseChoices?.querySelectorAll("select[data-expertise-slot-key]") || []);
     if (overwrite) {
@@ -6882,6 +7150,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
         applyRandomLanguageChoices2024({ overwrite });
         applyRandomClassSkills2024({ overwrite });
         applyRandomFeatChoices2024({ overwrite });
+        applyRandomWarlockInvocationChoices2024({ overwrite });
         applyRandomEquipmentChoices2024({ overwrite });
         applyRandomSpellSelections2024({ overwrite });
         updatePreview();
@@ -10778,15 +11047,16 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
   }
 
   function buildClassFeatureSectionsText2024(classEntries = getResolvedClassEntries2024()) {
-    return normalizeClassEntriesArgument2024(classEntries)
+    const resolvedEntries = normalizeClassEntriesArgument2024(classEntries);
+    const sections = resolvedEntries
       .flatMap((entry) => {
-        const sections = [];
+        const entrySections = [];
         const classFeatureEntries = collectUnlockedFeatureEntries2024(entry.classData?.features, entry.level, {
           kind: "class",
           entityId: entry.classId,
         });
         if (classFeatureEntries.length) {
-          sections.push(buildFeatureSummarySection2024(entry.classData?.nome || entry.classLabel, classFeatureEntries));
+          entrySections.push(buildFeatureSummarySection2024(entry.classData?.nome || entry.classLabel, classFeatureEntries));
         }
 
         const subclassFeatureEntries = collectUnlockedFeatureEntries2024(entry.subclassData?.features, entry.level, {
@@ -10794,13 +11064,18 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
           entityId: entry.subclassId,
         });
         if (subclassFeatureEntries.length) {
-          sections.push(buildFeatureSummarySection2024(entry.subclassData?.nome || `${entry.classData?.nome || "Classe"} (subclasse)`, subclassFeatureEntries));
+          entrySections.push(buildFeatureSummarySection2024(entry.subclassData?.nome || `${entry.classData?.nome || "Classe"} (subclasse)`, subclassFeatureEntries));
         }
 
-        return sections;
-      })
-      .filter(Boolean)
-      .join("\n\n");
+        return entrySections;
+      });
+
+    const warlockInvocationLines = buildSelectedWarlockInvocationLines2024(resolvedEntries);
+    if (warlockInvocationLines.length) {
+      sections.push(buildFeatureSummarySection2024("Bruxo - Invocações Místicas", warlockInvocationLines));
+    }
+
+    return sections.filter(Boolean).join("\n\n");
   }
 
   const PDF_TEXT_LAYOUT_PRESETS_2024 = {
