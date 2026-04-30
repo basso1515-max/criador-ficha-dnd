@@ -7285,16 +7285,10 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     classEntries = getResolvedClassEntries2024()
   ) {
     const known = new Set(getFixedSkillIds2024(background, race));
-    const resolvedEntries = Array.isArray(classEntries) ? getResolvedClassEntries2024(classEntries) : getResolvedClassEntries2024();
-    const allowedSkills = new Set(
-      getSkillChoiceSources2024(resolvedEntries)
-        .flatMap((source) => source.options || [])
-        .filter(Boolean)
-    );
-
     getSelectedClassSkillIds2024()
-      .filter((skillId) => allowedSkills.has(skillId))
+      .filter((skillId) => SKILL_LABEL_BY_ID.has(skillId))
       .forEach((skillId) => known.add(skillId));
+    const resolvedEntries = Array.isArray(classEntries) ? getResolvedClassEntries2024(classEntries) : getResolvedClassEntries2024();
     getSelectedExpertiseSkillIds2024({ background, race, classEntries: resolvedEntries }).forEach((skillId) => known.add(skillId));
     return known;
   }
@@ -7477,8 +7471,9 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     const sources = getSkillChoiceSources2024(classEntries);
     const allowedSkills = new Set(sources.flatMap((source) => source.options || []).filter(Boolean));
     const selectedSkills = Array.from(new Set(
-      getSelectedClassSkillIds2024().filter((skillId) => allowedSkills.has(skillId) && !fixedSkills.has(skillId))
+      getSelectedClassSkillIds2024().filter((skillId) => SKILL_LABEL_BY_ID.has(skillId) && !fixedSkills.has(skillId))
     ));
+    const invalidOutsideRules = selectedSkills.filter((skillId) => !allowedSkills.has(skillId));
     const totalPicks = sources.reduce((sum, source) => sum + Number(source.picks || 0), 0);
     const exactAssignment = selectedSkills.length === totalPicks
       ? findExactSkillChoiceAssignment2024(sources, selectedSkills)
@@ -7490,6 +7485,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
       sources,
       allowedSkills,
       selectedSkills,
+      invalidOutsideRules,
       totalPicks,
       exactAssignment,
       overLimit: selectedSkills.length > totalPicks,
@@ -8004,12 +8000,16 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
       const fixedLockReason = isFixed
         ? describeSkillLockReason2024(selectionState.fixedSkillSources?.get(skill.id) || [])
         : "";
-      const blockedReason = fixedLockReason
-        || (!isAllowed && selectionState.totalPicks ? "Esta perícia está bloqueada porque não faz parte das opções oficiais das classes selecionadas." : "")
-        || (selectionState.totalPicks && !isSelected && !canSelectMore ? "Esta perícia está bloqueada porque todas as escolhas de perícia desta build já foram preenchidas." : "");
+      const advisoryReason = !isFixed && !isAllowed && selectionState.totalPicks
+        ? "Esta perícia não faz parte das opções oficiais das classes selecionadas, mas você pode marcá-la se a mesa permitir."
+        : "";
+      const limitReason = !isFixed && selectionState.totalPicks && !isSelected && !canSelectMore
+        ? "Todas as escolhas oficiais de perícia desta build já foram preenchidas, mas você pode marcar extras se a mesa permitir."
+        : "";
+      const hoverReason = fixedLockReason || advisoryReason || limitReason;
       checkbox.checked = isSelected;
-      checkbox.disabled = isFixed || !isAllowed || (!isSelected && !canSelectMore);
-      checkbox.title = blockedReason;
+      checkbox.disabled = isFixed;
+      checkbox.title = hoverReason;
 
       const textWrap = document.createElement("div");
       const strong = document.createElement("strong");
@@ -8026,7 +8026,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
           ? `${abilityLabel} • Disponível para ${sourceLabels || "as escolhas de classe"}.`
           : `Disponível para ${sourceLabels || "as escolhas de classe"}.`;
       } else if (selectionState.totalPicks) {
-        small.textContent = abilityLabel ? `${abilityLabel} • Indisponível para as classes selecionadas.` : "Indisponível para as classes selecionadas.";
+        small.textContent = abilityLabel ? `${abilityLabel} • Fora das opções oficiais da classe.` : "Fora das opções oficiais da classe.";
       } else {
         small.textContent = abilityLabel || "Sem escolha adicional cadastrada.";
       }
@@ -8035,13 +8035,14 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
       const hoverCard = document.createElement("span");
       hoverCard.className = "skill-lock-hover-card";
       hoverCard.setAttribute("role", "tooltip");
-      hoverCard.textContent = blockedReason;
-      hoverCard.hidden = !blockedReason;
+      hoverCard.textContent = hoverReason;
+      hoverCard.hidden = !hoverReason;
 
       item.append(checkbox, textWrap, hoverCard);
-      item.setAttribute("aria-disabled", blockedReason ? "true" : "false");
+      item.setAttribute("aria-disabled", isFixed ? "true" : "false");
       item.classList.toggle("is-fixed", isFixed);
-      item.classList.toggle("is-blocked", Boolean(blockedReason));
+      item.classList.toggle("is-blocked", isFixed);
+      item.classList.toggle("is-advisory", Boolean(advisoryReason || limitReason));
       item.classList.toggle("is-class-option", isAllowed);
       el.skillsExtra.appendChild(item);
     });
@@ -8133,7 +8134,9 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     }
 
     let warning = "";
-    if (selectionState.overLimit) {
+    if (selectionState.invalidOutsideRules?.length) {
+      warning = `${formatList(selectionState.invalidOutsideRules.map(formatSkillLabel))} não faz parte das opções oficiais das classes selecionadas, mas foi mantida como escolha livre.`;
+    } else if (selectionState.overLimit) {
       warning = `Você marcou ${selectionState.selectedSkills.length} perícias de classe, mas a build atual permite ${selectionState.totalPicks}.`;
     } else if (selectionState.totalPicks && selectionState.selectedSkills.length === selectionState.totalPicks && !selectionState.exactAssignment) {
       warning = "As perícias marcadas não conseguem atender todas as escolhas das classes atuais ao mesmo tempo.";
@@ -8149,12 +8152,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     renderProficiencySummary2024();
   }
 
-  function onSkillSelectionChanged2024(event) {
-    const selectionState = getSkillChoiceSelectionState2024();
-    if (selectionState.totalPicks && selectionState.selectedSkills.length > selectionState.totalPicks && event?.target instanceof HTMLInputElement) {
-      event.target.checked = false;
-    }
-
+  function onSkillSelectionChanged2024() {
     updateSkillSelectionFeedback2024();
     renderExpertiseChoices2024();
     updatePreview();
