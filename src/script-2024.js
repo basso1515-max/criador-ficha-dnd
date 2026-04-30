@@ -176,6 +176,162 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
   const ROGUE_SNEAK_ATTACK_DICE_BY_LEVEL_2024 = [0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10];
   const RANGER_FAVORED_ENEMY_BY_LEVEL_2024 = [0, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6];
   const WARLOCK_ELDRITCH_INVOCATIONS_BY_LEVEL_2024 = [0, 1, 3, 3, 3, 5, 5, 6, 6, 7, 7, 7, 8, 8, 8, 9, 9, 9, 10, 10, 10];
+  const WARLOCK_INVOCATION_OPTIONS_2024 = [
+    {
+      id: "pact-of-the-blade",
+      label: "Pacto da Lâmina",
+      summary: "Manifesta uma arma de pacto, usa Carisma para ataques e dano com ela e libera invocações de lâmina.",
+      effects: { pactBlade: true },
+    },
+    {
+      id: "pact-of-the-chain",
+      label: "Pacto da Corrente",
+      summary: "Aprende Encontrar Familiar e amplia as opções e o uso do familiar do pacto.",
+    },
+    {
+      id: "pact-of-the-tome",
+      label: "Pacto do Tomo",
+      summary: "Recebe o Livro das Sombras com truques e rituais adicionais.",
+    },
+    {
+      id: "armor-of-shadows",
+      label: "Armadura das Sombras",
+      summary: "Pode conjurar Armadura Arcana em si sem gastar espaço de magia; a ficha considera CA 13 + DES sem armadura.",
+      effects: { armorClass: "mage-armor" },
+    },
+    {
+      id: "devils-sight",
+      label: "Visão do Diabo",
+      summary: "Enxerga normalmente em escuridão comum e mágica em alcance ampliado.",
+    },
+    {
+      id: "eldritch-mind",
+      label: "Mente Mística",
+      summary: "Ganha vantagem em salvaguardas de Constituição para manter concentração.",
+    },
+    {
+      id: "mask-of-many-faces",
+      label: "Máscara de Muitas Faces",
+      summary: "Pode conjurar Disfarçar-se sem gastar espaço de magia.",
+    },
+    {
+      id: "misty-visions",
+      label: "Visões Nebulosas",
+      summary: "Pode conjurar Imagem Silenciosa sem gastar espaço de magia.",
+    },
+    {
+      id: "agonizing-blast",
+      label: "Explosão Agonizante",
+      minLevel: 2,
+      repeatable: true,
+      summary: "Escolhe um truque de Bruxo que cause dano e soma Carisma às rolagens de dano dele.",
+    },
+    {
+      id: "eldritch-spear",
+      label: "Lança Mística",
+      minLevel: 2,
+      repeatable: true,
+      summary: "Escolhe um truque de Bruxo com alcance e aumenta seu alcance.",
+    },
+    {
+      id: "fiendish-vigor",
+      label: "Vigor Infernal",
+      minLevel: 2,
+      summary: "Pode conjurar Vida Falsa em si sem gastar espaço de magia.",
+    },
+    {
+      id: "lessons-of-the-first-ones",
+      label: "Lições dos Primeiros",
+      minLevel: 2,
+      repeatable: true,
+      summary: "Ganha um talento de origem adicional; pode repetir para escolher talentos diferentes.",
+      effects: { originFeat: true },
+    },
+    {
+      id: "otherworldly-leap",
+      label: "Salto Sobrenatural",
+      minLevel: 2,
+      summary: "Pode conjurar Salto em si sem gastar espaço de magia.",
+    },
+    {
+      id: "repelling-blast",
+      label: "Rajada Repulsiva",
+      minLevel: 2,
+      repeatable: true,
+      summary: "Escolhe um truque de Bruxo que cause dano; ao acertar, pode empurrar o alvo.",
+    },
+    {
+      id: "eldritch-smite",
+      label: "Castigo Místico",
+      minLevel: 5,
+      requiresInvocation: "pact-of-the-blade",
+      summary: "Ao acertar com a arma de pacto, gasta espaço de Magia de Pacto para causar dano de força extra e derrubar o alvo.",
+    },
+    {
+      id: "gaze-of-two-minds",
+      label: "Olhar de Duas Mentes",
+      minLevel: 5,
+      summary: "Conecta seus sentidos a uma criatura voluntária e pode conjurar magias a partir dela.",
+    },
+    {
+      id: "gift-of-the-depths",
+      label: "Dádiva das Profundezas",
+      minLevel: 5,
+      summary: "Ganha deslocamento de natação, respiração aquática e pode conjurar Respirar na Água.",
+    },
+    {
+      id: "master-of-myriad-forms",
+      label: "Mestre de Miríades de Formas",
+      minLevel: 5,
+      summary: "Pode conjurar Alterar-se sem gastar espaço de magia.",
+    },
+    {
+      id: "one-with-shadows",
+      label: "Um com as Sombras",
+      minLevel: 5,
+      summary: "Em pouca luz ou escuridão, pode ficar invisível até se mover, agir ou reagir.",
+    },
+    {
+      id: "thirsting-blade",
+      label: "Lâmina Sedenta",
+      minLevel: 5,
+      requiresInvocation: "pact-of-the-blade",
+      summary: "Ganha ataque adicional com a arma de pacto ao usar a ação Atacar.",
+    },
+    {
+      id: "whispers-of-the-grave",
+      label: "Sussurros do Túmulo",
+      minLevel: 7,
+      summary: "Pode conjurar Falar com os Mortos sem gastar espaço de magia.",
+    },
+    {
+      id: "lifedrinker",
+      label: "Bebedor de Vida",
+      minLevel: 9,
+      requiresInvocation: "pact-of-the-blade",
+      summary: "A arma de pacto causa dano extra necrótico, psíquico ou radiante uma vez por turno.",
+    },
+    {
+      id: "visions-of-distant-realms",
+      label: "Visões de Reinos Distantes",
+      minLevel: 9,
+      summary: "Pode conjurar Olho Arcano sem gastar espaço de magia.",
+    },
+    {
+      id: "devouring-blade",
+      label: "Lâmina Devoradora",
+      minLevel: 12,
+      requiresInvocation: "pact-of-the-blade",
+      summary: "Aprimora a Lâmina Sedenta, permitindo mais ataques com a arma de pacto.",
+    },
+    {
+      id: "witch-sight",
+      label: "Visão Bruxa",
+      minLevel: 15,
+      summary: "Enxerga a forma verdadeira de criaturas ocultas por ilusão, transmutação ou metamorfose.",
+    },
+  ];
+  const WARLOCK_INVOCATION_BY_ID_2024 = new Map(WARLOCK_INVOCATION_OPTIONS_2024.map((option) => [option.id, option]));
   const WARLOCK_PATRON_GRANTED_SPELL_IDS_2024 = {
     "bruxo-arquifada": {
       3: ["acalmar-emocoes", "fogo-feerico", "passo-da-neblina", "forca-fantasmagorica", "sono"],
@@ -1164,6 +1320,10 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     speciesInfo: document.getElementById("speciesInfo2024"),
     featInfo: document.getElementById("featInfo2024"),
     featChoices: document.getElementById("featChoices2024"),
+    warlockChoicesPanel: document.getElementById("warlockChoicesPanel2024"),
+    warlockChoicesSummary: document.getElementById("warlockChoicesSummary2024"),
+    warlockChoices: document.getElementById("warlockChoices2024"),
+    warlockChoicesInfo: document.getElementById("warlockChoicesInfo2024"),
     equipmentChoices: document.getElementById("equipmentChoices2024"),
     magicSection: document.getElementById("magicSection2024"),
     magicSummary: document.getElementById("magicSummary2024"),
@@ -1392,7 +1552,9 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     });
     el.equipmentChoices?.addEventListener("change", onEquipmentChoicesChanged2024);
     el.equipmentChoices?.addEventListener("input", onEquipmentChoicesInput2024);
+    el.warlockChoices?.addEventListener("change", onWarlockChoiceChanged2024);
     el.featChoices?.addEventListener("change", onFeatChoiceChanged2024);
+    el.speciesChoices?.addEventListener("change", onSpeciesChoiceChanged2024);
     el.languageChoices?.addEventListener("change", onLanguageChoiceChanged2024);
     el.skillsExtra?.addEventListener("change", onSkillSelectionChanged2024);
     el.expertiseChoices?.addEventListener("change", onExpertiseChoiceChanged2024);
@@ -1460,6 +1622,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     syncRecommendedStandardSetForClass2024();
     renderAbilityChoices();
     renderSpeciesChoices();
+    renderWarlockChoices2024();
     renderFeatChoices();
     renderLanguageChoices2024();
     renderSkillChoices2024();
@@ -3263,6 +3426,13 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     el.speciesPanel.hidden = false;
   }
 
+  function onSpeciesChoiceChanged2024() {
+    renderSkillChoices2024();
+    renderExpertiseChoices2024();
+    renderProficiencySummary2024();
+    updatePreview();
+  }
+
   function getBaseAbilityScores() {
     const scores = {};
     ABILITY_ORDER.forEach((ability) => {
@@ -3633,6 +3803,167 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
       }));
   }
 
+  function getWarlockInvocationLimit2024(level) {
+    return WARLOCK_ELDRITCH_INVOCATIONS_BY_LEVEL_2024[clampInt(level, 0, 20)] || 0;
+  }
+
+  function getWarlockEntries2024(classEntries = getResolvedClassEntries2024()) {
+    return normalizeClassEntriesArgument2024(classEntries)
+      .filter((entry) => entry?.classId === "bruxo" && Number(entry.level || 0) > 0);
+  }
+
+  function getHighestWarlockLevel2024(classEntries = getResolvedClassEntries2024()) {
+    return getWarlockEntries2024(classEntries).reduce((highest, entry) => Math.max(highest, Number(entry.level || 0)), 0);
+  }
+
+  function getSelectedWarlockInvocationIds2024() {
+    return Array.from(el.warlockChoices?.querySelectorAll("select[data-warlock-invocation-id]") || [])
+      .map((select) => String(select.value || "").trim())
+      .filter(Boolean);
+  }
+
+  function getSelectedWarlockInvocationCounts2024() {
+    const counts = new Map();
+    getSelectedWarlockInvocationIds2024().forEach((id) => {
+      counts.set(id, (counts.get(id) || 0) + 1);
+    });
+    return counts;
+  }
+
+  function formatWarlockInvocationRequirement2024(invocation) {
+    const requirements = [];
+    if (invocation?.minLevel) requirements.push(`${invocation.minLevel}º nível de Bruxo`);
+    if (invocation?.requiresInvocation) {
+      const required = WARLOCK_INVOCATION_BY_ID_2024.get(invocation.requiresInvocation);
+      requirements.push(required?.label || labelFromSlug(invocation.requiresInvocation));
+    }
+    return requirements.length ? `Pré-requisito: ${requirements.join(" • ")}` : "Sem pré-requisito adicional";
+  }
+
+  function isWarlockInvocationEligible2024(invocation, { level, selectedIds } = {}) {
+    if (!invocation) return false;
+    if (invocation.minLevel && Number(level || 0) < invocation.minLevel) return false;
+    if (invocation.requiresInvocation && !(selectedIds || []).includes(invocation.requiresInvocation)) return false;
+    return true;
+  }
+
+  function buildWarlockInvocationOptionHtml2024(invocation, context, selectedId, selectedIds, slotIndex) {
+    const isSelected = selectedId === invocation.id;
+    const duplicateElsewhere = !invocation.repeatable && selectedIds.some((id, index) => index !== slotIndex && id === invocation.id);
+    const eligible = isWarlockInvocationEligible2024(invocation, context);
+    const disabled = !isSelected && (!eligible || duplicateElsewhere);
+    const suffixParts = [
+      eligible ? "" : formatWarlockInvocationRequirement2024(invocation),
+      duplicateElsewhere ? "já escolhida" : "",
+      invocation.repeatable ? "repetível" : "",
+    ].filter(Boolean);
+    const label = suffixParts.length ? `${invocation.label} (${suffixParts.join("; ")})` : invocation.label;
+    return `<option value="${escapeHtml(invocation.id)}"${isSelected ? " selected" : ""}${disabled ? " disabled" : ""}>${escapeHtml(label)}</option>`;
+  }
+
+  function renderWarlockChoices2024() {
+    if (!el.warlockChoicesPanel || !el.warlockChoices) return;
+
+    const classEntries = getResolvedClassEntries2024();
+    const level = getHighestWarlockLevel2024(classEntries);
+    const invocationLimit = getWarlockInvocationLimit2024(level);
+    if (!level || !invocationLimit) {
+      el.warlockChoicesPanel.hidden = true;
+      el.warlockChoicesSummary.textContent = "";
+      el.warlockChoices.innerHTML = "";
+      if (el.warlockChoicesInfo) el.warlockChoicesInfo.textContent = "";
+      return;
+    }
+
+    const selectedIds = getSelectedWarlockInvocationIds2024().slice(0, invocationLimit);
+    const cards = [];
+
+    for (let slotIndex = 0; slotIndex < invocationLimit; slotIndex += 1) {
+      const selectedId = selectedIds[slotIndex] || "";
+      const selectedInvocation = WARLOCK_INVOCATION_BY_ID_2024.get(selectedId) || null;
+      const context = { level, selectedIds };
+      const options = WARLOCK_INVOCATION_OPTIONS_2024
+        .map((invocation) => buildWarlockInvocationOptionHtml2024(invocation, context, selectedId, selectedIds, slotIndex))
+        .join("");
+
+      cards.push(`
+        <article class="feat-choice-card">
+          <strong>Invocação ${slotIndex + 1}</strong>
+          <p class="feat-choice-meta">${escapeHtml(selectedInvocation ? formatWarlockInvocationRequirement2024(selectedInvocation) : "Escolha uma Invocação Mística disponível.")}</p>
+          <label class="row feat-choice-field">
+            <span>Invocação</span>
+            <select name="warlock-invocation-2024-${slotIndex + 1}" data-warlock-invocation-id="${slotIndex}" data-previous-value="${escapeHtml(selectedId)}">
+              <option value="" selected>Selecione...</option>
+              ${options}
+            </select>
+          </label>
+          <p class="feat-choice-description${selectedInvocation ? "" : " is-empty"}">${escapeHtml(selectedInvocation?.summary || "As opções desabilitadas mostram pré-requisitos pendentes ou escolhas já usadas.")}</p>
+        </article>
+      `);
+    }
+
+    el.warlockChoicesPanel.hidden = false;
+    el.warlockChoicesSummary.textContent = `Bruxo nível ${level} • ${invocationLimit} Invocação(ões) Mística(s).`;
+    if (el.warlockChoicesInfo) {
+      const selectedLabels = getSelectedWarlockInvocationLabels2024();
+      el.warlockChoicesInfo.textContent = selectedLabels.length
+        ? `Selecionadas: ${formatList(selectedLabels)}.`
+        : "Pacto da Lâmina, Pacto da Corrente e Pacto do Tomo aparecem aqui como invocações de 2024.";
+    }
+    el.warlockChoices.innerHTML = cards.join("");
+  }
+
+  function onWarlockChoiceChanged2024(event) {
+    const select = event.target.closest("select[data-warlock-invocation-id]");
+    if (!select || !el.warlockChoices) return;
+
+    const selectedId = String(select.value || "").trim();
+    const invocation = WARLOCK_INVOCATION_BY_ID_2024.get(selectedId);
+    const currentIds = getSelectedWarlockInvocationIds2024();
+    Array.from(el.warlockChoices.querySelectorAll("select[data-warlock-invocation-id]")).forEach((candidate) => {
+      const candidateInvocation = WARLOCK_INVOCATION_BY_ID_2024.get(candidate.value);
+      if (candidateInvocation?.requiresInvocation && !currentIds.includes(candidateInvocation.requiresInvocation)) {
+        candidate.value = "";
+      }
+    });
+
+    if (selectedId && invocation && !invocation.repeatable) {
+      const duplicate = Array.from(el.warlockChoices.querySelectorAll("select[data-warlock-invocation-id]"))
+        .find((other) => other !== select && other.value === selectedId);
+      if (duplicate) {
+        select.value = select.dataset.previousValue || "";
+        setStatus2024(`${invocation.label} já foi escolhida em outro espaço de invocação.`, "warning");
+        renderAll();
+        return;
+      }
+    }
+
+    setStatus2024("");
+    renderAll();
+  }
+
+  function getSelectedWarlockInvocationLabels2024() {
+    return getSelectedWarlockInvocationIds2024()
+      .map((id) => WARLOCK_INVOCATION_BY_ID_2024.get(id)?.label || "")
+      .filter(Boolean);
+  }
+
+  function hasWarlockInvocation2024(invocationId) {
+    return getSelectedWarlockInvocationIds2024().includes(invocationId);
+  }
+
+  function buildWarlockInvocationFeatureEntries2024() {
+    const counts = getSelectedWarlockInvocationCounts2024();
+    return Array.from(counts.entries())
+      .map(([id, count]) => {
+        const invocation = WARLOCK_INVOCATION_BY_ID_2024.get(id);
+        if (!invocation) return "";
+        const repeatText = count > 1 ? ` x${count}` : "";
+        return `${invocation.label}${repeatText}: ${invocation.summary}`;
+      })
+      .filter(Boolean);
+  }
+
   function getActiveFeatChoiceDefinitions({
     race = getSelectedRace(),
     cls = getSelectedClass(),
@@ -3659,6 +3990,18 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
       slots.push(...getFightingStyleSlotDefinitionsForEntry2024(entry));
       slots.push(...getClassFeatSlotDefinitionsForEntry2024(entry));
     });
+
+    const lessonsCount = getSelectedWarlockInvocationCounts2024().get("lessons-of-the-first-ones") || 0;
+    for (let index = 0; index < lessonsCount; index += 1) {
+      slots.push({
+        id: `warlock-lessons-${index + 1}`,
+        type: "origin",
+        level: 1,
+        title: `Lições dos Primeiros ${index + 1}`,
+        help: "Esta Invocação Mística concede um talento de origem adicional.",
+      });
+    }
+
     return slots;
   }
 
@@ -5599,6 +5942,9 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
       ? [
         previewItem("Distribuição", classDistribution || "—"),
         previewItem("Dados de Vida", derivedCombat.hitDicePool || "—"),
+        ...(getHighestWarlockLevel2024(classEntries)
+          ? [previewItem("Invocações Místicas", getSelectedWarlockInvocationLabels2024().join(", ") || "—")]
+          : []),
         previewItem(
           "Salvaguardas",
           formatList(Array.from(new Set([
@@ -5715,6 +6061,9 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     const featSlots = getActiveFeatChoiceDefinitions({ race, classEntries, cls, subclass, level });
     const selectedFeatEntries = collectSelectedFeatEntries2024({ background, race, cls, subclass, level, classEntries });
     const featDetailSources = collectFeatDetailSources2024(selectedFeatEntries);
+    const warlockLevel = getHighestWarlockLevel2024(classEntries);
+    const warlockInvocationLimit = getWarlockInvocationLimit2024(warlockLevel);
+    const selectedWarlockInvocationCount = getSelectedWarlockInvocationIds2024().length;
 
     if (!cls) pending.push("Escolha a classe.");
     if (!background) pending.push("Escolha o antecedente.");
@@ -5779,12 +6128,18 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
       if (!value) pending.push(`Escolha: ${choice.label}.`);
     });
 
+    if (warlockInvocationLimit && selectedWarlockInvocationCount < warlockInvocationLimit) {
+      pending.push(`Escolha as Invocações Místicas do Bruxo (${selectedWarlockInvocationCount}/${warlockInvocationLimit}).`);
+    }
+
     featSlots.forEach((slot) => {
       const selected = getDynamicSelectValue(el.featChoices, "data-feat-choice-id", slot.id);
       if (selected) return;
 
       if (slot.type === "origin") {
-        pending.push("Escolha o talento de origem extra do Humano.");
+        pending.push(slot.id.startsWith("warlock-lessons-")
+          ? "Escolha o talento de origem concedido por Lições dos Primeiros."
+          : "Escolha o talento de origem extra do Humano.");
         return;
       }
 
@@ -7974,6 +8329,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     const background = getSelectedBackground();
     const race = getSelectedRace();
     const classEntries = getResolvedClassEntries2024();
+    clearStaleFixedSkillChecks2024(getFixedSkillIds2024(background, race));
     const selectionState = getSkillChoiceSelectionState2024({ background, race, classEntries });
     const sourceLabelsBySkill = new Map();
     selectionState.sources.forEach((source) => {
@@ -8049,6 +8405,14 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
 
     updateSkillSelectionFeedback2024();
     renderProficiencySummary2024();
+  }
+
+  function clearStaleFixedSkillChecks2024(nextFixedSkills = new Set()) {
+    const fixedSkills = nextFixedSkills instanceof Set ? nextFixedSkills : new Set(nextFixedSkills || []);
+    el.skillsExtra?.querySelectorAll("input[data-skill]:disabled:checked").forEach((input) => {
+      const skillId = input.getAttribute("data-skill");
+      if (skillId && !fixedSkills.has(skillId)) input.checked = false;
+    });
   }
 
   function collectClassSavingThrowProficiencyIds2024(classEntries = getResolvedClassEntries2024()) {
@@ -9338,8 +9702,10 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
   function getWeaponAttackAbilityKey2024(weapon, abilityScores = {}, classEntries = getResolvedClassEntries2024(), cls = getSelectedClass()) {
     const strengthMod = getAbilityModifier(abilityScores.for);
     const dexterityMod = getAbilityModifier(abilityScores.des);
+    const charismaMod = getAbilityModifier(abilityScores.car);
     const hasFinesse = (weapon?.propriedades || []).includes("finesse");
     const canUseMonkDexterity = hasActiveMonkMartialArts2024(cls, classEntries) && isMonkWeapon2024(weapon);
+    let abilityKey = "for";
 
     if (weapon?.tipo === "distancia") {
       if (hasFinesse && Number.isFinite(strengthMod) && strengthMod > dexterityMod) return "for";
@@ -9347,10 +9713,17 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     }
 
     if ((hasFinesse || canUseMonkDexterity) && Number.isFinite(dexterityMod) && dexterityMod > strengthMod) {
-      return "des";
+      abilityKey = "des";
     }
 
-    return "for";
+    if (weapon?.tipo === "corpo-a-corpo"
+      && hasWarlockInvocation2024("pact-of-the-blade")
+      && Number.isFinite(charismaMod)
+      && charismaMod >= getAbilityModifier(abilityScores[abilityKey])) {
+      return "car";
+    }
+
+    return abilityKey;
   }
 
   function formatWeaponDamageField2024(weapon, abilityModifier, damageDieOverride = "", extraDamageText = "") {
@@ -9658,6 +10031,10 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
 
     if (!isWearingArmor && firstUnarmoredDefenseEntry?.subclassId === "bardo-danca" && !shieldBonus) {
       baseArmorOptions.push(10 + dexMod + chaMod);
+    }
+
+    if (!isWearingArmor && hasWarlockInvocation2024("armor-of-shadows")) {
+      baseArmorOptions.push(13 + dexMod);
     }
 
     armorItems
@@ -10865,6 +11242,13 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
         });
         if (classFeatureEntries.length) {
           sections.push(buildFeatureSummarySection2024(entry.classData?.nome || entry.classLabel, classFeatureEntries));
+        }
+
+        if (entry.classId === "bruxo") {
+          const invocationEntries = buildWarlockInvocationFeatureEntries2024();
+          if (invocationEntries.length) {
+            sections.push(buildFeatureSummarySection2024("Invocações Místicas", invocationEntries));
+          }
         }
 
         const subclassFeatureEntries = collectUnlockedFeatureEntries2024(entry.subclassData?.features, entry.level, {
