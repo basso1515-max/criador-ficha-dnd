@@ -131,6 +131,10 @@ function validateWarlockCatalog(edition, invocations, pactBoons, errors) {
   const seenIds = new Set();
   const invocationIds = new Set(invocations.map((invocation) => invocation.id));
   const pactBoonIds = new Set(pactBoons.map((boon) => boon.id));
+  const allowedConfigurationOptionSets = new Set([
+    "origin-feat-2024",
+    "warlock-damaging-cantrip-2024",
+  ]);
 
   invocations.forEach((invocation) => {
     if (seenIds.has(invocation.id)) {
@@ -148,6 +152,16 @@ function validateWarlockCatalog(edition, invocations, pactBoons, errors) {
 
     if (invocation.invocationPrerequisite && !invocationIds.has(invocation.invocationPrerequisite)) {
       errors.push(`${edition}: prerequisito de invocacao ausente em ${invocation.id} (${invocation.invocationPrerequisite}).`);
+    }
+
+    if (invocation.configuration) {
+      const configuration = invocation.configuration;
+      if (!configuration.id || !configuration.type || !configuration.optionSet || !configuration.label) {
+        errors.push(`${edition}: configuracao incompleta em ${invocation.id}.`);
+      }
+      if (!allowedConfigurationOptionSets.has(configuration.optionSet)) {
+        errors.push(`${edition}: optionSet de configuracao desconhecido em ${invocation.id} (${configuration.optionSet}).`);
+      }
     }
   });
 }

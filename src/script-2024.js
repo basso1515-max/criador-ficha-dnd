@@ -916,6 +916,13 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     .sort((a, b) => b.normalizedName.length - a.normalizedName.length);
   const SPELL_LIST_2024 = flattenMagicDataset2024(MAGIAS).filter(isOfficialSpellFor2024);
   const SPELL_BY_ID_2024 = new Map(SPELL_LIST_2024.map((spell) => [spell.id, spell]));
+  const WARLOCK_NON_DAMAGE_CANTRIP_IDS_2024 = new Set([
+    "amigos",
+    "ilusao-menor",
+    "maos-magicas",
+    "prestidigitacao",
+    "protecao-contra-laminas",
+  ]);
 
   const DEFAULT_CLASS_FEAT_LEVELS = [4, 8, 12, 16, 19];
   const CLASS_FEAT_LEVELS = {
@@ -2693,10 +2700,115 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     return selections;
   }
 
+  function getSelectedWarlockInvocationDetailValueMap2024() {
+    const values = new Map();
+    el.warlockInvocationsContainer?.querySelectorAll("select[data-warlock-invocation-detail-name]").forEach((select) => {
+      const name = select.getAttribute("data-warlock-invocation-detail-name") || select.name || "";
+      if (!name) return;
+      values.set(name, select.value || "");
+    });
+    return values;
+  }
+
+  function getWarlockInvocationConfiguration2024(invocation) {
+    return invocation?.configuration && typeof invocation.configuration === "object"
+      ? invocation.configuration
+      : null;
+  }
+
+  function buildWarlockInvocationDetailFieldName2024(slotKey, configuration) {
+    return `warlock-invocation-detail-2024:${slotKey}:${configuration?.id || "detail"}`;
+  }
+
+  function buildWarlockInvocationDetailSlotKey2024(slotKey, configuration) {
+    return `warlock-invocation:${slotKey}:${configuration?.id || "detail"}`;
+  }
+
+  function getWarlockDamagingCantripOptions2024() {
+    return SPELL_LIST_2024
+      .filter((spell) => Number(spell?.nivel || 0) === 0)
+      .filter((spell) => (spell?.classes || []).includes("bruxo"))
+      .filter((spell) => !WARLOCK_NON_DAMAGE_CANTRIP_IDS_2024.has(spell.id))
+      .filter((spell) => normalizePt(spell?.descricao || "").includes("dano") || spell.id === "ataque-certeiro")
+      .sort((a, b) => String(a.nome || "").localeCompare(String(b.nome || ""), "pt-BR"))
+      .map((spell) => ({ value: spell.id, label: spell.nome || labelFromSlug(spell.id) }));
+  }
+
+  function getWarlockInvocationConfigurationOptions2024(configuration, { entry = null, slotKey = "" } = {}) {
+    if (!configuration?.optionSet) return [];
+
+    if (configuration.optionSet === "warlock-damaging-cantrip-2024") {
+      return getWarlockDamagingCantripOptions2024();
+    }
+
+    if (configuration.optionSet === "origin-feat-2024") {
+      const selectedValues = getSelectedFeatValueMap2024();
+      const detailSlotKey = buildWarlockInvocationDetailSlotKey2024(slotKey, configuration);
+      return buildFeatChoiceOptions({
+        slot: {
+          id: detailSlotKey,
+          type: "origin",
+          level: entry?.level || getSelectedLevel(),
+          title: configuration.label || "Talento de origem",
+          classId: "bruxo",
+          entry,
+        },
+        background: getSelectedBackground(),
+        cls: getSelectedClass(),
+        subclass: getSelectedSubclass(),
+        level: getSelectedLevel(),
+        savedValues: selectedValues,
+      });
+    }
+
+    return [];
+  }
+
+  function describeWarlockInvocationConfigurationValue2024(configuration, value) {
+    if (!configuration || !value) return null;
+    const label = SPELL_BY_ID_2024.get(value)?.nome
+      || FEAT_BY_ID.get(value)?.name_pt
+      || FEAT_BY_ID.get(value)?.name
+      || labelFromSlug(value);
+    return {
+      type: configuration.type || "",
+      value,
+      label,
+      summaryLabel: configuration.summaryLabel || configuration.label || "Escolha",
+    };
+  }
+
+  function renderWarlockInvocationConfigurationField2024(invocation, slotKey, detailValues, entry) {
+    const configuration = getWarlockInvocationConfiguration2024(invocation);
+    if (!configuration) return "";
+
+    const fieldName = buildWarlockInvocationDetailFieldName2024(slotKey, configuration);
+    const selectedValue = String(detailValues.get(fieldName) || "").trim();
+    const options = getWarlockInvocationConfigurationOptions2024(configuration, { entry, slotKey });
+    const optionValues = new Set(options.map((option) => option.value));
+    const safeSelectedValue = optionValues.has(selectedValue) ? selectedValue : "";
+    const optionHtml = options
+      .map((option) => `
+        <option value="${escapeHtml(option.value)}"${safeSelectedValue === option.value ? " selected" : ""}>${escapeHtml(option.label)}</option>
+      `).join("");
+
+    return `
+      <label class="row feat-choice-field">
+        <span>${escapeHtml(configuration.label || "Detalhe")}</span>
+        <select name="${escapeHtml(fieldName)}" data-warlock-invocation-detail-name="${escapeHtml(fieldName)}" data-warlock-invocation-detail-type="${escapeHtml(configuration.type || "")}" data-warlock-invocation-detail-slot-key="${escapeHtml(slotKey)}">
+          <option value=""${safeSelectedValue ? "" : " selected"} disabled>Selecione...</option>
+          ${optionHtml}
+        </select>
+      </label>
+      ${configuration.description ? `<p class="feat-choice-meta">${escapeHtml(configuration.description)}</p>` : ""}
+    `;
+  }
+
   function describeWarlockInvocationOption2024(value) {
     const invocation = getWarlockInvocationById(WARLOCK_INVOCATIONS_2024, value);
     if (!invocation) return { summary: "", lines: [], body: "", search: String(value || "") };
     const prerequisiteText = formatWarlockInvocationPrerequisites(invocation);
+    const configuration = getWarlockInvocationConfiguration2024(invocation);
 
     return {
       group: invocation.group || "",
@@ -2704,6 +2816,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
       lines: [
         prerequisiteText ? `Pré-requisitos: ${prerequisiteText}` : "",
         invocation.group ? `Categoria: ${invocation.group}` : "",
+        configuration?.label ? `Configuração: ${configuration.label}` : "",
       ].filter(Boolean),
       body: invocation.description || "",
       search: [
@@ -2711,6 +2824,8 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
         invocation.summary,
         invocation.description,
         invocation.group,
+        configuration?.label,
+        configuration?.description,
         prerequisiteText,
       ].filter(Boolean).join(" "),
     };
@@ -2762,6 +2877,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
 
     const warlockEntries = getWarlockClassEntriesForChoices2024();
     const selections = getCurrentWarlockInvocationSelectionMap2024();
+    const detailValues = getSelectedWarlockInvocationDetailValueMap2024();
     cleanupWarlockInvocationChoiceFields2024();
 
     const activeEntries = warlockEntries
@@ -2802,18 +2918,25 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
       const fields = Array.from({ length: invocationCount }, (_, slotIndex) => {
         const slotKey = buildWarlockInvocationSlotKey2024(entry, slotIndex);
         const selectedValue = selections.get(slotKey) || "";
+        const selectedInvocation = getWarlockInvocationById(WARLOCK_INVOCATIONS_2024, selectedValue);
         const blockedValues = new Set([...usedValues].filter((value) => value && value !== selectedValue));
+        const configurationField = selectedInvocation
+          ? renderWarlockInvocationConfigurationField2024(selectedInvocation, slotKey, detailValues, entry)
+          : "";
 
         return `
-          <label class="row generic-dropdown-field feat-choice-field" data-warlock-invocation-field-key="${escapeHtml(slotKey)}" data-warlock-invocation-placeholder="Selecione uma invocação...">
-            <span>${escapeHtml(invocationCount === 1 ? "Invocação Mística" : `Invocação Mística ${slotIndex + 1}`)}</span>
-            <input data-warlock-invocation-input type="text" autocomplete="off" placeholder="Selecione uma invocação..." />
-            <div data-warlock-invocation-suggestions class="dropdown-suggestions" hidden></div>
-            <div data-warlock-invocation-hover-card class="dropdown-hover-card" hidden></div>
-            <select class="native-select-hidden" tabindex="-1" aria-hidden="true" data-warlock-invocation-slot-key="${escapeHtml(slotKey)}" data-warlock-invocation-source-key="${escapeHtml(sourceKey)}">
-              ${renderWarlockInvocationOptionElements2024(invocationOptions, selectedValue, blockedValues)}
-            </select>
-          </label>
+          <div class="feat-choice-field-group">
+            <label class="row generic-dropdown-field feat-choice-field" data-warlock-invocation-field-key="${escapeHtml(slotKey)}" data-warlock-invocation-placeholder="Selecione uma invocação...">
+              <span>${escapeHtml(invocationCount === 1 ? "Invocação Mística" : `Invocação Mística ${slotIndex + 1}`)}</span>
+              <input data-warlock-invocation-input type="text" autocomplete="off" placeholder="Selecione uma invocação..." />
+              <div data-warlock-invocation-suggestions class="dropdown-suggestions" hidden></div>
+              <div data-warlock-invocation-hover-card class="dropdown-hover-card" hidden></div>
+              <select class="native-select-hidden" tabindex="-1" aria-hidden="true" data-warlock-invocation-slot-key="${escapeHtml(slotKey)}" data-warlock-invocation-source-key="${escapeHtml(sourceKey)}">
+                ${renderWarlockInvocationOptionElements2024(invocationOptions, selectedValue, blockedValues)}
+              </select>
+            </label>
+            ${configurationField}
+          </div>
         `;
       }).join("");
 
@@ -2841,6 +2964,8 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
         setStatus2024(`${invocation?.label || "Essa invocação"} já foi escolhida para esse bruxo.`, "warning");
         select.value = "";
         renderWarlockInvocationChoices2024();
+        renderFeatChoices();
+        renderMagicSection2024();
         updatePreview();
         return;
       }
@@ -2848,29 +2973,86 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
 
     setStatus2024("");
     renderWarlockInvocationChoices2024();
+    renderFeatChoices();
+    renderMagicSection2024();
     updatePreview();
   }
 
   function onWarlockInvocationChoiceChanged2024(event) {
     const invocationSelect = event?.target?.closest?.("select[data-warlock-invocation-slot-key]");
     if (invocationSelect) handleWarlockInvocationSelection2024(invocationSelect);
+
+    const detailSelect = event?.target?.closest?.("select[data-warlock-invocation-detail-name]");
+    if (detailSelect) {
+      setStatus2024("");
+      renderFeatChoices();
+      renderMagicSection2024();
+      updatePreview();
+    }
   }
 
   function collectSelectedWarlockInvocations2024(classEntries = null) {
     const selections = getCurrentWarlockInvocationSelectionMap2024();
+    const detailValues = getSelectedWarlockInvocationDetailValueMap2024();
     return getWarlockClassEntriesForChoices2024(classEntries)
       .flatMap((entry) => {
         const count = getWarlockInvocationCountByLevel(entry.level, WARLOCK_INVOCATIONS_BY_LEVEL_2024);
         return Array.from({ length: count }, (_, slotIndex) => {
-          const invocation = getWarlockInvocationById(WARLOCK_INVOCATIONS_2024, selections.get(buildWarlockInvocationSlotKey2024(entry, slotIndex)) || "");
-          return invocation ? { entry, invocation, slotIndex } : null;
+          const slotKey = buildWarlockInvocationSlotKey2024(entry, slotIndex);
+          const invocation = getWarlockInvocationById(WARLOCK_INVOCATIONS_2024, selections.get(slotKey) || "");
+          if (!invocation) return null;
+          const configuration = getWarlockInvocationConfiguration2024(invocation);
+          const detailFieldName = configuration ? buildWarlockInvocationDetailFieldName2024(slotKey, configuration) : "";
+          const detailValue = detailFieldName ? String(detailValues.get(detailFieldName) || "").trim() : "";
+          const configurationDetail = detailValue
+            ? describeWarlockInvocationConfigurationValue2024(configuration, detailValue)
+            : null;
+          return { entry, invocation, slotIndex, slotKey, configuration, configurationDetail };
         }).filter(Boolean);
       });
   }
 
+  function collectSelectedWarlockOriginFeatEntries2024(classEntries = null) {
+    return collectSelectedWarlockInvocations2024(classEntries)
+      .filter(({ configuration, configurationDetail }) =>
+        configuration?.type === "feat"
+        && configuration.optionSet === "origin-feat-2024"
+        && configurationDetail?.value
+      )
+      .map(({ entry, invocation, slotKey, configuration, configurationDetail }) => {
+        const featId = configurationDetail.value;
+        const feat = FEAT_BY_ID.get(featId);
+        if (!feat) return null;
+        const detailSlotKey = buildWarlockInvocationDetailSlotKey2024(slotKey, configuration);
+        return {
+          slotKey: detailSlotKey,
+          slot: {
+            id: detailSlotKey,
+            type: "origin",
+            level: entry?.level || 1,
+            title: `${invocation.label} - ${configuration.label || "Talento de origem"}`,
+            help: configuration.description || "",
+            classId: "bruxo",
+            entry,
+          },
+          featId,
+          feat,
+          sourceType: "warlock-invocation",
+          sourceLabel: `${invocation.label}${entry?.classLabel ? ` (${entry.classLabel} nível ${entry.level})` : ""}`,
+          fixedClassId: "",
+        };
+      })
+      .filter(Boolean);
+  }
+
   function buildSelectedWarlockInvocationLines2024(classEntries = getResolvedClassEntries2024()) {
     return Array.from(new Set(collectSelectedWarlockInvocations2024(classEntries)
-      .map(({ invocation }) => `${invocation.label}: ${invocation.summary || invocation.description || ""}`.trim())
+      .map(({ invocation, configurationDetail }) => {
+        const detailText = configurationDetail
+          ? ` (${configurationDetail.summaryLabel}: ${configurationDetail.label})`
+          : "";
+        return `${invocation.label}${detailText}: ${invocation.summary || invocation.description || ""}`.trim();
+      })
       .filter(Boolean)));
   }
 
@@ -4076,6 +4258,11 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     const fixedBackgroundFeatId = background?.talentoOrigem?.id || "";
     const chosenElsewhere = new Set(getChosenFeatIds(savedValues, slot.id));
     if (fixedBackgroundFeatId) chosenElsewhere.add(fixedBackgroundFeatId);
+    collectSelectedWarlockOriginFeatEntries2024()
+      .filter((entry) => entry?.slotKey !== slot.id)
+      .forEach((entry) => {
+        if (entry?.featId) chosenElsewhere.add(entry.featId);
+      });
 
     const effectiveAbilityScores = getEffectiveAbilityScores();
     const originBonuses = buildBackgroundAbilityBonusEntries2024();
@@ -4307,6 +4494,10 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     const entries = [];
     const backgroundEntry = getBackgroundFixedFeatEntry2024(background);
     if (backgroundEntry) entries.push(backgroundEntry);
+
+    collectSelectedWarlockOriginFeatEntries2024(resolvedEntries).forEach((entry) => {
+      if (entry) entries.push(entry);
+    });
 
     getActiveFeatChoiceDefinitions({ race, classEntries: resolvedEntries, cls, subclass, level }).forEach((slot) => {
       const featId = String(featValueMap.get(slot.id) || "").trim();
@@ -6011,6 +6202,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     });
 
     const warlockSelections = getCurrentWarlockInvocationSelectionMap2024();
+    const warlockInvocationDetailValues = getSelectedWarlockInvocationDetailValueMap2024();
     getWarlockClassEntriesForChoices2024(classEntries).forEach((entry) => {
       const requiredInvocations = getWarlockInvocationCountByLevel(entry.level, WARLOCK_INVOCATIONS_BY_LEVEL_2024);
       if (!requiredInvocations) return;
@@ -6020,6 +6212,15 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
       if (selectedCount < requiredInvocations) {
         pending.push(`Complete as Invocações Místicas de ${entry.classLabel} (${selectedCount}/${requiredInvocations}).`);
       }
+      Array.from({ length: requiredInvocations }).forEach((_, slotIndex) => {
+        const slotKey = buildWarlockInvocationSlotKey2024(entry, slotIndex);
+        const invocation = getWarlockInvocationById(WARLOCK_INVOCATIONS_2024, warlockSelections.get(slotKey) || "");
+        const configuration = getWarlockInvocationConfiguration2024(invocation);
+        if (!configuration?.required) return;
+        const fieldName = buildWarlockInvocationDetailFieldName2024(slotKey, configuration);
+        if (warlockInvocationDetailValues.get(fieldName)) return;
+        pending.push(`Configure ${configuration.label || "o detalhe"} de ${invocation.label}.`);
+      });
     });
 
     const expertiseSelectionState = getExpertiseSelectionState2024({ background, race, classEntries });
@@ -7033,6 +7234,31 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
       handleWarlockInvocationSelection2024(target);
       guard += 1;
     }
+
+    applyRandomWarlockInvocationDetailChoices2024({ overwrite });
+  }
+
+  function applyRandomWarlockInvocationDetailChoices2024({ overwrite = false } = {}) {
+    if (!el.warlockInvocationsContainer) return;
+
+    const selects = Array.from(el.warlockInvocationsContainer.querySelectorAll("select[data-warlock-invocation-detail-name]"));
+    if (overwrite) {
+      selects.forEach((select) => {
+        select.value = "";
+      });
+    }
+
+    selects.forEach((select) => {
+      if (!overwrite && select.value) return;
+      const nextValue = pickRandom2024(listOptionValues2024(select));
+      if (nextValue) select.value = nextValue;
+    });
+
+    renderFeatChoices();
+    applyRandomFeatAbilityBonusSelections2024({ overwrite });
+    applyRandomFeatDetailSelections2024({ overwrite });
+    renderMagicSection2024();
+    updatePreview();
   }
 
   function applyRandomExpertiseChoices2024({ overwrite = false } = {}) {
@@ -11286,13 +11512,14 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     const expertiseSkillIds = getSelectedExpertiseSkillIds2024({ background, race, classEntries });
     const featuresText = buildClassFeatureSectionsText2024(classEntries);
     const [featuresTextPrimary, featuresTextSecondary] = splitTextInTwo(featuresText, 760);
-    const featLabels = [
-      background ? formatBackgroundFeat(background) : "",
-      ...getActiveFeatChoiceDefinitions({ race, classEntries, cls, subclass, level })
-        .map((slot) => getDynamicSelectValue(el.featChoices, "data-feat-choice-id", slot.id))
-        .filter(Boolean)
-        .map((featId) => formatFeatLabel(featId)),
-    ].filter(Boolean);
+    const selectedFeatEntries = collectSelectedFeatEntries2024({ background, race, cls, subclass, level, classEntries });
+    const featLabels = selectedFeatEntries.map((entry) => {
+      if (entry?.sourceType === "background") return formatBackgroundFeat(background);
+      const featLabel = entry?.feat?.name_pt || entry?.feat?.name || formatFeatLabel(entry?.featId);
+      return entry?.sourceType === "warlock-invocation" && entry.sourceLabel
+        ? `${featLabel} (${entry.sourceLabel})`
+        : featLabel;
+    }).filter(Boolean);
     const speciesText = [
       buildFeatureParagraph("Traços", collectTraitNames(race, subrace)),
       formatSpeciesChoiceSummary(race, subrace) ? `${formatSpeciesChoiceSummary(race, subrace)}.` : "",
@@ -11311,7 +11538,6 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     const weaponRows = getWeaponRowsForPdf2024(cls, background, abilityScores, proficiencyBonus, classEntries);
     const currencyBreakdown = getRemainingCurrencyBreakdown2024(cls, background);
     const historyAndPersonality = buildHistoryAndPersonalityText2024(el.notes.value.trim());
-    const selectedFeatEntries = collectSelectedFeatEntries2024({ background, race, cls, subclass, level, classEntries });
     const selectedFeatIds = getSelectedFeatIdSet2024(selectedFeatEntries);
     const initiativeBonus = getInitiativeBonus2024(abilityScores, proficiencyBonus, selectedFeatIds);
     const saveProficiencies = collectClassSavingThrowProficiencyIds2024(classEntries);

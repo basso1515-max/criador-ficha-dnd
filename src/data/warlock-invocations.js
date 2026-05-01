@@ -506,6 +506,15 @@ export const WARLOCK_INVOCATIONS_2024 = [
     group: "Truques",
     summary: "Um truque de bruxo causa mais dano.",
     description: "Escolha um truque de bruxo que cause dano; ele soma seu modificador de Carisma ao dano.",
+    configuration: {
+      id: "damaging-cantrip",
+      type: "spell",
+      optionSet: "warlock-damaging-cantrip-2024",
+      label: "Truque afetado",
+      summaryLabel: "Truque",
+      description: "Escolha qual truque de bruxo que causa dano recebe o benefício desta invocação.",
+      required: true,
+    },
   },
   {
     id: "armor-of-shadows",
@@ -557,6 +566,15 @@ export const WARLOCK_INVOCATIONS_2024 = [
     group: "Truques",
     summary: "Aumenta o alcance de um truque de dano.",
     description: "Escolha um truque de bruxo que cause dano; seu alcance aumenta bastante.",
+    configuration: {
+      id: "damaging-cantrip",
+      type: "spell",
+      optionSet: "warlock-damaging-cantrip-2024",
+      label: "Truque afetado",
+      summaryLabel: "Truque",
+      description: "Escolha qual truque de bruxo que causa dano recebe o benefício desta invocação.",
+      required: true,
+    },
   },
   {
     id: "fiendish-vigor",
@@ -581,6 +599,15 @@ export const WARLOCK_INVOCATIONS_2024 = [
     group: "Talentos",
     summary: "Aprende um talento de origem.",
     description: "Concede um talento de origem elegível, representando ensinamentos antigos do patrono.",
+    configuration: {
+      id: "origin-feat",
+      type: "feat",
+      optionSet: "origin-feat-2024",
+      label: "Talento de origem",
+      summaryLabel: "Talento",
+      description: "Escolha o talento de origem concedido por esta invocação.",
+      required: true,
+    },
   },
   {
     id: "mask-of-many-faces",
@@ -613,6 +640,15 @@ export const WARLOCK_INVOCATIONS_2024 = [
     group: "Truques",
     summary: "Empurra com truque de dano.",
     description: "Escolha um truque de bruxo que cause dano; ele pode empurrar criaturas atingidas.",
+    configuration: {
+      id: "damaging-cantrip",
+      type: "spell",
+      optionSet: "warlock-damaging-cantrip-2024",
+      label: "Truque afetado",
+      summaryLabel: "Truque",
+      description: "Escolha qual truque de bruxo que causa dano recebe o benefício desta invocação.",
+      required: true,
+    },
   },
   {
     id: "gift-of-the-depths",
