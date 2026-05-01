@@ -2,6 +2,13 @@ export const WARLOCK_INVOCATIONS_BY_LEVEL_5E = [0, 0, 2, 2, 2, 3, 3, 4, 4, 5, 5,
 
 export const WARLOCK_INVOCATIONS_BY_LEVEL_2024 = [0, 1, 3, 3, 3, 5, 5, 6, 6, 7, 7, 7, 8, 8, 8, 9, 9, 9, 10, 10, 10];
 
+export const WARLOCK_MYSTIC_ARCANUM_SLOTS_2024 = [
+  { classLevel: 11, spellLevel: 6 },
+  { classLevel: 13, spellLevel: 7 },
+  { classLevel: 15, spellLevel: 8 },
+  { classLevel: 17, spellLevel: 9 },
+];
+
 export const WARLOCK_PACT_BOONS_5E = [
   {
     id: "pact-of-the-chain",

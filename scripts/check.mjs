@@ -12,6 +12,7 @@ import {
   WARLOCK_INVOCATIONS_2024,
   WARLOCK_INVOCATIONS_BY_LEVEL_5E,
   WARLOCK_INVOCATIONS_BY_LEVEL_2024,
+  WARLOCK_MYSTIC_ARCANUM_SLOTS_2024,
   WARLOCK_PACT_BOONS_5E,
 } from "../src/data/warlock-invocations.js";
 
@@ -88,6 +89,15 @@ function getFeatureLevels(entry) {
   return new Set(Object.keys(entry?.features || {}).map(Number));
 }
 
+function getFeaturesAtLevel(entry, level) {
+  if (Array.isArray(entry?.features)) {
+    return entry.features.filter((feature) => Number(feature?.nivel) === Number(level));
+  }
+
+  const features = entry?.features?.[level] || entry?.features?.[String(level)] || [];
+  return Array.isArray(features) ? features : [features].filter(Boolean);
+}
+
 function collectSpellIds(spellTree) {
   const ids = new Set();
 
@@ -105,6 +115,24 @@ function collectSpellIds(spellTree) {
 
   visit(spellTree);
   return ids;
+}
+
+function collectSpellRecords(spellTree) {
+  const records = [];
+
+  function visit(value, key = "") {
+    if (!value || typeof value !== "object") return;
+
+    if ("nome" in value || "nivel" in value || "classes" in value) {
+      records.push({ id: value.id || key, ...value });
+      return;
+    }
+
+    Object.entries(value).forEach(([childKey, childValue]) => visit(childValue, childKey));
+  }
+
+  visit(spellTree);
+  return records;
 }
 
 function extractConstObjectBlock(source, constName) {
@@ -222,6 +250,44 @@ function validateWarlockData() {
   if (WARLOCK_INVOCATIONS_BY_LEVEL_2024.length !== 21) {
     errors.push("2024: tabela de invocacoes de Bruxo deve cobrir niveis 0 a 20.");
   }
+
+  const expectedMysticArcanumSlots2024 = new Map([
+    [11, 6],
+    [13, 7],
+    [15, 8],
+    [17, 9],
+  ]);
+  const mysticArcanumSlotsByLevel2024 = new Map(
+    WARLOCK_MYSTIC_ARCANUM_SLOTS_2024.map((slot) => [Number(slot.classLevel), Number(slot.spellLevel)]),
+  );
+  const officialWarlockSpellLevels2024 = new Set(
+    collectSpellRecords(MAGIAS_2024)
+      .filter((spell) => ["PHB", "PHB24"].includes(String(spell.fonte || "").trim().toUpperCase()))
+      .filter((spell) => (Array.isArray(spell.classes) ? spell.classes : []).includes("bruxo"))
+      .map((spell) => Number(spell.nivel || 0))
+      .filter((level) => level > 0),
+  );
+
+  if (WARLOCK_MYSTIC_ARCANUM_SLOTS_2024.length !== expectedMysticArcanumSlots2024.size) {
+    errors.push("2024: Arcana Mistica do Bruxo deve cobrir exatamente 6o a 9o circulo.");
+  }
+  expectedMysticArcanumSlots2024.forEach((spellLevel, classLevel) => {
+    const configuredSpellLevel = mysticArcanumSlotsByLevel2024.get(classLevel);
+    if (configuredSpellLevel !== spellLevel) {
+      errors.push(`2024: Arcana Mistica no nivel ${classLevel} deve configurar magia de ${spellLevel}o circulo.`);
+    }
+    const features = getFeaturesAtLevel(warlock2024, classLevel);
+    const hasArcanumFeature = features.some((feature) => String(feature?.nome || feature?.name || "").includes("Arcana"));
+    if (!hasArcanumFeature) {
+      errors.push(`2024: classe Bruxo sem feature Arcana Mistica no nivel ${classLevel}.`);
+    }
+  });
+  WARLOCK_MYSTIC_ARCANUM_SLOTS_2024.forEach((slot) => {
+    const spellLevel = Number(slot.spellLevel || 0);
+    if (!officialWarlockSpellLevels2024.has(spellLevel)) {
+      errors.push(`2024: Arcana Mistica de ${spellLevel}o circulo sem magia oficial de Bruxo disponivel.`);
+    }
+  });
 
   validateWarlockCatalog("5e", WARLOCK_INVOCATIONS_5E, WARLOCK_PACT_BOONS_5E, errors);
   validateWarlockCatalog(

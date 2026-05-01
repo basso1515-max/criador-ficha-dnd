@@ -14,6 +14,7 @@ import { buildRandomCharacterNameForRace } from "./data/character-name-randomize
 import {
   WARLOCK_INVOCATIONS_BY_LEVEL_2024,
   WARLOCK_INVOCATIONS_2024,
+  WARLOCK_MYSTIC_ARCANUM_SLOTS_2024,
   formatWarlockInvocationPrerequisites,
   getWarlockInvocationById,
   getWarlockInvocationCountByLevel,
@@ -10377,6 +10378,73 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     };
   }
 
+  function getWarlockMysticArcanumSpellIds2024(spellLevel) {
+    const normalizedWarlockClassId = normalizeClassId2024("bruxo");
+    return SPELL_LIST_2024
+      .filter((spell) => Number(spell.nivel || 0) === Number(spellLevel || 0))
+      .filter((spell) => (spell.normalizedClasses || []).includes(normalizedWarlockClassId))
+      .map((spell) => spell.id);
+  }
+
+  function buildWarlockMysticArcanumSource2024(entry, arcanum, abilityScores, proficiencyBonus) {
+    if (!entry || entry.classId !== "bruxo") return null;
+    const spellLevel = clampInt(arcanum?.spellLevel, 1, 9);
+    const ability = "car";
+    const abilityMod = getAbilityModifier(abilityScores?.[ability]) || 0;
+    const arcanumLabel = `Arcana Mística (${spellLevel}º círculo)`;
+    const allowedSpellIds = getWarlockMysticArcanumSpellIds2024(spellLevel);
+    const limits = {
+      level: entry.level,
+      sourceClassId: "",
+      ability,
+      abilityMod,
+      selectionLabel: "Magia escolhida",
+      cantripLimit: 0,
+      spellLimit: 1,
+      restrictedSchools: [],
+      flexibleSpellAllowance: 0,
+      slots: [],
+      minSpellLevel: spellLevel,
+      maxSpellLevel: spellLevel,
+      pactSlots: 0,
+      pactSlotLevel: 0,
+    };
+
+    return {
+      sourceKey: `${entry.uid}:mystic-arcanum-${spellLevel}`,
+      entry,
+      config: {
+        sourceClassId: "",
+        ability,
+        allowedClassIds: [],
+        allowedSpellIds,
+      },
+      limits,
+      classLabel: arcanumLabel,
+      detailLabel: `${entry.classLabel} • ${arcanumLabel}`,
+      slotPool: "arcanum",
+      slotTotals: getSpellSlotTotalsForLimits2024(null),
+      abilityLabel: formatAbilityLabel(ability),
+      spellSaveDC: 8 + proficiencyBonus + abilityMod,
+      spellAttackBonus: proficiencyBonus + abilityMod,
+      grantedSpellIds: [],
+      usageNote: "Uso: 1 conjuração sem gastar espaço por descanso longo.",
+    };
+  }
+
+  function collectWarlockMysticArcanumSources2024({
+    classEntries = getResolvedClassEntries2024(),
+    abilityScores = getEffectiveAbilityScores().scores || {},
+    proficiencyBonus = getProficiencyBonus(getSelectedLevel()),
+  } = {}) {
+    return normalizeClassEntriesArgument2024(classEntries)
+      .filter((entry) => entry?.classId === "bruxo")
+      .flatMap((entry) => WARLOCK_MYSTIC_ARCANUM_SLOTS_2024
+        .filter((arcanum) => entry.level >= Number(arcanum.classLevel || 0))
+        .map((arcanum) => buildWarlockMysticArcanumSource2024(entry, arcanum, abilityScores, proficiencyBonus))
+        .filter(Boolean));
+  }
+
   function getGrantedSpellBucketsForSource2024(source) {
     const buckets = {
       cantrips: new Set(),
@@ -10583,12 +10651,14 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
       (Array.isArray(source.config?.allowedSpellIds) ? source.config.allowedSpellIds : [])
         .filter(Boolean)
     );
+    const minSpellLevel = Number(source.limits.minSpellLevel || 0);
     const maxSpellLevel = Number(source.limits.maxSpellLevel || 0);
 
     return SPELL_LIST_2024
       .filter((spell) => {
         if (explicitSpellIds.has(spell.id)) return true;
-        if (Number(spell.nivel || 0) > maxSpellLevel) return false;
+        const spellLevel = Number(spell.nivel || 0);
+        if (spellLevel < minSpellLevel || spellLevel > maxSpellLevel) return false;
         if (allowedClassIds.size) {
           return Array.from(allowedClassIds).some((classId) => spell.normalizedClasses.includes(classId));
         }
@@ -10708,6 +10778,12 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
       }
       sources.push(source);
     });
+
+    collectWarlockMysticArcanumSources2024({
+      classEntries,
+      abilityScores: scores,
+      proficiencyBonus,
+    }).forEach((source) => sources.push(source));
 
     collectFeatSpellSources2024({
       level,
@@ -11048,8 +11124,10 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
       const eligibleSpells = getEligibleSpellsForSource2024(source);
       const cantrips = eligibleSpells.filter((spell) => Number(spell.nivel || 0) === 0);
       const granted = getGrantedSpellBucketsForSource2024(source);
+      const minSpellLevel = clampInt(source.limits.minSpellLevel || 1, 1, 9);
+      const maxSpellLevel = clampInt(source.limits.maxSpellLevel || 0, 0, 9);
       const spellGroups = SPELL_SLOT_LEVELS_2024
-        .filter((level) => level <= Number(source.limits.maxSpellLevel || 0))
+        .filter((level) => level >= minSpellLevel && level <= maxSpellLevel)
         .map((level) => ({
           level,
           spells: eligibleSpells.filter((spell) => Number(spell.nivel || 0) === level),
@@ -11065,7 +11143,9 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
             ${granted.cantrips.size ? `<li>Truques fixos: ${escapeHtml(Array.from(granted.cantrips).map((spellId) => SPELL_BY_ID_2024.get(spellId)?.nome || labelFromSlug(spellId)).join(", "))}.</li>` : ""}
             ${granted.spells.size ? `<li>Magias fixas: ${escapeHtml(Array.from(granted.spells).map((spellId) => SPELL_BY_ID_2024.get(spellId)?.nome || labelFromSlug(spellId)).join(", "))}.</li>` : ""}
             ${source.limits.restrictedSchools.length ? `<li>Escolas principais: ${escapeHtml(source.limits.restrictedSchools.map((item) => ESCOLAS[item] || labelFromSlug(item)).join(", "))}.</li>` : ""}
-            <li>Espaços desta fonte: ${escapeHtml(formatSpellSlotTotals2024(source.slotTotals))}.</li>
+            ${source.usageNote
+              ? `<li>${escapeHtml(source.usageNote)}</li>`
+              : `<li>Espaços desta fonte: ${escapeHtml(formatSpellSlotTotals2024(source.slotTotals))}.</li>`}
           </ul>
           ${cantrips.length ? `
             <div class="spell-check-group">
