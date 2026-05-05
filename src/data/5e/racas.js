@@ -787,11 +787,13 @@ export const SUBRACAS = {
     ]
   },
 
-  "calishita": {
+ "calishita": {
     id: "calishita",
     base: "humano",
     nome: "Calishita",
     nomeEN: "Calishite",
+    origem: "Calimshan, uma região desértica e mercantil no sudoeste de Faerûn.",
+    descricaoFisica: "Possuem olhos castanhos escuros, pele morena ou bronzeada e cabelo preto. Altura média de 1,73 m (variando de 1,62 m a 1,84 m) e peso médio de 76 kg (variando de 58 kg a 92 kg)."
   },
 
   "chondathano": {
@@ -799,6 +801,8 @@ export const SUBRACAS = {
     base: "humano",
     nome: "Chondathano",
     nomeEN: "Chondathan",
+    origem: "Região das Terras Centrais do Ocidente, próximos às margens do Mar das Estrelas Cadentes.",
+    descricaoFisica: "Possuem olhos castanhos ou verdes, pele clara ou oliva e cabelo castanho. Altura média de 1,76 m (variando de 1,64 m a 1,88 m) e peso médio de 78 kg (variando de 60 kg a 96 kg)."
   },
 
   "damarano": {
@@ -806,6 +810,8 @@ export const SUBRACAS = {
     base: "humano",
     nome: "Damarano",
     nomeEN: "Damaran",
+    origem: "Damara, uma região gélida e montanhosa no nordeste de Faerûn.",
+    descricaoFisica: "Possuem olhos azuis ou cinza, pele clara e cabelo castanho ou ruivo. Altura média de 1,75 m (variando de 1,64 m a 1,88 m) e peso médio de 80 kg (variando de 63 kg a 98 kg)."
   },
 
   "illuskano": {
@@ -813,6 +819,8 @@ export const SUBRACAS = {
     base: "humano",
     nome: "Illuskano",
     nomeEN: "Illuskan",
+    origem: "O gélido noroeste de Faerûn, habitando áreas como a Costa da Espada do Norte, o Vale do Vento Gélido e as Ilhas Moonshae.",
+    descricaoFisica: "Possuem olhos azuis ou cinza, pele clara rosada e cabelo louro ou castanho-avermelhado. Altura média de 1,82 m (variando de 1,72 m a 1,96 m) e peso médio de 84 kg (variando de 68 kg a 105 kg)."
   },
 
   "mulano": {
@@ -820,6 +828,8 @@ export const SUBRACAS = {
     base: "humano",
     nome: "Mulano",
     nomeEN: "Mulan",
+    origem: "Antigos impérios do leste, como Mulhorand, Thay e Unther.",
+    descricaoFisica: "Possuem olhos âmbar, castanhos ou verdes, pele acobreada e cabelo preto. Altura média de 1,78 m (variando de 1,68 m a 1,92 m) e peso médio de 79 kg (variando de 62 kg a 100 kg)."
   },
 
   "rashemita": {
@@ -827,6 +837,8 @@ export const SUBRACAS = {
     base: "humano",
     nome: "Rashemita",
     nomeEN: "Rashemi",
+    origem: "A nação inóspita e mística de Rashemen e as regiões vizinhas, no leste implacável.",
+    descricaoFisica: "Possuem olhos castanhos escuros, pele oliva ou morena e cabelo preto. Altura média de 1,80 m (variando de 1,70 m a 1,94 m) e peso médio de 83 kg (variando de 66 kg a 104 kg)."
   },
 
   "shou": {
@@ -834,6 +846,8 @@ export const SUBRACAS = {
     base: "humano",
     nome: "Shou",
     nomeEN: "Shou",
+    origem: "O Império Shou Lung, localizado no distante continente oriental de Kara-Tur.",
+    descricaoFisica: "Possuem olhos castanhos escuros, pele dourada clara e cabelo preto. Altura média de 1,72 m (variando de 1,60 m a 1,84 m) e peso médio de 74 kg (variando de 55 kg a 90 kg)."
   },
 
   "tethyriano": {
@@ -841,6 +855,8 @@ export const SUBRACAS = {
     base: "humano",
     nome: "Tethyriano",
     nomeEN: "Tethyrian",
+    origem: "Uma cultura vasta e miscigenada que se espalha por grande parte do oeste, desde Tethyr até o norte da Costa da Espada.",
+    descricaoFisica: "Têm olhos de cores variadas, tons de pele que vão do claro ao escuro e cabelo castanho ou preto. Altura média de 1,76 m (variando de 1,64 m a 1,90 m) e peso médio de 78 kg (variando de 58 kg a 96 kg)."
   },
 
   "turami": {
@@ -848,6 +864,8 @@ export const SUBRACAS = {
     base: "humano",
     nome: "Turami",
     nomeEN: "Turami",
+    origem: "Turmish e o litoral sul do Mar das Estrelas Cadentes.",
+    descricaoFisica: "Possuem olhos âmbar ou castanhos, pele escura bronzeada e cabelo preto. Altura média de 1,79 m (variando de 1,68 m a 1,92 m) e peso médio de 81 kg (variando de 62 kg a 102 kg)."
   },
 
   "draconato-azul": {

@@ -9,6 +9,16 @@ import { ARMADURAS } from "./data/5e/armaduras.js";
 import { EQUIPMENT_OPTION_LISTS, CLASS_EQUIPMENT_RULES, BACKGROUND_EQUIPMENT_RULES } from "./data/5e/equipamento-inicial.js";
 import { EXTRA_EQUIPMENT_CATALOG_2024, EXTRA_EQUIPMENT_GROUP_LABELS_2024 } from "./data/5.5e/equipment-compendium.js";
 import { TALENTOS } from "./data/5e/talentos.js";
+import {
+  WARLOCK_INVOCATIONS_5E,
+  WARLOCK_INVOCATIONS_BY_LEVEL_5E,
+  WARLOCK_PACT_BOONS_5E,
+  formatWarlockInvocationPrerequisites,
+  getWarlockInvocationById,
+  getWarlockInvocationCountByLevel,
+  getWarlockInvocationOptions,
+  getWarlockPactBoonById,
+} from "./data/warlock-invocations.js";
 import { buildRandomCharacterNameForRace } from "./data/character-name-randomizer.js";
 import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggleButtons } from "./user-area.js";
 
@@ -2002,6 +2012,10 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     subclassDetailChoicesSummary: $("subclassDetailChoicesSummary"),
     subclassDetailChoicesContainer: $("subclassDetailChoicesContainer"),
     subclassDetailChoicesInfo: $("subclassDetailChoicesInfo"),
+    warlockInvocationsPanel: $("warlockInvocationsPanel"),
+    warlockInvocationsSummary: $("warlockInvocationsSummary"),
+    warlockInvocationsContainer: $("warlockInvocationsContainer"),
+    warlockInvocationsInfo: $("warlockInvocationsInfo"),
     raceDetailChoicesPanel: $("raceDetailChoicesPanel"),
     raceDetailChoicesSummary: $("raceDetailChoicesSummary"),
     raceDetailChoicesContainer: $("raceDetailChoicesContainer"),
@@ -2148,9 +2162,11 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
   const PHYSICAL_FIELDS = ["idade", "altura", "peso", "olhos", "pele", "cabelo"];
   const CUSTOM_SELECT_FIELDS = {};
   const FEAT_CUSTOM_SELECT_PREFIX = "feat-slot:";
+  const WARLOCK_INVOCATION_CUSTOM_SELECT_PREFIX = "warlock-invocation:";
   const LANGUAGE_CUSTOM_SELECT_PREFIX = "language-slot:";
   const EQUIPMENT_CUSTOM_SELECT_PREFIX = "equipment-choice:";
   let featCustomSelectKeys = [];
+  let warlockInvocationCustomSelectKeys = [];
   let languageCustomSelectKeys = [];
   let equipmentCustomSelectKeys = [];
   let hitPointRollControlsSignature = "";
@@ -2322,6 +2338,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     renderFeatChoices();
     renderFeatDetailChoices();
     renderSubclassDetailChoices();
+    renderWarlockInvocationChoices();
     renderRaceDetailChoices();
     renderLanguageChoices();
     renderExpertiseChoices();
@@ -2348,6 +2365,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     renderFeatChoices();
     renderFeatDetailChoices();
     renderSubclassDetailChoices();
+    renderWarlockInvocationChoices();
     renderRaceDetailChoices();
     renderLanguageChoices();
     renderExpertiseChoices();
@@ -2380,6 +2398,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     if (el.featChoicesContainer) el.featChoicesContainer.addEventListener("change", onFeatChoiceChanged);
     if (el.featDetailChoicesContainer) el.featDetailChoicesContainer.addEventListener("change", onFeatDetailChoiceChanged);
     if (el.subclassDetailChoicesContainer) el.subclassDetailChoicesContainer.addEventListener("change", onSubclassDetailChoiceChanged);
+    if (el.warlockInvocationsContainer) el.warlockInvocationsContainer.addEventListener("change", onWarlockInvocationChoiceChanged);
     if (el.raceDetailChoicesContainer) el.raceDetailChoicesContainer.addEventListener("change", onRaceDetailChoiceChanged);
     if (el.languageChoicesContainer) el.languageChoicesContainer.addEventListener("change", onLanguageChoiceChanged);
     if (el.expertiseChoicesContainer) el.expertiseChoicesContainer.addEventListener("change", onExpertiseChoiceChanged);
@@ -2526,6 +2545,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     onClassChanged();
     onBackgroundChanged();
     onSubclassChanged();
+    renderWarlockInvocationChoices();
     renderLanguageChoices();
     onAlignmentChanged();
     onDivinityChanged();
@@ -3142,6 +3162,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     syncSuggestedSkillSelections();
     renderFightingStyleChoices();
     renderFeatChoices();
+    renderWarlockInvocationChoices();
     renderMagicSection();
     atualizarPreview();
   }
@@ -3154,6 +3175,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     syncSuggestedSkillSelections();
     renderFightingStyleChoices();
     renderFeatChoices();
+    renderWarlockInvocationChoices();
     renderMagicSection();
     atualizarPreview();
   }
@@ -3179,6 +3201,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     syncSuggestedSkillSelections();
     renderFightingStyleChoices();
     renderFeatChoices();
+    renderWarlockInvocationChoices();
     renderMagicSection();
     atualizarPreview();
   }
@@ -3193,6 +3216,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     syncSuggestedSkillSelections();
     renderFightingStyleChoices();
     renderFeatChoices();
+    renderWarlockInvocationChoices();
     renderMagicSection();
     atualizarPreview();
   }
@@ -3215,6 +3239,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     syncSuggestedSkillSelections();
     renderFightingStyleChoices();
     renderFeatChoices();
+    renderWarlockInvocationChoices();
     renderMagicSection();
     atualizarPreview();
   }
@@ -4278,6 +4303,266 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     });
   }
 
+  function cleanupWarlockInvocationChoiceFields() {
+    warlockInvocationCustomSelectKeys.forEach((key) => {
+      delete CUSTOM_SELECT_FIELDS[key];
+    });
+    warlockInvocationCustomSelectKeys = [];
+  }
+
+  function getWarlockClassEntriesForChoices(classEntries = null) {
+    const entries = Array.isArray(classEntries)
+      ? classEntries
+      : collectClassEntries(getSelectedClassData(), getSelectedSubclassData(), getTotalCharacterLevel());
+    return (entries || []).filter((entry) => entry?.classId === "bruxo" && entry.level > 0);
+  }
+
+  function getWarlockInvocationSourceKey(entry) {
+    return `${entry?.uid || "bruxo"}:invocations`;
+  }
+
+  function buildWarlockInvocationSlotKey(entry, slotIndex) {
+    return `${getWarlockInvocationSourceKey(entry)}:${slotIndex}`;
+  }
+
+  function buildWarlockPactBoonSlotKey(entry) {
+    return `${entry?.uid || "bruxo"}:pact-boon`;
+  }
+
+  function getCurrentWarlockInvocationSelectionMap() {
+    const selections = new Map();
+    el.warlockInvocationsContainer?.querySelectorAll("select[data-warlock-invocation-slot-key]").forEach((select) => {
+      selections.set(select.getAttribute("data-warlock-invocation-slot-key") || "", select.value || "");
+    });
+    return selections;
+  }
+
+  function getCurrentWarlockPactBoonSelectionMap() {
+    const selections = new Map();
+    el.warlockInvocationsContainer?.querySelectorAll("select[data-warlock-pact-boon-key]").forEach((select) => {
+      selections.set(select.getAttribute("data-warlock-pact-boon-key") || "", select.value || "");
+    });
+    return selections;
+  }
+
+  function describeWarlockInvocationOption5e(value) {
+    const invocation = getWarlockInvocationById(WARLOCK_INVOCATIONS_5E, value);
+    if (!invocation) return { summary: "", lines: [], body: "", search: String(value || "") };
+    const prerequisiteText = formatWarlockInvocationPrerequisites(invocation);
+
+    return {
+      group: invocation.group || "",
+      summary: invocation.summary || "",
+      lines: [
+        prerequisiteText ? `Pré-requisitos: ${prerequisiteText}` : "",
+        invocation.group ? `Categoria: ${invocation.group}` : "",
+      ].filter(Boolean),
+      body: invocation.description || "",
+      search: [
+        invocation.label,
+        invocation.summary,
+        invocation.description,
+        invocation.group,
+        prerequisiteText,
+      ].filter(Boolean).join(" "),
+    };
+  }
+
+  function renderWarlockInvocationOptionElements(options = [], selectedValue = "", usedValues = new Set()) {
+    const optionHtml = (options || [])
+      .filter((option) => option.value === selectedValue || !usedValues.has(option.value))
+      .map((option) => `
+        <option value="${escapeHtml(option.value)}"${selectedValue === option.value ? " selected" : ""}>${escapeHtml(option.label)}</option>
+      `).join("");
+    return `
+      <option value=""${selectedValue ? "" : " selected"} disabled>Selecione...</option>
+      ${optionHtml}
+    `;
+  }
+
+  function initializeWarlockInvocationChoiceFields() {
+    cleanupWarlockInvocationChoiceFields();
+    if (!el.warlockInvocationsContainer) return;
+
+    el.warlockInvocationsContainer.querySelectorAll("select[data-warlock-invocation-slot-key]").forEach((select) => {
+      const slotKey = select.getAttribute("data-warlock-invocation-slot-key");
+      const fieldRoot = select.closest("[data-warlock-invocation-field-key]");
+      const input = fieldRoot?.querySelector("[data-warlock-invocation-input]");
+      const suggestions = fieldRoot?.querySelector("[data-warlock-invocation-suggestions]");
+      const hoverCard = fieldRoot?.querySelector("[data-warlock-invocation-hover-card]");
+      if (!slotKey || !fieldRoot || !input || !suggestions || !hoverCard) return;
+
+      const fieldKey = `${WARLOCK_INVOCATION_CUSTOM_SELECT_PREFIX}${slotKey}`;
+      warlockInvocationCustomSelectKeys.push(fieldKey);
+      CUSTOM_SELECT_FIELDS[fieldKey] = createCustomSelectField({
+        key: fieldKey,
+        input,
+        select,
+        suggestions,
+        hoverCard,
+        placeholder: fieldRoot.getAttribute("data-warlock-invocation-placeholder") || "Selecione uma invocação...",
+        describeOption: describeWarlockInvocationOption5e,
+        onCommit: () => handleWarlockInvocationSelection(select),
+        showSuggestionSummary: false,
+      });
+      syncCustomSelectField(fieldKey);
+    });
+  }
+
+  function renderWarlockInvocationChoices() {
+    if (!el.warlockInvocationsPanel || !el.warlockInvocationsContainer) return;
+
+    const classEntries = collectClassEntries(getSelectedClassData(), getSelectedSubclassData(), getTotalCharacterLevel());
+    const warlockEntries = getWarlockClassEntriesForChoices(classEntries);
+    const invocationSelections = getCurrentWarlockInvocationSelectionMap();
+    const pactSelections = getCurrentWarlockPactBoonSelectionMap();
+
+    cleanupWarlockInvocationChoiceFields();
+
+    const activeEntries = warlockEntries
+      .map((entry) => ({
+        entry,
+        invocationCount: getWarlockInvocationCountByLevel(entry.level, WARLOCK_INVOCATIONS_BY_LEVEL_5E),
+        hasPactBoon: entry.level >= 3,
+      }))
+      .filter((item) => item.invocationCount > 0 || item.hasPactBoon);
+
+    if (!activeEntries.length) {
+      el.warlockInvocationsPanel.hidden = true;
+      el.warlockInvocationsSummary.textContent = "";
+      el.warlockInvocationsContainer.innerHTML = "";
+      if (el.warlockInvocationsInfo) el.warlockInvocationsInfo.textContent = "";
+      return;
+    }
+
+    const totalInvocations = activeEntries.reduce((sum, item) => sum + item.invocationCount, 0);
+    el.warlockInvocationsPanel.hidden = false;
+    el.warlockInvocationsSummary.textContent = totalInvocations === 1
+      ? "1 invocação mística precisa ser definida."
+      : `${totalInvocations} invocações místicas precisam ser definidas.`;
+    if (el.warlockInvocationsInfo) {
+      el.warlockInvocationsInfo.textContent = "Passe o mouse sobre uma invocação para ver pré-requisitos e resumo. O pacto do nível 3 filtra invocações dependentes de Corrente, Lâmina, Tomo ou Talismã.";
+    }
+
+    el.warlockInvocationsContainer.innerHTML = activeEntries.map(({ entry, invocationCount, hasPactBoon }) => {
+      const sourceKey = getWarlockInvocationSourceKey(entry);
+      const pactSlotKey = buildWarlockPactBoonSlotKey(entry);
+      const selectedPactBoon = pactSelections.get(pactSlotKey) || "";
+      const pactBoonIds = selectedPactBoon ? [selectedPactBoon] : [];
+      const invocationOptions = getWarlockInvocationOptions(WARLOCK_INVOCATIONS_5E, entry.level, { pactBoonIds });
+      const selectedValues = Array.from({ length: invocationCount }, (_, slotIndex) => (
+        invocationSelections.get(buildWarlockInvocationSlotKey(entry, slotIndex)) || ""
+      )).filter(Boolean);
+      const usedValues = new Set(selectedValues);
+
+      const pactField = hasPactBoon ? `
+        <label class="row feat-choice-field">
+          <span>Dádiva do Pacto</span>
+          <select data-warlock-pact-boon-key="${escapeHtml(pactSlotKey)}" data-warlock-pact-source-key="${escapeHtml(sourceKey)}">
+            <option value=""${selectedPactBoon ? "" : " selected"} disabled>Selecione...</option>
+            ${WARLOCK_PACT_BOONS_5E.map((boon) => `
+              <option value="${escapeHtml(boon.id)}"${selectedPactBoon === boon.id ? " selected" : ""}>${escapeHtml(boon.label)}</option>
+            `).join("")}
+          </select>
+        </label>
+      ` : "";
+
+      const invocationFields = Array.from({ length: invocationCount }, (_, slotIndex) => {
+        const slotKey = buildWarlockInvocationSlotKey(entry, slotIndex);
+        const selectedValue = invocationSelections.get(slotKey) || "";
+        const blockedValues = new Set([...usedValues].filter((value) => value && value !== selectedValue));
+
+        return `
+          <label class="row generic-dropdown-field feat-choice-field" data-warlock-invocation-field-key="${escapeHtml(slotKey)}" data-warlock-invocation-placeholder="Selecione uma invocação...">
+            <span>${escapeHtml(invocationCount === 1 ? "Invocação Mística" : `Invocação Mística ${slotIndex + 1}`)}</span>
+            <input data-warlock-invocation-input type="text" autocomplete="off" placeholder="Selecione uma invocação..." />
+            <div data-warlock-invocation-suggestions class="dropdown-suggestions" hidden></div>
+            <div data-warlock-invocation-hover-card class="dropdown-hover-card" hidden></div>
+            <select class="native-select-hidden" tabindex="-1" aria-hidden="true" data-warlock-invocation-slot-key="${escapeHtml(slotKey)}" data-warlock-invocation-source-key="${escapeHtml(sourceKey)}">
+              ${renderWarlockInvocationOptionElements(invocationOptions, selectedValue, blockedValues)}
+            </select>
+          </label>
+        `;
+      }).join("");
+
+      return `
+        <article class="feat-choice-card">
+          <strong>${escapeHtml(entry.classLabel)} nível ${entry.level}</strong>
+          <p class="feat-choice-meta">${escapeHtml(hasPactBoon ? "Defina a dádiva do pacto e as invocações disponíveis para este nível." : "Defina as invocações disponíveis para este nível.")}</p>
+          ${pactField}
+          ${invocationFields}
+        </article>
+      `;
+    }).join("");
+
+    initializeWarlockInvocationChoiceFields();
+  }
+
+  function handleWarlockInvocationSelection(select) {
+    if (!select) return;
+    const sourceKey = select.getAttribute("data-warlock-invocation-source-key") || "";
+    const selectedId = select.value || "";
+    if (selectedId && sourceKey) {
+      const duplicate = Array.from(el.warlockInvocationsContainer?.querySelectorAll("select[data-warlock-invocation-slot-key]") || [])
+        .some((other) => other !== select && other.getAttribute("data-warlock-invocation-source-key") === sourceKey && other.value === selectedId);
+      if (duplicate) {
+        const invocation = getWarlockInvocationById(WARLOCK_INVOCATIONS_5E, selectedId);
+        setStatus(`${invocation?.label || "Essa invocação"} já foi escolhida para esse bruxo.`);
+        select.value = "";
+        renderWarlockInvocationChoices();
+        atualizarPreview();
+        return;
+      }
+    }
+
+    setStatus("");
+    renderWarlockInvocationChoices();
+    atualizarPreview();
+  }
+
+  function onWarlockInvocationChoiceChanged(event) {
+    const target = event?.target;
+    const pactSelect = target?.closest?.("select[data-warlock-pact-boon-key]");
+    if (pactSelect) {
+      setStatus("");
+      renderWarlockInvocationChoices();
+      atualizarPreview();
+      return;
+    }
+
+    const invocationSelect = target?.closest?.("select[data-warlock-invocation-slot-key]");
+    if (invocationSelect) handleWarlockInvocationSelection(invocationSelect);
+  }
+
+  function collectSelectedWarlockPactBoons(classEntries = null) {
+    const pactSelections = getCurrentWarlockPactBoonSelectionMap();
+    return getWarlockClassEntriesForChoices(classEntries)
+      .map((entry) => {
+        const boon = getWarlockPactBoonById(pactSelections.get(buildWarlockPactBoonSlotKey(entry)) || "");
+        return boon ? { entry, boon } : null;
+      })
+      .filter(Boolean);
+  }
+
+  function collectSelectedWarlockInvocations(classEntries = null) {
+    const selections = getCurrentWarlockInvocationSelectionMap();
+    return getWarlockClassEntriesForChoices(classEntries)
+      .flatMap((entry) => {
+        const count = getWarlockInvocationCountByLevel(entry.level, WARLOCK_INVOCATIONS_BY_LEVEL_5E);
+        return Array.from({ length: count }, (_, slotIndex) => {
+          const invocation = getWarlockInvocationById(WARLOCK_INVOCATIONS_5E, selections.get(buildWarlockInvocationSlotKey(entry, slotIndex)) || "");
+          return invocation ? { entry, invocation, slotIndex } : null;
+        }).filter(Boolean);
+      });
+  }
+
+  function buildSelectedWarlockChoiceLines({ pactBoons = [], invocations = [] } = {}) {
+    return dedupeStringList([
+      ...pactBoons.map(({ boon }) => `${boon.label}: ${boon.summary || boon.description || ""}`.trim()),
+      ...invocations.map(({ invocation }) => `${invocation.label}: ${invocation.summary || invocation.description || ""}`.trim()),
+    ].filter(Boolean));
+  }
+
   function cleanupLanguageChoiceFields() {
     languageCustomSelectKeys.forEach((key) => {
       delete CUSTOM_SELECT_FIELDS[key];
@@ -4351,13 +4636,16 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       summary: [
         subrace.atributos ? `Atributos: ${Object.entries(subrace.atributos).map(([key, amount]) => `${key.toUpperCase()} ${fmtSigned(amount)}`).join(", ")}` : "",
         subrace.tracos?.length ? `Traços: ${subrace.tracos.map((trait) => trait.nome).join(", ")}` : "",
+        subrace.origem ? `Origem: ${subrace.origem}` : ""
       ].filter(Boolean).join(" • "),
       lines: [
         subrace.atributos ? `Bônus: ${Object.entries(subrace.atributos).map(([key, amount]) => `${key.toUpperCase()} ${fmtSigned(amount)}`).join(", ")}` : "",
         subrace.tracos?.length ? `Traços: ${subrace.tracos.map((trait) => trait.nome).join(", ")}` : "",
+        subrace.origem ? `Origem: ${subrace.origem}` : "",
+        subrace.descricaoFisica ? `Físico: ${subrace.descricaoFisica}` : ""
       ].filter(Boolean),
       body: subrace.descricao || "",
-      search: `${subrace.nome} ${subrace.descricao || ""} ${(subrace.tracos || []).map((trait) => trait.nome).join(" ")}`,
+      search: `${subrace.nome} ${subrace.descricao || ""} ${subrace.origem || ""} ${subrace.descricaoFisica || ""} ${(subrace.tracos || []).map((trait) => trait.nome).join(" ")}`,
     };
   }
 
@@ -4772,6 +5060,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     renderFightingStyleChoices();
     renderEquipmentChoices();
     renderFeatChoices();
+    renderWarlockInvocationChoices();
     renderMagicSection();
   }
 
@@ -4779,6 +5068,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     syncSuggestedSkillSelections();
     renderFightingStyleChoices();
     renderFeatChoices();
+    renderWarlockInvocationChoices();
     renderMagicSection();
     atualizarPreview();
   }
@@ -9979,6 +10269,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
   function applyRandomChoicePanels({ overwrite = false } = {}) {
     fillRandomFeatChoices({ overwrite });
     fillRandomFeatDetailChoices({ overwrite });
+    fillRandomWarlockInvocationChoices({ overwrite });
     fillRandomSubclassDetailChoices({ overwrite });
     fillRandomRaceDetailChoices({ overwrite });
     fillRandomSkillChoices({ overwrite });
@@ -10137,6 +10428,46 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
 
       target.value = selectedValue;
       onFeatDetailChoiceChanged({ target });
+      guard += 1;
+    }
+  }
+
+  function fillRandomWarlockInvocationChoices({ overwrite = false } = {}) {
+    if (!el.warlockInvocationsContainer) return;
+
+    if (overwrite) {
+      el.warlockInvocationsContainer.querySelectorAll("select[data-warlock-pact-boon-key], select[data-warlock-invocation-slot-key]").forEach((select) => {
+        select.value = "";
+      });
+      renderWarlockInvocationChoices();
+    }
+
+    Array.from(el.warlockInvocationsContainer.querySelectorAll("select[data-warlock-pact-boon-key]")).forEach((select) => {
+      if (!overwrite && select.value) return;
+      const nextValue = pickRandom(listOptionValues(select));
+      if (!nextValue) return;
+      select.value = nextValue;
+      renderWarlockInvocationChoices();
+    });
+
+    let guard = 0;
+    while (guard < 32) {
+      const selects = Array.from(el.warlockInvocationsContainer.querySelectorAll("select[data-warlock-invocation-slot-key]"));
+      const target = selects.find((select) => !select.value);
+      if (!target) break;
+
+      const sourceKey = target.getAttribute("data-warlock-invocation-source-key") || "";
+      const used = new Set(
+        selects
+          .filter((select) => select !== target && select.getAttribute("data-warlock-invocation-source-key") === sourceKey)
+          .map((select) => select.value)
+          .filter(Boolean)
+      );
+      const selectedValue = pickRandom(listOptionValues(target, { filter: (value) => !used.has(value) }));
+      if (!selectedValue) break;
+
+      target.value = selectedValue;
+      handleWarlockInvocationSelection(target);
       guard += 1;
     }
   }
@@ -15419,6 +15750,8 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
     const selectedExpertises = collectSelectedExpertises(expertiseGrants, new Set([...skillRuleContext.fixedSkills, ...getSelectedSkillKeys()]));
     const fightingStyleGrants = collectFightingStyleChoiceSources({ classEntries, selectedFeats });
     const selectedFightingStyles = collectSelectedFightingStyles(fightingStyleGrants);
+    const selectedWarlockPactBoons = collectSelectedWarlockPactBoons(classEntries);
+    const selectedWarlockInvocations = collectSelectedWarlockInvocations(classEntries);
 
     const attrs = {
       for: clampInt(el.for.value, 1, 20),
@@ -15515,6 +15848,8 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
       selectedExpertises,
       fightingStyleGrants,
       selectedFightingStyles,
+      selectedWarlockPactBoons,
+      selectedWarlockInvocations,
       equipmentSelections: collectEquipmentSelectionState(),
       selectedSpellsBySource: getSpellSelectionSnapshot(),
       spellSlotsUsed: collectSpellSlotUsageState(),
@@ -16081,6 +16416,10 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
     const selectedFightingStyleLines = dedupeStringList((state.selectedFightingStyles || [])
       .map((entry) => entry?.label || "")
       .filter(Boolean));
+    const selectedWarlockChoiceLines = buildSelectedWarlockChoiceLines({
+      pactBoons: state.selectedWarlockPactBoons,
+      invocations: state.selectedWarlockInvocations,
+    });
     const classEntries = getResolvedClassEntries(state);
 
     if (raceTraits.length) {
@@ -16117,6 +16456,14 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
         title: "Estilos de Luta",
         lines: selectedFightingStyleLines,
         bucket: "primary",
+      });
+    }
+
+    if (selectedWarlockChoiceLines.length) {
+      sections.push({
+        title: "Bruxo - Invocações Místicas",
+        lines: selectedWarlockChoiceLines,
+        bucket: "secondary",
       });
     }
 

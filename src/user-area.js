@@ -199,33 +199,48 @@ export function initializeUserArea({
 }
 
 function renderUserArea({ edition, elements, selectedCharacterId }) {
+  renderUserAreaView(elements, getUserAreaViewModel(edition, selectedCharacterId));
+}
+
+function getUserAreaViewModel(edition, selectedCharacterId) {
   const user = getCurrentUser();
   const saves = user ? listCharactersForCurrentUser(edition) : [];
 
-  if (elements.authPanel) elements.authPanel.hidden = Boolean(user);
-  if (elements.userPanel) elements.userPanel.hidden = !user;
+  return {
+    accountEmail: user?.email || "",
+    accountName: user?.displayName || "",
+    countLabel: user ? `${saves.length}/${ACCOUNT_LIMIT_PER_EDITION} salvos` : "Sem conta",
+    hasUser: Boolean(user),
+    saves,
+    saveDisabled: !user || saves.length >= ACCOUNT_LIMIT_PER_EDITION,
+    selectedCharacterId,
+    showEmptyState: Boolean(user) && saves.length === 0,
+  };
+}
+
+function renderUserAreaView(elements, viewModel) {
+  if (elements.authPanel) elements.authPanel.hidden = viewModel.hasUser;
+  if (elements.userPanel) elements.userPanel.hidden = !viewModel.hasUser;
 
   if (elements.accountName) {
-    elements.accountName.textContent = user?.displayName || "";
+    elements.accountName.textContent = viewModel.accountName;
   }
   if (elements.accountEmail) {
-    elements.accountEmail.textContent = user?.email || "";
+    elements.accountEmail.textContent = viewModel.accountEmail;
   }
   if (elements.count) {
-    elements.count.textContent = user
-      ? `${saves.length}/${ACCOUNT_LIMIT_PER_EDITION} salvos`
-      : "Sem conta";
+    elements.count.textContent = viewModel.countLabel;
   }
   if (elements.saveButton) {
-    elements.saveButton.disabled = !user || saves.length >= ACCOUNT_LIMIT_PER_EDITION;
+    elements.saveButton.disabled = viewModel.saveDisabled;
   }
   if (elements.empty) {
-    elements.empty.hidden = !user || saves.length > 0;
+    elements.empty.hidden = !viewModel.showEmptyState;
   }
   if (!elements.list) return;
 
-  elements.list.innerHTML = saves.map((character) => renderSavedCharacter(character, {
-    selected: character.id === selectedCharacterId,
+  elements.list.innerHTML = viewModel.saves.map((character) => renderSavedCharacter(character, {
+    selected: character.id === viewModel.selectedCharacterId,
   })).join("");
 }
 
