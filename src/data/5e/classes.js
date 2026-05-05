@@ -211,53 +211,43 @@ export const CLASSES = {
       2: [
         {
           nome: "Invocações Místicas",
-          descricao: "Escolhe invocações que concedem magias, melhorias de truques ou benefícios permanentes.",
+          descricao: "Aprende invocações que refinam a magia de pacto, a Rajada Mística ou outras capacidades sobrenaturais.",
           detalhes: [
-            "Começa com 2 invocações e aprende mais conforme avança de nível.",
-            "Algumas invocações exigem nível mínimo, truque específico ou uma Dádiva de Pacto."
+            "Começa com 2 invocações no nível 2 e aprende mais conforme avança como bruxo."
           ]
         }
       ],
       3: [
         {
-          nome: "Dádiva de Pacto",
-          descricao: "Recebe uma dádiva do patrono: Lâmina, Corrente, Tomo ou opções adicionais permitidas pela mesa.",
+          nome: "Dádiva do Pacto",
+          descricao: "Recebe uma dádiva do patrono, como Corrente, Lâmina, Tomo ou Talismã.",
           detalhes: [
-            "A dádiva escolhida também libera invocações com pré-requisitos específicos."
+            "A dádiva pode liberar pré-requisitos de invocações específicas."
           ]
         }
       ],
-      4: [
-        { nome: "Incremento no Valor de Habilidade", descricao: "Aumenta atributos ou escolhe um talento, se a regra opcional estiver em uso." }
-      ],
-      8: [
-        { nome: "Incremento no Valor de Habilidade", descricao: "Aumenta atributos ou escolhe um talento, se a regra opcional estiver em uso." }
-      ],
       11: [
-        { nome: "Arcano Místico (6º círculo)", descricao: "Escolhe uma magia de 6º círculo de bruxo para conjurar uma vez por descanso longo." }
-      ],
-      12: [
-        { nome: "Incremento no Valor de Habilidade", descricao: "Aumenta atributos ou escolhe um talento, se a regra opcional estiver em uso." }
+        {
+          nome: "Arcano Místico (6º círculo)",
+          descricao: "Escolhe uma magia de bruxo de 6º círculo para conjurar uma vez por descanso longo."
+        }
       ],
       13: [
-        { nome: "Arcano Místico (7º círculo)", descricao: "Escolhe uma magia de 7º círculo de bruxo para conjurar uma vez por descanso longo." }
+        {
+          nome: "Arcano Místico (7º círculo)",
+          descricao: "Escolhe uma magia de bruxo de 7º círculo para conjurar uma vez por descanso longo."
+        }
       ],
       15: [
-        { nome: "Arcano Místico (8º círculo)", descricao: "Escolhe uma magia de 8º círculo de bruxo para conjurar uma vez por descanso longo." }
-      ],
-      16: [
-        { nome: "Incremento no Valor de Habilidade", descricao: "Aumenta atributos ou escolhe um talento, se a regra opcional estiver em uso." }
+        {
+          nome: "Arcano Místico (8º círculo)",
+          descricao: "Escolhe uma magia de bruxo de 8º círculo para conjurar uma vez por descanso longo."
+        }
       ],
       17: [
-        { nome: "Arcano Místico (9º círculo)", descricao: "Escolhe uma magia de 9º círculo de bruxo para conjurar uma vez por descanso longo." }
-      ],
-      19: [
-        { nome: "Incremento no Valor de Habilidade", descricao: "Aumenta atributos ou escolhe um talento, se a regra opcional estiver em uso." }
-      ],
-      20: [
         {
-          nome: "Mestre Místico",
-          descricao: "Recupera todos os espaços de Magia de Pacto após 1 minuto suplicando ao patrono, uma vez por descanso longo."
+          nome: "Arcano Místico (9º círculo)",
+          descricao: "Escolhe uma magia de bruxo de 9º círculo para conjurar uma vez por descanso longo."
         }
       ]
     },

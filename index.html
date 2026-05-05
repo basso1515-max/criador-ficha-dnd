@@ -7,7 +7,6 @@
   <link rel="stylesheet" href="./src/style.css" />
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=EB+Garamond:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Libre+Baskerville:wght@400;700&family=Uncial+Antiqua&display=swap" rel="stylesheet">
   <script type="module" defer src="./src/home.js"></script>
-  <script type="module" defer src="./src/analytics.js"></script>
 </head>
 
 <body data-active-screen="home">
@@ -66,48 +65,14 @@
         </button>
 
         <div class="home-popup-brand" aria-hidden="true">
-          <span class="d20-submit-icon home-popup-d20" aria-hidden="true">
-            <svg class="d20-submit-svg" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg" focusable="false">
-              <g transform="rotate(-8 500 500)">
-                <polygon class="d20-face" points="500,90 160,255 500,195"></polygon>
-                <polygon class="d20-face" points="500,90 850,255 500,195"></polygon>
-
-                <polygon class="d20-face d20-face-center" points="500,195 255,650 745,650"></polygon>
-
-                <polygon class="d20-face" points="160,255 255,650 145,705"></polygon>
-                <polygon class="d20-face" points="850,255 855,705 745,650"></polygon>
-
-                <polygon class="d20-face" points="160,255 500,195 255,650"></polygon>
-                <polygon class="d20-face" points="850,255 500,195 745,650"></polygon>
-
-                <polygon class="d20-face" points="255,650 145,705 500,920"></polygon>
-                <polygon class="d20-face" points="745,650 855,705 500,920"></polygon>
-                <polygon class="d20-face" points="255,650 500,920 745,650"></polygon>
-
-                <text class="d20-num d20-num-small" x="390" y="170" transform="rotate(-12 390 170)">18</text>
-                <text class="d20-num d20-num-small" x="610" y="170" transform="rotate(12 610 170)">4</text>
-
-                <text class="d20-num d20-num-big" x="500" y="520">20</text>
-
-                <text class="d20-num d20-num-mid" x="310" y="395" transform="rotate(-58 310 395)">2</text>
-                <text class="d20-num d20-num-mid" x="690" y="395" transform="rotate(58 690 395)">14</text>
-
-                <text class="d20-num d20-num-small" x="180" y="575" transform="rotate(-75 180 575)">12</text>
-                <text class="d20-num d20-num-small" x="820" y="575" transform="rotate(75 820 575)">9</text>
-
-                <text class="d20-num d20-num-small" x="280" y="740" transform="rotate(-55 280 740)">10</text>
-                <text class="d20-num d20-num-mid d20-num-bottom" x="500" y="800">8</text>
-                <text class="d20-num d20-num-small" x="720" y="740" transform="rotate(55 720 740)">16</text>
-              </g>
-            </svg>
-          </span>
+          <span class="home-popup-mark">D20</span>
           <strong>Minha conta</strong>
         </div>
 
         <div id="homeAuthPanel" class="home-popup-card">
           <form id="homeLoginForm" class="home-popup-form" method="post">
             <h2>Entrar</h2>
-            <p>Use sua conta para acessar personagens salvos no servidor local.</p>
+            <p>Use sua conta local para acessar personagens salvos neste navegador.</p>
             <label class="row">
               <span>E-mail</span>
               <input name="email" type="email" autocomplete="email" required />
@@ -136,7 +101,8 @@
           </div>
 
           <div class="home-user-actions">
-            <a href="./minha-conta.html" class="secondary-button">Ver personagens salvos</a>
+            <a href="./5e.html#userArea5e" class="secondary-button">Ver salvos 5e</a>
+            <a href="./5.5e-2024.html#userArea2024" class="secondary-button">Ver salvos 5.5e</a>
           </div>
         </div>
 

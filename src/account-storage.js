@@ -1,13 +1,8 @@
 export const ACCOUNT_LIMIT_PER_EDITION = 10;
 
-const LEGACY_STORE_KEY = "dnd_sheet_accounts_v1";
+const STORE_KEY = "dnd_sheet_accounts_v1";
 const SESSION_KEY = "dnd_sheet_current_account_v1";
 const STORE_VERSION = 1;
-const EDITIONS = ["5e", "5.5e-2024"];
-
-let currentAccount = null;
-let storageMode = "pending";
-let hydratePromise = null;
 
 function createEmptyStore() {
   return {
@@ -16,93 +11,47 @@ function createEmptyStore() {
   };
 }
 
-function canUseLocalStorage() {
-  try {
-    return typeof localStorage !== "undefined";
-  } catch {
-    return false;
-  }
-}
-
-function canUseServerApi() {
-  return typeof fetch === "function" && typeof window !== "undefined" && window.location.protocol !== "file:";
-}
-
-function readLegacyStore() {
-  if (!canUseLocalStorage()) return createEmptyStore();
+function readStore() {
+  if (typeof localStorage === "undefined") return createEmptyStore();
 
   try {
-    const raw = localStorage.getItem(LEGACY_STORE_KEY);
+    const raw = localStorage.getItem(STORE_KEY);
     if (!raw) return createEmptyStore();
     const parsed = JSON.parse(raw);
     if (!parsed || !Array.isArray(parsed.accounts)) return createEmptyStore();
 
     return {
       version: parsed.version || STORE_VERSION,
-      accounts: parsed.accounts.map(normalizeAccountRecord).filter(Boolean),
+      accounts: parsed.accounts.map(normalizeAccountRecord),
     };
   } catch {
     return createEmptyStore();
   }
 }
 
-function writeLegacyStore(store) {
-  if (!canUseLocalStorage()) return;
-  localStorage.setItem(LEGACY_STORE_KEY, JSON.stringify({
+function writeStore(store) {
+  localStorage.setItem(STORE_KEY, JSON.stringify({
     version: STORE_VERSION,
     accounts: Array.isArray(store?.accounts) ? store.accounts : [],
   }));
 }
 
-function clearLegacyStore() {
-  if (!canUseLocalStorage()) return;
-  localStorage.removeItem(LEGACY_STORE_KEY);
-}
-
-function normalizeCharacters(characters) {
-  const source = characters && typeof characters === "object" ? characters : {};
-  return {
-    "5e": Array.isArray(source["5e"]) ? source["5e"].map(normalizeCharacterRecord).filter(Boolean) : [],
-    "5.5e-2024": Array.isArray(source["5.5e-2024"])
-      ? source["5.5e-2024"].map(normalizeCharacterRecord).filter(Boolean)
-      : [],
-  };
-}
-
-function normalizeCharacterRecord(character) {
-  if (!character || typeof character !== "object") return null;
-  return {
-    id: String(character.id || makeId("character")),
-    edition: EDITIONS.includes(character.edition) ? character.edition : "",
-    name: sanitizeCharacterName(character.name),
-    summary: sanitizeCharacterSummary(character.summary),
-    snapshot: character.snapshot && typeof character.snapshot === "object" ? character.snapshot : {},
-    createdAt: String(character.createdAt || new Date().toISOString()),
-    updatedAt: String(character.updatedAt || new Date().toISOString()),
-  };
-}
-
 function normalizeAccountRecord(account) {
-  if (!account || typeof account !== "object") return null;
-  return {
-    id: String(account.id || makeId("account")),
-    displayName: String(account.displayName || "").trim(),
-    email: normalizeEmail(account.email || ""),
-    passwordSalt: String(account.passwordSalt || ""),
-    passwordHash: String(account.passwordHash || ""),
-    createdAt: String(account.createdAt || new Date().toISOString()),
-    characters: normalizeCharacters(account.characters),
-  };
-}
+  const characters = account?.characters && typeof account.characters === "object"
+    ? account.characters
+    : {};
 
-function normalizeClientAccount(account) {
-  if (!account || typeof account !== "object") return null;
   return {
-    id: String(account.id || ""),
-    displayName: String(account.displayName || "").trim(),
-    email: normalizeEmail(account.email || ""),
-    createdAt: String(account.createdAt || ""),
-    characters: normalizeCharacters(account.characters),
+    id: String(account?.id || makeId("account")),
+    displayName: String(account?.displayName || "").trim(),
+    email: normalizeEmail(account?.email || ""),
+    passwordSalt: String(account?.passwordSalt || ""),
+    passwordHash: String(account?.passwordHash || ""),
+    createdAt: String(account?.createdAt || new Date().toISOString()),
+    characters: {
+      "5e": Array.isArray(characters["5e"]) ? characters["5e"] : [],
+      "5.5e-2024": Array.isArray(characters["5.5e-2024"]) ? characters["5.5e-2024"] : [],
+    },
   };
 }
 
@@ -119,13 +68,14 @@ function toPublicUser(account) {
   };
 }
 
-function getCurrentAccountId() {
-  if (!canUseLocalStorage()) return "";
-  return localStorage.getItem(SESSION_KEY) || "";
+function getCurrentAccount(store = readStore()) {
+  if (typeof localStorage === "undefined") return null;
+  const currentId = localStorage.getItem(SESSION_KEY);
+  if (!currentId) return null;
+  return store.accounts.find((account) => account.id === currentId) || null;
 }
 
-function setCurrentAccountId(accountId) {
-  if (!canUseLocalStorage()) return;
+function setCurrentAccount(accountId) {
   if (!accountId) {
     localStorage.removeItem(SESSION_KEY);
     return;
@@ -133,20 +83,14 @@ function setCurrentAccountId(accountId) {
   localStorage.setItem(SESSION_KEY, accountId);
 }
 
-function getLegacyCurrentAccount(store = readLegacyStore()) {
-  const currentId = getCurrentAccountId();
-  if (!currentId) return null;
-  return store.accounts.find((account) => account.id === currentId) || null;
-}
-
-function assertAccountInput({ displayName, email, password }, { creating = false, passwordRequired = true } = {}) {
+function assertAccountInput({ displayName, email, password }, { creating = false } = {}) {
   if (creating && !String(displayName || "").trim()) {
     throw new Error("Informe um nome para a conta.");
   }
   if (!normalizeEmail(email) || !normalizeEmail(email).includes("@")) {
     throw new Error("Informe um e-mail válido.");
   }
-  if (passwordRequired && String(password || "").length < 4) {
+  if (String(password || "").length < 4) {
     throw new Error("Use uma senha com pelo menos 4 caracteres.");
   }
 }
@@ -188,7 +132,7 @@ async function hashPassword(password, salt) {
 
 function getEditionBucket(account, edition) {
   if (!account.characters || typeof account.characters !== "object") {
-    account.characters = normalizeCharacters();
+    account.characters = {};
   }
   if (!Array.isArray(account.characters[edition])) {
     account.characters[edition] = [];
@@ -205,133 +149,17 @@ function sanitizeCharacterSummary(summary) {
   return String(summary || "").trim().slice(0, 260);
 }
 
-function sortCharacters(characters) {
-  return [...characters].sort((a, b) => String(b.updatedAt || "").localeCompare(String(a.updatedAt || "")));
-}
-
-async function requestApi(path, { method = "GET", body } = {}) {
-  const options = {
-    method,
-    headers: {
-      Accept: "application/json",
-    },
-  };
-
-  if (body !== undefined) {
-    options.headers["Content-Type"] = "application/json";
-    options.body = JSON.stringify(body);
-  }
-
-  const response = await fetch(path, options);
-  const text = await response.text();
-  let payload = {};
-  if (text) {
-    try {
-      payload = JSON.parse(text);
-    } catch {
-      payload = {};
-    }
-  }
-
-  if (!response.ok) {
-    throw new Error(payload?.message || "Não foi possível falar com o servidor.");
-  }
-
-  return payload;
-}
-
-async function migrateLegacyStoreToServer() {
-  const legacyStore = readLegacyStore();
-  if (!legacyStore.accounts.length) return;
-
-  await requestApi("/api/accounts/migrate", {
-    method: "POST",
-    body: { store: legacyStore },
-  });
-  clearLegacyStore();
-}
-
-async function ensureStorageReady() {
-  if (!hydratePromise) {
-    await hydrateAccountStorage();
-    return;
-  }
-
-  await hydratePromise;
-}
-
-export async function hydrateAccountStorage({ force = false } = {}) {
-  if (hydratePromise && !force) return hydratePromise;
-
-  hydratePromise = (async () => {
-    if (canUseServerApi()) {
-      try {
-        await migrateLegacyStoreToServer();
-        storageMode = "server";
-
-        const accountId = getCurrentAccountId();
-        if (!accountId) {
-          currentAccount = null;
-          return;
-        }
-
-        const data = await requestApi(`/api/account/current?accountId=${encodeURIComponent(accountId)}`);
-        currentAccount = normalizeClientAccount(data.account);
-        if (!currentAccount) {
-          setCurrentAccountId("");
-        }
-        return;
-      } catch (error) {
-        console.warn("Servidor de contas indisponível, usando armazenamento do navegador.", error);
-      }
-    }
-
-    storageMode = "local";
-    currentAccount = getLegacyCurrentAccount();
-  })();
-
-  await hydratePromise;
-  return hydratePromise;
-}
-
-export function isUsingServerStorage() {
-  return storageMode === "server";
-}
-
 export function getCurrentUser() {
-  return toPublicUser(currentAccount);
-}
-
-export function getCurrentAccountSnapshot() {
-  return currentAccount ? structuredCloneSafe(currentAccount) : null;
-}
-
-export function getAccountCounts() {
-  const account = currentAccount;
-  return {
-    "5e": account ? getEditionBucket(account, "5e").length : 0,
-    "5.5e-2024": account ? getEditionBucket(account, "5.5e-2024").length : 0,
-  };
+  return toPublicUser(getCurrentAccount());
 }
 
 export async function registerAccount({ displayName, email, password }) {
   assertAccountInput({ displayName, email, password }, { creating: true });
-  await ensureStorageReady();
 
-  if (storageMode === "server") {
-    const data = await requestApi("/api/accounts/register", {
-      method: "POST",
-      body: { displayName, email, password },
-    });
-    currentAccount = normalizeClientAccount(data.account);
-    setCurrentAccountId(currentAccount?.id || "");
-    return toPublicUser(currentAccount);
-  }
-
-  const store = readLegacyStore();
+  const store = readStore();
   const normalizedEmail = normalizeEmail(email);
   if (store.accounts.some((account) => account.email === normalizedEmail)) {
-    throw new Error("Já existe uma conta com este e-mail.");
+    throw new Error("Já existe uma conta local com este e-mail.");
   }
 
   const passwordSalt = makeSalt();
@@ -342,35 +170,26 @@ export async function registerAccount({ displayName, email, password }) {
     passwordSalt,
     passwordHash: await hashPassword(password, passwordSalt),
     createdAt: new Date().toISOString(),
-    characters: normalizeCharacters(),
+    characters: {
+      "5e": [],
+      "5.5e-2024": [],
+    },
   };
 
   store.accounts.push(account);
-  writeLegacyStore(store);
-  setCurrentAccountId(account.id);
-  currentAccount = normalizeClientAccount(account);
-  return toPublicUser(currentAccount);
+  writeStore(store);
+  setCurrentAccount(account.id);
+  return toPublicUser(account);
 }
 
 export async function loginAccount({ email, password }) {
   assertAccountInput({ email, password });
-  await ensureStorageReady();
 
-  if (storageMode === "server") {
-    const data = await requestApi("/api/accounts/login", {
-      method: "POST",
-      body: { email, password },
-    });
-    currentAccount = normalizeClientAccount(data.account);
-    setCurrentAccountId(currentAccount?.id || "");
-    return toPublicUser(currentAccount);
-  }
-
-  const store = readLegacyStore();
+  const store = readStore();
   const normalizedEmail = normalizeEmail(email);
   const account = store.accounts.find((item) => item.email === normalizedEmail);
   if (!account) {
-    throw new Error("Conta não encontrada.");
+    throw new Error("Conta local não encontrada.");
   }
 
   const passwordHash = await hashPassword(password, account.passwordSalt);
@@ -378,66 +197,36 @@ export async function loginAccount({ email, password }) {
     throw new Error("Senha incorreta.");
   }
 
-  setCurrentAccountId(account.id);
-  currentAccount = normalizeClientAccount(account);
-  return toPublicUser(currentAccount);
+  setCurrentAccount(account.id);
+  return toPublicUser(account);
 }
 
 export function logoutAccount() {
-  setCurrentAccountId("");
-  currentAccount = null;
+  setCurrentAccount("");
 }
 
 export function listCharactersForCurrentUser(edition) {
-  if (!currentAccount) return [];
+  const store = readStore();
+  const account = getCurrentAccount(store);
+  if (!account) return [];
 
-  return sortCharacters(getEditionBucket(currentAccount, edition))
-    .map((character) => ({ ...character }));
+  return getEditionBucket(account, edition)
+    .map((character) => ({ ...character }))
+    .sort((a, b) => String(b.updatedAt || "").localeCompare(String(a.updatedAt || "")));
 }
 
-export function listAllCharactersForCurrentUser() {
-  if (!currentAccount) return [];
-
-  return sortCharacters(EDITIONS.flatMap((edition) => (
-    getEditionBucket(currentAccount, edition).map((character) => ({ ...character, edition }))
-  )));
-}
-
-export async function saveCharacterForCurrentUser(edition, payload, { overwriteId = "" } = {}) {
-  await ensureStorageReady();
-  if (!currentAccount) {
-    throw new Error("Entre em uma conta para salvar personagens.");
-  }
-
-  const sanitizedPayload = {
-    name: sanitizeCharacterName(payload?.name),
-    summary: sanitizeCharacterSummary(payload?.summary),
-    snapshot: payload?.snapshot || {},
-  };
-
-  if (storageMode === "server") {
-    const data = await requestApi("/api/characters", {
-      method: "POST",
-      body: {
-        accountId: currentAccount.id,
-        edition,
-        payload: sanitizedPayload,
-        overwriteId,
-      },
-    });
-
-    currentAccount = normalizeClientAccount(data.account);
-    return { ...data.character };
-  }
-
-  const store = readLegacyStore();
-  const account = getLegacyCurrentAccount(store);
+export function saveCharacterForCurrentUser(edition, payload, { overwriteId = "" } = {}) {
+  const store = readStore();
+  const account = getCurrentAccount(store);
   if (!account) {
-    throw new Error("Entre em uma conta para salvar personagens.");
+    throw new Error("Entre em uma conta local para salvar personagens.");
   }
 
   const bucket = getEditionBucket(account, edition);
   const now = new Date().toISOString();
+  const name = sanitizeCharacterName(payload?.name);
+  const summary = sanitizeCharacterSummary(payload?.summary);
+  const snapshot = payload?.snapshot || {};
 
   if (overwriteId) {
     const existing = bucket.find((character) => character.id === overwriteId);
@@ -445,12 +234,11 @@ export async function saveCharacterForCurrentUser(edition, payload, { overwriteI
       throw new Error("Personagem salvo não encontrado.");
     }
 
-    existing.name = sanitizedPayload.name;
-    existing.summary = sanitizedPayload.summary;
-    existing.snapshot = sanitizedPayload.snapshot;
+    existing.name = name;
+    existing.summary = summary;
+    existing.snapshot = snapshot;
     existing.updatedAt = now;
-    writeLegacyStore(store);
-    currentAccount = normalizeClientAccount(account);
+    writeStore(store);
     return { ...existing };
   }
 
@@ -461,42 +249,23 @@ export async function saveCharacterForCurrentUser(edition, payload, { overwriteI
   const character = {
     id: makeId("character"),
     edition,
-    name: sanitizedPayload.name,
-    summary: sanitizedPayload.summary,
-    snapshot: sanitizedPayload.snapshot,
+    name,
+    summary,
+    snapshot,
     createdAt: now,
     updatedAt: now,
   };
 
   bucket.push(character);
-  writeLegacyStore(store);
-  currentAccount = normalizeClientAccount(account);
+  writeStore(store);
   return { ...character };
 }
 
-export async function deleteCharacterForCurrentUser(edition, characterId) {
-  await ensureStorageReady();
-  if (!currentAccount) {
-    throw new Error("Entre em uma conta para excluir personagens.");
-  }
-
-  if (storageMode === "server") {
-    const data = await requestApi("/api/characters", {
-      method: "DELETE",
-      body: {
-        accountId: currentAccount.id,
-        edition,
-        characterId,
-      },
-    });
-    currentAccount = normalizeClientAccount(data.account);
-    return;
-  }
-
-  const store = readLegacyStore();
-  const account = getLegacyCurrentAccount(store);
+export function deleteCharacterForCurrentUser(edition, characterId) {
+  const store = readStore();
+  const account = getCurrentAccount(store);
   if (!account) {
-    throw new Error("Entre em uma conta para excluir personagens.");
+    throw new Error("Entre em uma conta local para excluir personagens.");
   }
 
   const bucket = getEditionBucket(account, edition);
@@ -506,111 +275,5 @@ export async function deleteCharacterForCurrentUser(edition, characterId) {
   }
 
   account.characters[edition] = nextBucket;
-  writeLegacyStore(store);
-  currentAccount = normalizeClientAccount(account);
-}
-
-export async function updateCurrentAccount({ displayName, email, currentPassword, newPassword } = {}) {
-  await ensureStorageReady();
-  if (!currentAccount) {
-    throw new Error("Entre em uma conta para alterar seus dados.");
-  }
-
-  const nextName = String(displayName ?? currentAccount.displayName).trim();
-  const nextEmail = normalizeEmail(email ?? currentAccount.email);
-  if (!nextName) throw new Error("Informe um nome para a conta.");
-  if (!nextEmail || !nextEmail.includes("@")) throw new Error("Informe um e-mail válido.");
-  if (newPassword && String(newPassword).length < 4) {
-    throw new Error("Use uma nova senha com pelo menos 4 caracteres.");
-  }
-
-  if (storageMode === "server") {
-    const data = await requestApi("/api/account/current", {
-      method: "PATCH",
-      body: {
-        accountId: currentAccount.id,
-        displayName: nextName,
-        email: nextEmail,
-        currentPassword,
-        newPassword,
-      },
-    });
-    currentAccount = normalizeClientAccount(data.account);
-    return toPublicUser(currentAccount);
-  }
-
-  const store = readLegacyStore();
-  const account = getLegacyCurrentAccount(store);
-  if (!account) {
-    throw new Error("Entre em uma conta para alterar seus dados.");
-  }
-
-  const wantsEmailChange = nextEmail !== account.email;
-  const wantsPasswordChange = Boolean(newPassword);
-  const passwordMatches = await legacyPasswordMatches(account, currentPassword);
-  if ((wantsEmailChange || wantsPasswordChange) && !passwordMatches) {
-    throw new Error("Confirme sua senha atual para alterar dados sensíveis.");
-  }
-  if (
-    wantsEmailChange &&
-    store.accounts.some((item) => item.id !== account.id && item.email === nextEmail)
-  ) {
-    throw new Error("Já existe uma conta com este e-mail.");
-  }
-
-  account.displayName = nextName;
-  account.email = nextEmail;
-  if (wantsPasswordChange) {
-    account.passwordSalt = makeSalt();
-    account.passwordHash = await hashPassword(newPassword, account.passwordSalt);
-  }
-
-  writeLegacyStore(store);
-  currentAccount = normalizeClientAccount(account);
-  return toPublicUser(currentAccount);
-}
-
-export async function deleteCurrentAccount({ password } = {}) {
-  await ensureStorageReady();
-  if (!currentAccount) {
-    throw new Error("Entre em uma conta para excluir seus dados.");
-  }
-
-  if (storageMode === "server") {
-    await requestApi("/api/account/current", {
-      method: "DELETE",
-      body: {
-        accountId: currentAccount.id,
-        password,
-      },
-    });
-    logoutAccount();
-    return;
-  }
-
-  const store = readLegacyStore();
-  const account = getLegacyCurrentAccount(store);
-  if (!account) {
-    throw new Error("Entre em uma conta para excluir seus dados.");
-  }
-  const passwordMatches = await legacyPasswordMatches(account, password);
-  if (!passwordMatches) {
-    throw new Error("Senha incorreta.");
-  }
-
-  store.accounts = store.accounts.filter((item) => item.id !== account.id);
-  writeLegacyStore(store);
-  logoutAccount();
-}
-
-async function legacyPasswordMatches(account, password) {
-  if (!account || !account.passwordSalt || !account.passwordHash) return false;
-  return await hashPassword(password, account.passwordSalt) === account.passwordHash;
-}
-
-function structuredCloneSafe(value) {
-  if (typeof structuredClone === "function") {
-    return structuredClone(value);
-  }
-  return JSON.parse(JSON.stringify(value));
+  writeStore(store);
 }
