@@ -207,6 +207,48 @@ export const CLASSES = {
             "O número de espaços e o nível deles aumentam com o nível."
           ]
         }
+      ],
+      2: [
+        {
+          nome: "Invocações Místicas",
+          descricao: "Aprende invocações que refinam a magia de pacto, a Rajada Mística ou outras capacidades sobrenaturais.",
+          detalhes: [
+            "Começa com 2 invocações no nível 2 e aprende mais conforme avança como bruxo."
+          ]
+        }
+      ],
+      3: [
+        {
+          nome: "Dádiva do Pacto",
+          descricao: "Recebe uma dádiva do patrono, como Corrente, Lâmina, Tomo ou Talismã.",
+          detalhes: [
+            "A dádiva pode liberar pré-requisitos de invocações específicas."
+          ]
+        }
+      ],
+      11: [
+        {
+          nome: "Arcano Místico (6º círculo)",
+          descricao: "Escolhe uma magia de bruxo de 6º círculo para conjurar uma vez por descanso longo."
+        }
+      ],
+      13: [
+        {
+          nome: "Arcano Místico (7º círculo)",
+          descricao: "Escolhe uma magia de bruxo de 7º círculo para conjurar uma vez por descanso longo."
+        }
+      ],
+      15: [
+        {
+          nome: "Arcano Místico (8º círculo)",
+          descricao: "Escolhe uma magia de bruxo de 8º círculo para conjurar uma vez por descanso longo."
+        }
+      ],
+      17: [
+        {
+          nome: "Arcano Místico (9º círculo)",
+          descricao: "Escolhe uma magia de bruxo de 9º círculo para conjurar uma vez por descanso longo."
+        }
       ]
     },
     subclasses: [
