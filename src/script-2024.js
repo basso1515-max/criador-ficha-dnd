@@ -1390,9 +1390,8 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     attachDropdownSuggestionContainerTouchBlur2024(el.divindadeSuggestions, el.divindadeInput);
     el.abilityScores?.addEventListener("input", onAbilityScoresChanged);
     el.abilityScores?.addEventListener("change", onAbilityScoresChanged);
-    [el.abilityChoices, el.speciesChoices, el.featChoices, el.languageChoices].forEach((container) => {
-      container?.addEventListener("change", updatePreview);
-    });
+    el.abilityChoices?.addEventListener("change", onAbilityBonusChoicesChanged2024);
+    el.speciesChoices?.addEventListener("change", onSpeciesChoiceChanged2024);
     el.warlockInvocationsContainer?.addEventListener("change", onWarlockInvocationChoiceChanged2024);
     el.equipmentChoices?.addEventListener("change", onEquipmentChoicesChanged2024);
     el.equipmentChoices?.addEventListener("input", onEquipmentChoicesInput2024);
@@ -1476,6 +1475,20 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     renderMagicSection2024();
     refreshMulticlassPrerequisiteFeedback2024();
     updatePreview();
+  }
+
+  function refreshAbilityDrivenCascades2024() {
+    renderFeatChoices();
+    renderSkillChoices2024();
+    renderExpertiseChoices2024();
+    renderMagicSection2024();
+    refreshMulticlassPrerequisiteFeedback2024();
+    updateAbilityScoreInfo();
+    updatePreview();
+  }
+
+  function onAbilityBonusChoicesChanged2024() {
+    refreshAbilityDrivenCascades2024();
   }
 
   function onLevelChanged2024() {
@@ -3507,6 +3520,12 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     el.speciesPanel.hidden = false;
   }
 
+  function onSpeciesChoiceChanged2024() {
+    renderSkillChoices2024();
+    renderExpertiseChoices2024();
+    updatePreview();
+  }
+
   function normalizeAbilityScoreMap2024(rawScores = {}) {
     return Object.fromEntries(ABILITY_ORDER.map((ability) => {
       const value = Number.parseInt(rawScores?.[ability] ?? "", 10);
@@ -3580,15 +3599,17 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     };
   }
 
-  function getSelectedFeatAbilityBonusState2024() {
-    const values = readNamedFieldValues(el.featChoices);
+  function getSelectedFeatAbilityBonusState2024({ featValueMap = null, detailValues = null } = {}) {
+    const values = detailValues instanceof Map ? detailValues : readNamedFieldValues(el.featChoices);
+    const selectedFeatValues = featValueMap instanceof Map
+      ? Array.from(featValueMap.entries())
+      : Array.from(el.featChoices?.querySelectorAll("select[data-feat-choice-id]") || [])
+        .map((select) => [select.getAttribute("data-feat-choice-id") || "", select.value || ""]);
     const entries = [];
     let complete = true;
     let valid = true;
 
-    Array.from(el.featChoices?.querySelectorAll("select[data-feat-choice-id]") || []).forEach((select) => {
-      const slotId = select.getAttribute("data-feat-choice-id") || "";
-      const featId = select.value || "";
+    selectedFeatValues.forEach(([slotId, featId]) => {
       const rule = FEAT_ABILITY_BONUS_RULES_2024[featId];
       const feat = FEAT_BY_ID.get(featId);
       const featLabel = feat?.name_pt || feat?.name || labelFromSlug(featId);
@@ -3736,6 +3757,14 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
       baseScores: getBaseAbilityScores(),
       backgroundBonuses: buildBackgroundAbilityBonusEntries2024(),
       featBonuses: getSelectedFeatAbilityBonusState2024(),
+    });
+  }
+
+  function getEffectiveAbilityScoresForFeatDraft2024(featValueMap, detailValues) {
+    return calculateEffectiveAbilityScores2024({
+      baseScores: getBaseAbilityScores(),
+      backgroundBonuses: buildBackgroundAbilityBonusEntries2024(),
+      featBonuses: getSelectedFeatAbilityBonusState2024({ featValueMap, detailValues }),
     });
   }
 
@@ -4163,12 +4192,12 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     };
   }
 
-  function buildFeatChoiceOptions({ slot, background, cls, subclass, level, savedValues }) {
+  function buildFeatChoiceOptions({ slot, background, cls, subclass, level, savedValues, detailValues }) {
     const fixedBackgroundFeatId = background?.talentoOrigem?.id || "";
     const chosenElsewhere = new Set(getChosenFeatIds(savedValues, slot.id));
     if (fixedBackgroundFeatId) chosenElsewhere.add(fixedBackgroundFeatId);
 
-    const effectiveAbilityScores = getEffectiveAbilityScores();
+    const effectiveAbilityScores = getEffectiveAbilityScoresForFeatDraft2024(savedValues, detailValues);
     const originBonuses = buildBackgroundAbilityBonusEntries2024();
     const abilityScoresReady = effectiveAbilityScores.baseComplete && originBonuses.complete && originBonuses.valid;
     const classEntries = getResolvedClassEntries2024();
@@ -4594,7 +4623,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     card.className = "feat-choice-card feat-choice-card--active";
     card.dataset.featSlotType = slot.type;
 
-    const options = buildFeatChoiceOptions({ slot, background, cls, subclass, level, savedValues });
+    const options = buildFeatChoiceOptions({ slot, background, cls, subclass, level, savedValues, detailValues });
     const currentValue = savedValues.get(slot.id) || "";
     const placeholder = slot.type === "origin"
       ? "Selecione um talento de origem..."
@@ -4846,10 +4875,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
       syncFeatAbilityBonusControlState2024(bonusSelect.closest(".feat-choice-bonus-fields"));
     }
 
-    updateAbilityScoreInfo();
-    renderProficiencySummary2024();
-    renderMagicSection2024();
-    updatePreview();
+    refreshAbilityDrivenCascades2024();
   }
 
   function handleFeatChoiceSelection2024(select) {
@@ -7047,6 +7073,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
       if (nextValue) select.value = nextValue;
     });
     renderSkillChoices2024();
+    renderExpertiseChoices2024();
     updatePreview();
   }
 
