@@ -211,6 +211,251 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
       9: ["missao", "praga-de-insetos"],
     },
   };
+  const FEATURE_CHOICE_SKILL_OPTION_IDS_2024 = ["arcanismo", "historia", "investigacao", "medicina", "natureza", "religiao"];
+  const FEATURE_CHOICE_METAMAGIC_OPTIONS_2024 = [
+    {
+      value: "magia-cuidadosa",
+      label: "Magia Cuidadosa",
+      summary: "Protege aliados dos piores efeitos de uma magia em área.",
+    },
+    {
+      value: "magia-distante",
+      label: "Magia Distante",
+      summary: "Amplia o alcance ou permite tocar à distância com certas magias.",
+    },
+    {
+      value: "magia-elevada",
+      label: "Magia Elevada",
+      summary: "Dificulta a resistência de uma criatura contra sua magia.",
+    },
+    {
+      value: "magia-estendida",
+      label: "Magia Estendida",
+      summary: "Aumenta a duração de uma magia sustentada.",
+    },
+    {
+      value: "magia-gemea",
+      label: "Magia Gêmea",
+      summary: "Aprimora magias que podem afetar uma segunda criatura.",
+    },
+    {
+      value: "magia-potencializada",
+      label: "Magia Potencializada",
+      summary: "Rerrola parte dos dados de dano de uma magia.",
+    },
+    {
+      value: "magia-acelerada",
+      label: "Magia Acelerada",
+      summary: "Converte a conjuração de uma magia elegível em ação bônus.",
+    },
+    {
+      value: "magia-sutil",
+      label: "Magia Sutil",
+      summary: "Conjura sem componentes verbal, somático ou material sem custo.",
+    },
+    {
+      value: "magia-transmutada",
+      label: "Magia Transmutada",
+      summary: "Troca o tipo de dano elemental de uma magia compatível.",
+    },
+  ];
+  const FEATURE_CHOICE_DEFINITIONS_2024 = {
+    classes: {
+      clerigo: [
+        {
+          id: "divine-order",
+          minLevel: 1,
+          featureLabel: "Ordem Divina",
+          selectionLabel: "Ordem",
+          help: "Escolha como o clérigo expressa a vocação divina. Algumas opções alteram treinamentos e conjuração.",
+          required: true,
+          options: [
+            {
+              value: "protetor",
+              label: "Protetor",
+              summary: "Recebe treinamento com armas marciais e armaduras pesadas.",
+              grants: { armorTraining: ["pesada"], weaponTraining: ["marcial"] },
+            },
+            {
+              value: "taumaturgo",
+              label: "Taumaturgo",
+              summary: "Foca em magia e recebe um truque extra de clérigo.",
+              grants: { cantripBonus: [{ classId: "clerigo", amount: 1 }] },
+            },
+          ],
+        },
+        {
+          id: "blessed-strikes",
+          minLevel: 7,
+          featureLabel: "Golpes Abençoados",
+          selectionLabel: "Caminho",
+          help: "Registra se o clérigo melhora ataques com arma ou truques de clérigo.",
+          required: true,
+          options: [
+            {
+              value: "golpe-divino",
+              label: "Golpe Divino",
+              summary: "Uma vez por turno, adiciona dano radiante ou necrótico ao ataque com arma.",
+            },
+            {
+              value: "conjuracao-potente",
+              label: "Conjuração Potente",
+              summary: "Soma Sabedoria ao dano causado por truques de clérigo.",
+            },
+          ],
+        },
+      ],
+      druida: [
+        {
+          id: "primal-order",
+          minLevel: 1,
+          featureLabel: "Ordem Primal",
+          selectionLabel: "Ordem",
+          help: "Escolha se o druida começa mais marcial ou mais voltado à magia.",
+          required: true,
+          options: [
+            {
+              value: "guardiao",
+              label: "Guardião",
+              summary: "Recebe treinamento com armas marciais e armaduras médias.",
+              grants: { armorTraining: ["media"], weaponTraining: ["marcial"] },
+            },
+            {
+              value: "magico",
+              label: "Mágico",
+              summary: "Recebe um truque extra de druida.",
+              grants: { cantripBonus: [{ classId: "druida", amount: 1 }] },
+            },
+          ],
+        },
+        {
+          id: "elemental-fury",
+          minLevel: 7,
+          featureLabel: "Fúria Elemental",
+          selectionLabel: "Caminho",
+          help: "Registra se a Fúria Elemental melhora truques ou ataques com arma.",
+          required: true,
+          options: [
+            {
+              value: "conjuracao-potente",
+              label: "Conjuração Potente",
+              summary: "Soma Sabedoria ao dano causado por truques de druida.",
+            },
+            {
+              value: "golpe-primal",
+              label: "Golpe Primal",
+              summary: "Uma vez por turno, adiciona dano elemental ao ataque com arma.",
+            },
+          ],
+        },
+      ],
+      feiticeiro: [
+        {
+          id: "metamagic",
+          minLevel: 2,
+          featureLabel: "Metamagia",
+          selectionLabel: "Metamagia",
+          help: "Escolha as opções conhecidas de Metamagia. O total acompanha o nível de feiticeiro.",
+          required: true,
+          disallowDuplicates: true,
+          picksByLevel: SORCERER_METAMAGIC_OPTIONS_BY_LEVEL_2024,
+          options: FEATURE_CHOICE_METAMAGIC_OPTIONS_2024,
+        },
+      ],
+      mago: [
+        {
+          id: "scholar",
+          minLevel: 2,
+          featureLabel: "Acadêmico",
+          selectionLabel: "Perícia",
+          help: "Escolha uma perícia proficiente para receber Expertise pela característica Acadêmico.",
+          required: true,
+          optionSet: "wizard-scholar-skills",
+          grantsSelectedExpertise: true,
+          emptyOptionsLabel: "Complete uma proficiência elegível primeiro",
+        },
+        {
+          id: "spell-mastery-1",
+          minLevel: 18,
+          featureLabel: "Maestria de Magias",
+          selectionLabel: "Magia de 1º círculo",
+          help: "Escolha a magia de 1º círculo da Maestria de Magias; ela passa a ficar sempre preparada.",
+          required: true,
+          optionSet: "wizard-spells",
+          spellLevel: 1,
+          grantsSelectedSpell: true,
+        },
+        {
+          id: "spell-mastery-2",
+          minLevel: 18,
+          featureLabel: "Maestria de Magias",
+          selectionLabel: "Magia de 2º círculo",
+          help: "Escolha a magia de 2º círculo da Maestria de Magias; ela passa a ficar sempre preparada.",
+          required: true,
+          optionSet: "wizard-spells",
+          spellLevel: 2,
+          grantsSelectedSpell: true,
+        },
+        {
+          id: "signature-spells",
+          minLevel: 20,
+          featureLabel: "Magias Assinatura",
+          selectionLabel: "Magia de 3º círculo",
+          help: "Escolha duas magias de 3º círculo para ficarem sempre preparadas como Magias Assinatura.",
+          required: true,
+          optionSet: "wizard-spells",
+          spellLevel: 3,
+          grantsSelectedSpell: true,
+          disallowDuplicates: true,
+          picks: 2,
+        },
+      ],
+    },
+    subclasses: {
+      "patrulheiro-cacador": [
+        {
+          id: "hunter-prey",
+          minLevel: 3,
+          featureLabel: "Presa do Caçador",
+          selectionLabel: "Tática",
+          help: "Escolha o benefício ofensivo principal do Caçador. Pode ser trocado em descanso curto ou longo.",
+          required: true,
+          options: [
+            {
+              value: "colosso",
+              label: "Colosso",
+              summary: "Aumenta o dano contra criatura já ferida.",
+            },
+            {
+              value: "rompedor-de-horda",
+              label: "Rompedor de Horda",
+              summary: "Permite atacar uma segunda criatura próxima ao alvo.",
+            },
+          ],
+        },
+        {
+          id: "defensive-tactics",
+          minLevel: 7,
+          featureLabel: "Táticas Defensivas",
+          selectionLabel: "Defesa",
+          help: "Escolha a defesa característica do Caçador. Pode ser trocada em descanso curto ou longo.",
+          required: true,
+          options: [
+            {
+              value: "escapar-da-horda",
+              label: "Escapar da Horda",
+              summary: "Ataques de oportunidade contra você sofrem desvantagem.",
+            },
+            {
+              value: "defesa-contra-ataques-multiplos",
+              label: "Defesa contra Ataques Múltiplos",
+              summary: "Recebe bônus defensivo depois que uma criatura acerta você.",
+            },
+          ],
+        },
+      ],
+    },
+  };
   const XP_BY_LEVEL_2024 = [
     0,
     0,
@@ -1185,6 +1430,10 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     warlockInvocationsSummary: document.getElementById("warlockInvocationsSummary2024"),
     warlockInvocationsContainer: document.getElementById("warlockInvocationsContainer2024"),
     warlockInvocationsInfo: document.getElementById("warlockInvocationsInfo2024"),
+    featureChoicesPanel: document.getElementById("featureChoicesPanel2024"),
+    featureChoicesSummary: document.getElementById("featureChoicesSummary2024"),
+    featureChoicesContainer: document.getElementById("featureChoicesContainer2024"),
+    featureChoicesInfo: document.getElementById("featureChoicesInfo2024"),
     equipmentChoices: document.getElementById("equipmentChoices2024"),
     magicSection: document.getElementById("magicSection2024"),
     magicSummary: document.getElementById("magicSummary2024"),
@@ -1399,6 +1648,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
       container?.addEventListener("change", updatePreview);
     });
     el.warlockInvocationsContainer?.addEventListener("change", onWarlockInvocationChoiceChanged2024);
+    el.featureChoicesContainer?.addEventListener("change", onFeatureChoiceChanged2024);
     el.equipmentChoices?.addEventListener("change", onEquipmentChoicesChanged2024);
     el.equipmentChoices?.addEventListener("input", onEquipmentChoicesInput2024);
     el.featChoices?.addEventListener("change", onFeatChoiceChanged2024);
@@ -1461,6 +1711,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     renderWarlockInvocationChoices2024();
     renderLanguageChoices2024();
     renderSkillChoices2024();
+    renderFeatureChoices2024();
     renderExpertiseChoices2024();
     renderEquipmentChoices();
     renderHitPointRollControls2024();
@@ -3057,6 +3308,305 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
       .filter(Boolean)));
   }
 
+  function getFeatureChoiceDefinitionsForEntry2024(entry) {
+    if (!entry?.classId || !entry?.level) return [];
+    return [
+      ...(FEATURE_CHOICE_DEFINITIONS_2024.classes?.[entry.classId] || [])
+        .map((definition) => ({ ...definition, kind: "class" })),
+      ...(entry.subclassId ? (FEATURE_CHOICE_DEFINITIONS_2024.subclasses?.[entry.subclassId] || []) : [])
+        .map((definition) => ({ ...definition, kind: "subclass" })),
+    ].filter((definition) => entry.level >= Number(definition.minLevel || 1));
+  }
+
+  function getFeatureChoicePickCount2024(definition, entry) {
+    if (Array.isArray(definition?.picksByLevel)) {
+      return clampInt(definition.picksByLevel[clampInt(entry?.level, 0, 20)] || 0, 0, 20);
+    }
+    return clampInt(definition?.picks || 1, 0, 20);
+  }
+
+  function buildFeatureChoiceSourceKey2024(entry, definition) {
+    return `${entry?.uid || entry?.classId || "class"}:feature-choice:${definition?.kind || "class"}:${definition?.id || "choice"}`;
+  }
+
+  function buildFeatureChoiceSlotKey2024(source, slotIndex) {
+    return `${source.key}:slot-${slotIndex}`;
+  }
+
+  function collectFeatureChoiceSources2024({ classEntries = getResolvedClassEntries2024() } = {}) {
+    return normalizeClassEntriesArgument2024(classEntries)
+      .flatMap((entry) => getFeatureChoiceDefinitionsForEntry2024(entry)
+        .map((definition) => {
+          const picks = getFeatureChoicePickCount2024(definition, entry);
+          if (!picks) return null;
+          const ownerLabel = definition.kind === "subclass"
+            ? (entry.subclassData?.nome || entry.subclassId || entry.classLabel)
+            : (entry.classData?.nome || entry.classLabel);
+          return {
+            ...definition,
+            key: buildFeatureChoiceSourceKey2024(entry, definition),
+            entry,
+            picks,
+            ownerLabel,
+            title: definition.featureLabel || definition.label || "Escolha de recurso",
+          };
+        })
+        .filter(Boolean));
+  }
+
+  function getCurrentFeatureChoiceSelectionMap2024() {
+    return readSelectValues(el.featureChoicesContainer, "data-feature-choice-slot-key");
+  }
+
+  function getWizardFeatureSpellOptions2024(spellLevel) {
+    const wizardClassId = normalizeClassId2024("mago");
+    return SPELL_LIST_2024
+      .filter((spell) => Number(spell.nivel || 0) === Number(spellLevel || 0))
+      .filter((spell) => (spell.normalizedClasses || []).includes(wizardClassId))
+      .sort((a, b) => String(a.nome || "").localeCompare(String(b.nome || ""), "pt-BR"))
+      .map((spell) => ({
+        value: spell.id,
+        label: spell.nome || labelFromSlug(spell.id),
+        summary: spell.resumo || [
+          spell.escola ? `Escola: ${ESCOLAS[spell.normalizedSchool] || spell.escola}` : "",
+          spell.tempoConjuracao ? `Conjuração: ${spell.tempoConjuracao}` : "",
+        ].filter(Boolean).join(" • "),
+      }));
+  }
+
+  function getWizardScholarSkillOptions2024(source) {
+    const skillState = getSkillChoiceSelectionState2024({
+      classEntries: [source.entry],
+    });
+    const proficientSkillIds = new Set([
+      ...Array.from(skillState.fixedSkills || []),
+      ...(skillState.selectedSkills || []),
+    ]);
+    return SKILL_OPTIONS
+      .filter((skill) => FEATURE_CHOICE_SKILL_OPTION_IDS_2024.includes(skill.id))
+      .filter((skill) => proficientSkillIds.has(skill.id))
+      .map((skill) => ({
+        value: skill.id,
+        label: skill.label,
+        summary: "Recebe Expertise nesta perícia enquanto permanecer proficiente nela.",
+      }));
+  }
+
+  function getFeatureChoiceOptions2024(source) {
+    if (!source) return [];
+    if (Array.isArray(source.options)) return source.options;
+    if (source.optionSet === "wizard-scholar-skills") return getWizardScholarSkillOptions2024(source);
+    if (source.optionSet === "wizard-spells") return getWizardFeatureSpellOptions2024(source.spellLevel);
+    return [];
+  }
+
+  function getFeatureChoiceSelectionEntries2024({ classEntries = getResolvedClassEntries2024() } = {}) {
+    const sources = collectFeatureChoiceSources2024({ classEntries });
+    const selections = getCurrentFeatureChoiceSelectionMap2024();
+    const entries = [];
+
+    sources.forEach((source) => {
+      const options = getFeatureChoiceOptions2024(source);
+      for (let slotIndex = 0; slotIndex < source.picks; slotIndex += 1) {
+        const slotKey = buildFeatureChoiceSlotKey2024(source, slotIndex);
+        const value = String(selections.get(slotKey) || "").trim();
+        if (!value) continue;
+        const option = options.find((item) => item.value === value);
+        if (!option) continue;
+        entries.push({
+          source,
+          slotIndex,
+          slotKey,
+          value,
+          option,
+        });
+      }
+    });
+
+    return entries;
+  }
+
+  function getFeatureChoiceCantripBonusForEntry2024(entry, sourceClassId) {
+    const normalizedSourceClassId = normalizeClassId2024(sourceClassId);
+    return getFeatureChoiceSelectionEntries2024({ classEntries: [entry] })
+      .flatMap(({ option }) => option?.grants?.cantripBonus || [])
+      .filter((grant) => normalizeClassId2024(grant.classId) === normalizedSourceClassId)
+      .reduce((total, grant) => total + clampInt(grant.amount || 0, 0, 10), 0);
+  }
+
+  function getFeatureChoiceGrantedSpellIdsForEntry2024(entry) {
+    return Array.from(new Set(getFeatureChoiceSelectionEntries2024({ classEntries: [entry] })
+      .filter(({ source }) => source.grantsSelectedSpell)
+      .map(({ value }) => value)
+      .filter(Boolean)));
+  }
+
+  function getFeatureChoiceExpertiseSkillIds2024({
+    background = getSelectedBackground(),
+    race = getSelectedRace(),
+    classEntries = getResolvedClassEntries2024(),
+  } = {}) {
+    const resolvedEntries = normalizeClassEntriesArgument2024(classEntries);
+    const skillState = getSkillChoiceSelectionState2024({ background, race, classEntries: resolvedEntries });
+    const proficientSkillIds = new Set([
+      ...Array.from(skillState.fixedSkills || []),
+      ...(skillState.selectedSkills || []),
+    ]);
+    return getFeatureChoiceSelectionEntries2024({ classEntries: resolvedEntries })
+      .filter(({ source }) => source.grantsSelectedExpertise)
+      .map(({ value }) => value)
+      .filter((skillId) => proficientSkillIds.has(skillId));
+  }
+
+  function applyFeatureChoiceSpellcastingAdjustments2024(config, entry) {
+    const cantripBonus = getFeatureChoiceCantripBonusForEntry2024(entry, config?.sourceClassId);
+    if (cantripBonus && Array.isArray(config?.cantripsByLevel)) {
+      const level = clampInt(entry?.level, 0, 20);
+      config.cantripsByLevel = [...config.cantripsByLevel];
+      config.cantripsByLevel[level] = Number(config.cantripsByLevel[level] || 0) + cantripBonus;
+    }
+
+    const grantedSpellIds = getFeatureChoiceGrantedSpellIdsForEntry2024(entry);
+    if (grantedSpellIds.length) {
+      mergeGrantedSpellIdsIntoConfig2024(config, grantedSpellIds);
+    }
+
+    return config;
+  }
+
+  function renderFeatureChoiceOptionElements2024(source, slotIndex, selectedValue, options, selections) {
+    const usedValues = new Set();
+    if (source.disallowDuplicates) {
+      for (let index = 0; index < source.picks; index += 1) {
+        if (index === slotIndex) continue;
+        const value = selections.get(buildFeatureChoiceSlotKey2024(source, index));
+        if (value) usedValues.add(value);
+      }
+    }
+
+    const optionHtml = (options || [])
+      .map((option) => {
+        const disabled = usedValues.has(option.value) && selectedValue !== option.value;
+        return `<option value="${escapeHtml(option.value)}"${selectedValue === option.value ? " selected" : ""}${disabled ? " disabled" : ""}>${escapeHtml(option.label)}</option>`;
+      })
+      .join("");
+    const placeholder = options.length ? "Selecione..." : (source.emptyOptionsLabel || "Sem opções disponíveis");
+    return `
+      <option value=""${selectedValue ? "" : " selected"} disabled>${escapeHtml(placeholder)}</option>
+      ${optionHtml}
+    `;
+  }
+
+  function renderFeatureChoiceCard2024(source, selections) {
+    const options = getFeatureChoiceOptions2024(source);
+    const selectedEntries = [];
+    for (let slotIndex = 0; slotIndex < source.picks; slotIndex += 1) {
+      selectedEntries.push(String(selections.get(buildFeatureChoiceSlotKey2024(source, slotIndex)) || "").trim());
+    }
+
+    const fields = Array.from({ length: source.picks }, (_, slotIndex) => {
+      const slotKey = buildFeatureChoiceSlotKey2024(source, slotIndex);
+      const selectedValue = selectedEntries[slotIndex] || "";
+      const selectedOption = options.find((option) => option.value === selectedValue);
+      const description = selectedOption?.summary
+        || (options.length ? "Selecione uma opção para ver o efeito registrado na ficha." : source.emptyOptionsLabel || "Complete as escolhas anteriores para liberar opções válidas.");
+      const label = source.picks > 1 ? `${source.selectionLabel || "Escolha"} ${slotIndex + 1}` : source.selectionLabel || "Escolha";
+      return `
+        <label class="row feat-choice-field">
+          <span>${escapeHtml(label)}</span>
+          <select name="${escapeHtml(slotKey)}" data-feature-choice-source-key="${escapeHtml(source.key)}" data-feature-choice-slot-key="${escapeHtml(slotKey)}" ${options.length ? "" : "disabled"}>
+            ${renderFeatureChoiceOptionElements2024(source, slotIndex, selectedValue, options, selections)}
+          </select>
+        </label>
+        <p class="feat-choice-description${selectedOption ? "" : " is-empty"}">${escapeHtml(description)}</p>
+      `;
+    }).join("");
+
+    return `
+      <article class="feat-choice-card feat-choice-card--active">
+        <strong>${escapeHtml(source.title)}</strong>
+        <p class="feat-choice-meta">${escapeHtml(source.ownerLabel)} • Nível ${escapeHtml(String(source.minLevel || 1))} • ${escapeHtml(source.picks === 1 ? "1 escolha" : `${source.picks} escolhas`)}</p>
+        ${source.help ? `<p class="note subtle">${escapeHtml(source.help)}</p>` : ""}
+        ${fields}
+      </article>
+    `;
+  }
+
+  function renderFeatureChoices2024() {
+    if (!el.featureChoicesPanel || !el.featureChoicesContainer) return;
+
+    const sources = collectFeatureChoiceSources2024();
+    if (!sources.length) {
+      el.featureChoicesPanel.hidden = true;
+      el.featureChoicesSummary.textContent = "";
+      el.featureChoicesContainer.innerHTML = "";
+      if (el.featureChoicesInfo) el.featureChoicesInfo.textContent = "";
+      return;
+    }
+
+    const selections = getCurrentFeatureChoiceSelectionMap2024();
+    const totalChoices = sources.reduce((total, source) => total + source.picks, 0);
+    const selectedCount = sources.reduce((total, source) => {
+      let count = 0;
+      const options = getFeatureChoiceOptions2024(source);
+      for (let index = 0; index < source.picks; index += 1) {
+        const value = selections.get(buildFeatureChoiceSlotKey2024(source, index));
+        if (value && options.some((option) => option.value === value)) count += 1;
+      }
+      return total + count;
+    }, 0);
+
+    el.featureChoicesPanel.hidden = false;
+    el.featureChoicesSummary.textContent = `${selectedCount}/${totalChoices} escolha(s) de recurso configurada(s).`;
+    el.featureChoicesContainer.innerHTML = sources
+      .map((source) => renderFeatureChoiceCard2024(source, selections))
+      .join("");
+    if (el.featureChoicesInfo) {
+      el.featureChoicesInfo.textContent = "Essas escolhas alimentam automaticamente resumo, pendências, sorteio, treinamentos, truques extras e magias sempre preparadas quando a regra permitir.";
+    }
+  }
+
+  function onFeatureChoiceChanged2024(event) {
+    const select = event?.target?.closest?.("select[data-feature-choice-slot-key]");
+    if (!select) return;
+
+    const sourceKey = select.getAttribute("data-feature-choice-source-key") || "";
+    const selectedValue = String(select.value || "").trim();
+    const source = collectFeatureChoiceSources2024().find((item) => item.key === sourceKey);
+    if (selectedValue && source?.disallowDuplicates) {
+      const duplicate = Array.from(el.featureChoicesContainer?.querySelectorAll("select[data-feature-choice-source-key]") || [])
+        .some((other) => other !== select && other.getAttribute("data-feature-choice-source-key") === sourceKey && other.value === selectedValue);
+      if (duplicate) {
+        select.value = "";
+        setStatus2024("Essa opção já foi escolhida para o mesmo recurso.", "warning");
+      } else {
+        setStatus2024("");
+      }
+    } else {
+      setStatus2024("");
+    }
+
+    renderFeatureChoices2024();
+    renderExpertiseChoices2024();
+    renderProficiencySummary2024();
+    renderEquipmentChoices();
+    renderMagicSection2024();
+    updatePreview();
+  }
+
+  function buildSelectedFeatureChoiceLines2024(classEntries = getResolvedClassEntries2024()) {
+    const entries = getFeatureChoiceSelectionEntries2024({ classEntries });
+    return entries.map(({ source, slotIndex, option }) => {
+      const slotLabel = source.picks > 1 ? `${source.title} ${slotIndex + 1}` : source.title;
+      const effect = option.summary ? `: ${option.summary}` : "";
+      return `${slotLabel} - ${option.label}${effect}`;
+    });
+  }
+
+  function formatSelectedFeatureChoiceSummary2024(classEntries = getResolvedClassEntries2024()) {
+    return buildSelectedFeatureChoiceLines2024(classEntries).join(" • ");
+  }
+
   function describeClassOption2024(value) {
     const cls = CLASS_BY_ID.get(value);
     if (!cls) return { summary: "", lines: [], body: "", search: "" };
@@ -4105,6 +4655,9 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     getChosenFeatIds(savedValues, excludeChoiceId).forEach((featId) => {
       (FEAT_ARMOR_TRAINING[featId] || []).forEach((tag) => tags.add(tag));
     });
+    getFeatureChoiceSelectionEntries2024({ classEntries }).forEach(({ option }) => {
+      (option?.grants?.armorTraining || []).forEach((tag) => tags.add(tag));
+    });
     return tags;
   }
 
@@ -4112,6 +4665,9 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     const tags = getBaseWeaponTrainingTags2024(classEntries);
     getChosenFeatIds(savedValues, excludeChoiceId).forEach((featId) => {
       (FEAT_WEAPON_TRAINING[featId] || []).forEach((tag) => tags.add(tag));
+    });
+    getFeatureChoiceSelectionEntries2024({ classEntries }).forEach(({ option }) => {
+      (option?.grants?.weaponTraining || []).forEach((tag) => tags.add(tag));
     });
     return tags;
   }
@@ -5895,6 +6451,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     const abilitySummary = formatSelectedAbilityBonuses();
     const effectiveAbilityScores = getEffectiveAbilityScores();
     const featSummary = formatSelectedFeatSummary(race, cls, subclass, level);
+    const featureChoiceSummary = formatSelectedFeatureChoiceSummary2024(classEntries);
     const skillSelectionState = getSkillChoiceSelectionState2024({ background, race, classEntries });
     const equipmentSummary = formatEquipmentSummary(cls, background);
     const quickSheetData = getQuickSheetData();
@@ -6004,6 +6561,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
             ...getWeaponTrainingLabels2024(),
           ]) || "—"
         ),
+        previewItem("Escolhas de recursos", featureChoiceSummary || "Nenhuma escolha estrutural ativa ou configurada"),
         ...classEntries.map((entry) => previewItem(
           entry.sourceLabel || entry.classData.nome,
           [
@@ -6222,6 +6780,26 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
         if (warlockInvocationDetailValues.get(fieldName)) return;
         pending.push(`Configure ${configuration.label || "o detalhe"} de ${invocation.label}.`);
       });
+    });
+
+    const featureChoiceSelections = getCurrentFeatureChoiceSelectionMap2024();
+    collectFeatureChoiceSources2024({ classEntries }).forEach((source) => {
+      const options = getFeatureChoiceOptions2024(source);
+      let selectedCount = 0;
+      const selectedValues = [];
+      for (let slotIndex = 0; slotIndex < source.picks; slotIndex += 1) {
+        const value = String(featureChoiceSelections.get(buildFeatureChoiceSlotKey2024(source, slotIndex)) || "").trim();
+        if (value && options.some((option) => option.value === value)) {
+          selectedCount += 1;
+          selectedValues.push(value);
+        }
+      }
+      if (source.required && selectedCount < source.picks) {
+        pending.push(`Configure ${source.title} de ${source.ownerLabel} (${selectedCount}/${source.picks}).`);
+      }
+      if (source.disallowDuplicates && selectedValues.some((value, index) => selectedValues.indexOf(value) !== index)) {
+        pending.push(`Revise ${source.title}: a mesma opção foi escolhida mais de uma vez.`);
+      }
     });
 
     const expertiseSelectionState = getExpertiseSelectionState2024({ background, race, classEntries });
@@ -7119,7 +7697,9 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     });
 
     updateSkillSelectionFeedback2024();
+    renderFeatureChoices2024();
     renderExpertiseChoices2024();
+    renderMagicSection2024();
     updatePreview();
   }
 
@@ -7262,6 +7842,35 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     updatePreview();
   }
 
+  function applyRandomFeatureChoices2024({ overwrite = false } = {}) {
+    renderFeatureChoices2024();
+    const selects = Array.from(el.featureChoicesContainer?.querySelectorAll("select[data-feature-choice-slot-key]") || []);
+    if (overwrite) {
+      selects.forEach((select) => {
+        if (!select.disabled) select.value = "";
+      });
+    }
+
+    selects.forEach((select) => {
+      if (select.disabled || (!overwrite && select.value)) return;
+      const sourceKey = select.getAttribute("data-feature-choice-source-key") || "";
+      const usedValues = new Set(
+        selects
+          .filter((other) => other !== select && other.getAttribute("data-feature-choice-source-key") === sourceKey)
+          .map((other) => other.value)
+          .filter(Boolean)
+      );
+      const nextValue = pickRandom2024(listOptionValues2024(select, {
+        filter: (value) => !usedValues.has(value),
+      }));
+      if (nextValue) select.value = nextValue;
+    });
+
+    renderFeatureChoices2024();
+    renderExpertiseChoices2024();
+    renderMagicSection2024();
+  }
+
   function applyRandomExpertiseChoices2024({ overwrite = false } = {}) {
     const selects = Array.from(el.expertiseChoices?.querySelectorAll("select[data-expertise-slot-key]") || []);
     if (overwrite) {
@@ -7378,6 +7987,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
         applyRandomClassSkills2024({ overwrite });
         applyRandomFeatChoices2024({ overwrite });
         applyRandomWarlockInvocationChoices2024({ overwrite });
+        applyRandomFeatureChoices2024({ overwrite });
         applyRandomEquipmentChoices2024({ overwrite });
         applyRandomSpellSelections2024({ overwrite });
         updatePreview();
@@ -8066,7 +8676,10 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     race = getSelectedRace(),
     classEntries = getResolvedClassEntries2024(),
   } = {}) {
-    return new Set(getExpertiseSelectionState2024({ background, race, classEntries }).selectedSkills);
+    return new Set([
+      ...getExpertiseSelectionState2024({ background, race, classEntries }).selectedSkills,
+      ...getFeatureChoiceExpertiseSkillIds2024({ background, race, classEntries }),
+    ]);
   }
 
   function renderExpertiseChoices2024() {
@@ -10251,6 +10864,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
         }
         mergeGrantedSpellIdsIntoConfig2024(config, grantedSpellIds);
       }
+      applyFeatureChoiceSpellcastingAdjustments2024(config, entry);
       return config;
     }
 
@@ -11379,6 +11993,11 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     const warlockInvocationLines = buildSelectedWarlockInvocationLines2024(resolvedEntries);
     if (warlockInvocationLines.length) {
       sections.push(buildFeatureSummarySection2024("Bruxo - Invocações Místicas", warlockInvocationLines));
+    }
+
+    const featureChoiceLines = buildSelectedFeatureChoiceLines2024(resolvedEntries);
+    if (featureChoiceLines.length) {
+      sections.push(buildFeatureSummarySection2024("Escolhas de recursos", featureChoiceLines));
     }
 
     return sections.filter(Boolean).join("\n\n");

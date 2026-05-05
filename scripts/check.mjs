@@ -346,6 +346,48 @@ function validateWarlockData() {
   console.log("OK: dados estruturais do Bruxo");
 }
 
+function validateFeatureChoiceEngine2024() {
+  const errors = [];
+  const html2024 = readFileSync(path.join(root, "5.5e-2024.html"), "utf8");
+  const script2024 = readFileSync(path.join(root, "src/script-2024.js"), "utf8");
+  const requiredHtmlIds = [
+    "featureChoicesPanel2024",
+    "featureChoicesSummary2024",
+    "featureChoicesContainer2024",
+    "featureChoicesInfo2024",
+  ];
+  const requiredScriptMarkers = [
+    "FEATURE_CHOICE_DEFINITIONS_2024",
+    "renderFeatureChoices2024",
+    "collectFeatureChoiceSources2024",
+    "applyRandomFeatureChoices2024",
+    "getFeatureChoiceSelectionEntries2024",
+    "divine-order",
+    "primal-order",
+    "metamagic",
+    "spell-mastery-1",
+    "signature-spells",
+    "hunter-prey",
+    "defensive-tactics",
+  ];
+
+  requiredHtmlIds.forEach((id) => {
+    if (!html2024.includes(id)) errors.push(`2024: painel de escolhas de recursos sem #${id}.`);
+  });
+  requiredScriptMarkers.forEach((marker) => {
+    if (!script2024.includes(marker)) errors.push(`2024: motor de escolhas de recursos sem marcador ${marker}.`);
+  });
+
+  if (errors.length) {
+    console.error("\nValidacao do motor de escolhas de recursos falhou:");
+    errors.forEach((error) => console.error(`- ${error}`));
+    process.exit(1);
+  }
+
+  console.log("OK: motor de escolhas de recursos 2024");
+}
+
 validateWarlockData();
+validateFeatureChoiceEngine2024();
 
 console.log("\nValidacao concluida com sucesso.");
