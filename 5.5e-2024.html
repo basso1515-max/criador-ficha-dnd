@@ -8,7 +8,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=EB+Garamond:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Libre+Baskerville:wght@400;700&family=Uncial+Antiqua&display=swap" rel="stylesheet">
   <script defer src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
   <script type="module" defer src="./src/script-2024.js"></script>
-  <script type="module" defer src="./src/analytics.js"></script>
 </head>
 
 <body data-active-screen="5e-2024">
@@ -17,52 +16,20 @@
       <div class="version-toolbar">
         <div class="version-toolbar-actions">
           <a href="./index.html" class="ghost-button">Voltar para a seleção</a>
-          <a href="./minha-conta.html" class="secondary-button">Minha conta</a>
+          <a href="./conta.html?returnTo=5.5e-2024.html%23userArea2024" class="secondary-button">Minha conta</a>
           <a href="./5e.html" class="secondary-button">Abrir editor 5e</a>
-          <button id="editorLogout2024" type="button" class="ghost-button editor-logout-button" hidden>Sair</button>
-        </div>
-
-        <div id="mobileEditorMenuShell2024" class="mobile-editor-menu-shell">
-          <button id="mobileMenuToggle2024" type="button" class="mobile-menu-toggle" aria-label="Abrir menu do editor" aria-controls="mobileEditorMenu2024" aria-expanded="false">
-            <span class="mobile-menu-bars" aria-hidden="true">
-              <span></span>
-              <span></span>
-              <span></span>
-            </span>
-            <span>Menu</span>
-          </button>
-
-          <nav id="mobileEditorMenu2024" class="mobile-editor-menu" aria-label="Menu do editor" hidden>
-            <div class="mobile-menu-section">
-              <span class="mobile-menu-label">Navegação</span>
-              <a href="./index.html" class="mobile-menu-link">Voltar para a seleção</a>
-              <a href="./5e.html" class="mobile-menu-link">Abrir editor 5e</a>
-              <a href="./minha-conta.html" class="mobile-menu-link">Minha conta e salvos</a>
-            </div>
-
-            <div id="mobileCurrentCharacter2024" class="mobile-menu-section mobile-menu-current">
-              <span class="mobile-menu-label">Personagem atual</span>
-              <strong id="mobileCurrentCharacterName2024">Sem personagem salvo aberto</strong>
-              <small id="mobileCurrentCharacterSummary2024">Abra um personagem salvo pela sua página.</small>
-            </div>
-
-            <div class="mobile-menu-section mobile-menu-actions">
-              <button id="mobileSaveCharacter2024" type="button" class="mobile-menu-button">Salvar personagem atual</button>
-              <button id="mobileLogout2024" type="button" class="mobile-menu-button mobile-menu-logout" hidden>Sair da conta</button>
-            </div>
-          </nav>
         </div>
       </div>
 
       <h1>Criador de ficha D&D 5.5e (2024)</h1>
     </header>
 
-    <section id="userAreaContainer2024" class="container user-area-container">
+    <section class="container user-area-container">
       <div id="userArea2024" class="card user-area" aria-label="Área do usuário">
-        <div id="userAreaHeader2024" class="user-area-header">
+        <div class="user-area-header">
           <div>
             <h2>Área do usuário</h2>
-            <p class="note subtle">Conta para salvar até 10 personagens desta edição no servidor local.</p>
+            <p class="note subtle">Conta local para salvar até 10 personagens desta edição neste navegador.</p>
           </div>
           <span id="userAreaCount2024" class="user-area-count">Sem conta</span>
         </div>
@@ -70,13 +37,13 @@
         <div id="authPanel2024" class="user-account-link-panel">
           <div>
             <strong>Entre para salvar personagens</strong>
-            <p class="note subtle">Você pode continuar gerando fichas sem conta. O login serve para guardar as definições preenchidas.</p>
+            <p class="note subtle">Você pode continuar gerando fichas sem conta. O login serve apenas para guardar as definições preenchidas.</p>
           </div>
           <a href="./conta.html?returnTo=5.5e-2024.html%23userArea2024" class="secondary-button">Minha conta</a>
         </div>
 
         <div id="userPanel2024" class="user-saves-panel" hidden>
-          <div id="userSessionRow2024" class="user-session-row">
+          <div class="user-session-row">
             <p>
               <strong id="accountName2024"></strong>
               <span id="accountEmail2024"></span>
@@ -167,19 +134,19 @@
 
             <div class="row-inline">
               <label class="row generic-dropdown-field">
-                <span>Antecedente</span>
-                <input id="antecedenteInput2024" type="text" autocomplete="off" placeholder="Selecione o antecedente..." />
-                <div id="antecedenteSuggestions2024" class="dropdown-suggestions" hidden></div>
-                <div id="antecedenteHoverCard2024" class="dropdown-hover-card" hidden></div>
-                <select id="antecedente2024" class="native-select-hidden" tabindex="-1" aria-hidden="true"></select>
-              </label>
-
-              <label class="row generic-dropdown-field">
                 <span>Subclasse</span>
                 <input id="subclasseInput2024" type="text" autocomplete="off" placeholder="Selecione a subclasse..." />
                 <div id="subclasseSuggestions2024" class="dropdown-suggestions" hidden></div>
                 <div id="subclasseHoverCard2024" class="dropdown-hover-card" hidden></div>
                 <select id="subclasse2024" class="native-select-hidden" tabindex="-1" aria-hidden="true"></select>
+              </label>
+
+              <label class="row generic-dropdown-field">
+                <span>Antecedente</span>
+                <input id="antecedenteInput2024" type="text" autocomplete="off" placeholder="Selecione o antecedente..." />
+                <div id="antecedenteSuggestions2024" class="dropdown-suggestions" hidden></div>
+                <div id="antecedenteHoverCard2024" class="dropdown-hover-card" hidden></div>
+                <select id="antecedente2024" class="native-select-hidden" tabindex="-1" aria-hidden="true"></select>
               </label>
             </div>
 
@@ -222,6 +189,13 @@
 
             <div id="classInfo2024" class="note subtle"></div>
             <div id="raceInfo2024" class="note subtle"></div>
+          </fieldset>
+
+          <fieldset id="warlockInvocationsPanel2024" class="feat-choices-fieldset" hidden>
+            <legend>Invocações Místicas</legend>
+            <div id="warlockInvocationsSummary2024" class="note subtle"></div>
+            <div id="warlockInvocationsContainer2024" class="feat-choice-list"></div>
+            <div id="warlockInvocationsInfo2024" class="note subtle"></div>
           </fieldset>
 
           <fieldset>
@@ -418,13 +392,6 @@
             <div id="featChoices2024" class="beta-choice-grid"></div>
           </fieldset>
 
-          <fieldset id="warlockChoicesPanel2024" class="feat-choices-fieldset" hidden>
-            <legend>Invocações Místicas</legend>
-            <div id="warlockChoicesSummary2024" class="note subtle"></div>
-            <div id="warlockChoices2024" class="beta-choice-grid"></div>
-            <div id="warlockChoicesInfo2024" class="note subtle"></div>
-          </fieldset>
-
           <fieldset id="equipmentPanel2024" class="equipment-choice-panel">
             <legend>Equipamento inicial oficial</legend>
             <p class="note subtle">
@@ -544,10 +511,6 @@
             <button id="btnRandomizeRemaining2024" type="button" class="floating-quick-button">
               <strong>Aleatorizar restante</strong>
               <small>Preserva o que já foi definido</small>
-            </button>
-            <button id="quickSaveCharacter2024" type="button" class="floating-quick-button">
-              <strong>Salvar personagem</strong>
-              <small>Guarda na sua conta</small>
             </button>
           </div>
           <p id="status2024" class="note floating-submit-status" aria-live="polite"></p>
