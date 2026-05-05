@@ -916,6 +916,9 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     .sort((a, b) => b.normalizedName.length - a.normalizedName.length);
   const SPELL_LIST_2024 = flattenMagicDataset2024(MAGIAS).filter(isOfficialSpellFor2024);
   const SPELL_BY_ID_2024 = new Map(SPELL_LIST_2024.map((spell) => [spell.id, spell]));
+  const ALL_SPELLCASTING_CLASS_IDS_2024 = Array.from(new Set(
+    SPELL_LIST_2024.flatMap((spell) => Array.isArray(spell?.normalizedClasses) ? spell.normalizedClasses : [])
+  )).filter(Boolean);
 
   const DEFAULT_CLASS_FEAT_LEVELS = [4, 8, 12, 16, 19];
   const CLASS_FEAT_LEVELS = {
@@ -1449,8 +1452,8 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     syncRecommendedStandardSetForClass2024();
     renderAbilityChoices();
     renderSpeciesChoices();
-    renderFeatChoices();
     renderWarlockInvocationChoices2024();
+    renderFeatChoices();
     renderLanguageChoices2024();
     renderSkillChoices2024();
     renderExpertiseChoices2024();
@@ -2840,15 +2843,13 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
         const invocation = getWarlockInvocationById(WARLOCK_INVOCATIONS_2024, selectedId);
         setStatus2024(`${invocation?.label || "Essa invocação"} já foi escolhida para esse bruxo.`, "warning");
         select.value = "";
-        renderWarlockInvocationChoices2024();
-        updatePreview();
+        renderAll();
         return;
       }
     }
 
     setStatus2024("");
-    renderWarlockInvocationChoices2024();
-    updatePreview();
+    renderAll();
   }
 
   function onWarlockInvocationChoiceChanged2024(event) {
@@ -2872,6 +2873,50 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     return Array.from(new Set(collectSelectedWarlockInvocations2024(classEntries)
       .map(({ invocation }) => `${invocation.label}: ${invocation.summary || invocation.description || ""}`.trim())
       .filter(Boolean)));
+  }
+
+  function collectWarlockInvocationSpellSources2024({
+    classEntries = getResolvedClassEntries2024(),
+    abilityScores = getEffectiveAbilityScores().scores || {},
+    proficiencyBonus = getProficiencyBonus(getSelectedLevel()),
+  } = {}) {
+    const sources = [];
+    const ability = "car";
+    const abilityMod = getAbilityModifier(abilityScores?.[ability]) || 0;
+
+    collectSelectedWarlockInvocations2024(classEntries).forEach(({ entry, invocation }) => {
+      if (!entry?.uid || !invocation?.id) return;
+      if (invocation.id !== "pact-of-the-tome") return;
+
+      const limits = {
+        level: entry.level,
+        sourceClassId: "bruxo",
+        ability,
+        abilityMod,
+        selectionLabel: "Truques do Pacto do Tomo",
+        cantripLimit: 3,
+        spellLimit: 0,
+        restrictedSchools: [],
+        flexibleSpellAllowance: 0,
+        slots: [],
+        maxSpellLevel: 0,
+        pactSlots: 0,
+        pactSlotLevel: 0,
+      };
+      const source = buildFeatSpellSource2024({
+        entry,
+        sourceKey: `warlock-invocation:${entry.uid}:pact-of-the-tome`,
+        classLabel: `${entry.classLabel} • ${invocation.label}`,
+        detailLabel: `${invocation.label} (${entry.classLabel})`,
+        ability,
+        proficiencyBonus,
+        limits,
+        allowedClassIds: ALL_SPELLCASTING_CLASS_IDS_2024,
+      });
+      if (source) sources.push(source);
+    });
+
+    return sources;
   }
 
   function describeClassOption2024(value) {
@@ -3888,6 +3933,22 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
       slots.push(...getFightingStyleSlotDefinitionsForEntry2024(entry));
       slots.push(...getClassFeatSlotDefinitionsForEntry2024(entry));
     });
+
+    collectSelectedWarlockInvocations2024(resolvedEntries).forEach(({ entry, invocation, slotIndex }) => {
+      if (invocation?.id !== "lessons-of-the-first-ones") return;
+      slots.push({
+        id: `warlock-origin-${entry.uid}-${slotIndex}`,
+        type: "origin",
+        level: entry.level,
+        title: `Talento de origem de ${invocation.label}`,
+        help: `${invocation.label} concede um talento de origem extra para ${entry.sourceLabel || entry.classLabel}.`,
+        entryUid: entry.uid,
+        entry,
+        classId: entry.classId,
+        subclassId: entry.subclassId,
+      });
+    });
+
     return slots;
   }
 
@@ -10157,6 +10218,12 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
         if (entry.subclassId) {
           grantedSpellIds.push(...collectGrantedSpellIdsByLevel2024(WARLOCK_PATRON_GRANTED_SPELL_IDS_2024[entry.subclassId], entry.level));
         }
+        const selectedInvocationIds = new Set(
+          collectSelectedWarlockInvocations2024([entry]).map(({ invocation }) => invocation?.id).filter(Boolean)
+        );
+        if (selectedInvocationIds.has("pact-of-the-chain")) {
+          grantedSpellIds.push("encontrar-familiar");
+        }
         mergeGrantedSpellIdsIntoConfig2024(config, grantedSpellIds);
       }
       return config;
@@ -10624,6 +10691,11 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
       proficiencyBonus,
       selectedFeatEntries,
       selectedFeatDetails,
+    }).forEach((source) => sources.push(source));
+    collectWarlockInvocationSpellSources2024({
+      classEntries,
+      abilityScores: scores,
+      proficiencyBonus,
     }).forEach((source) => sources.push(source));
 
     standardCasterLevel = clampInt(standardCasterLevel, 0, 20);
