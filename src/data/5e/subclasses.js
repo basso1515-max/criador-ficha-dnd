@@ -538,7 +538,7 @@ export const SUBCLASSES = {
         { nome: "Espectro Maldito", descricao: "Invoca espírito ao derrotar inimigo." }
       ],
       10: [
-        { nome: "Armadura das Maldições", descricao: "Resiste a dano do alvo amaldiçoado." }
+        { nome: "Armadura das Maldições", descricao: "Contra o alvo da Maldição da Lâmina, pode rolar 1d6 quando ele acerta você; com 4 ou mais, o ataque erra." }
       ],
       14: [
         { nome: "Maldição Expandida", descricao: "Espalha maldição para novos alvos." }
@@ -579,10 +579,10 @@ export const SUBCLASSES = {
         { nome: "Recipiente do Gênio", descricao: "Objeto mágico que concede bônus e refúgio." }
       ],
       6: [
-        { nome: "Voo Elemental", descricao: "Ganha voo temporário." }
+        { nome: "Dádiva Elemental", descricao: "Ganha resistência ao tipo de dano ligado ao patrono e pode receber deslocamento de voo temporário." }
       ],
       10: [
-        { nome: "Resistência Elemental", descricao: "Resiste ao elemento do patrono." }
+        { nome: "Recipiente Santuário", descricao: "Pode levar criaturas voluntárias para o recipiente do gênio e melhorar a recuperação delas em descanso curto." }
       ],
       14: [
         { nome: "Desejo Limitado", descricao: "Conjura efeitos poderosos semelhantes a desejo." }
@@ -601,10 +601,10 @@ export const SUBCLASSES = {
         { nome: "Mente Desperta", descricao: "Comunicação telepática." }
       ],
       6: [
-        { nome: "Escudo Psíquico", descricao: "Proteção contra dano mental." }
+        { nome: "Guarda Entrópica", descricao: "Impõe desvantagem a um ataque contra você e, se ele errar, ganha vantagem contra o atacante." }
       ],
       10: [
-        { nome: "Pensamentos Protegidos", descricao: "Resistência a leitura mental." }
+        { nome: "Escudo Mental", descricao: "Seus pensamentos não podem ser lidos, ganha resistência a dano psíquico e reflete parte desse dano." }
       ],
       14: [
         { nome: "Criar Servo", descricao: "Domina a mente de inimigo." }
@@ -691,13 +691,13 @@ export const SUBCLASSES = {
         { nome: "Forma do Terror", descricao: "Transforma-se e causa medo." }
       ],
       6: [
-        { nome: "Tocado pela Morte", descricao: "Evita cair a 0 PV." }
+        { nome: "Tocado pela Morte", descricao: "Não precisa comer, beber ou respirar; uma vez por turno, pode trocar dano de ataque para necrótico e rolar dado extra durante a Forma do Terror." }
       ],
       10: [
-        { nome: "Resistência Necromântica", descricao: "Resiste a dano necrótico." }
+        { nome: "Casca Necromântica", descricao: "Ganha resistência a dano necrótico e, durante a Forma do Terror, torna-se imune; ao cair a 0 PV, pode ficar com 1 PV e explodir energia necrótica." }
       ],
       14: [
-        { nome: "Espírito Imortal", descricao: "Retorna após ser derrotado." }
+        { nome: "Projeção Espiritual", descricao: "Projeta o espírito para agir separado do corpo, com voo, resistência e benefícios para dano necrótico e conjuração." }
       ]
     }
   },
