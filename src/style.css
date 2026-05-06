@@ -179,14 +179,10 @@ fieldset,
   font-size: 14px;
 }
 
-.home-save-counts span {
-  display: inline-flex;
-  align-items: center;
+.home-save-counts .secondary-button {
   gap: 8px;
   min-height: 42px;
-  padding: 8px 10px;
-  border: 1px solid rgba(90, 62, 36, 0.18);
-  border-radius: 8px;
+  border-color: rgba(90, 62, 36, 0.18);
   background: rgba(255, 255, 255, 0.42);
 }
 
@@ -308,6 +304,24 @@ fieldset,
   font-family: var(--heading-font);
   font-size: 17px;
   box-shadow: 0 12px 22px rgba(52, 30, 12, 0.18);
+}
+
+.home-popup-mark .d20-submit-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  filter: none;
+}
+
+.home-popup-mark .d20-submit-svg {
+  width: 44px;
+  height: 44px;
+  display: block;
+  transform: none;
 }
 
 .home-popup-brand strong {
@@ -1821,6 +1835,7 @@ button:hover { border-color: #5a3e24; }
 
   .user-area-count,
   .user-auth-primary,
+  .home-save-counts .secondary-button,
   .home-user-actions .secondary-button,
   .home-user-session .ghost-button,
   .user-account-link-panel .secondary-button,
