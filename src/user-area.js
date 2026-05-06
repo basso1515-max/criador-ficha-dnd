@@ -12,6 +12,7 @@ import {
 
 const IGNORED_INPUT_TYPES = new Set(["button", "file", "image", "reset", "submit"]);
 const CHECKABLE_INPUT_TYPES = new Set(["checkbox", "radio"]);
+const SAVE_BUTTON_CONTENT = new WeakMap();
 
 export function captureFormPreset(form) {
   const counters = new Map();
@@ -176,7 +177,14 @@ export function initializeUserArea({
       button.addEventListener("click", handleLogout);
     });
 
-  const handleSave = async () => {
+  const handleSave = async (event) => {
+    if (!getCurrentUser()) {
+      event?.preventDefault();
+      closeMobileMenu();
+      window.location.href = buildLoginReturnUrl();
+      return;
+    }
+
     try {
       const saved = await saveCharacterForCurrentUser(edition, buildPayload());
       state.selectedCharacterId = saved.id;
@@ -296,9 +304,7 @@ function renderUserAreaView(elements, viewModel, saveButtons = []) {
     elements.count.textContent = "";
     elements.count.hidden = true;
   }
-  saveButtons.forEach((button) => {
-    button.disabled = viewModel.saveDisabled;
-  });
+  saveButtons.forEach((button) => updateSaveButtonState(button, viewModel));
   if (elements.empty) {
     elements.empty.hidden = true;
   }
@@ -372,6 +378,68 @@ function getRequestedCharacterId() {
     return params.get("characterId") || "";
   } catch {
     return "";
+  }
+}
+
+function buildLoginReturnUrl() {
+  const page = window.location.pathname.split("/").pop() || "index.html";
+  const returnTo = `${page}${window.location.search || ""}${window.location.hash || ""}`;
+  return `./conta.html?returnTo=${encodeURIComponent(returnTo)}`;
+}
+
+function getSaveButtonContent(button) {
+  if (!SAVE_BUTTON_CONTENT.has(button)) {
+    const strong = button.querySelector("strong");
+    const small = button.querySelector("small");
+    SAVE_BUTTON_CONTENT.set(button, {
+      ariaLabel: button.getAttribute("aria-label") || "",
+      text: button.textContent,
+      strong: strong?.textContent || "",
+      small: small?.textContent || "",
+    });
+  }
+
+  return SAVE_BUTTON_CONTENT.get(button);
+}
+
+function setSaveButtonText(button, { text, strong, small }) {
+  const strongNode = button.querySelector("strong");
+  const smallNode = button.querySelector("small");
+
+  if (strongNode) {
+    strongNode.textContent = strong || text;
+    if (smallNode) smallNode.textContent = small || "";
+    return;
+  }
+
+  button.textContent = text || strong || "";
+}
+
+function updateSaveButtonState(button, viewModel) {
+  if (!button) return;
+
+  const original = getSaveButtonContent(button);
+  const isLoginCta = !viewModel.hasUser;
+
+  button.disabled = viewModel.hasUser ? viewModel.saveDisabled : false;
+  button.classList.toggle("is-save-action", viewModel.hasUser);
+  button.classList.toggle("is-login-save-action", isLoginCta);
+
+  if (isLoginCta) {
+    setSaveButtonText(button, {
+      text: "Entrar para salvar",
+      strong: "Entrar para salvar",
+      small: "Acesse ou crie sua conta",
+    });
+    button.setAttribute("aria-label", "Entrar ou criar conta para salvar personagem");
+    return;
+  }
+
+  setSaveButtonText(button, original);
+  if (original.ariaLabel) {
+    button.setAttribute("aria-label", original.ariaLabel);
+  } else {
+    button.removeAttribute("aria-label");
   }
 }
 
