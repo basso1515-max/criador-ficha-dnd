@@ -58,7 +58,7 @@ function collectScriptFiles(relativeDir) {
     .sort((a, b) => a.localeCompare(b));
 }
 
-const files = [...collectScriptFiles("src"), ...collectScriptFiles("scripts")];
+const files = [...collectScriptFiles("src"), ...collectScriptFiles("scripts"), ...collectScriptFiles("api")];
 
 let hasErrors = false;
 
