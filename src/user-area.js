@@ -162,8 +162,8 @@ export function initializeUserArea({
     }
   });
 
-  const handleLogout = () => {
-    logoutAccount();
+  const handleLogout = async () => {
+    await logoutAccount();
     state.selectedCharacterId = "";
     state.showSavedPanel = false;
     closeMobileMenu();
