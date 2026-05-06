@@ -46,7 +46,121 @@
       <p id="accountPageStatus" class="note account-page-status" aria-live="polite"></p>
     </section>
 
-    <section class="container account-split" aria-label="Login e registro">
+    <section id="accountDashboard" class="container account-dashboard" aria-label="Dados da conta" hidden>
+      <section class="account-section-panel account-profile-panel" aria-label="Resumo da conta">
+        <div class="account-section-heading">
+          <div>
+            <span>Perfil local</span>
+            <h2>Dados da conta</h2>
+          </div>
+        </div>
+
+        <dl class="account-profile-list">
+          <div>
+            <dt>Nome</dt>
+            <dd id="accountProfileName"></dd>
+          </div>
+          <div>
+            <dt>E-mail</dt>
+            <dd id="accountProfileEmail"></dd>
+          </div>
+          <div>
+            <dt>Criada em</dt>
+            <dd id="accountProfileCreatedAt"></dd>
+          </div>
+        </dl>
+      </section>
+
+      <section class="account-section-panel account-saves-panel" aria-label="Personagens salvos">
+        <div class="account-section-heading">
+          <div>
+            <span>Biblioteca</span>
+            <h2>Personagens salvos</h2>
+          </div>
+        </div>
+
+        <div class="account-edition-grid">
+          <section class="account-edition-panel" aria-label="Personagens D&D 5e">
+            <div class="account-edition-heading">
+              <div>
+                <h3>D&D 5e</h3>
+                <p id="accountSavedCount5e" class="note subtle">0/10 salvos</p>
+              </div>
+              <a href="./5e.html#userArea5e" class="secondary-button">Abrir editor</a>
+            </div>
+            <div id="accountSavedList5e" class="saved-character-list account-saved-list"></div>
+            <p id="accountSavedEmpty5e" class="note subtle account-empty-note">Nenhum personagem salvo nesta edição.</p>
+          </section>
+
+          <section class="account-edition-panel" aria-label="Personagens D&D 5.5e">
+            <div class="account-edition-heading">
+              <div>
+                <h3>D&D 5.5e</h3>
+                <p id="accountSavedCount2024" class="note subtle">0/10 salvos</p>
+              </div>
+              <a href="./5.5e-2024.html#userArea2024" class="secondary-button">Abrir editor</a>
+            </div>
+            <div id="accountSavedList2024" class="saved-character-list account-saved-list"></div>
+            <p id="accountSavedEmpty2024" class="note subtle account-empty-note">Nenhum personagem salvo nesta edição.</p>
+          </section>
+        </div>
+      </section>
+
+      <section class="account-section-panel account-security-panel" aria-label="Segurança da conta">
+        <div class="account-section-heading">
+          <div>
+            <span>Segurança</span>
+            <h2>Alterar senha</h2>
+          </div>
+        </div>
+
+        <form id="accountPasswordForm" class="account-management-form" method="post">
+          <label class="row">
+            <span>Senha atual</span>
+            <input name="currentPassword" type="password" autocomplete="current-password" required />
+          </label>
+
+          <label class="row">
+            <span>Nova senha</span>
+            <input name="newPassword" type="password" autocomplete="new-password" minlength="4" required />
+          </label>
+
+          <label class="row">
+            <span>Confirmar nova senha</span>
+            <input name="confirmPassword" type="password" autocomplete="new-password" minlength="4" required />
+          </label>
+
+          <button type="submit" class="primary account-submit-button">Salvar senha</button>
+        </form>
+      </section>
+
+      <section class="account-section-panel account-danger-panel" aria-label="Excluir conta">
+        <div class="account-section-heading">
+          <div>
+            <span>Zona de risco</span>
+            <h2>Excluir conta</h2>
+          </div>
+        </div>
+
+        <p class="note subtle">A exclusão remove esta conta local e todos os personagens salvos nela neste navegador.</p>
+
+        <form id="accountDeleteForm" class="account-management-form" method="post">
+          <label class="row">
+            <span>Senha atual</span>
+            <input name="password" type="password" autocomplete="current-password" required />
+          </label>
+
+          <label class="row">
+            <span>Digite EXCLUIR para confirmar</span>
+            <input name="confirmText" type="text" autocomplete="off" required />
+          </label>
+
+          <button type="submit" class="ghost-button account-danger-button">Excluir conta local</button>
+        </form>
+      </section>
+    </section>
+
+    <section id="accountAuthSection" class="container account-split" aria-label="Login e registro">
       <form id="accountLoginForm" class="account-form-panel account-login-panel" method="post">
         <div class="account-form-heading">
           <span>Já tenho conta</span>
