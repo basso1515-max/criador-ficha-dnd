@@ -1939,6 +1939,16 @@ textarea { resize: vertical; }
     0 18px 34px rgba(12, 9, 30, 0.38);
 }
 
+.d20-submit-button:hover .d20-submit-svg,
+.d20-submit-button:focus-visible .d20-submit-svg {
+  transform: translateX(-2px) rotate(5deg) scale(1.02);
+}
+
+.d20-submit-button:active .d20-submit-svg {
+  transform: translateX(-2px) rotate(11deg) scale(0.98);
+  transition-duration: 90ms;
+}
+
 .d20-submit-icon {
   flex: 0 0 110px;
   width: 110px;
@@ -1953,6 +1963,8 @@ textarea { resize: vertical; }
   height: auto;
   display: block;
   transform: translateX(-2px);
+  transform-origin: 50% 50%;
+  transition: transform 180ms ease;
 }
 
 .d20-face {
@@ -2015,8 +2027,8 @@ textarea { resize: vertical; }
 .floating-quick-button {
   position: relative;
   display: grid;
-  grid-template-columns: 46px minmax(0, 1fr);
-  gap: 4px 10px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 4px;
   align-content: center;
   align-items: center;
   min-height: 76px;
@@ -2036,25 +2048,7 @@ textarea { resize: vertical; }
 }
 
 .floating-quick-button::before {
-  content: "ALL";
-  grid-row: 1 / span 2;
-  display: inline-grid;
-  place-items: center;
-  width: 44px;
-  height: 44px;
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.12);
-  color: rgba(255, 250, 240, 0.94);
-  font-family: 'Cinzel', Georgia, serif;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-}
-
-.floating-quick-button + .floating-quick-button::before {
-  content: "KEEP";
-  font-size: 10px;
+  display: none;
 }
 
 .floating-quick-button:hover {
@@ -2066,7 +2060,7 @@ textarea { resize: vertical; }
 }
 
 .floating-quick-button strong {
-  grid-column: 2;
+  grid-column: 1;
   min-width: 0;
   font-family: 'Cinzel', Georgia, serif;
   font-size: 14px;
@@ -2076,13 +2070,40 @@ textarea { resize: vertical; }
 }
 
 .floating-quick-button small {
-  grid-column: 2;
+  grid-column: 1;
   min-width: 0;
   color: rgba(236, 233, 255, 0.8);
   font-size: 12px;
   line-height: 1.3;
   overflow-wrap: normal;
   word-break: normal;
+}
+
+.floating-quick-button.is-save-action,
+.floating-quick-button.is-login-save-action {
+  border-color: rgba(108, 170, 144, 0.34);
+  background:
+    radial-gradient(circle at top left, rgba(145, 215, 184, 0.22), rgba(145, 215, 184, 0) 46%),
+    linear-gradient(180deg, rgba(35, 97, 83, 0.98), rgba(20, 58, 53, 0.98));
+}
+
+.floating-quick-button.is-login-save-action {
+  border-color: rgba(217, 185, 112, 0.46);
+  background:
+    radial-gradient(circle at top left, rgba(255, 237, 173, 0.24), rgba(255, 237, 173, 0) 46%),
+    linear-gradient(180deg, rgba(115, 82, 33, 0.98), rgba(72, 52, 28, 0.98));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .d20-submit-svg {
+    transition: none;
+  }
+
+  .d20-submit-button:hover .d20-submit-svg,
+  .d20-submit-button:focus-visible .d20-submit-svg,
+  .d20-submit-button:active .d20-submit-svg {
+    transform: translateX(-2px);
+  }
 }
 
 @media (min-width: 981px) {
@@ -4550,6 +4571,20 @@ body[data-standalone-route="5e"] .floating-quick-button {
   color: #fff7e4;
 }
 
+body[data-standalone-route="5e"] .floating-quick-button.is-save-action {
+  border-color: rgba(119, 183, 145, 0.34);
+  background:
+    radial-gradient(circle at top left, rgba(150, 216, 169, 0.2), transparent 44%),
+    linear-gradient(180deg, rgba(39, 98, 73, 0.98), rgba(19, 58, 48, 0.98));
+}
+
+body[data-standalone-route="5e"] .floating-quick-button.is-login-save-action {
+  border-color: rgba(235, 190, 116, 0.42);
+  background:
+    radial-gradient(circle at top left, rgba(250, 215, 144, 0.22), transparent 44%),
+    linear-gradient(180deg, rgba(107, 78, 35, 0.98), rgba(61, 43, 24, 0.98));
+}
+
 body[data-standalone-route="5e"] .d20-face {
   fill: #8a4a30;
   stroke: rgba(255, 238, 197, 0.94);
@@ -4769,6 +4804,28 @@ body[data-active-screen="5e-2024"] .d20-submit-copy small {
 
 body[data-active-screen="5e-2024"] .floating-quick-button small {
   color: #6a655e;
+}
+
+body[data-active-screen="5e-2024"] .floating-quick-button.is-save-action,
+body[data-active-screen="5e-2024"] .floating-quick-button.is-login-save-action {
+  border-color: rgba(45, 90, 82, 0.28);
+  background:
+    radial-gradient(circle at top left, rgba(190, 238, 218, 0.82), rgba(190, 238, 218, 0) 46%),
+    linear-gradient(180deg, rgba(239, 255, 249, 0.98), rgba(213, 239, 231, 0.96));
+  color: #173f38;
+}
+
+body[data-active-screen="5e-2024"] .floating-quick-button.is-login-save-action {
+  border-color: rgba(159, 117, 44, 0.32);
+  background:
+    radial-gradient(circle at top left, rgba(255, 240, 197, 0.88), rgba(255, 240, 197, 0) 46%),
+    linear-gradient(180deg, rgba(255, 252, 244, 0.98), rgba(244, 227, 189, 0.96));
+  color: #5c3d15;
+}
+
+body[data-active-screen="5e-2024"] .floating-quick-button.is-save-action small,
+body[data-active-screen="5e-2024"] .floating-quick-button.is-login-save-action small {
+  color: currentColor;
 }
 
 body[data-active-screen="5e-2024"] .d20-face {
