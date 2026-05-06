@@ -101,7 +101,7 @@ function renderCharacterCard(character) {
       </div>
       <p>${escapeHtml(summary)}</p>
       <div class="saved-character-actions">
-        <a class="secondary-button" href="${editorUrl}">Abrir no editor</a>
+        <a class="secondary-button" href="${escapeHtml(editorUrl)}">Abrir no editor</a>
         <button type="button" class="ghost-button" data-user-character-delete="${escapeHtml(character.id)}" data-edition="${escapeHtml(character.edition)}">Excluir</button>
       </div>
     </article>
@@ -176,8 +176,8 @@ el.passwordForm?.addEventListener("submit", async (event) => {
 el.deleteForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
   const formData = new FormData(el.deleteForm);
-  if (formData.get("confirmDelete") !== "on") {
-    setStatus("Confirme que deseja excluir a conta.", "warning");
+  if (String(formData.get("confirmText") || "").trim() !== "EXCLUIR") {
+    setStatus("Digite EXCLUIR para confirmar a exclusão da conta.", "warning");
     return;
   }
   if (!window.confirm("Excluir sua conta e todos os personagens salvos?")) return;
