@@ -65,6 +65,7 @@ function toPublicUser(account) {
     id: account.id,
     displayName: account.displayName,
     email: account.email,
+    createdAt: account.createdAt,
   };
 }
 
@@ -92,6 +93,21 @@ function assertAccountInput({ displayName, email, password }, { creating = false
   }
   if (String(password || "").length < 4) {
     throw new Error("Use uma senha com pelo menos 4 caracteres.");
+  }
+}
+
+function assertPasswordInput(password) {
+  if (String(password || "").length < 4) {
+    throw new Error("Use uma senha com pelo menos 4 caracteres.");
+  }
+}
+
+async function assertAccountPassword(account, password) {
+  assertPasswordInput(password);
+
+  const passwordHash = await hashPassword(password, account.passwordSalt);
+  if (passwordHash !== account.passwordHash) {
+    throw new Error("Senha incorreta.");
   }
 }
 
@@ -192,16 +208,44 @@ export async function loginAccount({ email, password }) {
     throw new Error("Conta local não encontrada.");
   }
 
-  const passwordHash = await hashPassword(password, account.passwordSalt);
-  if (passwordHash !== account.passwordHash) {
-    throw new Error("Senha incorreta.");
-  }
+  await assertAccountPassword(account, password);
 
   setCurrentAccount(account.id);
   return toPublicUser(account);
 }
 
 export function logoutAccount() {
+  setCurrentAccount("");
+}
+
+export async function changePasswordForCurrentUser({ currentPassword, newPassword }) {
+  const store = readStore();
+  const account = getCurrentAccount(store);
+  if (!account) {
+    throw new Error("Entre em uma conta local para alterar a senha.");
+  }
+
+  await assertAccountPassword(account, currentPassword);
+  assertPasswordInput(newPassword);
+
+  const passwordSalt = makeSalt();
+  account.passwordSalt = passwordSalt;
+  account.passwordHash = await hashPassword(newPassword, passwordSalt);
+  writeStore(store);
+
+  return toPublicUser(account);
+}
+
+export async function deleteCurrentAccount({ password }) {
+  const store = readStore();
+  const account = getCurrentAccount(store);
+  if (!account) {
+    throw new Error("Entre em uma conta local para excluir a conta.");
+  }
+
+  await assertAccountPassword(account, password);
+  store.accounts = store.accounts.filter((item) => item.id !== account.id);
+  writeStore(store);
   setCurrentAccount("");
 }
 
