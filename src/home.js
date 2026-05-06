@@ -67,8 +67,8 @@ el.loginForm?.addEventListener("submit", async (event) => {
   }
 });
 
-el.logoutButton?.addEventListener("click", () => {
-  logoutAccount();
+el.logoutButton?.addEventListener("click", async () => {
+  await logoutAccount();
   renderHomeAccount();
   setStatus("Você saiu da conta.", "info");
 });
