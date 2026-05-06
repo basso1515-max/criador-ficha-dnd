@@ -110,8 +110,8 @@ el.registerForm?.addEventListener("submit", async (event) => {
   }
 });
 
-el.logoutButton?.addEventListener("click", () => {
-  logoutAccount();
+el.logoutButton?.addEventListener("click", async () => {
+  await logoutAccount();
   renderAccountPage();
   setStatus("Você saiu da conta.", "info");
 });
