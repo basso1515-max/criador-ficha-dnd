@@ -1,16 +1,17 @@
-import { createReadStream, existsSync, statSync } from "node:fs";
-import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
+import { createHash, randomBytes, randomUUID } from "node:crypto";
+import { createReadStream, existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { createServer } from "node:http";
-import crypto from "node:crypto";
 import path from "node:path";
 
 const root = process.cwd();
 const host = "127.0.0.1";
 const port = Number(process.env.PORT || 8000);
-const accountStorePath = path.join(root, "server-data", "accounts.json");
-const accountStoreVersion = 1;
-const accountLimitPerEdition = 10;
-const characterEditions = new Set(["5e", "5.5e-2024"]);
+const dataDir = path.join(root, "server-data");
+const accountsFile = path.join(dataDir, "accounts.json");
+
+const STORE_VERSION = 1;
+const ACCOUNT_LIMIT_PER_EDITION = 10;
+const EDITIONS = ["5e", "5.5e-2024"];
 
 const MIME_TYPES = {
   ".css": "text/css; charset=utf-8",
@@ -25,66 +26,40 @@ const MIME_TYPES = {
   ".txt": "text/plain; charset=utf-8",
 };
 
-const DEV_NO_CACHE_EXTENSIONS = new Set([".css", ".html", ".js"]);
-
-function sendError(res, statusCode, message) {
-  res.writeHead(statusCode, { "Content-Type": "text/plain; charset=utf-8" });
-  res.end(message);
-}
-
-function sendJson(res, statusCode, payload) {
-  res.writeHead(statusCode, {
-    "Content-Type": "application/json; charset=utf-8",
-    "Cache-Control": "no-store",
-  });
-  res.end(JSON.stringify(payload));
-}
-
-function sendApiError(res, statusCode, message) {
-  sendJson(res, statusCode, { message });
-}
-
-function resolveRequestPath(urlPath) {
-  const pathname = decodeURIComponent((urlPath || "/").split("?")[0]);
-  const candidate = pathname === "/" ? "/index.html" : pathname;
-  const resolved = path.resolve(root, `.${candidate}`);
-
-  if (!resolved.startsWith(root)) {
-    return null;
-  }
-
-  if (existsSync(resolved) && statSync(resolved).isDirectory()) {
-    const nestedIndex = path.join(resolved, "index.html");
-    if (existsSync(nestedIndex)) return nestedIndex;
-  }
-
-  return resolved;
-}
-
-function createEmptyAccountStore() {
+function createEmptyStore() {
   return {
-    version: accountStoreVersion,
+    version: STORE_VERSION,
     accounts: [],
   };
 }
 
-function normalizeEmail(email) {
-  return String(email || "").trim().toLowerCase();
+function ensureDataFile() {
+  if (!existsSync(dataDir)) mkdirSync(dataDir, { recursive: true });
+  if (!existsSync(accountsFile)) {
+    writeFileSync(accountsFile, JSON.stringify(createEmptyStore(), null, 2));
+  }
 }
 
-function makeId(prefix) {
-  return `${prefix}_${crypto.randomUUID()}`;
+function readStore() {
+  ensureDataFile();
+  try {
+    const parsed = JSON.parse(readFileSync(accountsFile, "utf8"));
+    if (!parsed || !Array.isArray(parsed.accounts)) return createEmptyStore();
+    return {
+      version: parsed.version || STORE_VERSION,
+      accounts: parsed.accounts.map(normalizeAccountRecord).filter(Boolean),
+    };
+  } catch {
+    return createEmptyStore();
+  }
 }
 
-function makeSalt() {
-  return crypto.randomBytes(16).toString("hex");
-}
-
-function hashPassword(password, salt) {
-  return crypto
-    .createHash("sha256")
-    .update(`${salt}:${password}`)
-    .digest("hex");
+function writeStore(store) {
+  ensureDataFile();
+  writeFileSync(accountsFile, JSON.stringify({
+    version: STORE_VERSION,
+    accounts: Array.isArray(store?.accounts) ? store.accounts : [],
+  }, null, 2));
 }
 
 function normalizeCharacters(characters) {
@@ -99,10 +74,9 @@ function normalizeCharacters(characters) {
 
 function normalizeCharacterRecord(character) {
   if (!character || typeof character !== "object") return null;
-  const edition = characterEditions.has(character.edition) ? character.edition : "";
   return {
     id: String(character.id || makeId("character")),
-    edition,
+    edition: EDITIONS.includes(character.edition) ? character.edition : "",
     name: sanitizeCharacterName(character.name),
     summary: sanitizeCharacterSummary(character.summary),
     snapshot: character.snapshot && typeof character.snapshot === "object" ? character.snapshot : {},
@@ -116,7 +90,7 @@ function normalizeAccountRecord(account) {
   return {
     id: String(account.id || makeId("account")),
     displayName: String(account.displayName || "").trim(),
-    email: normalizeEmail(account.email),
+    email: normalizeEmail(account.email || ""),
     passwordSalt: String(account.passwordSalt || ""),
     passwordHash: String(account.passwordHash || ""),
     createdAt: String(account.createdAt || new Date().toISOString()),
@@ -124,26 +98,20 @@ function normalizeAccountRecord(account) {
   };
 }
 
-function sanitizeCharacterName(name) {
-  const text = String(name || "").trim();
-  return text || "Personagem sem nome";
+function normalizeEmail(email) {
+  return String(email || "").trim().toLowerCase();
 }
 
-function sanitizeCharacterSummary(summary) {
-  return String(summary || "").trim().slice(0, 260);
+function makeId(prefix) {
+  return `${prefix}_${typeof randomUUID === "function" ? randomUUID() : `${Date.now().toString(36)}_${Math.random().toString(36).slice(2)}`}`;
 }
 
-function sanitizeCharacterPayload(edition, payload) {
-  if (!characterEditions.has(edition)) {
-    throw new Error("Edição inválida para salvamento.");
-  }
+function makeSalt() {
+  return randomBytes(16).toString("hex");
+}
 
-  return {
-    edition,
-    name: sanitizeCharacterName(payload?.name),
-    summary: sanitizeCharacterSummary(payload?.summary),
-    snapshot: payload?.snapshot && typeof payload.snapshot === "object" ? payload.snapshot : {},
-  };
+function hashPassword(password, salt) {
+  return createHash("sha256").update(`${salt}:${password}`).digest("hex");
 }
 
 function toClientAccount(account) {
@@ -159,365 +127,379 @@ function toClientAccount(account) {
 
 function assertAccountInput({ displayName, email, password }, { creating = false, passwordRequired = true } = {}) {
   if (creating && !String(displayName || "").trim()) {
-    throw new Error("Informe um nome para a conta.");
+    throw new HttpError(400, "Informe um nome para a conta.");
   }
   if (!normalizeEmail(email) || !normalizeEmail(email).includes("@")) {
-    throw new Error("Informe um e-mail válido.");
+    throw new HttpError(400, "Informe um e-mail válido.");
   }
   if (passwordRequired && String(password || "").length < 4) {
-    throw new Error("Use uma senha com pelo menos 4 caracteres.");
+    throw new HttpError(400, "Use uma senha com pelo menos 4 caracteres.");
   }
 }
 
-function verifyPassword(account, password) {
-  if (!account || !account.passwordSalt || !account.passwordHash) return false;
-  return hashPassword(password, account.passwordSalt) === account.passwordHash;
-}
-
-async function readAccountStore() {
-  try {
-    const raw = await readFile(accountStorePath, "utf8");
-    const parsed = JSON.parse(raw);
-    return {
-      version: parsed.version || accountStoreVersion,
-      accounts: Array.isArray(parsed.accounts)
-        ? parsed.accounts.map(normalizeAccountRecord).filter(Boolean)
-        : [],
-    };
-  } catch (error) {
-    if (error?.code === "ENOENT") return createEmptyAccountStore();
-    throw error;
+function assertPasswordInput(password) {
+  if (String(password || "").length < 4) {
+    throw new HttpError(400, "Use uma senha com pelo menos 4 caracteres.");
   }
 }
 
-async function writeAccountStore(store) {
-  await mkdir(path.dirname(accountStorePath), { recursive: true });
-  const normalizedStore = {
-    version: accountStoreVersion,
-    accounts: Array.isArray(store?.accounts) ? store.accounts.map(normalizeAccountRecord).filter(Boolean) : [],
-  };
-  const tempPath = `${accountStorePath}.tmp`;
-  await writeFile(tempPath, `${JSON.stringify(normalizedStore, null, 2)}\n`, "utf8");
-  await rename(tempPath, accountStorePath);
-}
-
-async function readJsonBody(req) {
-  let raw = "";
-  for await (const chunk of req) {
-    raw += chunk;
-    if (raw.length > 5_000_000) {
-      throw new Error("Payload grande demais.");
-    }
+function assertPassword(account, password) {
+  assertPasswordInput(password);
+  if (hashPassword(password, account.passwordSalt) !== account.passwordHash) {
+    throw new HttpError(401, "Senha incorreta.");
   }
-  if (!raw) return {};
-  return JSON.parse(raw);
 }
 
-function findAccountById(store, accountId) {
-  return store.accounts.find((account) => account.id === String(accountId || ""));
-}
-
-async function handleApiRequest(req, res) {
-  const requestUrl = new URL(req.url || "/", `http://${host}:${port}`);
-  const pathname = requestUrl.pathname;
-  if (!pathname.startsWith("/api/")) return false;
-
-  try {
-    if (req.method === "GET" && pathname === "/api/health") {
-      sendJson(res, 200, { ok: true });
-      return true;
-    }
-
-    if (req.method === "GET" && pathname === "/api/account/current") {
-      const store = await readAccountStore();
-      const account = findAccountById(store, requestUrl.searchParams.get("accountId"));
-      sendJson(res, 200, { account: toClientAccount(account) });
-      return true;
-    }
-
-    if (req.method === "POST" && pathname === "/api/accounts/migrate") {
-      const body = await readJsonBody(req);
-      const incomingAccounts = Array.isArray(body?.store?.accounts)
-        ? body.store.accounts.map(normalizeAccountRecord).filter(Boolean)
-        : [];
-      const store = await readAccountStore();
-      let migrated = 0;
-
-      incomingAccounts.forEach((incoming) => {
-        if (!incoming.email || !incoming.passwordSalt || !incoming.passwordHash) return;
-        const existing = store.accounts.find((account) => account.email === incoming.email);
-        if (existing) {
-          existing.characters = mergeCharacters(existing.characters, incoming.characters);
-          migrated += 1;
-          return;
-        }
-        store.accounts.push(incoming);
-        migrated += 1;
-      });
-
-      if (migrated) await writeAccountStore(store);
-      sendJson(res, 200, { migrated });
-      return true;
-    }
-
-    if (req.method === "POST" && pathname === "/api/accounts/register") {
-      const body = await readJsonBody(req);
-      assertAccountInput(body, { creating: true });
-
-      const store = await readAccountStore();
-      const email = normalizeEmail(body.email);
-      if (store.accounts.some((account) => account.email === email)) {
-        sendApiError(res, 409, "Já existe uma conta com este e-mail.");
-        return true;
-      }
-
-      const passwordSalt = makeSalt();
-      const account = {
-        id: makeId("account"),
-        displayName: String(body.displayName || "").trim(),
-        email,
-        passwordSalt,
-        passwordHash: hashPassword(body.password, passwordSalt),
-        createdAt: new Date().toISOString(),
-        characters: normalizeCharacters(),
-      };
-
-      store.accounts.push(account);
-      await writeAccountStore(store);
-      sendJson(res, 201, { account: toClientAccount(account) });
-      return true;
-    }
-
-    if (req.method === "POST" && pathname === "/api/accounts/login") {
-      const body = await readJsonBody(req);
-      assertAccountInput(body);
-
-      const store = await readAccountStore();
-      const account = store.accounts.find((item) => item.email === normalizeEmail(body.email));
-      if (!account || !verifyPassword(account, body.password)) {
-        sendApiError(res, 401, "E-mail ou senha incorretos.");
-        return true;
-      }
-
-      sendJson(res, 200, { account: toClientAccount(account) });
-      return true;
-    }
-
-    if (req.method === "PATCH" && pathname === "/api/account/current") {
-      const body = await readJsonBody(req);
-      const store = await readAccountStore();
-      const account = findAccountById(store, body.accountId);
-      if (!account) {
-        sendApiError(res, 401, "Entre na conta para alterar seus dados.");
-        return true;
-      }
-
-      const nextName = String(body.displayName ?? account.displayName).trim();
-      const nextEmail = normalizeEmail(body.email ?? account.email);
-      const wantsEmailChange = nextEmail !== account.email;
-      const wantsPasswordChange = Boolean(body.newPassword);
-
-      if (!nextName) {
-        sendApiError(res, 400, "Informe um nome para a conta.");
-        return true;
-      }
-      if (!nextEmail || !nextEmail.includes("@")) {
-        sendApiError(res, 400, "Informe um e-mail válido.");
-        return true;
-      }
-      if ((wantsEmailChange || wantsPasswordChange) && !verifyPassword(account, body.currentPassword)) {
-        sendApiError(res, 401, "Confirme sua senha atual para alterar dados sensíveis.");
-        return true;
-      }
-      if (wantsPasswordChange && String(body.newPassword).length < 4) {
-        sendApiError(res, 400, "Use uma nova senha com pelo menos 4 caracteres.");
-        return true;
-      }
-      if (
-        wantsEmailChange &&
-        store.accounts.some((item) => item.id !== account.id && item.email === nextEmail)
-      ) {
-        sendApiError(res, 409, "Já existe uma conta com este e-mail.");
-        return true;
-      }
-
-      account.displayName = nextName;
-      account.email = nextEmail;
-      if (wantsPasswordChange) {
-        account.passwordSalt = makeSalt();
-        account.passwordHash = hashPassword(body.newPassword, account.passwordSalt);
-      }
-
-      await writeAccountStore(store);
-      sendJson(res, 200, { account: toClientAccount(account) });
-      return true;
-    }
-
-    if (req.method === "DELETE" && pathname === "/api/account/current") {
-      const body = await readJsonBody(req);
-      const store = await readAccountStore();
-      const account = findAccountById(store, body.accountId);
-      if (!account) {
-        sendApiError(res, 401, "Entre na conta para excluir seus dados.");
-        return true;
-      }
-      if (!verifyPassword(account, body.password)) {
-        sendApiError(res, 401, "Senha incorreta.");
-        return true;
-      }
-
-      store.accounts = store.accounts.filter((item) => item.id !== account.id);
-      await writeAccountStore(store);
-      sendJson(res, 200, { ok: true });
-      return true;
-    }
-
-    if (req.method === "POST" && pathname === "/api/characters") {
-      const body = await readJsonBody(req);
-      const store = await readAccountStore();
-      const account = findAccountById(store, body.accountId);
-      if (!account) {
-        sendApiError(res, 401, "Entre em uma conta para salvar personagens.");
-        return true;
-      }
-
-      const edition = String(body.edition || "");
-      const payload = sanitizeCharacterPayload(edition, body.payload);
-      const bucket = account.characters[edition] || [];
-      const now = new Date().toISOString();
-      let character;
-
-      if (body.overwriteId) {
-        character = bucket.find((item) => item.id === body.overwriteId);
-        if (!character) {
-          sendApiError(res, 404, "Personagem salvo não encontrado.");
-          return true;
-        }
-
-        character.name = payload.name;
-        character.summary = payload.summary;
-        character.snapshot = payload.snapshot;
-        character.updatedAt = now;
-      } else {
-        if (bucket.length >= accountLimitPerEdition) {
-          sendApiError(res, 409, `Limite de ${accountLimitPerEdition} personagens salvos nesta edição atingido.`);
-          return true;
-        }
-
-        character = {
-          id: makeId("character"),
-          edition,
-          name: payload.name,
-          summary: payload.summary,
-          snapshot: payload.snapshot,
-          createdAt: now,
-          updatedAt: now,
-        };
-        bucket.push(character);
-      }
-
-      account.characters[edition] = bucket;
-      await writeAccountStore(store);
-      sendJson(res, 200, { character, account: toClientAccount(account) });
-      return true;
-    }
-
-    if (req.method === "DELETE" && pathname === "/api/characters") {
-      const body = await readJsonBody(req);
-      const store = await readAccountStore();
-      const account = findAccountById(store, body.accountId);
-      const edition = String(body.edition || "");
-      if (!account) {
-        sendApiError(res, 401, "Entre em uma conta para excluir personagens.");
-        return true;
-      }
-      if (!characterEditions.has(edition)) {
-        sendApiError(res, 400, "Edição inválida para exclusão.");
-        return true;
-      }
-
-      const bucket = account.characters[edition] || [];
-      const nextBucket = bucket.filter((character) => character.id !== body.characterId);
-      if (nextBucket.length === bucket.length) {
-        sendApiError(res, 404, "Personagem salvo não encontrado.");
-        return true;
-      }
-
-      account.characters[edition] = nextBucket;
-      await writeAccountStore(store);
-      sendJson(res, 200, { account: toClientAccount(account) });
-      return true;
-    }
-
-    sendApiError(res, 404, "Endpoint nao encontrado.");
-  } catch (error) {
-    const message = error instanceof SyntaxError
-      ? "JSON inválido na requisição."
-      : error?.message || "Erro no servidor.";
-    sendApiError(res, 400, message);
+function getEditionBucket(account, edition) {
+  if (!EDITIONS.includes(edition)) {
+    throw new HttpError(400, "Edição inválida.");
   }
-
-  return true;
+  if (!account.characters || typeof account.characters !== "object") {
+    account.characters = normalizeCharacters();
+  }
+  if (!Array.isArray(account.characters[edition])) {
+    account.characters[edition] = [];
+  }
+  return account.characters[edition];
 }
 
-function mergeCharacters(existingCharacters, incomingCharacters) {
-  const merged = normalizeCharacters(existingCharacters);
-  const incoming = normalizeCharacters(incomingCharacters);
+function sanitizeCharacterName(name) {
+  const text = String(name || "").trim();
+  return text || "Personagem sem nome";
+}
 
-  characterEditions.forEach((edition) => {
-    const bucket = merged[edition];
-    incoming[edition].forEach((incomingCharacter) => {
-      const existingIndex = bucket.findIndex((character) => character.id === incomingCharacter.id);
-      if (existingIndex >= 0) {
-        bucket[existingIndex] = incomingCharacter;
-      } else if (bucket.length < accountLimitPerEdition) {
-        bucket.push(incomingCharacter);
+function sanitizeCharacterSummary(summary) {
+  return String(summary || "").trim().slice(0, 260);
+}
+
+function getAccountById(store, accountId) {
+  return store.accounts.find((account) => account.id === String(accountId || "")) || null;
+}
+
+class HttpError extends Error {
+  constructor(statusCode, message) {
+    super(message);
+    this.statusCode = statusCode;
+  }
+}
+
+function sendJson(res, statusCode, payload = {}) {
+  res.writeHead(statusCode, {
+    "Content-Type": "application/json; charset=utf-8",
+    "Cache-Control": "no-store",
+  });
+  res.end(JSON.stringify(payload));
+}
+
+function sendText(res, statusCode, message, headers = {}) {
+  res.writeHead(statusCode, {
+    "Content-Type": "text/plain; charset=utf-8",
+    ...headers,
+  });
+  res.end(message);
+}
+
+function readJsonBody(req) {
+  return new Promise((resolve, reject) => {
+    let body = "";
+    req.setEncoding("utf8");
+    req.on("data", (chunk) => {
+      body += chunk;
+      if (body.length > 12_000_000) {
+        reject(new HttpError(413, "Requisição grande demais."));
+        req.destroy();
       }
     });
+    req.on("end", () => {
+      if (!body) {
+        resolve({});
+        return;
+      }
+      try {
+        resolve(JSON.parse(body));
+      } catch {
+        reject(new HttpError(400, "JSON inválido."));
+      }
+    });
+    req.on("error", reject);
+  });
+}
+
+async function handleApi(req, res, url) {
+  const method = req.method || "GET";
+  const pathname = url.pathname;
+  const body = ["POST", "PATCH", "DELETE"].includes(method) ? await readJsonBody(req) : {};
+
+  if (method === "POST" && pathname === "/api/accounts/migrate") {
+    const incoming = Array.isArray(body?.store?.accounts)
+      ? body.store.accounts.map(normalizeAccountRecord).filter(Boolean)
+      : [];
+    if (!incoming.length) {
+      sendJson(res, 200, { ok: true });
+      return;
+    }
+
+    const store = readStore();
+    incoming.forEach((account) => {
+      const existingIndex = store.accounts.findIndex((item) => item.id === account.id || item.email === account.email);
+      if (existingIndex >= 0) {
+        store.accounts[existingIndex] = mergeAccounts(store.accounts[existingIndex], account);
+      } else {
+        store.accounts.push(account);
+      }
+    });
+    writeStore(store);
+    sendJson(res, 200, { ok: true });
+    return;
+  }
+
+  if (method === "GET" && pathname === "/api/account/current") {
+    const store = readStore();
+    const account = getAccountById(store, url.searchParams.get("accountId"));
+    sendJson(res, 200, { account: toClientAccount(account) });
+    return;
+  }
+
+  if (method === "POST" && pathname === "/api/accounts/register") {
+    assertAccountInput(body, { creating: true });
+    const store = readStore();
+    const email = normalizeEmail(body.email);
+    if (store.accounts.some((account) => account.email === email)) {
+      throw new HttpError(409, "Já existe uma conta com este e-mail.");
+    }
+
+    const passwordSalt = makeSalt();
+    const account = {
+      id: makeId("account"),
+      displayName: String(body.displayName || "").trim(),
+      email,
+      passwordSalt,
+      passwordHash: hashPassword(body.password, passwordSalt),
+      createdAt: new Date().toISOString(),
+      characters: normalizeCharacters(),
+    };
+
+    store.accounts.push(account);
+    writeStore(store);
+    sendJson(res, 201, { account: toClientAccount(account) });
+    return;
+  }
+
+  if (method === "POST" && pathname === "/api/accounts/login") {
+    assertAccountInput(body);
+    const store = readStore();
+    const account = store.accounts.find((item) => item.email === normalizeEmail(body.email));
+    if (!account) {
+      throw new HttpError(404, "Conta não encontrada.");
+    }
+
+    assertPassword(account, body.password);
+    sendJson(res, 200, { account: toClientAccount(account) });
+    return;
+  }
+
+  if (method === "PATCH" && pathname === "/api/account/current") {
+    const store = readStore();
+    const account = getAccountById(store, body.accountId);
+    if (!account) {
+      throw new HttpError(404, "Conta não encontrada.");
+    }
+
+    const nextName = String(body.displayName ?? account.displayName).trim();
+    const nextEmail = normalizeEmail(body.email ?? account.email);
+    if (!nextName) throw new HttpError(400, "Informe um nome para a conta.");
+    if (!nextEmail || !nextEmail.includes("@")) throw new HttpError(400, "Informe um e-mail válido.");
+
+    const wantsEmailChange = nextEmail !== account.email;
+    const wantsPasswordChange = Boolean(body.newPassword);
+    if (wantsEmailChange || wantsPasswordChange) {
+      assertPassword(account, body.currentPassword);
+    }
+    if (wantsPasswordChange) assertPasswordInput(body.newPassword);
+    if (wantsEmailChange && store.accounts.some((item) => item.id !== account.id && item.email === nextEmail)) {
+      throw new HttpError(409, "Já existe uma conta com este e-mail.");
+    }
+
+    account.displayName = nextName;
+    account.email = nextEmail;
+    if (wantsPasswordChange) {
+      account.passwordSalt = makeSalt();
+      account.passwordHash = hashPassword(body.newPassword, account.passwordSalt);
+    }
+
+    writeStore(store);
+    sendJson(res, 200, { account: toClientAccount(account) });
+    return;
+  }
+
+  if (method === "DELETE" && pathname === "/api/account/current") {
+    const store = readStore();
+    const account = getAccountById(store, body.accountId);
+    if (!account) {
+      throw new HttpError(404, "Conta não encontrada.");
+    }
+    assertPassword(account, body.password);
+    store.accounts = store.accounts.filter((item) => item.id !== account.id);
+    writeStore(store);
+    sendJson(res, 200, { ok: true });
+    return;
+  }
+
+  if (method === "POST" && pathname === "/api/characters") {
+    const store = readStore();
+    const account = getAccountById(store, body.accountId);
+    if (!account) {
+      throw new HttpError(404, "Conta não encontrada.");
+    }
+
+    const bucket = getEditionBucket(account, body.edition);
+    const now = new Date().toISOString();
+    const payload = body.payload || {};
+    const overwriteId = String(body.overwriteId || "");
+    const characterPayload = {
+      name: sanitizeCharacterName(payload.name),
+      summary: sanitizeCharacterSummary(payload.summary),
+      snapshot: payload.snapshot && typeof payload.snapshot === "object" ? payload.snapshot : {},
+    };
+
+    let character;
+    if (overwriteId) {
+      character = bucket.find((item) => item.id === overwriteId);
+      if (!character) {
+        throw new HttpError(404, "Personagem salvo não encontrado.");
+      }
+      character.name = characterPayload.name;
+      character.summary = characterPayload.summary;
+      character.snapshot = characterPayload.snapshot;
+      character.updatedAt = now;
+    } else {
+      if (bucket.length >= ACCOUNT_LIMIT_PER_EDITION) {
+        throw new HttpError(400, `Limite de ${ACCOUNT_LIMIT_PER_EDITION} personagens salvos nesta edição atingido.`);
+      }
+      character = {
+        id: makeId("character"),
+        edition: body.edition,
+        ...characterPayload,
+        createdAt: now,
+        updatedAt: now,
+      };
+      bucket.push(character);
+    }
+
+    writeStore(store);
+    sendJson(res, 200, { account: toClientAccount(account), character });
+    return;
+  }
+
+  if (method === "DELETE" && pathname === "/api/characters") {
+    const store = readStore();
+    const account = getAccountById(store, body.accountId);
+    if (!account) {
+      throw new HttpError(404, "Conta não encontrada.");
+    }
+
+    const bucket = getEditionBucket(account, body.edition);
+    const nextBucket = bucket.filter((character) => character.id !== body.characterId);
+    if (nextBucket.length === bucket.length) {
+      throw new HttpError(404, "Personagem salvo não encontrado.");
+    }
+
+    account.characters[body.edition] = nextBucket;
+    writeStore(store);
+    sendJson(res, 200, { account: toClientAccount(account) });
+    return;
+  }
+
+  throw new HttpError(404, "Endpoint não encontrado.");
+}
+
+function mergeAccounts(current, incoming) {
+  const next = normalizeAccountRecord(current);
+  if (!next) return incoming;
+
+  next.displayName = next.displayName || incoming.displayName;
+  next.email = next.email || incoming.email;
+  next.passwordSalt = next.passwordSalt || incoming.passwordSalt;
+  next.passwordHash = next.passwordHash || incoming.passwordHash;
+  next.createdAt = next.createdAt || incoming.createdAt;
+
+  EDITIONS.forEach((edition) => {
+    const byId = new Map(getEditionBucket(next, edition).map((character) => [character.id, character]));
+    getEditionBucket(incoming, edition).forEach((character) => {
+      byId.set(character.id, character);
+    });
+    next.characters[edition] = [...byId.values()];
   });
 
-  return merged;
+  return next;
+}
+
+function resolveRequestPath(urlPath) {
+  const pathname = decodeURIComponent(urlPath || "/");
+  if (pathname === "/usuario.html") {
+    return { redirect: "/minha-conta.html" };
+  }
+
+  const candidate = pathname === "/" ? "/index.html" : pathname;
+  const resolved = path.resolve(root, `.${candidate}`);
+
+  if (!resolved.startsWith(root)) {
+    return null;
+  }
+
+  if (existsSync(resolved) && statSync(resolved).isDirectory()) {
+    const nestedIndex = path.join(resolved, "index.html");
+    if (existsSync(nestedIndex)) return { filePath: nestedIndex };
+  }
+
+  return { filePath: resolved };
 }
 
 const server = createServer(async (req, res) => {
-  if (await handleApiRequest(req, res)) {
-    return;
-  }
+  try {
+    const url = new URL(req.url || "/", `http://${host}:${port}`);
 
-  const filePath = resolveRequestPath(req.url || "/");
-  if (!filePath) {
-    sendError(res, 403, "Acesso negado.");
-    return;
-  }
+    if (url.pathname.startsWith("/api/")) {
+      await handleApi(req, res, url);
+      return;
+    }
 
-  if (!existsSync(filePath) || !statSync(filePath).isFile()) {
-    sendError(res, 404, "Arquivo nao encontrado.");
-    return;
-  }
+    const resolved = resolveRequestPath(url.pathname);
+    if (!resolved) {
+      sendText(res, 403, "Acesso negado.");
+      return;
+    }
+    if (resolved.redirect) {
+      res.writeHead(302, { Location: resolved.redirect });
+      res.end();
+      return;
+    }
 
-  const ext = path.extname(filePath).toLowerCase();
-  if (ext === ".js" && req.headers["sec-fetch-dest"] === "document") {
-    const fallbackPath = path.basename(filePath) === "user-page.js" ? "/minha-conta.html" : "/index.html";
-    res.writeHead(302, { Location: fallbackPath });
-    res.end();
-    return;
-  }
+    const filePath = resolved.filePath;
+    if (!existsSync(filePath) || !statSync(filePath).isFile()) {
+      sendText(res, 404, "Arquivo nao encontrado.");
+      return;
+    }
 
-  const contentType = MIME_TYPES[ext] || "application/octet-stream";
-  const headers = {
-    "Content-Type": contentType,
-    "X-Content-Type-Options": "nosniff",
-  };
-  if (DEV_NO_CACHE_EXTENSIONS.has(ext)) {
-    headers["Cache-Control"] = "no-cache";
+    const ext = path.extname(filePath).toLowerCase();
+    const contentType = MIME_TYPES[ext] || "application/octet-stream";
+    res.writeHead(200, {
+      "Content-Type": contentType,
+      "X-Content-Type-Options": "nosniff",
+    });
+    createReadStream(filePath).pipe(res);
+  } catch (error) {
+    const statusCode = error instanceof HttpError ? error.statusCode : 500;
+    sendJson(res, statusCode, {
+      message: error?.message || "Erro interno do servidor.",
+    });
   }
-  res.writeHead(200, headers);
-  createReadStream(filePath).pipe(res);
 });
 
 server.listen(port, host, () => {
   console.log(`Servidor local ativo em http://${host}:${port}`);
   console.log(`Pasta servida: ${root}`);
+  console.log(`Contas salvas em: ${accountsFile}`);
 });
 
 server.on("error", (error) => {
