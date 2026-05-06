@@ -24,11 +24,16 @@ const smokePages = [
     selectors: ["#accountLoginForm", "#accountRegisterForm", "#accountCurrentPanel"],
   },
   {
+    name: "minha-conta",
+    path: "/minha-conta.html",
+    selectors: ["#userPageGuest", "#userPageContent", "#userPageAuthLink"],
+  },
+  {
     name: "5e",
     path: "/5e.html",
     selectors: [
-      "#loginForm5e",
-      "#registerForm5e",
+      "#mobileMenuToggle5e",
+      "#quickSaveCharacter5e",
       "#skillsExtra input[data-skill]",
       ".attr-total-preview:not([hidden])",
       "#btnRandomizeAll",
@@ -38,8 +43,8 @@ const smokePages = [
     name: "5.5e-2024",
     path: "/5.5e-2024.html",
     selectors: [
-      "#loginForm2024",
-      "#registerForm2024",
+      "#mobileMenuToggle2024",
+      "#quickSaveCharacter2024",
       "[data-language-choice-input]",
       "#btnRandomizeAll2024",
     ],
