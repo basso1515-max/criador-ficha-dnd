@@ -16,68 +16,66 @@
       <div class="version-toolbar">
         <div class="version-toolbar-actions">
           <a href="./index.html" class="ghost-button">Voltar para a seleção</a>
-          <a href="./conta.html?returnTo=5.5e-2024.html%23userArea2024" class="secondary-button">Minha conta</a>
+          <a href="./minha-conta.html" class="secondary-button">Minha conta</a>
           <a href="./5e.html" class="secondary-button">Abrir editor 5e</a>
+          <button id="editorLogout2024" type="button" class="ghost-button editor-logout-button" hidden>Sair</button>
+        </div>
+
+        <div id="mobileEditorMenuShell2024" class="mobile-editor-menu-shell">
+          <button id="mobileMenuToggle2024" type="button" class="mobile-menu-toggle" aria-label="Abrir menu do editor" aria-controls="mobileEditorMenu2024" aria-expanded="false">
+            <span class="mobile-menu-bars" aria-hidden="true">
+              <span></span>
+              <span></span>
+              <span></span>
+            </span>
+            <span>Menu</span>
+          </button>
+
+          <nav id="mobileEditorMenu2024" class="mobile-editor-menu" aria-label="Menu do editor" hidden>
+            <div class="mobile-menu-section">
+              <span class="mobile-menu-label">Navegação</span>
+              <a href="./index.html" class="mobile-menu-link">Voltar para a seleção</a>
+              <a href="./5e.html" class="mobile-menu-link">Abrir editor 5e</a>
+              <a href="./minha-conta.html" class="mobile-menu-link">Minha conta e salvos</a>
+            </div>
+
+            <div id="mobileCurrentCharacter2024" class="mobile-menu-section mobile-menu-current">
+              <span class="mobile-menu-label">Personagem atual</span>
+              <strong id="mobileCurrentCharacterName2024">Sem personagem salvo aberto</strong>
+              <small id="mobileCurrentCharacterSummary2024">Abra um personagem salvo pela sua página.</small>
+            </div>
+
+            <div class="mobile-menu-section mobile-menu-actions">
+              <button id="mobileSaveCharacter2024" type="button" class="mobile-menu-button">Salvar personagem atual</button>
+              <button id="mobileLogout2024" type="button" class="mobile-menu-button mobile-menu-logout" hidden>Sair da conta</button>
+            </div>
+          </nav>
         </div>
       </div>
 
       <h1>Criador de ficha D&D 5.5e (2024)</h1>
     </header>
 
-    <section class="container user-area-container">
+    <section id="userAreaContainer2024" class="container user-area-container">
       <div id="userArea2024" class="card user-area" aria-label="Área do usuário">
-        <div class="user-area-header">
+        <div id="userAreaHeader2024" class="user-area-header">
           <div>
             <h2>Área do usuário</h2>
-            <p class="note subtle">Conta local para salvar até 10 personagens desta edição neste navegador.</p>
+            <p class="note subtle">Conta para salvar até 10 personagens desta edição no servidor local.</p>
           </div>
           <span id="userAreaCount2024" class="user-area-count">Sem conta</span>
         </div>
 
-        <div id="authPanel2024" class="user-auth-grid">
-          <form id="loginForm2024" class="user-auth-form" method="post">
-            <h3>Entrar</h3>
-            <p class="note subtle">Acesse uma conta local deste navegador para carregar e salvar personagens.</p>
-            <label class="row">
-              <span>E-mail</span>
-              <input name="email" type="email" autocomplete="email" required />
-            </label>
-            <label class="row">
-              <span>Senha</span>
-              <input name="password" type="password" autocomplete="current-password" required />
-            </label>
-            <button type="submit" class="secondary-button">Entrar</button>
-          </form>
-
-          <form id="registerForm2024" class="user-auth-form" method="post">
-            <h3>Criar conta</h3>
-            <p class="note subtle">Guarde até 10 personagens de D&D 5.5e localmente.</p>
-            <label class="row">
-              <span>Nome</span>
-              <input name="displayName" type="text" autocomplete="name" required />
-            </label>
-            <label class="row">
-              <span>E-mail</span>
-              <input name="email" type="email" autocomplete="email" required />
-            </label>
-            <label class="row">
-              <span>Senha</span>
-              <input name="password" type="password" autocomplete="new-password" minlength="4" required />
-            </label>
-            <button type="submit" class="primary user-auth-primary">Criar conta</button>
-          </form>
-
-          <div class="user-account-link-panel user-auth-account-link">
-            <div>
-              <strong>Prefere uma tela dedicada?</strong>
-              <p class="note subtle">A página Minha conta também permite entrar, criar usuário e voltar para este editor.</p>
-            </div>
-            <a href="./conta.html?returnTo=5.5e-2024.html%23userArea2024" class="secondary-button">Minha conta</a>
+        <div id="authPanel2024" class="user-account-link-panel">
+          <div>
+            <strong>Entre para salvar personagens</strong>
+            <p class="note subtle">Você pode continuar gerando fichas sem conta. O login serve para guardar as definições preenchidas.</p>
           </div>
+          <a href="./conta.html?returnTo=5.5e-2024.html%23userArea2024" class="secondary-button">Minha conta</a>
         </div>
 
         <div id="userPanel2024" class="user-saves-panel" hidden>
-          <div class="user-session-row">
+          <div id="userSessionRow2024" class="user-session-row">
             <p>
               <strong id="accountName2024"></strong>
               <span id="accountEmail2024"></span>
@@ -552,6 +550,10 @@
             <button id="btnRandomizeRemaining2024" type="button" class="floating-quick-button">
               <strong>Aleatorizar restante</strong>
               <small>Preserva o que já foi definido</small>
+            </button>
+            <button id="quickSaveCharacter2024" type="button" class="floating-quick-button">
+              <strong>Salvar personagem</strong>
+              <small>Guarda na sua conta</small>
             </button>
           </div>
           <p id="status2024" class="note floating-submit-status" aria-live="polite"></p>
