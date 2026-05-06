@@ -1,10 +1,10 @@
-import { createHash, randomBytes, randomUUID } from "node:crypto";
+import { createHash, randomBytes, randomUUID, scryptSync, timingSafeEqual } from "node:crypto";
 import { createReadStream, existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { createServer } from "node:http";
 import path from "node:path";
 
 const root = process.cwd();
-const host = "127.0.0.1";
+const host = process.env.HOST || "127.0.0.1";
 const port = Number(process.env.PORT || 8000);
 const dataDir = path.join(root, "server-data");
 const accountsFile = path.join(dataDir, "accounts.json");
@@ -12,6 +12,11 @@ const accountsFile = path.join(dataDir, "accounts.json");
 const STORE_VERSION = 1;
 const ACCOUNT_LIMIT_PER_EDITION = 10;
 const EDITIONS = ["5e", "5.5e-2024"];
+const COOKIE_NAME = "dnd_sheet_session";
+const SESSION_TTL_SECONDS = 60 * 60 * 24 * 30;
+const SESSION_TTL_MS = SESSION_TTL_SECONDS * 1000;
+const PASSWORD_ALGO = "scrypt-v1";
+const SCRYPT_OPTIONS = { N: 16384, r: 8, p: 1, maxmem: 64 * 1024 * 1024 };
 
 const MIME_TYPES = {
   ".css": "text/css; charset=utf-8",
@@ -30,6 +35,7 @@ function createEmptyStore() {
   return {
     version: STORE_VERSION,
     accounts: [],
+    sessions: [],
   };
 }
 
@@ -45,9 +51,14 @@ function readStore() {
   try {
     const parsed = JSON.parse(readFileSync(accountsFile, "utf8"));
     if (!parsed || !Array.isArray(parsed.accounts)) return createEmptyStore();
+    const accounts = parsed.accounts.map(normalizeAccountRecord).filter(Boolean);
+    const accountIds = new Set(accounts.map((account) => account.id));
     return {
       version: parsed.version || STORE_VERSION,
-      accounts: parsed.accounts.map(normalizeAccountRecord).filter(Boolean),
+      accounts,
+      sessions: Array.isArray(parsed.sessions)
+        ? parsed.sessions.map(normalizeSessionRecord).filter((session) => session && accountIds.has(session.accountId))
+        : [],
     };
   } catch {
     return createEmptyStore();
@@ -59,6 +70,7 @@ function writeStore(store) {
   writeFileSync(accountsFile, JSON.stringify({
     version: STORE_VERSION,
     accounts: Array.isArray(store?.accounts) ? store.accounts : [],
+    sessions: Array.isArray(store?.sessions) ? store.sessions.map(normalizeSessionRecord).filter(Boolean) : [],
   }, null, 2));
 }
 
@@ -91,10 +103,30 @@ function normalizeAccountRecord(account) {
     id: String(account.id || makeId("account")),
     displayName: String(account.displayName || "").trim(),
     email: normalizeEmail(account.email || ""),
+    passwordAlgo: String(account.passwordAlgo || "sha256").trim() || "sha256",
     passwordSalt: String(account.passwordSalt || ""),
     passwordHash: String(account.passwordHash || ""),
     createdAt: String(account.createdAt || new Date().toISOString()),
     characters: normalizeCharacters(account.characters),
+  };
+}
+
+function normalizeSessionRecord(session) {
+  if (!session || typeof session !== "object") return null;
+  const expiresAt = String(session.expiresAt || "");
+  const expiresAtTime = Date.parse(expiresAt);
+  if (!Number.isFinite(expiresAtTime) || expiresAtTime <= Date.now()) return null;
+
+  const tokenHash = String(session.tokenHash || "");
+  const accountId = String(session.accountId || "");
+  if (!tokenHash || !accountId) return null;
+
+  return {
+    id: String(session.id || makeId("session")),
+    accountId,
+    tokenHash,
+    createdAt: String(session.createdAt || new Date().toISOString()),
+    expiresAt,
   };
 }
 
@@ -110,8 +142,58 @@ function makeSalt() {
   return randomBytes(16).toString("hex");
 }
 
-function hashPassword(password, salt) {
+function hashPasswordSha256(password, salt) {
   return createHash("sha256").update(`${salt}:${password}`).digest("hex");
+}
+
+function hashPasswordLegacyFallback(password, salt) {
+  const payload = `${salt}:${password}`;
+  let hash = 2166136261;
+  for (let i = 0; i < payload.length; i += 1) {
+    hash ^= payload.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return `fallback-${(hash >>> 0).toString(16)}`;
+}
+
+function hashPasswordScrypt(password, salt) {
+  return scryptSync(String(password || ""), String(salt || ""), 64, SCRYPT_OPTIONS).toString("hex");
+}
+
+function hashPassword(password, salt, algorithm = PASSWORD_ALGO) {
+  if (algorithm === "legacy-fallback") {
+    return hashPasswordLegacyFallback(password, salt);
+  }
+  return algorithm === PASSWORD_ALGO
+    ? hashPasswordScrypt(password, salt)
+    : hashPasswordSha256(password, salt);
+}
+
+function makePasswordRecord(password) {
+  const passwordSalt = makeSalt();
+  return {
+    passwordAlgo: PASSWORD_ALGO,
+    passwordSalt,
+    passwordHash: hashPassword(password, passwordSalt, PASSWORD_ALGO),
+  };
+}
+
+function hashSessionToken(token) {
+  return createHash("sha256").update(String(token || "")).digest("hex");
+}
+
+function safeHexEquals(left, right) {
+  if (String(left || "").startsWith("fallback-") || String(right || "").startsWith("fallback-")) {
+    return String(left || "") === String(right || "");
+  }
+
+  try {
+    const leftBuffer = Buffer.from(String(left || ""), "hex");
+    const rightBuffer = Buffer.from(String(right || ""), "hex");
+    return leftBuffer.length === rightBuffer.length && timingSafeEqual(leftBuffer, rightBuffer);
+  } catch {
+    return false;
+  }
 }
 
 function toClientAccount(account) {
@@ -145,9 +227,18 @@ function assertPasswordInput(password) {
 
 function assertPassword(account, password) {
   assertPasswordInput(password);
-  if (hashPassword(password, account.passwordSalt) !== account.passwordHash) {
+  const algorithm = String(account.passwordHash || "").startsWith("fallback-")
+    ? "legacy-fallback"
+    : account.passwordAlgo || "sha256";
+  const passwordHash = hashPassword(password, account.passwordSalt, algorithm);
+  if (!safeHexEquals(passwordHash, account.passwordHash)) {
     throw new HttpError(401, "Senha incorreta.");
   }
+}
+
+function upgradePasswordRecordIfNeeded(account, password) {
+  if ((account.passwordAlgo || "sha256") === PASSWORD_ALGO) return;
+  Object.assign(account, makePasswordRecord(password));
 }
 
 function getEditionBucket(account, edition) {
@@ -174,6 +265,118 @@ function sanitizeCharacterSummary(summary) {
 
 function getAccountById(store, accountId) {
   return store.accounts.find((account) => account.id === String(accountId || "")) || null;
+}
+
+function getSessionToken(req) {
+  const cookieHeader = String(req.headers.cookie || "");
+  return cookieHeader
+    .split(";")
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .map((part) => {
+      const separator = part.indexOf("=");
+      if (separator < 0) return [part, ""];
+      return [part.slice(0, separator), decodeURIComponent(part.slice(separator + 1))];
+    })
+    .find(([name]) => name === COOKIE_NAME)?.[1] || "";
+}
+
+function isSecureRequest(req) {
+  const forwardedProto = String(req.headers["x-forwarded-proto"] || "").split(",")[0].trim().toLowerCase();
+  return forwardedProto === "https" || Boolean(req.socket?.encrypted);
+}
+
+function serializeCookie(name, value, { maxAge = SESSION_TTL_SECONDS, secure = false } = {}) {
+  const parts = [
+    `${name}=${encodeURIComponent(value)}`,
+    "Path=/",
+    "HttpOnly",
+    "SameSite=Lax",
+    `Max-Age=${Math.max(0, Number(maxAge) || 0)}`,
+  ];
+  if (secure) parts.push("Secure");
+  return parts.join("; ");
+}
+
+function setSessionCookie(req, res, token) {
+  res.setHeader("Set-Cookie", serializeCookie(COOKIE_NAME, token, {
+    maxAge: SESSION_TTL_SECONDS,
+    secure: isSecureRequest(req),
+  }));
+}
+
+function clearSessionCookie(req, res) {
+  res.setHeader("Set-Cookie", serializeCookie(COOKIE_NAME, "", {
+    maxAge: 0,
+    secure: isSecureRequest(req),
+  }));
+}
+
+function createSession(store, accountId, req, res) {
+  const token = randomBytes(32).toString("hex");
+  const now = new Date();
+  const session = {
+    id: makeId("session"),
+    accountId,
+    tokenHash: hashSessionToken(token),
+    createdAt: now.toISOString(),
+    expiresAt: new Date(now.getTime() + SESSION_TTL_MS).toISOString(),
+  };
+
+  store.sessions = Array.isArray(store.sessions)
+    ? store.sessions.map(normalizeSessionRecord).filter(Boolean)
+    : [];
+  store.sessions.push(session);
+  setSessionCookie(req, res, token);
+  return session;
+}
+
+function findAuthenticatedAccount(store, req) {
+  const token = getSessionToken(req);
+  if (!token) return null;
+
+  const tokenHash = hashSessionToken(token);
+  const session = (store.sessions || []).find((item) => item.tokenHash === tokenHash);
+  if (!session) return null;
+
+  const account = getAccountById(store, session.accountId);
+  if (!account) return null;
+  return { account, session };
+}
+
+function requireAuthenticatedAccount(store, req) {
+  const auth = findAuthenticatedAccount(store, req);
+  if (!auth) {
+    throw new HttpError(401, "Entre em uma conta para continuar.");
+  }
+  return auth;
+}
+
+function clearCurrentSession(store, req, res) {
+  const token = getSessionToken(req);
+  if (token) {
+    const tokenHash = hashSessionToken(token);
+    store.sessions = (store.sessions || []).filter((session) => session.tokenHash !== tokenHash);
+  }
+  clearSessionCookie(req, res);
+}
+
+function assertSameOrigin(req) {
+  const method = req.method || "GET";
+  if (["GET", "HEAD", "OPTIONS"].includes(method)) return;
+
+  const origin = req.headers.origin;
+  if (!origin) return;
+
+  try {
+    const originUrl = new URL(origin);
+    if (originUrl.host !== req.headers.host) {
+      throw new HttpError(403, "Origem da requisição não autorizada.");
+    }
+  } catch (error) {
+    if (error instanceof HttpError) throw error;
+    throw new HttpError(403, "Origem da requisição não autorizada.");
+  }
 }
 
 class HttpError extends Error {
@@ -228,6 +431,7 @@ function readJsonBody(req) {
 async function handleApi(req, res, url) {
   const method = req.method || "GET";
   const pathname = url.pathname;
+  assertSameOrigin(req);
   const body = ["POST", "PATCH", "DELETE"].includes(method) ? await readJsonBody(req) : {};
 
   if (method === "POST" && pathname === "/api/accounts/migrate") {
@@ -255,8 +459,11 @@ async function handleApi(req, res, url) {
 
   if (method === "GET" && pathname === "/api/account/current") {
     const store = readStore();
-    const account = getAccountById(store, url.searchParams.get("accountId"));
-    sendJson(res, 200, { account: toClientAccount(account) });
+    const auth = findAuthenticatedAccount(store, req);
+    if (!auth && getSessionToken(req)) {
+      clearSessionCookie(req, res);
+    }
+    sendJson(res, 200, { account: toClientAccount(auth?.account) });
     return;
   }
 
@@ -268,18 +475,17 @@ async function handleApi(req, res, url) {
       throw new HttpError(409, "Já existe uma conta com este e-mail.");
     }
 
-    const passwordSalt = makeSalt();
     const account = {
       id: makeId("account"),
       displayName: String(body.displayName || "").trim(),
       email,
-      passwordSalt,
-      passwordHash: hashPassword(body.password, passwordSalt),
+      ...makePasswordRecord(body.password),
       createdAt: new Date().toISOString(),
       characters: normalizeCharacters(),
     };
 
     store.accounts.push(account);
+    createSession(store, account.id, req, res);
     writeStore(store);
     sendJson(res, 201, { account: toClientAccount(account) });
     return;
@@ -294,16 +500,24 @@ async function handleApi(req, res, url) {
     }
 
     assertPassword(account, body.password);
+    upgradePasswordRecordIfNeeded(account, body.password);
+    createSession(store, account.id, req, res);
+    writeStore(store);
     sendJson(res, 200, { account: toClientAccount(account) });
+    return;
+  }
+
+  if (method === "POST" && pathname === "/api/accounts/logout") {
+    const store = readStore();
+    clearCurrentSession(store, req, res);
+    writeStore(store);
+    sendJson(res, 200, { ok: true });
     return;
   }
 
   if (method === "PATCH" && pathname === "/api/account/current") {
     const store = readStore();
-    const account = getAccountById(store, body.accountId);
-    if (!account) {
-      throw new HttpError(404, "Conta não encontrada.");
-    }
+    const { account, session } = requireAuthenticatedAccount(store, req);
 
     const nextName = String(body.displayName ?? account.displayName).trim();
     const nextEmail = normalizeEmail(body.email ?? account.email);
@@ -323,8 +537,8 @@ async function handleApi(req, res, url) {
     account.displayName = nextName;
     account.email = nextEmail;
     if (wantsPasswordChange) {
-      account.passwordSalt = makeSalt();
-      account.passwordHash = hashPassword(body.newPassword, account.passwordSalt);
+      Object.assign(account, makePasswordRecord(body.newPassword));
+      store.sessions = (store.sessions || []).filter((item) => item.accountId !== account.id || item.id === session.id);
     }
 
     writeStore(store);
@@ -334,12 +548,11 @@ async function handleApi(req, res, url) {
 
   if (method === "DELETE" && pathname === "/api/account/current") {
     const store = readStore();
-    const account = getAccountById(store, body.accountId);
-    if (!account) {
-      throw new HttpError(404, "Conta não encontrada.");
-    }
+    const { account } = requireAuthenticatedAccount(store, req);
     assertPassword(account, body.password);
     store.accounts = store.accounts.filter((item) => item.id !== account.id);
+    store.sessions = (store.sessions || []).filter((session) => session.accountId !== account.id);
+    clearSessionCookie(req, res);
     writeStore(store);
     sendJson(res, 200, { ok: true });
     return;
@@ -347,10 +560,7 @@ async function handleApi(req, res, url) {
 
   if (method === "POST" && pathname === "/api/characters") {
     const store = readStore();
-    const account = getAccountById(store, body.accountId);
-    if (!account) {
-      throw new HttpError(404, "Conta não encontrada.");
-    }
+    const { account } = requireAuthenticatedAccount(store, req);
 
     const bucket = getEditionBucket(account, body.edition);
     const now = new Date().toISOString();
@@ -393,10 +603,7 @@ async function handleApi(req, res, url) {
 
   if (method === "DELETE" && pathname === "/api/characters") {
     const store = readStore();
-    const account = getAccountById(store, body.accountId);
-    if (!account) {
-      throw new HttpError(404, "Conta não encontrada.");
-    }
+    const { account } = requireAuthenticatedAccount(store, req);
 
     const bucket = getEditionBucket(account, body.edition);
     const nextBucket = bucket.filter((character) => character.id !== body.characterId);
@@ -421,6 +628,7 @@ function mergeAccounts(current, incoming) {
   next.email = next.email || incoming.email;
   next.passwordSalt = next.passwordSalt || incoming.passwordSalt;
   next.passwordHash = next.passwordHash || incoming.passwordHash;
+  next.passwordAlgo = next.passwordAlgo || incoming.passwordAlgo;
   next.createdAt = next.createdAt || incoming.createdAt;
 
   EDITIONS.forEach((edition) => {
@@ -442,8 +650,9 @@ function resolveRequestPath(urlPath) {
 
   const candidate = pathname === "/" ? "/index.html" : pathname;
   const resolved = path.resolve(root, `.${candidate}`);
+  const relativePath = path.relative(root, resolved);
 
-  if (!resolved.startsWith(root)) {
+  if (relativePath.startsWith("..") || path.isAbsolute(relativePath)) {
     return null;
   }
 
@@ -457,7 +666,8 @@ function resolveRequestPath(urlPath) {
 
 const server = createServer(async (req, res) => {
   try {
-    const url = new URL(req.url || "/", `http://${host}:${port}`);
+    const requestHost = req.headers.host || `${host}:${port}`;
+    const url = new URL(req.url || "/", `http://${requestHost}`);
 
     if (url.pathname.startsWith("/api/")) {
       await handleApi(req, res, url);
@@ -497,7 +707,8 @@ const server = createServer(async (req, res) => {
 });
 
 server.listen(port, host, () => {
-  console.log(`Servidor local ativo em http://${host}:${port}`);
+  const visibleHost = host === "0.0.0.0" ? "localhost" : host;
+  console.log(`Servidor ativo em http://${visibleHost}:${port}`);
   console.log(`Pasta servida: ${root}`);
   console.log(`Contas salvas em: ${accountsFile}`);
 });
