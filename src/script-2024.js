@@ -279,8 +279,11 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
             {
               value: "taumaturgo",
               label: "Taumaturgo",
-              summary: "Foca em magia e recebe um truque extra de clérigo.",
-              grants: { cantripBonus: [{ classId: "clerigo", amount: 1 }] },
+              summary: "Recebe um truque extra de clérigo e soma Sabedoria (mín. +1) a testes de Arcanismo ou Religião.",
+              grants: {
+                cantripBonus: [{ classId: "clerigo", amount: 1 }],
+                skillCheckBonus: [{ skillIds: ["arcanismo", "religiao"], ability: "sab", minimum: 1 }],
+              },
             },
           ],
         },
@@ -323,8 +326,11 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
             {
               value: "magico",
               label: "Mágico",
-              summary: "Recebe um truque extra de druida.",
-              grants: { cantripBonus: [{ classId: "druida", amount: 1 }] },
+              summary: "Recebe um truque extra de druida e soma Sabedoria (mín. +1) a testes de Arcanismo ou Natureza.",
+              grants: {
+                cantripBonus: [{ classId: "druida", amount: 1 }],
+                skillCheckBonus: [{ skillIds: ["arcanismo", "natureza"], ability: "sab", minimum: 1 }],
+              },
             },
           ],
         },
@@ -942,6 +948,28 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     silvestre: "A Faéria",
     subcomum: "A Umbraeterna",
   };
+  const LANGUAGE_METADATA_2024 = {
+    comum: { category: "comum", spokenBy: "a maioria dos povos nos mundos de D&D", script: "Comum", description: "Idioma compartilhado por viajantes, reinos, mercados e comunidades multiculturais." },
+    "lingua-de-sinais-comum": { category: "comum", spokenBy: "comunidades que usam comunicação visual", script: "Comum gestual", description: "Sistema de sinais usado para comunicação silenciosa ou acessível entre falantes de Comum." },
+    draconico: { category: "comum", spokenBy: "dragões, draconatos e estudiosos arcanos", script: "Dracônico", description: "Língua antiga e precisa, frequente em tratados de magia, linhagens dracônicas e inscrições arcanas." },
+    anao: { category: "comum", spokenBy: "anões e comunidades ligadas a minas, forjas e clãs", script: "Anão", description: "Idioma tradicional de clãs e ofícios, com vocabulário rico para pedra, metal e juramentos." },
+    elfico: { category: "comum", spokenBy: "elfos e povos próximos a tradições feéricas", script: "Élfico", description: "Fala melódica associada a arte, magia, memória e registros ancestrais." },
+    gigante: { category: "comum", spokenBy: "gigantes e culturas das montanhas", script: "Anão", description: "Idioma grave, cerimonial e antigo, usado por gigantes e por estudiosos de ruínas colossais." },
+    gnomico: { category: "comum", spokenBy: "gnomos, inventores e comunidades curiosas", script: "Anão", description: "Língua técnica e brincalhona, cheia de termos para invenções, detalhes e experimentos." },
+    goblin: { category: "comum", spokenBy: "goblins, hobgoblins e bugbears", script: "Anão", description: "Idioma direto, prático e militarizado, comum entre povos goblinoides." },
+    halfling: { category: "comum", spokenBy: "pequeninos", script: "Comum", description: "Fala acolhedora e cotidiana, rica em expressões de comunidade, viagem e hospitalidade." },
+    pequenino: { category: "comum", spokenBy: "pequeninos", script: "Comum", description: "Fala acolhedora e cotidiana, rica em expressões de comunidade, viagem e hospitalidade." },
+    orc: { category: "comum", spokenBy: "orcs e comunidades guerreiras", script: "Anão", description: "Idioma robusto e marcial, marcado por tradição oral, honra e sobrevivência." },
+    abissal: { category: "raro", spokenBy: "demônios e cultistas do Abismo", script: "Infernal", description: "Linguagem caótica e ameaçadora, associada a entidades demoníacas e invocações perigosas." },
+    celestial: { category: "raro", spokenBy: "celestiais, servos divinos e ordens sagradas", script: "Celestial", description: "Idioma solene, usado em hinos, profecias, pactos sagrados e inscrições luminosas." },
+    "dialeto-obscuro": { category: "raro", spokenBy: "aberrações e criaturas de mentes alienígenas", script: "Sem alfabeto comum", description: "Forma de comunicação inquietante ligada a horrores, pensamentos intrusivos e profundezas estranhas." },
+    druidico: { category: "raro", spokenBy: "druidas e círculos naturais", script: "Druídico", description: "Idioma secreto de círculos druídicos, usado para mensagens ocultas, ritos e sinais naturais." },
+    "giria-dos-ladroes": { category: "raro", spokenBy: "ladrões, informantes e guildas criminosas", script: "Códigos locais", description: "Conjunto de sinais, gírias e códigos que esconde mensagens em conversas aparentemente comuns." },
+    infernal: { category: "raro", spokenBy: "diabos, tieflings e pactuantes", script: "Infernal", description: "Idioma formal e rígido, muito usado em contratos, hierarquias infernais e pactos vinculantes." },
+    primordial: { category: "raro", spokenBy: "elementais e povos ligados aos planos elementais", script: "Anão", description: "Tronco dos dialetos Aquan, Auran, Ignan e Terran; falantes desses dialetos costumam se compreender." },
+    silvestre: { category: "raro", spokenBy: "fadas e criaturas feéricas", script: "Élfico", description: "Língua musical, caprichosa e metafórica, ligada à Faéria e a espíritos da natureza." },
+    subcomum: { category: "raro", spokenBy: "povos da Umbraeterna e rotas subterrâneas", script: "Élfico", description: "Idioma de sobrevivência, comércio e segredo nas regiões profundas e sombrias do mundo." },
+  };
   const CURRENCY_KEYS_2024 = ["pc", "pp", "pe", "po", "pl"];
   const CURRENCY_TO_COPPER_FACTORS_2024 = {
     pc: 1,
@@ -1296,8 +1324,11 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
   const CUSTOM_SELECT_FIELDS_2024 = {};
   const FEAT_CUSTOM_SELECT_PREFIX_2024 = "feat-choice-2024:";
   const WARLOCK_INVOCATION_CUSTOM_SELECT_PREFIX_2024 = "warlock-invocation-2024:";
+  const LANGUAGE_CUSTOM_SELECT_PREFIX_2024 = "language-choice-2024:";
   let featCustomSelectKeys2024 = [];
   let warlockInvocationCustomSelectKeys2024 = [];
+  let languageCustomSelectKeys2024 = [];
+  let activeMagicHoverTarget2024 = null;
   let hitPointRollControlsSignature2024 = "";
   let deferredHeavyUiDepth2024 = 0;
   const pendingHeavyUiRefresh2024 = {
@@ -1658,6 +1689,12 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     el.skillsExtra?.addEventListener("change", onSkillSelectionChanged2024);
     el.expertiseChoices?.addEventListener("change", onExpertiseChoiceChanged2024);
     el.magicSourcesList?.addEventListener("change", onMagicSpellChecklistChanged2024);
+    el.magicSourcesList?.addEventListener("mouseover", onMagicSpellHoverStart2024);
+    el.magicSourcesList?.addEventListener("mousemove", onMagicSpellHoverMove2024);
+    el.magicSourcesList?.addEventListener("mouseout", onMagicSpellHoverEnd2024);
+    el.selectedSpellBook?.addEventListener("mouseover", onMagicSpellHoverStart2024);
+    el.selectedSpellBook?.addEventListener("mousemove", onMagicSpellHoverMove2024);
+    el.selectedSpellBook?.addEventListener("mouseout", onMagicSpellHoverEnd2024);
     el.magicSlotsGrid?.addEventListener("input", onMagicSlotUsageInput2024);
     el.magicSlotsGrid?.addEventListener("change", onMagicSlotUsageInput2024);
     el.btnAddMulticlass?.addEventListener("click", onAddMulticlassRow2024);
@@ -2947,6 +2984,60 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     warlockInvocationCustomSelectKeys2024 = [];
   }
 
+  function cleanupLanguageChoiceFields2024() {
+    languageCustomSelectKeys2024.forEach((key) => {
+      delete CUSTOM_SELECT_FIELDS_2024[key];
+    });
+    languageCustomSelectKeys2024 = [];
+  }
+
+  function describeLanguageOption2024(value, label) {
+    const metadata = LANGUAGE_METADATA_2024[value] || {};
+    const isRare = metadata.category === "raro" || RARE_LANGUAGE_CHOICE_IDS_2024.includes(value);
+    const group = isRare ? "Idiomas raros" : "Idiomas comuns";
+    const origin = LANGUAGE_ORIGINS_2024[value] || "";
+    return {
+      group,
+      summary: origin ? `Origem: ${origin}` : "",
+      lines: [
+        origin ? `Origem: ${origin}` : "",
+        metadata.spokenBy ? `Falado por: ${metadata.spokenBy}` : "",
+        metadata.script ? `Alfabeto: ${metadata.script}` : "",
+      ].filter(Boolean),
+      body: metadata.description || "",
+      search: [label, origin, metadata.spokenBy, metadata.script, metadata.description, group].filter(Boolean).join(" "),
+    };
+  }
+
+  function initializeLanguageChoiceFields2024() {
+    cleanupLanguageChoiceFields2024();
+    if (!el.languageChoices) return;
+
+    el.languageChoices.querySelectorAll("select[data-language-choice-id]").forEach((select) => {
+      const choiceId = select.getAttribute("data-language-choice-id");
+      const fieldRoot = select.closest("[data-language-choice-field-key]");
+      const input = fieldRoot?.querySelector("[data-language-choice-input]");
+      const suggestions = fieldRoot?.querySelector("[data-language-choice-suggestions]");
+      const hoverCard = fieldRoot?.querySelector("[data-language-choice-hover-card]");
+      if (!choiceId || !fieldRoot || !input || !suggestions || !hoverCard) return;
+
+      const fieldKey = `${LANGUAGE_CUSTOM_SELECT_PREFIX_2024}${choiceId}`;
+      languageCustomSelectKeys2024.push(fieldKey);
+      CUSTOM_SELECT_FIELDS_2024[fieldKey] = createCustomSelectField2024({
+        key: fieldKey,
+        input,
+        select,
+        suggestions,
+        hoverCard,
+        placeholder: fieldRoot.getAttribute("data-language-placeholder") || "Selecione um idioma...",
+        describeOption: describeLanguageOption2024,
+        onCommit: () => onLanguageChoiceChanged2024({ target: select }),
+        showSuggestionSummary: true,
+      });
+      syncCustomSelectField2024(fieldKey);
+    });
+  }
+
   function getWarlockClassEntriesForChoices2024(classEntries = null) {
     const entries = Array.isArray(classEntries) ? classEntries : getResolvedClassEntries2024();
     return (entries || []).filter((entry) => entry?.classId === "bruxo" && entry.level > 0);
@@ -3510,6 +3601,21 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
       .filter(({ source }) => source.grantsSelectedExpertise)
       .map(({ value }) => value)
       .filter((skillId) => proficientSkillIds.has(skillId));
+  }
+
+  function getFeatureChoiceSkillCheckBonus2024(skillId, abilityScores = getEffectiveAbilityScores().scores, classEntries = getResolvedClassEntries2024()) {
+    const normalizedSkillId = String(skillId || "").trim();
+    if (!normalizedSkillId) return 0;
+
+    return getFeatureChoiceSelectionEntries2024({ classEntries: normalizeClassEntriesArgument2024(classEntries) })
+      .flatMap(({ option }) => option?.grants?.skillCheckBonus || [])
+      .filter((grant) => Array.isArray(grant?.skillIds) && grant.skillIds.includes(normalizedSkillId))
+      .reduce((total, grant) => {
+        const abilityMod = getAbilityModifier(abilityScores?.[grant.ability]);
+        if (!Number.isFinite(abilityMod)) return total;
+        const minimum = Number.isFinite(Number(grant.minimum)) ? Number(grant.minimum) : null;
+        return total + (minimum == null ? abilityMod : Math.max(minimum, abilityMod));
+      }, 0);
   }
 
   function applyFeatureChoiceSpellcastingAdjustments2024(config, entry) {
@@ -4509,7 +4615,9 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     const lines = [
       `<strong>${escapeHtml(`${formatAbilityLabel(ability)} total ${totalValue}`)}</strong>`,
       `<p>${escapeHtml(`Base: ${breakdown?.base ?? "—"}`)}</p>`,
-      ...entries.map((entry) => `<p>${escapeHtml(`${entry.source}: ${entry.detail}`)}</p>`),
+      ...(entries.length
+        ? entries.map((entry) => `<p>${escapeHtml(`${entry.source}: ${entry.detail}`)}</p>`)
+        : [`<p>${escapeHtml("Nenhum bônus aplicado ainda; o total acompanha o valor base.")}</p>`]),
     ];
     return lines.join("");
   }
@@ -4528,7 +4636,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
 
       if (!preview) return;
 
-      if (!Number.isFinite(baseValue) || !Number.isFinite(totalValue) || !entries.length) {
+      if (!Number.isFinite(baseValue) || !Number.isFinite(totalValue)) {
         preview.hidden = true;
         preview.innerHTML = "";
         return;
@@ -8588,14 +8696,8 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
   ) {
     const known = new Set(getFixedSkillIds2024(background, race));
     const resolvedEntries = Array.isArray(classEntries) ? getResolvedClassEntries2024(classEntries) : getResolvedClassEntries2024();
-    const allowedSkills = new Set(
-      getSkillChoiceSources2024(resolvedEntries)
-        .flatMap((source) => source.options || [])
-        .filter(Boolean)
-    );
 
     getSelectedClassSkillIds2024()
-      .filter((skillId) => allowedSkills.has(skillId))
       .forEach((skillId) => known.add(skillId));
     getSelectedExpertiseSkillIds2024({ background, race, classEntries: resolvedEntries }).forEach((skillId) => known.add(skillId));
     return known;
@@ -8740,11 +8842,13 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     const sources = getSkillChoiceSources2024(classEntries);
     const allowedSkills = new Set(sources.flatMap((source) => source.options || []).filter(Boolean));
     const selectedSkills = Array.from(new Set(
-      getSelectedClassSkillIds2024().filter((skillId) => allowedSkills.has(skillId) && !fixedSkills.has(skillId))
+      getSelectedClassSkillIds2024().filter((skillId) => !fixedSkills.has(skillId))
     ));
+    const officialSelectedSkills = selectedSkills.filter((skillId) => allowedSkills.has(skillId));
+    const invalidOutsideRules = selectedSkills.filter((skillId) => !allowedSkills.has(skillId));
     const totalPicks = sources.reduce((sum, source) => sum + Number(source.picks || 0), 0);
-    const exactAssignment = selectedSkills.length === totalPicks
-      ? findExactSkillChoiceAssignment2024(sources, selectedSkills)
+    const exactAssignment = officialSelectedSkills.length === totalPicks && !invalidOutsideRules.length
+      ? findExactSkillChoiceAssignment2024(sources, officialSelectedSkills)
       : null;
 
     return {
@@ -8752,11 +8856,13 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
       sources,
       allowedSkills,
       selectedSkills,
+      officialSelectedSkills,
+      invalidOutsideRules,
       totalPicks,
       exactAssignment,
       overLimit: selectedSkills.length > totalPicks,
       missingCount: Math.max(0, totalPicks - selectedSkills.length),
-      complete: totalPicks === 0 || (selectedSkills.length === totalPicks && Boolean(exactAssignment)),
+      complete: totalPicks === 0 || (selectedSkills.length === totalPicks && Boolean(exactAssignment) && !invalidOutsideRules.length),
     };
   }
 
@@ -9112,6 +9218,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     const previousValues = getSelectedLanguageChoiceValueMap2024();
     const definitions = getLanguageChoiceDefinitions2024(classEntries);
 
+    cleanupLanguageChoiceFields2024();
     el.languageChoices.innerHTML = "";
 
     definitions.forEach((definition) => {
@@ -9130,14 +9237,41 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
       }
 
       const field = document.createElement("label");
-      field.className = "row";
+      field.className = "row generic-dropdown-field feat-choice-field";
+      field.setAttribute("data-language-choice-field-key", definition.id);
+      field.setAttribute("data-language-placeholder", "Selecione um idioma...");
 
       const caption = document.createElement("span");
       caption.textContent = "Seleção";
       field.appendChild(caption);
 
+      const anchor = document.createElement("div");
+      anchor.className = "dropdown-anchor";
+
+      const input = document.createElement("input");
+      input.type = "text";
+      input.setAttribute("data-language-choice-input", "1");
+      input.autocomplete = "off";
+      input.placeholder = "Selecione um idioma...";
+      anchor.appendChild(input);
+
+      const suggestions = document.createElement("div");
+      suggestions.className = "dropdown-suggestions";
+      suggestions.setAttribute("data-language-choice-suggestions", "1");
+      suggestions.hidden = true;
+      anchor.appendChild(suggestions);
+
+      const hoverCard = document.createElement("div");
+      hoverCard.className = "dropdown-hover-card";
+      hoverCard.setAttribute("data-language-choice-hover-card", "1");
+      hoverCard.hidden = true;
+      anchor.appendChild(hoverCard);
+
       const select = document.createElement("select");
+      select.className = "native-select-hidden";
       select.setAttribute("data-language-choice-id", definition.id);
+      select.tabIndex = -1;
+      select.setAttribute("aria-hidden", "true");
 
       const currentValue = previousValues.get(definition.id) || "";
       const blockedByOtherChoices = new Set(
@@ -9154,11 +9288,13 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
         select.value = currentValue;
       }
 
-      field.appendChild(select);
+      anchor.appendChild(select);
+      field.appendChild(anchor);
       card.appendChild(field);
       el.languageChoices.appendChild(card);
     });
 
+    initializeLanguageChoiceFields2024();
     updateLanguageSelectionFeedback2024();
   }
 
@@ -9233,7 +9369,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
       }
     }
 
-    updateLanguageSelectionFeedback2024();
+    renderLanguageChoices2024();
     updatePreview();
   }
 
@@ -9265,9 +9401,8 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
       const isFixed = selectionState.fixedSkills.has(skill.id);
       const isAllowed = selectionState.allowedSkills.has(skill.id);
       const isSelected = isFixed || selectionState.selectedSkills.includes(skill.id);
-      const canSelectMore = selectionState.selectedSkills.length < selectionState.totalPicks;
       checkbox.checked = isSelected;
-      checkbox.disabled = isFixed || !isAllowed || (!isSelected && !canSelectMore);
+      checkbox.disabled = isFixed;
 
       const textWrap = document.createElement("div");
       const strong = document.createElement("strong");
@@ -9284,9 +9419,9 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
           ? `${abilityLabel} • Disponível para ${sourceLabels || "as escolhas de classe"}.`
           : `Disponível para ${sourceLabels || "as escolhas de classe"}.`;
       } else if (selectionState.totalPicks) {
-        small.textContent = abilityLabel ? `${abilityLabel} • Indisponível para as classes selecionadas.` : "Indisponível para as classes selecionadas.";
+        small.textContent = abilityLabel ? `${abilityLabel} • Fora das opções oficiais; pode marcar com aviso.` : "Fora das opções oficiais; pode marcar com aviso.";
       } else {
-        small.textContent = abilityLabel || "Sem escolha adicional cadastrada.";
+        small.textContent = abilityLabel ? `${abilityLabel} • Sem escolha oficial disponível; pode marcar com aviso.` : "Sem escolha oficial disponível; pode marcar com aviso.";
       }
       textWrap.appendChild(small);
 
@@ -9382,14 +9517,18 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
       el.skillsRuleHint.innerHTML = `${hintParts.join("<br>")}<br>Escolhidas nas classes: <strong>${selectionState.selectedSkills.length}/${selectionState.totalPicks}</strong>.`;
     }
 
-    let warning = "";
-    if (selectionState.overLimit) {
-      warning = `Você marcou ${selectionState.selectedSkills.length} perícias de classe, mas a build atual permite ${selectionState.totalPicks}.`;
-    } else if (selectionState.totalPicks && selectionState.selectedSkills.length === selectionState.totalPicks && !selectionState.exactAssignment) {
-      warning = "As perícias marcadas não conseguem atender todas as escolhas das classes atuais ao mesmo tempo.";
-    } else if (selectionState.missingCount > 0) {
-      warning = `Faltam ${selectionState.missingCount} perícias de classe para completar a ficha 5.5e.`;
+    const warnings = [];
+    if (selectionState.invalidOutsideRules.length) {
+      warnings.push(`As perícias ${formatList(selectionState.invalidOutsideRules.map(formatSkillLabel))} não fazem parte das opções oficiais disponíveis para a build atual.`);
     }
+    if (selectionState.overLimit) {
+      warnings.push(`Você marcou ${selectionState.selectedSkills.length} perícias de classe, mas a build atual permite ${selectionState.totalPicks}.`);
+    } else if (selectionState.totalPicks && selectionState.selectedSkills.length === selectionState.totalPicks && !selectionState.exactAssignment && !selectionState.invalidOutsideRules.length) {
+      warnings.push("As perícias marcadas não conseguem atender todas as escolhas das classes atuais ao mesmo tempo.");
+    } else if (selectionState.missingCount > 0) {
+      warnings.push(`Faltam ${selectionState.missingCount} perícias de classe para completar a ficha 5.5e.`);
+    }
+    const warning = warnings.join(" ");
 
     if (el.skillsRuleWarning) {
       el.skillsRuleWarning.textContent = warning;
@@ -9399,13 +9538,9 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     renderProficiencySummary2024();
   }
 
-  function onSkillSelectionChanged2024(event) {
-    const selectionState = getSkillChoiceSelectionState2024();
-    if (selectionState.totalPicks && selectionState.selectedSkills.length > selectionState.totalPicks && event?.target instanceof HTMLInputElement) {
-      event.target.checked = false;
-    }
-
+  function onSkillSelectionChanged2024() {
     updateSkillSelectionFeedback2024();
+    renderFeatureChoices2024();
     renderExpertiseChoices2024();
     updatePreview();
   }
@@ -9415,13 +9550,15 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     abilityScores,
     proficientSkillIds,
     proficiencyBonus,
-    expertiseSkillIds = getSelectedExpertiseSkillIds2024()
+    expertiseSkillIds = getSelectedExpertiseSkillIds2024(),
+    classEntries = getResolvedClassEntries2024()
   ) {
     const abilityKey = SKILL_ABILITY_MAP[skillId];
     const abilityMod = getAbilityModifier(abilityScores?.[abilityKey]);
     if (!Number.isFinite(abilityMod)) return null;
-    if (expertiseSkillIds?.has(skillId)) return abilityMod + (proficiencyBonus * 2);
-    return abilityMod + (proficientSkillIds.has(skillId) ? proficiencyBonus : 0);
+    const featureChoiceBonus = getFeatureChoiceSkillCheckBonus2024(skillId, abilityScores, classEntries);
+    if (expertiseSkillIds?.has(skillId)) return abilityMod + (proficiencyBonus * 2) + featureChoiceBonus;
+    return abilityMod + (proficientSkillIds.has(skillId) ? proficiencyBonus : 0) + featureChoiceBonus;
   }
 
   function getWeaponTrainingLabels2024(classEntries = getResolvedClassEntries2024()) {
@@ -11755,6 +11892,20 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     return /\b\d+\s*(pc|pp|pe|ce|po|pl)\b/.test(detail) || detail.includes("valor de");
   }
 
+  function formatSpellComponents2024(spell) {
+    if (!spell) return "-";
+    const base = Array.isArray(spell.componentes) && spell.componentes.length
+      ? spell.componentes.join(", ")
+      : "-";
+    return spell.componentesDetalhe
+      ? `${base} (${spell.componentesDetalhe})`
+      : base;
+  }
+
+  function formatSpellSchoolLabel2024(spell) {
+    return ESCOLAS[spell?.normalizedSchool] || spell?.escola || labelFromSlug(spell?.normalizedSchool || "");
+  }
+
   function buildSpellNotes2024(spell) {
     const parts = [];
     if (spell?.resumo) {
@@ -11766,6 +11917,105 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
       parts.push(`Material: ${spell.componentesDetalhe}`);
     }
     return parts.join(" • ");
+  }
+
+  function findMagicSpellHoverTarget2024(target) {
+    return target?.closest?.("[data-spell-id]") || null;
+  }
+
+  function buildMagicSpellHoverCardMarkup2024(target) {
+    const spellId = target?.getAttribute("data-spell-id") || "";
+    const spell = spellId ? SPELL_BY_ID_2024.get(spellId) : null;
+    if (!spell) return "";
+
+    const sourceLabel = target.getAttribute("data-source-label") || "";
+    const showFullDescription = target.getAttribute("data-spell-context") === "selected";
+    const badges = [
+      spell.ritual ? "Ritual" : "",
+      spell.concentracao ? "Concentração" : "",
+      spell.fonte || DATASET_SOURCE,
+    ].filter(Boolean);
+
+    return `
+      <p class="magic-panel-kicker">${escapeHtml(SPELL_LEVEL_LABELS_2024[spell.nivel] || `${spell.nivel}º círculo`)}</p>
+      <strong>${escapeHtml(spell.nome)}</strong>
+      <p class="magic-spell-hover-meta">${escapeHtml(formatSpellSchoolLabel2024(spell))}</p>
+      ${sourceLabel ? `<p class="magic-spell-hover-source">${escapeHtml(`Fonte da seleção: ${sourceLabel}`)}</p>` : ""}
+      ${badges.length ? `<div class="magic-spell-hover-badges">${badges.map((badge) => `<span>${escapeHtml(badge)}</span>`).join("")}</div>` : ""}
+      <div class="magic-spell-hover-grid">
+        <p><strong>Tempo:</strong> ${escapeHtml(spell.tempoConjuracao || "-")}</p>
+        <p><strong>Alcance:</strong> ${escapeHtml(spell.alcance || "-")}</p>
+        <p><strong>Duração:</strong> ${escapeHtml(spell.duracao || "-")}</p>
+        <p><strong>Componentes:</strong> ${escapeHtml(formatSpellComponents2024(spell))}</p>
+      </div>
+      <p class="${showFullDescription ? "full-desc" : "short-desc"}">${escapeHtml(showFullDescription ? (spell.descricao || spell.resumo || "-") : (spell.resumo || spell.descricao || "-"))}</p>
+      ${spell.emNiveisSuperiores ? `<p>${escapeHtml(`Em níveis superiores: ${spell.emNiveisSuperiores}`)}</p>` : ""}
+    `;
+  }
+
+  function positionMagicSpellHoverCard2024(clientX, clientY) {
+    if (!el.magicSpellHoverCard || el.magicSpellHoverCard.hidden) return;
+
+    const offset = 18;
+    const viewportWidth = window.innerWidth || document.documentElement.clientWidth || 0;
+    const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+    const { offsetWidth, offsetHeight } = el.magicSpellHoverCard;
+    let left = clientX + offset;
+    let top = clientY + offset;
+
+    if (left + offsetWidth > viewportWidth - 12) {
+      left = Math.max(12, clientX - offsetWidth - offset);
+    }
+
+    if (top + offsetHeight > viewportHeight - 12) {
+      top = Math.max(12, viewportHeight - offsetHeight - 12);
+    }
+
+    el.magicSpellHoverCard.style.left = `${left}px`;
+    el.magicSpellHoverCard.style.top = `${top}px`;
+  }
+
+  function showMagicSpellHoverCard2024(target, event) {
+    if (!el.magicSpellHoverCard || !target) return;
+    const markup = buildMagicSpellHoverCardMarkup2024(target);
+    if (!markup) {
+      hideMagicSpellHoverCard2024();
+      return;
+    }
+
+    activeMagicHoverTarget2024 = target;
+    el.magicSpellHoverCard.innerHTML = markup;
+    el.magicSpellHoverCard.hidden = false;
+    positionMagicSpellHoverCard2024(event.clientX, event.clientY);
+  }
+
+  function hideMagicSpellHoverCard2024() {
+    activeMagicHoverTarget2024 = null;
+    if (!el.magicSpellHoverCard) return;
+    el.magicSpellHoverCard.hidden = true;
+  }
+
+  function onMagicSpellHoverStart2024(event) {
+    const target = findMagicSpellHoverTarget2024(event.target);
+    if (!target) return;
+
+    const related = findMagicSpellHoverTarget2024(event.relatedTarget);
+    if (related === target) return;
+    showMagicSpellHoverCard2024(target, event);
+  }
+
+  function onMagicSpellHoverMove2024(event) {
+    if (!activeMagicHoverTarget2024) return;
+    positionMagicSpellHoverCard2024(event.clientX, event.clientY);
+  }
+
+  function onMagicSpellHoverEnd2024(event) {
+    const target = findMagicSpellHoverTarget2024(event.target);
+    if (!target) return;
+
+    const related = findMagicSpellHoverTarget2024(event.relatedTarget);
+    if (related === target) return;
+    hideMagicSpellHoverCard2024();
   }
 
   function getUniqueSelectedSpellEntries2024(selectedEntries = []) {
@@ -11908,7 +12158,12 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     ].filter(Boolean).join(" • ");
 
     return `
-      <label class="spell-check-item${disabled ? " is-disabled" : ""}">
+      <label
+        class="spell-check-item${disabled ? " is-disabled" : ""}"
+        data-spell-id="${escapeHtml(spell.id)}"
+        data-spell-context="available"
+        data-source-label="${escapeHtml(source.classLabel || "")}"
+      >
         <input
           type="checkbox"
           value="${escapeHtml(spell.id)}"
@@ -12045,7 +12300,12 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
             <div class="magic-level-card-body">
               ${entries.length
                 ? entries.map((entry) => `
-                  <article class="spellbook-entry">
+                  <article
+                    class="spellbook-entry"
+                    data-spell-id="${escapeHtml(entry.spell?.id || "")}"
+                    data-spell-context="selected"
+                    data-source-label="${escapeHtml(entry.sourceLabel || "")}"
+                  >
                     <strong>${escapeHtml(entry.spell?.nome || "")}</strong>
                     ${context?.sources?.length > 1 ? `<small>${escapeHtml(entry.sourceLabel || "")}</small>` : ""}
                     <div class="spellbook-entry-body">${escapeHtml(entry.spell?.resumo || entry.spell?.descricao || "Sem resumo curto.")}</div>
@@ -12065,6 +12325,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
       return;
     }
     if (!el.magicSection || !el.magicSummary) return;
+    hideMagicSpellHoverCard2024();
     const previousUsage = collectSpellSlotUsageState2024();
     const context = buildSpellcastingContext2024();
     lastMagicContext2024 = context;
