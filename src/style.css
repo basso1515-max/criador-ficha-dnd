@@ -993,6 +993,73 @@ fieldset,
   min-width: 170px;
 }
 
+.checkbox-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: var(--text);
+  line-height: 1.35;
+}
+
+.checkbox-row input {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  margin-top: 2px;
+  accent-color: var(--accent);
+}
+
+.danger-confirm-row {
+  padding: 10px 12px;
+  border: 1px solid rgba(139, 47, 32, 0.22);
+  border-radius: 10px;
+  background: rgba(255, 250, 238, 0.66);
+  font-weight: 700;
+}
+
+.account-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(35, 24, 14, 0.42);
+  backdrop-filter: blur(3px);
+}
+
+.account-modal-backdrop[hidden] {
+  display: none;
+}
+
+.account-modal {
+  width: min(520px, 100%);
+  display: grid;
+  gap: 18px;
+  padding: 22px;
+  border: 1px solid rgba(139, 47, 32, 0.34);
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, rgba(255, 250, 238, 0.98), rgba(248, 229, 216, 0.96)),
+    var(--card);
+  box-shadow: 0 24px 60px rgba(35, 24, 14, 0.28);
+}
+
+.account-modal .account-form-heading h2 {
+  font-size: 30px;
+}
+
+.account-modal .account-form-heading p {
+  font-size: 16px;
+}
+
+.account-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .user-page-shell {
   padding-bottom: 48px;
 }
