@@ -84,8 +84,8 @@ function renderUserPage() {
   if (el.email) el.email.textContent = user.email || "";
   if (el.storage) {
     el.storage.textContent = isUsingServerStorage()
-      ? "Dados salvos no servidor local"
-      : "Dados salvos neste navegador";
+      ? "Dados salvos no servidor"
+      : "Servidor indisponível";
   }
   if (el.count5e) el.count5e.textContent = `${counts["5e"]}/${ACCOUNT_LIMIT_PER_EDITION}`;
   if (el.count2024) el.count2024.textContent = `${counts["5.5e-2024"]}/${ACCOUNT_LIMIT_PER_EDITION}`;
@@ -126,8 +126,8 @@ function renderCharacterCard(character) {
   `;
 }
 
-el.logout?.addEventListener("click", () => {
-  logoutAccount();
+el.logout?.addEventListener("click", async () => {
+  await logoutAccount();
   renderUserPage();
   setStatus("Você saiu da conta.", "info");
 });
