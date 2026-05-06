@@ -6,10 +6,12 @@
   "description": "Gerador de ficha preenchivel de D&D 5e em HTML/JS com exportacao para PDF.",
   "scripts": {
     "check": "node scripts/check.mjs",
+    "smoke:dom": "node scripts/smoke-dom.mjs",
     "serve": "node scripts/serve.mjs",
     "start": "npm run serve"
   },
   "dependencies": {
+    "@upstash/redis": "^1.38.0",
     "pdf-lib": "^1.17.1",
     "pdf-parse": "^2.4.5",
     "pdfjs-dist": "^5.6.205"

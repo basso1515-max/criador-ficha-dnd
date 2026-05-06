@@ -17,20 +17,52 @@
       <div class="version-toolbar">
         <div class="version-toolbar-actions">
           <a href="./index.html" class="ghost-button">Voltar para a seleção</a>
-          <a href="./conta.html?returnTo=5e.html%23userArea5e" class="secondary-button">Minha conta</a>
+          <a href="./minha-conta.html" class="secondary-button">Minha conta</a>
           <a href="./5.5e-2024.html" class="secondary-button">Abrir editor 5.5e</a>
+          <button id="editorLogout5e" type="button" class="ghost-button editor-logout-button" hidden>Sair</button>
+        </div>
+
+        <div id="mobileEditorMenuShell5e" class="mobile-editor-menu-shell">
+          <button id="mobileMenuToggle5e" type="button" class="mobile-menu-toggle" aria-label="Abrir menu do editor" aria-controls="mobileEditorMenu5e" aria-expanded="false">
+            <span class="mobile-menu-bars" aria-hidden="true">
+              <span></span>
+              <span></span>
+              <span></span>
+            </span>
+            <span>Menu</span>
+          </button>
+
+          <nav id="mobileEditorMenu5e" class="mobile-editor-menu" aria-label="Menu do editor" hidden>
+            <div class="mobile-menu-section">
+              <span class="mobile-menu-label">Navegação</span>
+              <a href="./index.html" class="mobile-menu-link">Voltar para a seleção</a>
+              <a href="./5.5e-2024.html" class="mobile-menu-link">Abrir editor 5.5e</a>
+              <a href="./minha-conta.html" class="mobile-menu-link">Minha conta e salvos</a>
+            </div>
+
+            <div id="mobileCurrentCharacter5e" class="mobile-menu-section mobile-menu-current">
+              <span class="mobile-menu-label">Personagem atual</span>
+              <strong id="mobileCurrentCharacterName5e">Sem personagem salvo aberto</strong>
+              <small id="mobileCurrentCharacterSummary5e">Abra um personagem salvo pela sua página.</small>
+            </div>
+
+            <div class="mobile-menu-section mobile-menu-actions">
+              <button id="mobileSaveCharacter5e" type="button" class="mobile-menu-button">Salvar personagem atual</button>
+              <button id="mobileLogout5e" type="button" class="mobile-menu-button mobile-menu-logout" hidden>Sair da conta</button>
+            </div>
+          </nav>
         </div>
       </div>
 
       <h1>Criador de ficha D&D 5e</h1>
     </header>
 
-    <section class="container user-area-container">
+    <section id="userAreaContainer5e" class="container user-area-container">
       <div id="userArea5e" class="card user-area" aria-label="Área do usuário">
-        <div class="user-area-header">
+        <div id="userAreaHeader5e" class="user-area-header">
           <div>
             <h2>Área do usuário</h2>
-            <p class="note subtle">Conta local para salvar até 10 personagens desta edição neste navegador.</p>
+            <p class="note subtle">Conta para salvar até 10 personagens desta edição no servidor.</p>
           </div>
           <span id="userAreaCount5e" class="user-area-count">Sem conta</span>
         </div>
@@ -38,13 +70,13 @@
         <div id="authPanel5e" class="user-account-link-panel">
           <div>
             <strong>Entre para salvar personagens</strong>
-            <p class="note subtle">Você pode continuar gerando fichas sem conta. O login serve apenas para guardar as definições preenchidas.</p>
+            <p class="note subtle">Você pode continuar gerando fichas sem conta. O login serve para guardar as definições preenchidas.</p>
           </div>
           <a href="./conta.html?returnTo=5e.html%23userArea5e" class="secondary-button">Minha conta</a>
         </div>
 
         <div id="userPanel5e" class="user-saves-panel" hidden>
-          <div class="user-session-row">
+          <div id="userSessionRow5e" class="user-session-row">
             <p>
               <strong id="accountName5e"></strong>
               <span id="accountEmail5e"></span>
@@ -54,7 +86,7 @@
 
           <div class="user-save-controls">
             <button id="saveCharacter5e" type="button" class="secondary-button">Salvar personagem atual</button>
-            <p class="note subtle">As imagens enviadas não entram no salvamento local para manter os presets leves.</p>
+            <p class="note subtle">As imagens enviadas não entram no salvamento para manter os presets leves.</p>
           </div>
 
           <p id="emptySaves5e" class="note subtle">Nenhum personagem salvo nesta edição.</p>
@@ -716,6 +748,10 @@
       <button id="btnRandomizeRemaining" type="button" class="floating-quick-button">
         <strong>Aleatorizar restante</strong>
         <small>Preserva o que já foi definido</small>
+      </button>
+      <button id="quickSaveCharacter5e" type="button" class="floating-quick-button">
+        <strong>Salvar personagem</strong>
+        <small>Guarda na sua conta</small>
       </button>
     </div>
     <p id="status" class="note floating-submit-status" aria-live="polite"></p>

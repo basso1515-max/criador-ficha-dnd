@@ -1,77 +1,44 @@
 import { createHash, randomBytes, randomUUID, scryptSync, timingSafeEqual } from "node:crypto";
-import { createReadStream, existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
-import { createServer } from "node:http";
-import path from "node:path";
+import { Redis } from "@upstash/redis";
 
-const root = process.cwd();
-const host = process.env.HOST || "127.0.0.1";
-const port = Number(process.env.PORT || 8000);
-const dataDir = path.join(root, "server-data");
-const accountsFile = path.join(dataDir, "accounts.json");
-
-const STORE_VERSION = 1;
+const STORE_PREFIX = "dnd-sheet";
 const ACCOUNT_LIMIT_PER_EDITION = 10;
 const EDITIONS = ["5e", "5.5e-2024"];
 const COOKIE_NAME = "dnd_sheet_session";
 const SESSION_TTL_SECONDS = 60 * 60 * 24 * 30;
-const SESSION_TTL_MS = SESSION_TTL_SECONDS * 1000;
 const PASSWORD_ALGO = "scrypt-v1";
 const SCRYPT_OPTIONS = { N: 16384, r: 8, p: 1, maxmem: 64 * 1024 * 1024 };
 
-const MIME_TYPES = {
-  ".css": "text/css; charset=utf-8",
-  ".html": "text/html; charset=utf-8",
-  ".jpg": "image/jpeg",
-  ".jpeg": "image/jpeg",
-  ".js": "text/javascript; charset=utf-8",
-  ".json": "application/json; charset=utf-8",
-  ".pdf": "application/pdf",
-  ".png": "image/png",
-  ".svg": "image/svg+xml",
-  ".txt": "text/plain; charset=utf-8",
-};
+let redisClient = null;
 
-function createEmptyStore() {
-  return {
-    version: STORE_VERSION,
-    accounts: [],
-    sessions: [],
-  };
-}
+function getRedis() {
+  if (redisClient) return redisClient;
 
-function ensureDataFile() {
-  if (!existsSync(dataDir)) mkdirSync(dataDir, { recursive: true });
-  if (!existsSync(accountsFile)) {
-    writeFileSync(accountsFile, JSON.stringify(createEmptyStore(), null, 2));
+  const url = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
+
+  if (!url || !token) {
+    throw new HttpError(500, "Storage Redis nao configurado. Conecte Upstash Redis ao projeto na Vercel e puxe as variaveis de ambiente.");
   }
+
+  redisClient = new Redis({ url, token });
+  return redisClient;
 }
 
-function readStore() {
-  ensureDataFile();
-  try {
-    const parsed = JSON.parse(readFileSync(accountsFile, "utf8"));
-    if (!parsed || !Array.isArray(parsed.accounts)) return createEmptyStore();
-    const accounts = parsed.accounts.map(normalizeAccountRecord).filter(Boolean);
-    const accountIds = new Set(accounts.map((account) => account.id));
-    return {
-      version: parsed.version || STORE_VERSION,
-      accounts,
-      sessions: Array.isArray(parsed.sessions)
-        ? parsed.sessions.map(normalizeSessionRecord).filter((session) => session && accountIds.has(session.accountId))
-        : [],
-    };
-  } catch {
-    return createEmptyStore();
-  }
+function keyAccount(accountId) {
+  return `${STORE_PREFIX}:account:${accountId}`;
 }
 
-function writeStore(store) {
-  ensureDataFile();
-  writeFileSync(accountsFile, JSON.stringify({
-    version: STORE_VERSION,
-    accounts: Array.isArray(store?.accounts) ? store.accounts : [],
-    sessions: Array.isArray(store?.sessions) ? store.sessions.map(normalizeSessionRecord).filter(Boolean) : [],
-  }, null, 2));
+function keyEmail(email) {
+  return `${STORE_PREFIX}:email:${normalizeEmail(email)}`;
+}
+
+function keySession(tokenHash) {
+  return `${STORE_PREFIX}:session:${tokenHash}`;
+}
+
+function keyAccountSessions(accountId) {
+  return `${STORE_PREFIX}:account-sessions:${accountId}`;
 }
 
 function normalizeCharacters(characters) {
@@ -111,25 +78,6 @@ function normalizeAccountRecord(account) {
   };
 }
 
-function normalizeSessionRecord(session) {
-  if (!session || typeof session !== "object") return null;
-  const expiresAt = String(session.expiresAt || "");
-  const expiresAtTime = Date.parse(expiresAt);
-  if (!Number.isFinite(expiresAtTime) || expiresAtTime <= Date.now()) return null;
-
-  const tokenHash = String(session.tokenHash || "");
-  const accountId = String(session.accountId || "");
-  if (!tokenHash || !accountId) return null;
-
-  return {
-    id: String(session.id || makeId("session")),
-    accountId,
-    tokenHash,
-    createdAt: String(session.createdAt || new Date().toISOString()),
-    expiresAt,
-  };
-}
-
 function normalizeEmail(email) {
   return String(email || "").trim().toLowerCase();
 }
@@ -161,9 +109,7 @@ function hashPasswordScrypt(password, salt) {
 }
 
 function hashPassword(password, salt, algorithm = PASSWORD_ALGO) {
-  if (algorithm === "legacy-fallback") {
-    return hashPasswordLegacyFallback(password, salt);
-  }
+  if (algorithm === "legacy-fallback") return hashPasswordLegacyFallback(password, salt);
   return algorithm === PASSWORD_ALGO
     ? hashPasswordScrypt(password, salt)
     : hashPasswordSha256(password, salt);
@@ -182,7 +128,7 @@ function hashSessionToken(token) {
   return createHash("sha256").update(String(token || "")).digest("hex");
 }
 
-function safeHexEquals(left, right) {
+function safeHashEquals(left, right) {
   if (String(left || "").startsWith("fallback-") || String(right || "").startsWith("fallback-")) {
     return String(left || "") === String(right || "");
   }
@@ -212,7 +158,7 @@ function assertAccountInput({ displayName, email, password }, { creating = false
     throw new HttpError(400, "Informe um nome para a conta.");
   }
   if (!normalizeEmail(email) || !normalizeEmail(email).includes("@")) {
-    throw new HttpError(400, "Informe um e-mail válido.");
+    throw new HttpError(400, "Informe um e-mail valido.");
   }
   if (passwordRequired && String(password || "").length < 4) {
     throw new HttpError(400, "Use uma senha com pelo menos 4 caracteres.");
@@ -231,19 +177,20 @@ function assertPassword(account, password) {
     ? "legacy-fallback"
     : account.passwordAlgo || "sha256";
   const passwordHash = hashPassword(password, account.passwordSalt, algorithm);
-  if (!safeHexEquals(passwordHash, account.passwordHash)) {
+  if (!safeHashEquals(passwordHash, account.passwordHash)) {
     throw new HttpError(401, "Senha incorreta.");
   }
 }
 
 function upgradePasswordRecordIfNeeded(account, password) {
-  if ((account.passwordAlgo || "sha256") === PASSWORD_ALGO) return;
+  if ((account.passwordAlgo || "sha256") === PASSWORD_ALGO) return false;
   Object.assign(account, makePasswordRecord(password));
+  return true;
 }
 
 function getEditionBucket(account, edition) {
   if (!EDITIONS.includes(edition)) {
-    throw new HttpError(400, "Edição inválida.");
+    throw new HttpError(400, "Edicao invalida.");
   }
   if (!account.characters || typeof account.characters !== "object") {
     account.characters = normalizeCharacters();
@@ -263,8 +210,29 @@ function sanitizeCharacterSummary(summary) {
   return String(summary || "").trim().slice(0, 260);
 }
 
-function getAccountById(store, accountId) {
-  return store.accounts.find((account) => account.id === String(accountId || "")) || null;
+async function getAccountById(redis, accountId) {
+  const account = await redis.get(keyAccount(accountId));
+  return normalizeAccountRecord(account);
+}
+
+async function getAccountByEmail(redis, email) {
+  const accountId = await redis.get(keyEmail(email));
+  return accountId ? await getAccountById(redis, accountId) : null;
+}
+
+async function saveAccount(redis, account, { previousEmail = "" } = {}) {
+  const normalized = normalizeAccountRecord(account);
+  await redis.set(keyAccount(normalized.id), normalized);
+  await redis.set(keyEmail(normalized.email), normalized.id);
+  if (previousEmail && normalizeEmail(previousEmail) !== normalized.email) {
+    await redis.del(keyEmail(previousEmail));
+  }
+  return normalized;
+}
+
+async function reserveEmail(redis, email, accountId) {
+  const result = await redis.set(keyEmail(email), accountId, { nx: true });
+  return result !== null;
 }
 
 function getSessionToken(req) {
@@ -312,53 +280,63 @@ function clearSessionCookie(req, res) {
   }));
 }
 
-function createSession(store, accountId, req, res) {
+async function createSession(redis, accountId, req, res) {
   const token = randomBytes(32).toString("hex");
-  const now = new Date();
-  const session = {
-    id: makeId("session"),
-    accountId,
-    tokenHash: hashSessionToken(token),
-    createdAt: now.toISOString(),
-    expiresAt: new Date(now.getTime() + SESSION_TTL_MS).toISOString(),
-  };
+  const tokenHash = hashSessionToken(token);
 
-  store.sessions = Array.isArray(store.sessions)
-    ? store.sessions.map(normalizeSessionRecord).filter(Boolean)
-    : [];
-  store.sessions.push(session);
+  await redis.set(keySession(tokenHash), accountId, { ex: SESSION_TTL_SECONDS });
+  await redis.sadd(keyAccountSessions(accountId), tokenHash);
+  await redis.expire(keyAccountSessions(accountId), SESSION_TTL_SECONDS);
   setSessionCookie(req, res, token);
-  return session;
+
+  return { tokenHash };
 }
 
-function findAuthenticatedAccount(store, req) {
+async function findAuthenticatedAccount(redis, req) {
   const token = getSessionToken(req);
   if (!token) return null;
 
   const tokenHash = hashSessionToken(token);
-  const session = (store.sessions || []).find((item) => item.tokenHash === tokenHash);
-  if (!session) return null;
+  const accountId = await redis.get(keySession(tokenHash));
+  if (!accountId) return null;
 
-  const account = getAccountById(store, session.accountId);
+  const account = await getAccountById(redis, accountId);
   if (!account) return null;
-  return { account, session };
+  return { account, tokenHash };
 }
 
-function requireAuthenticatedAccount(store, req) {
-  const auth = findAuthenticatedAccount(store, req);
+async function requireAuthenticatedAccount(redis, req) {
+  const auth = await findAuthenticatedAccount(redis, req);
   if (!auth) {
     throw new HttpError(401, "Entre em uma conta para continuar.");
   }
   return auth;
 }
 
-function clearCurrentSession(store, req, res) {
+async function clearCurrentSession(redis, req, res) {
   const token = getSessionToken(req);
   if (token) {
     const tokenHash = hashSessionToken(token);
-    store.sessions = (store.sessions || []).filter((session) => session.tokenHash !== tokenHash);
+    const accountId = await redis.get(keySession(tokenHash));
+    await redis.del(keySession(tokenHash));
+    if (accountId) {
+      await redis.srem(keyAccountSessions(accountId), tokenHash);
+    }
   }
   clearSessionCookie(req, res);
+}
+
+async function clearAccountSessions(redis, accountId, { exceptTokenHash = "" } = {}) {
+  const sessionSetKey = keyAccountSessions(accountId);
+  const sessionHashes = await redis.smembers(sessionSetKey);
+  const targets = (Array.isArray(sessionHashes) ? sessionHashes : [])
+    .map(String)
+    .filter((tokenHash) => tokenHash && tokenHash !== exceptTokenHash);
+
+  if (targets.length) {
+    await redis.del(...targets.map(keySession));
+    await redis.srem(sessionSetKey, ...targets);
+  }
 }
 
 function assertSameOrigin(req) {
@@ -371,11 +349,11 @@ function assertSameOrigin(req) {
   try {
     const originUrl = new URL(origin);
     if (originUrl.host !== req.headers.host) {
-      throw new HttpError(403, "Origem da requisição não autorizada.");
+      throw new HttpError(403, "Origem da requisicao nao autorizada.");
     }
   } catch (error) {
     if (error instanceof HttpError) throw error;
-    throw new HttpError(403, "Origem da requisição não autorizada.");
+    throw new HttpError(403, "Origem da requisicao nao autorizada.");
   }
 }
 
@@ -387,29 +365,32 @@ class HttpError extends Error {
 }
 
 function sendJson(res, statusCode, payload = {}) {
-  res.writeHead(statusCode, {
-    "Content-Type": "application/json; charset=utf-8",
-    "Cache-Control": "no-store",
-  });
+  res.statusCode = statusCode;
+  res.setHeader("Content-Type", "application/json; charset=utf-8");
+  res.setHeader("Cache-Control", "no-store");
   res.end(JSON.stringify(payload));
 }
 
-function sendText(res, statusCode, message, headers = {}) {
-  res.writeHead(statusCode, {
-    "Content-Type": "text/plain; charset=utf-8",
-    ...headers,
-  });
-  res.end(message);
-}
+async function readJsonBody(req) {
+  if (req.body !== undefined) {
+    if (!req.body) return {};
+    if (typeof req.body === "string") {
+      try {
+        return JSON.parse(req.body);
+      } catch {
+        throw new HttpError(400, "JSON invalido.");
+      }
+    }
+    if (typeof req.body === "object") return req.body;
+  }
 
-function readJsonBody(req) {
-  return new Promise((resolve, reject) => {
+  return await new Promise((resolve, reject) => {
     let body = "";
-    req.setEncoding("utf8");
+    req.setEncoding?.("utf8");
     req.on("data", (chunk) => {
       body += chunk;
       if (body.length > 12_000_000) {
-        reject(new HttpError(413, "Requisição grande demais."));
+        reject(new HttpError(413, "Requisicao grande demais."));
         req.destroy();
       }
     });
@@ -421,16 +402,38 @@ function readJsonBody(req) {
       try {
         resolve(JSON.parse(body));
       } catch {
-        reject(new HttpError(400, "JSON inválido."));
+        reject(new HttpError(400, "JSON invalido."));
       }
     });
     req.on("error", reject);
   });
 }
 
-async function handleApi(req, res, url) {
+function mergeAccounts(current, incoming) {
+  const next = normalizeAccountRecord(current);
+  if (!next) return incoming;
+
+  next.displayName = next.displayName || incoming.displayName;
+  next.email = next.email || incoming.email;
+  next.passwordAlgo = next.passwordAlgo || incoming.passwordAlgo;
+  next.passwordSalt = next.passwordSalt || incoming.passwordSalt;
+  next.passwordHash = next.passwordHash || incoming.passwordHash;
+  next.createdAt = next.createdAt || incoming.createdAt;
+
+  EDITIONS.forEach((edition) => {
+    const byId = new Map(getEditionBucket(next, edition).map((character) => [character.id, character]));
+    getEditionBucket(incoming, edition).forEach((character) => {
+      byId.set(character.id, character);
+    });
+    next.characters[edition] = [...byId.values()];
+  });
+
+  return next;
+}
+
+async function handleAccountApiInternal(req, res, pathname) {
+  const redis = getRedis();
   const method = req.method || "GET";
-  const pathname = url.pathname;
   assertSameOrigin(req);
   const body = ["POST", "PATCH", "DELETE"].includes(method) ? await readJsonBody(req) : {};
 
@@ -438,28 +441,27 @@ async function handleApi(req, res, url) {
     const incoming = Array.isArray(body?.store?.accounts)
       ? body.store.accounts.map(normalizeAccountRecord).filter(Boolean)
       : [];
-    if (!incoming.length) {
-      sendJson(res, 200, { ok: true });
-      return;
+
+    for (const account of incoming) {
+      if (!account.email) continue;
+      const existing = await getAccountByEmail(redis, account.email);
+      if (existing) {
+        await saveAccount(redis, mergeAccounts(existing, account));
+        continue;
+      }
+
+      const reserved = await reserveEmail(redis, account.email, account.id);
+      if (reserved) {
+        await saveAccount(redis, account);
+      }
     }
 
-    const store = readStore();
-    incoming.forEach((account) => {
-      const existingIndex = store.accounts.findIndex((item) => item.id === account.id || item.email === account.email);
-      if (existingIndex >= 0) {
-        store.accounts[existingIndex] = mergeAccounts(store.accounts[existingIndex], account);
-      } else {
-        store.accounts.push(account);
-      }
-    });
-    writeStore(store);
     sendJson(res, 200, { ok: true });
     return;
   }
 
   if (method === "GET" && pathname === "/api/account/current") {
-    const store = readStore();
-    const auth = findAuthenticatedAccount(store, req);
+    const auth = await findAuthenticatedAccount(redis, req);
     if (!auth && getSessionToken(req)) {
       clearSessionCookie(req, res);
     }
@@ -469,12 +471,7 @@ async function handleApi(req, res, url) {
 
   if (method === "POST" && pathname === "/api/accounts/register") {
     assertAccountInput(body, { creating: true });
-    const store = readStore();
     const email = normalizeEmail(body.email);
-    if (store.accounts.some((account) => account.email === email)) {
-      throw new HttpError(409, "Já existe uma conta com este e-mail.");
-    }
-
     const account = {
       id: makeId("account"),
       displayName: String(body.displayName || "").trim(),
@@ -484,45 +481,46 @@ async function handleApi(req, res, url) {
       characters: normalizeCharacters(),
     };
 
-    store.accounts.push(account);
-    createSession(store, account.id, req, res);
-    writeStore(store);
+    const reserved = await reserveEmail(redis, email, account.id);
+    if (!reserved) {
+      throw new HttpError(409, "Ja existe uma conta com este e-mail.");
+    }
+
+    await saveAccount(redis, account);
+    await createSession(redis, account.id, req, res);
     sendJson(res, 201, { account: toClientAccount(account) });
     return;
   }
 
   if (method === "POST" && pathname === "/api/accounts/login") {
     assertAccountInput(body);
-    const store = readStore();
-    const account = store.accounts.find((item) => item.email === normalizeEmail(body.email));
+    const account = await getAccountByEmail(redis, body.email);
     if (!account) {
-      throw new HttpError(404, "Conta não encontrada.");
+      throw new HttpError(404, "Conta nao encontrada.");
     }
 
     assertPassword(account, body.password);
-    upgradePasswordRecordIfNeeded(account, body.password);
-    createSession(store, account.id, req, res);
-    writeStore(store);
+    if (upgradePasswordRecordIfNeeded(account, body.password)) {
+      await saveAccount(redis, account);
+    }
+    await createSession(redis, account.id, req, res);
     sendJson(res, 200, { account: toClientAccount(account) });
     return;
   }
 
   if (method === "POST" && pathname === "/api/accounts/logout") {
-    const store = readStore();
-    clearCurrentSession(store, req, res);
-    writeStore(store);
+    await clearCurrentSession(redis, req, res);
     sendJson(res, 200, { ok: true });
     return;
   }
 
   if (method === "PATCH" && pathname === "/api/account/current") {
-    const store = readStore();
-    const { account, session } = requireAuthenticatedAccount(store, req);
-
+    const { account, tokenHash } = await requireAuthenticatedAccount(redis, req);
+    const currentEmail = account.email;
     const nextName = String(body.displayName ?? account.displayName).trim();
     const nextEmail = normalizeEmail(body.email ?? account.email);
     if (!nextName) throw new HttpError(400, "Informe um nome para a conta.");
-    if (!nextEmail || !nextEmail.includes("@")) throw new HttpError(400, "Informe um e-mail válido.");
+    if (!nextEmail || !nextEmail.includes("@")) throw new HttpError(400, "Informe um e-mail valido.");
 
     const wantsEmailChange = nextEmail !== account.email;
     const wantsPasswordChange = Boolean(body.newPassword);
@@ -530,38 +528,41 @@ async function handleApi(req, res, url) {
       assertPassword(account, body.currentPassword);
     }
     if (wantsPasswordChange) assertPasswordInput(body.newPassword);
-    if (wantsEmailChange && store.accounts.some((item) => item.id !== account.id && item.email === nextEmail)) {
-      throw new HttpError(409, "Já existe uma conta com este e-mail.");
+
+    if (wantsEmailChange) {
+      const reserved = await reserveEmail(redis, nextEmail, account.id);
+      if (!reserved) {
+        const ownerId = await redis.get(keyEmail(nextEmail));
+        if (ownerId !== account.id) {
+          throw new HttpError(409, "Ja existe uma conta com este e-mail.");
+        }
+      }
     }
 
     account.displayName = nextName;
     account.email = nextEmail;
     if (wantsPasswordChange) {
       Object.assign(account, makePasswordRecord(body.newPassword));
-      store.sessions = (store.sessions || []).filter((item) => item.accountId !== account.id || item.id === session.id);
+      await clearAccountSessions(redis, account.id, { exceptTokenHash: tokenHash });
     }
 
-    writeStore(store);
+    await saveAccount(redis, account, { previousEmail: currentEmail });
     sendJson(res, 200, { account: toClientAccount(account) });
     return;
   }
 
   if (method === "DELETE" && pathname === "/api/account/current") {
-    const store = readStore();
-    const { account } = requireAuthenticatedAccount(store, req);
+    const { account } = await requireAuthenticatedAccount(redis, req);
     assertPassword(account, body.password);
-    store.accounts = store.accounts.filter((item) => item.id !== account.id);
-    store.sessions = (store.sessions || []).filter((session) => session.accountId !== account.id);
+    await clearAccountSessions(redis, account.id);
+    await redis.del(keyAccount(account.id), keyEmail(account.email), keyAccountSessions(account.id));
     clearSessionCookie(req, res);
-    writeStore(store);
     sendJson(res, 200, { ok: true });
     return;
   }
 
   if (method === "POST" && pathname === "/api/characters") {
-    const store = readStore();
-    const { account } = requireAuthenticatedAccount(store, req);
-
+    const { account } = await requireAuthenticatedAccount(redis, req);
     const bucket = getEditionBucket(account, body.edition);
     const now = new Date().toISOString();
     const payload = body.payload || {};
@@ -576,7 +577,7 @@ async function handleApi(req, res, url) {
     if (overwriteId) {
       character = bucket.find((item) => item.id === overwriteId);
       if (!character) {
-        throw new HttpError(404, "Personagem salvo não encontrado.");
+        throw new HttpError(404, "Personagem salvo nao encontrado.");
       }
       character.name = characterPayload.name;
       character.summary = characterPayload.summary;
@@ -584,7 +585,7 @@ async function handleApi(req, res, url) {
       character.updatedAt = now;
     } else {
       if (bucket.length >= ACCOUNT_LIMIT_PER_EDITION) {
-        throw new HttpError(400, `Limite de ${ACCOUNT_LIMIT_PER_EDITION} personagens salvos nesta edição atingido.`);
+        throw new HttpError(400, `Limite de ${ACCOUNT_LIMIT_PER_EDITION} personagens salvos nesta edicao atingido.`);
       }
       character = {
         id: makeId("character"),
@@ -596,124 +597,41 @@ async function handleApi(req, res, url) {
       bucket.push(character);
     }
 
-    writeStore(store);
+    await saveAccount(redis, account);
     sendJson(res, 200, { account: toClientAccount(account), character });
     return;
   }
 
   if (method === "DELETE" && pathname === "/api/characters") {
-    const store = readStore();
-    const { account } = requireAuthenticatedAccount(store, req);
-
+    const { account } = await requireAuthenticatedAccount(redis, req);
     const bucket = getEditionBucket(account, body.edition);
     const nextBucket = bucket.filter((character) => character.id !== body.characterId);
     if (nextBucket.length === bucket.length) {
-      throw new HttpError(404, "Personagem salvo não encontrado.");
+      throw new HttpError(404, "Personagem salvo nao encontrado.");
     }
 
     account.characters[body.edition] = nextBucket;
-    writeStore(store);
+    await saveAccount(redis, account);
     sendJson(res, 200, { account: toClientAccount(account) });
     return;
   }
 
-  throw new HttpError(404, "Endpoint não encontrado.");
+  throw new HttpError(404, "Endpoint nao encontrado.");
 }
 
-function mergeAccounts(current, incoming) {
-  const next = normalizeAccountRecord(current);
-  if (!next) return incoming;
-
-  next.displayName = next.displayName || incoming.displayName;
-  next.email = next.email || incoming.email;
-  next.passwordSalt = next.passwordSalt || incoming.passwordSalt;
-  next.passwordHash = next.passwordHash || incoming.passwordHash;
-  next.passwordAlgo = next.passwordAlgo || incoming.passwordAlgo;
-  next.createdAt = next.createdAt || incoming.createdAt;
-
-  EDITIONS.forEach((edition) => {
-    const byId = new Map(getEditionBucket(next, edition).map((character) => [character.id, character]));
-    getEditionBucket(incoming, edition).forEach((character) => {
-      byId.set(character.id, character);
-    });
-    next.characters[edition] = [...byId.values()];
-  });
-
-  return next;
-}
-
-function resolveRequestPath(urlPath) {
-  const pathname = decodeURIComponent(urlPath || "/");
-  if (pathname === "/usuario.html") {
-    return { redirect: "/minha-conta.html" };
-  }
-
-  const candidate = pathname === "/" ? "/index.html" : pathname;
-  const resolved = path.resolve(root, `.${candidate}`);
-  const relativePath = path.relative(root, resolved);
-
-  if (relativePath.startsWith("..") || path.isAbsolute(relativePath)) {
-    return null;
-  }
-
-  if (existsSync(resolved) && statSync(resolved).isDirectory()) {
-    const nestedIndex = path.join(resolved, "index.html");
-    if (existsSync(nestedIndex)) return { filePath: nestedIndex };
-  }
-
-  return { filePath: resolved };
-}
-
-const server = createServer(async (req, res) => {
+export async function handleAccountApi(req, res, pathname) {
   try {
-    const requestHost = req.headers.host || `${host}:${port}`;
-    const url = new URL(req.url || "/", `http://${requestHost}`);
-
-    if (url.pathname.startsWith("/api/")) {
-      await handleApi(req, res, url);
-      return;
-    }
-
-    const resolved = resolveRequestPath(url.pathname);
-    if (!resolved) {
-      sendText(res, 403, "Acesso negado.");
-      return;
-    }
-    if (resolved.redirect) {
-      res.writeHead(302, { Location: resolved.redirect });
+    if (req.method === "OPTIONS") {
+      res.statusCode = 204;
       res.end();
       return;
     }
 
-    const filePath = resolved.filePath;
-    if (!existsSync(filePath) || !statSync(filePath).isFile()) {
-      sendText(res, 404, "Arquivo nao encontrado.");
-      return;
-    }
-
-    const ext = path.extname(filePath).toLowerCase();
-    const contentType = MIME_TYPES[ext] || "application/octet-stream";
-    res.writeHead(200, {
-      "Content-Type": contentType,
-      "X-Content-Type-Options": "nosniff",
-    });
-    createReadStream(filePath).pipe(res);
+    await handleAccountApiInternal(req, res, pathname);
   } catch (error) {
     const statusCode = error instanceof HttpError ? error.statusCode : 500;
     sendJson(res, statusCode, {
       message: error?.message || "Erro interno do servidor.",
     });
   }
-});
-
-server.listen(port, host, () => {
-  const visibleHost = host === "0.0.0.0" ? "localhost" : host;
-  console.log(`Servidor ativo em http://${visibleHost}:${port}`);
-  console.log(`Pasta servida: ${root}`);
-  console.log(`Contas salvas em: ${accountsFile}`);
-});
-
-server.on("error", (error) => {
-  console.error("Falha ao iniciar o servidor:", error.message);
-  process.exit(1);
-});
+}

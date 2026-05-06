@@ -1,7 +1,8 @@
 import {
   ACCOUNT_LIMIT_PER_EDITION,
+  getAccountCounts,
   getCurrentUser,
-  listCharactersForCurrentUser,
+  hydrateAccountStorage,
   loginAccount,
   logoutAccount,
   registerAccount,
@@ -15,6 +16,7 @@ const el = {
   count2024: document.getElementById("accountCount2024"),
   continueLink: document.getElementById("accountContinueLink"),
   logoutButton: document.getElementById("accountLogoutButton"),
+  authSection: document.getElementById("accountAuthSection"),
   loginForm: document.getElementById("accountLoginForm"),
   registerForm: document.getElementById("accountRegisterForm"),
   status: document.getElementById("accountPageStatus"),
@@ -33,15 +35,18 @@ function setStatus(message, tone = "info") {
 
 function renderAccountPage() {
   const user = getCurrentUser();
-  const saves5e = user ? listCharactersForCurrentUser("5e").length : 0;
-  const saves2024 = user ? listCharactersForCurrentUser("5.5e-2024").length : 0;
+  const counts = getAccountCounts();
 
   if (el.currentPanel) el.currentPanel.hidden = !user;
+  if (el.authSection) el.authSection.hidden = Boolean(user);
   if (el.currentName) el.currentName.textContent = user?.displayName || "";
   if (el.currentEmail) el.currentEmail.textContent = user?.email || "";
-  if (el.count5e) el.count5e.textContent = `${saves5e}/${ACCOUNT_LIMIT_PER_EDITION}`;
-  if (el.count2024) el.count2024.textContent = `${saves2024}/${ACCOUNT_LIMIT_PER_EDITION}`;
-  if (el.continueLink) el.continueLink.href = returnTo || "./index.html";
+  if (el.count5e) el.count5e.textContent = `${counts["5e"]}/${ACCOUNT_LIMIT_PER_EDITION}`;
+  if (el.count2024) el.count2024.textContent = `${counts["5.5e-2024"]}/${ACCOUNT_LIMIT_PER_EDITION}`;
+  if (el.continueLink) {
+    el.continueLink.href = returnTo || "./minha-conta.html";
+    el.continueLink.textContent = returnTo ? "Continuar" : "Minha página";
+  }
 }
 
 function getSafeReturnTo() {
@@ -51,11 +56,11 @@ function getSafeReturnTo() {
 
   try {
     const url = new URL(candidate, window.location.href);
-    const allowedPages = new Set(["index.html", "5e.html", "5.5e-2024.html", "conta.html"]);
+    const allowedPages = new Set(["index.html", "5e.html", "5.5e-2024.html", "conta.html", "minha-conta.html", "usuario.html"]);
     const page = url.pathname.split("/").pop();
 
     if (url.origin !== window.location.origin || !allowedPages.has(page)) return "";
-    return `${page}${url.hash || ""}`;
+    return `${page}${url.search || ""}${url.hash || ""}`;
   } catch {
     return "";
   }
@@ -82,7 +87,7 @@ el.loginForm?.addEventListener("submit", async (event) => {
       password: formData.get("password"),
     });
     el.loginForm.reset();
-    completeAuth("Conta local acessada.");
+    completeAuth("Conta acessada.");
   } catch (error) {
     setStatus(error?.message || "Não foi possível entrar na conta.", "warning");
   }
@@ -99,16 +104,17 @@ el.registerForm?.addEventListener("submit", async (event) => {
       password: formData.get("password"),
     });
     el.registerForm.reset();
-    completeAuth("Conta local criada.");
+    completeAuth("Conta criada.");
   } catch (error) {
-    setStatus(error?.message || "Não foi possível criar a conta local.", "warning");
+    setStatus(error?.message || "Não foi possível criar a conta.", "warning");
   }
 });
 
-el.logoutButton?.addEventListener("click", () => {
-  logoutAccount();
+el.logoutButton?.addEventListener("click", async () => {
+  await logoutAccount();
   renderAccountPage();
-  setStatus("Você saiu da conta local.", "info");
+  setStatus("Você saiu da conta.", "info");
 });
 
+await hydrateAccountStorage();
 renderAccountPage();

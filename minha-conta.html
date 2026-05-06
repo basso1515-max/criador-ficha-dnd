@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Minha página | Criador de ficha D&D</title>
+  <link rel="stylesheet" href="./src/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=EB+Garamond:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Libre+Baskerville:wght@400;700&family=Uncial+Antiqua&display=swap" rel="stylesheet">
+  <script type="module" defer src="./src/user-page.js"></script>
+</head>
+
+<body data-active-screen="user-page">
+  <main class="account-page-shell user-page-shell">
+    <header class="container account-page-header">
+      <div class="version-toolbar">
+        <div class="version-toolbar-actions">
+          <a href="./index.html" class="ghost-button">Voltar para a seleção</a>
+          <a href="./5e.html" class="secondary-button">Editor 5e</a>
+          <a href="./5.5e-2024.html" class="secondary-button">Editor 5.5e</a>
+          <a id="userPageAuthLink" href="./conta.html" class="secondary-button">Entrar ou criar conta</a>
+        </div>
+      </div>
+
+      <div class="account-page-intro">
+        <p class="version-kicker">Página do usuário</p>
+        <h1>Personagens salvos</h1>
+        <p>Veja seus personagens por edição e gerencie os dados da sua conta em um só lugar.</p>
+      </div>
+    </header>
+
+    <section class="container">
+      <div id="userPageGuest" class="account-current-panel user-page-guest">
+        <div>
+          <strong>Entre para acessar sua página</strong>
+          <span>Depois do login, seus personagens salvos e as opções da conta aparecem aqui.</span>
+        </div>
+        <div class="account-current-actions">
+          <a href="./conta.html?returnTo=minha-conta.html" class="primary">Entrar ou criar conta</a>
+        </div>
+      </div>
+
+      <div id="userPageContent" class="user-page-layout" hidden>
+        <section class="account-section-panel user-page-overview" aria-label="Resumo da conta">
+          <div class="user-page-title-row">
+            <div>
+              <h2 id="userPageName">Minha conta</h2>
+              <p id="userPageEmail" class="note subtle"></p>
+              <p id="userPageStorage" class="note subtle"></p>
+            </div>
+            <button id="userPageLogout" type="button" class="ghost-button">Sair</button>
+          </div>
+
+          <div class="user-page-stats" aria-label="Resumo de personagens salvos">
+            <span><strong id="userPageCount5e">0/10</strong> D&D 5e</span>
+            <span><strong id="userPageCount2024">0/10</strong> D&D 5.5e</span>
+            <span><strong id="userPageTotal">0</strong> Total salvo</span>
+          </div>
+        </section>
+
+        <section class="account-section-panel saved-library-panel" aria-label="Personagens salvos">
+          <div class="account-section-heading saved-library-heading">
+            <span>Biblioteca</span>
+            <h2>Meus personagens</h2>
+          </div>
+          <p id="userPageEmpty" class="note subtle">Nenhum personagem salvo ainda.</p>
+          <div id="userPageCharacterList" class="user-page-character-list"></div>
+        </section>
+
+        <section class="account-management-grid" aria-label="Gerenciar conta">
+          <form id="userProfileForm" class="account-form-panel user-management-panel" method="post">
+            <div class="account-form-heading">
+              <span>Perfil</span>
+              <h2>Dados da conta</h2>
+              <p>Altere nome e e-mail da conta.</p>
+            </div>
+
+            <label class="row">
+              <span>Nome</span>
+              <input name="displayName" type="text" autocomplete="name" required />
+            </label>
+
+            <label class="row">
+              <span>E-mail</span>
+              <input name="email" type="email" autocomplete="email" required />
+            </label>
+
+            <label class="row">
+              <span>Senha atual para trocar e-mail</span>
+              <input name="currentPassword" type="password" autocomplete="current-password" />
+            </label>
+
+            <button type="submit" class="primary account-submit-button">Salvar alterações</button>
+          </form>
+
+          <form id="userPasswordForm" class="account-form-panel user-management-panel" method="post">
+            <div class="account-form-heading">
+              <span>Segurança</span>
+              <h2>Alterar senha</h2>
+              <p>Confirme a senha atual antes de definir uma nova.</p>
+            </div>
+
+            <label class="row">
+              <span>Senha atual</span>
+              <input name="currentPassword" type="password" autocomplete="current-password" required />
+            </label>
+
+            <label class="row">
+              <span>Nova senha</span>
+              <input name="newPassword" type="password" autocomplete="new-password" minlength="4" required />
+            </label>
+
+            <label class="row">
+              <span>Confirmar nova senha</span>
+              <input name="confirmPassword" type="password" autocomplete="new-password" minlength="4" required />
+            </label>
+
+            <button type="submit" class="primary account-submit-button">Alterar senha</button>
+          </form>
+
+          <form id="userDeleteForm" class="account-form-panel user-management-panel danger-panel" method="post">
+            <div class="account-form-heading">
+              <span>Exclusão</span>
+              <h2>Excluir conta</h2>
+              <p>Remove a conta e todos os personagens salvos.</p>
+            </div>
+
+            <label class="row">
+              <span>Senha atual</span>
+              <input name="password" type="password" autocomplete="current-password" required />
+            </label>
+
+            <label class="checkbox-row danger-confirm-row">
+              <input name="confirmIrreversible" type="checkbox" required />
+              <span>Confirmo que essa ação não tem retorno.</span>
+            </label>
+
+            <button type="submit" class="danger-button account-submit-button">Excluir conta</button>
+          </form>
+        </section>
+      </div>
+
+      <p id="userPageStatus" class="note account-page-status" aria-live="polite"></p>
+    </section>
+
+    <div id="deleteAccountModal" class="account-modal-backdrop" hidden>
+      <section class="account-modal" role="dialog" aria-modal="true" aria-labelledby="deleteAccountModalTitle">
+        <div class="account-form-heading">
+          <span>Confirmação final</span>
+          <h2 id="deleteAccountModalTitle">Tem certeza que deseja excluir sua conta?</h2>
+          <p>Essa ação não pode ser desfeita. A conta e todos os personagens salvos nela serão removidos.</p>
+        </div>
+
+        <div class="account-modal-actions">
+          <button id="deleteAccountCancel" type="button" class="secondary-button">Cancelar</button>
+          <button id="deleteAccountConfirm" type="button" class="danger-button">Sim, excluir minha conta</button>
+        </div>
+      </section>
+    </div>
+  </main>
+</body>
+</html>

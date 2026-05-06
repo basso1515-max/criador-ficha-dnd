@@ -1945,7 +1945,9 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     version2024Screen: $("version2024Screen"),
     form: $("sheetForm"),
     status: $("status"),
+    userAreaContainer: $("userAreaContainer5e"),
     userArea: $("userArea5e"),
+    userAreaHeader: $("userAreaHeader5e"),
     authPanel: $("authPanel5e"),
     loginForm: $("loginForm5e"),
     registerForm: $("registerForm5e"),
@@ -1954,7 +1956,18 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     accountEmail: $("accountEmail5e"),
     userAreaCount: $("userAreaCount5e"),
     logoutAccount: $("logoutAccount5e"),
+    editorLogout: $("editorLogout5e"),
+    mobileMenuShell: $("mobileEditorMenuShell5e"),
+    mobileMenuToggle: $("mobileMenuToggle5e"),
+    mobileMenu: $("mobileEditorMenu5e"),
+    mobileCharacterBlock: $("mobileCurrentCharacter5e"),
+    mobileCharacterName: $("mobileCurrentCharacterName5e"),
+    mobileCharacterSummary: $("mobileCurrentCharacterSummary5e"),
+    mobileSaveCharacter: $("mobileSaveCharacter5e"),
+    mobileLogout: $("mobileLogout5e"),
     saveCharacter: $("saveCharacter5e"),
+    userSessionRow: $("userSessionRow5e"),
+    quickSaveCharacter: $("quickSaveCharacter5e"),
     emptySaves: $("emptySaves5e"),
     savedCharactersList: $("savedCharactersList5e"),
     nomeJogador: $("nomeJogador"),
@@ -2515,15 +2528,27 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       form: el.form,
       elements: {
         root: el.userArea,
+        container: el.userAreaContainer,
+        header: el.userAreaHeader,
         authPanel: el.authPanel,
         loginForm: el.loginForm,
         registerForm: el.registerForm,
         userPanel: el.userPanel,
         accountName: el.accountName,
         accountEmail: el.accountEmail,
+        sessionRow: el.userSessionRow,
         count: el.userAreaCount,
         logoutButton: el.logoutAccount,
+        pageLogoutButton: el.editorLogout,
+        mobileLogoutButton: el.mobileLogout,
+        mobileMenuShell: el.mobileMenuShell,
+        mobileMenuToggle: el.mobileMenuToggle,
+        mobileMenu: el.mobileMenu,
+        mobileCharacterBlock: el.mobileCharacterBlock,
+        mobileCharacterName: el.mobileCharacterName,
+        mobileCharacterSummary: el.mobileCharacterSummary,
         saveButton: el.saveCharacter,
+        saveButtons: [el.quickSaveCharacter, el.mobileSaveCharacter],
         empty: el.emptySaves,
         list: el.savedCharactersList,
       },
@@ -14025,10 +14050,13 @@ function getSelectedSubclassData() {
   }
 
   function buildAbilityPreviewCardHtml5e(abilityKey, breakdown, totalValue) {
+    const entries = Array.isArray(breakdown?.entries) ? breakdown.entries : [];
     return [
       `<strong>${escapeHtml(`${abilityKey.toUpperCase()} total ${totalValue}`)}</strong>`,
       `<p>${escapeHtml(`Base: ${breakdown?.base ?? "—"}`)}</p>`,
-      ...(breakdown?.entries || []).map((entry) => `<p>${escapeHtml(`${entry.source}: ${entry.amount >= 0 ? `+${entry.amount}` : entry.amount} ${abilityKeyToLabel(abilityKey)}`)}</p>`),
+      ...(entries.length
+        ? entries.map((entry) => `<p>${escapeHtml(`${entry.source}: ${entry.amount >= 0 ? `+${entry.amount}` : entry.amount} ${abilityKeyToLabel(abilityKey)}`)}</p>`)
+        : [`<p>${escapeHtml("Nenhum bônus aplicado ainda; o total acompanha o valor base.")}</p>`]),
     ].join("");
   }
 
@@ -14051,7 +14079,7 @@ function getSelectedSubclassData() {
         label.appendChild(preview);
       }
 
-      if (!Number.isFinite(baseValue) || !Number.isFinite(totalValue) || !entries.length) {
+      if (!Number.isFinite(baseValue) || !Number.isFinite(totalValue)) {
         preview.hidden = true;
         preview.innerHTML = "";
         return;
