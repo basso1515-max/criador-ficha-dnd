@@ -39,9 +39,14 @@ const el = {
   profileForm: document.getElementById("userProfileForm"),
   passwordForm: document.getElementById("userPasswordForm"),
   deleteForm: document.getElementById("userDeleteForm"),
+  deleteModal: document.getElementById("deleteAccountModal"),
+  deleteCancel: document.getElementById("deleteAccountCancel"),
+  deleteConfirm: document.getElementById("deleteAccountConfirm"),
   authLink: document.getElementById("userPageAuthLink"),
   status: document.getElementById("userPageStatus"),
 };
+
+let pendingDeletePassword = "";
 
 function setStatus(message, tone = "info") {
   if (!el.status) return;
@@ -50,6 +55,19 @@ function setStatus(message, tone = "info") {
   if (message) {
     el.status.classList.add(tone === "success" ? "status-success" : tone === "warning" ? "status-warning" : "status-info");
   }
+}
+
+function setDeleteModalOpen(isOpen) {
+  if (!el.deleteModal) return;
+  el.deleteModal.hidden = !isOpen;
+
+  if (!isOpen) {
+    pendingDeletePassword = "";
+    el.deleteForm?.elements.password?.focus();
+    return;
+  }
+
+  el.deleteConfirm?.focus();
 }
 
 function renderUserPage() {
@@ -176,18 +194,51 @@ el.passwordForm?.addEventListener("submit", async (event) => {
 el.deleteForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
   const formData = new FormData(el.deleteForm);
-  if (String(formData.get("confirmText") || "").trim() !== "EXCLUIR") {
-    setStatus("Digite EXCLUIR para confirmar a exclusão da conta.", "warning");
+
+  if (formData.get("confirmIrreversible") !== "on") {
+    setStatus("Confirme que essa ação não tem retorno.", "warning");
     return;
   }
-  if (!window.confirm("Excluir sua conta e todos os personagens salvos?")) return;
+
+  pendingDeletePassword = String(formData.get("password") || "");
+  setStatus("", "info");
+  setDeleteModalOpen(true);
+});
+
+el.deleteCancel?.addEventListener("click", () => {
+  setDeleteModalOpen(false);
+  setStatus("Exclusão cancelada.", "info");
+});
+
+el.deleteModal?.addEventListener("click", (event) => {
+  if (event.target === el.deleteModal) {
+    setDeleteModalOpen(false);
+    setStatus("Exclusão cancelada.", "info");
+  }
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && el.deleteModal && !el.deleteModal.hidden) {
+    setDeleteModalOpen(false);
+    setStatus("Exclusão cancelada.", "info");
+  }
+});
+
+el.deleteConfirm?.addEventListener("click", async () => {
+  if (!pendingDeletePassword) {
+    setDeleteModalOpen(false);
+    setStatus("Informe a senha atual para excluir a conta.", "warning");
+    return;
+  }
 
   try {
-    await deleteCurrentAccount({ password: formData.get("password") });
+    await deleteCurrentAccount({ password: pendingDeletePassword });
     el.deleteForm.reset();
+    setDeleteModalOpen(false);
     renderUserPage();
     setStatus("Conta excluída.", "success");
   } catch (error) {
+    setDeleteModalOpen(false);
     setStatus(error?.message || "Não foi possível excluir a conta.", "warning");
   }
 });
