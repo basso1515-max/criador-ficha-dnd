@@ -45,21 +45,99 @@ const smokePages = [
     ],
     setup: `
       (() => {
-        const classe = document.querySelector("#classe2024");
-        if (classe) {
-          classe.value = "mago";
-          classe.dispatchEvent(new Event("change", { bubbles: true }));
-        }
+        const assert = (condition, message) => {
+          if (!condition) throw new Error(message);
+        };
+        const dispatch = (node, type) => node.dispatchEvent(new Event(type, { bubbles: true }));
+        const setValue = (selector, value, events = ["change"]) => {
+          const node = document.querySelector(selector);
+          assert(node, "Campo ausente: " + selector);
+          node.value = String(value);
+          events.forEach((eventName) => dispatch(node, eventName));
+          return node;
+        };
+        const setClassLevel = (classId, level) => {
+          setValue("#classe2024", classId, ["change"]);
+          setValue("#nivel2024", level, ["input", "change"]);
+        };
+        const featureSelects = () => Array.from(document.querySelectorAll("#featureChoicesContainer2024 select[data-feature-choice-slot-key]"));
+        const selectsForFeature = (featureId) => featureSelects()
+          .filter((select) => (select.getAttribute("data-feature-choice-slot-key") || "").includes(":feature-choice:class:" + featureId + ":"));
+        const assertFeatureSlots = (classId, level, expectations) => {
+          setClassLevel(classId, level);
+          assert(!document.querySelector("#featureChoicesPanel2024")?.hidden, "Painel de escolhas oculto para " + classId + " nivel " + level);
+          expectations.forEach(([featureId, expectedCount]) => {
+            const count = selectsForFeature(featureId).length;
+            assert(count === expectedCount, "Slots incorretos para " + featureId + ": esperado " + expectedCount + ", obtido " + count);
+          });
+        };
+        const chooseFeature = (featureId, value = "", slotIndex = 0) => {
+          const select = selectsForFeature(featureId)[slotIndex];
+          assert(select, "Escolha ausente: " + featureId + " slot " + slotIndex);
+          const option = value
+            ? Array.from(select.options).find((item) => item.value === value && !item.disabled)
+            : Array.from(select.options).find((item) => item.value && !item.disabled);
+          assert(option, "Opcao indisponivel para " + featureId + ": " + (value || "primeira valida"));
+          select.value = option.value;
+          dispatch(select, "change");
+          return option.value;
+        };
+        const markSkill = (skillId) => {
+          const input = document.querySelector('#skillsExtra2024 input[data-skill="' + skillId + '"]');
+          assert(input, "Pericia ausente: " + skillId);
+          if (!input.checked) {
+            input.checked = true;
+            dispatch(input, "change");
+          }
+        };
+        const assertFeatureSummary = (expectedText) => {
+          const text = document.querySelector("#featureChoicesSummary2024")?.textContent || "";
+          assert(text.includes(expectedText), "Resumo de escolhas nao contem " + expectedText + ": " + text);
+        };
+
         ["for", "des", "con", "int", "sab", "car"].forEach((ability) => {
-          const input = document.querySelector(\`[name="base-\${ability}"]\`);
+          const input = document.querySelector('[name="base-' + ability + '"]');
           if (!input) return;
-          input.value = "10";
+          input.value = ability === "sab" || ability === "int" || ability === "car" ? "16" : "10";
           input.dispatchEvent(new Event("input", { bubbles: true }));
         });
+
+        assertFeatureSlots("clerigo", 7, [["divine-order", 1], ["blessed-strikes", 1]]);
+        chooseFeature("divine-order", "taumaturgo");
+        chooseFeature("blessed-strikes", "conjuracao-potente");
+        assert((document.querySelector("#preview2024")?.textContent || "").includes("Sabedoria"), "Resumo nao registrou o bonus de Sabedoria do clerigo taumaturgo.");
+        chooseFeature("divine-order", "protetor");
+        const clericTraining = document.querySelector("#proficiencySummary2024")?.textContent || "";
+        assert(clericTraining.includes("Armaduras pesadas") && clericTraining.includes("Armas marciais"), "Protetor nao atualizou treinamentos do clerigo.");
+
+        assertFeatureSlots("druida", 7, [["primal-order", 1], ["elemental-fury", 1]]);
+        chooseFeature("primal-order", "guardiao");
+        chooseFeature("elemental-fury", "golpe-primal");
+        const druidTraining = document.querySelector("#proficiencySummary2024")?.textContent || "";
+        assert(druidTraining.includes("Armaduras médias") && druidTraining.includes("Armas marciais"), "Guardiao nao atualizou treinamentos do druida.");
+
+        assertFeatureSlots("feiticeiro", 17, [["metamagic", 6]]);
+        const metamagic = new Set();
+        for (let index = 0; index < 6; index += 1) {
+          metamagic.add(chooseFeature("metamagic", "", index));
+        }
+        assert(metamagic.size === 6, "Metamagia permitiu escolha duplicada no smoke.");
+        assertFeatureSummary("6/6");
+
+        assertFeatureSlots("mago", 20, [["scholar", 1], ["spell-mastery-1", 1], ["spell-mastery-2", 1], ["signature-spells", 2]]);
+        markSkill("arcanismo");
+        chooseFeature("scholar", "arcanismo");
+        chooseFeature("spell-mastery-1");
+        chooseFeature("spell-mastery-2");
+        chooseFeature("signature-spells", "", 0);
+        chooseFeature("signature-spells", "", 1);
+        assertFeatureSummary("5/5");
       })();
     `,
     afterSetupSelectors: [
       ".attr-total-preview:not([hidden])",
+      "#featureChoicesPanel2024:not([hidden])",
+      "select[data-feature-choice-slot-key]",
       ".spell-check-item[data-spell-id]",
       "#magicSpellHoverCard2024",
     ],
