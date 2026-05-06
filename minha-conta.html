@@ -3,11 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Minha conta | Criador de ficha D&D</title>
+  <title>Minha página | Criador de ficha D&D</title>
   <link rel="stylesheet" href="./src/style.css" />
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=EB+Garamond:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Libre+Baskerville:wght@400;700&family=Uncial+Antiqua&display=swap" rel="stylesheet">
   <script type="module" defer src="./src/user-page.js"></script>
-  <script type="module" defer src="./src/analytics.js"></script>
 </head>
 
 <body data-active-screen="user-page">
@@ -25,7 +24,7 @@
       <div class="account-page-intro">
         <p class="version-kicker">Página do usuário</p>
         <h1>Personagens salvos</h1>
-        <p>Consulte seus personagens por edição e gerencie os dados da conta em uma área separada do cadastro.</p>
+        <p>Veja seus personagens por edição e gerencie os dados da sua conta em um só lugar.</p>
       </div>
     </header>
 
@@ -41,11 +40,10 @@
       </div>
 
       <div id="userPageContent" class="user-page-layout" hidden>
-        <section class="card user-page-overview" aria-label="Resumo da conta">
+        <section class="account-section-panel user-page-overview" aria-label="Resumo da conta">
           <div class="user-page-title-row">
             <div>
-              <p class="version-kicker">Conta ativa</p>
-              <h2 id="userPageName"></h2>
+              <h2 id="userPageName">Minha conta</h2>
               <p id="userPageEmail" class="note subtle"></p>
               <p id="userPageStorage" class="note subtle"></p>
             </div>
@@ -55,17 +53,15 @@
           <div class="user-page-stats" aria-label="Resumo de personagens salvos">
             <span><strong id="userPageCount5e">0/10</strong> D&D 5e</span>
             <span><strong id="userPageCount2024">0/10</strong> D&D 5.5e</span>
-            <span><strong id="userPageTotal">0</strong> Total</span>
+            <span><strong id="userPageTotal">0</strong> Total salvo</span>
           </div>
         </section>
 
-        <section class="card saved-library-panel" aria-label="Personagens salvos">
-          <div class="account-form-heading saved-library-heading">
+        <section class="account-section-panel saved-library-panel" aria-label="Personagens salvos">
+          <div class="account-section-heading saved-library-heading">
             <span>Biblioteca</span>
             <h2>Meus personagens</h2>
-            <p>Abra um personagem no editor correspondente para carregar, atualizar ou gerar o PDF.</p>
           </div>
-
           <p id="userPageEmpty" class="note subtle">Nenhum personagem salvo ainda.</p>
           <div id="userPageCharacterList" class="user-page-character-list"></div>
         </section>
@@ -75,7 +71,7 @@
             <div class="account-form-heading">
               <span>Perfil</span>
               <h2>Dados da conta</h2>
-              <p>Atualize nome e e-mail. Para trocar o e-mail, confirme sua senha atual.</p>
+              <p>Altere nome e e-mail da conta.</p>
             </div>
 
             <label class="row">
@@ -89,7 +85,7 @@
             </label>
 
             <label class="row">
-              <span>Senha atual</span>
+              <span>Senha atual para trocar e-mail</span>
               <input name="currentPassword" type="password" autocomplete="current-password" />
             </label>
 
@@ -100,7 +96,7 @@
             <div class="account-form-heading">
               <span>Segurança</span>
               <h2>Alterar senha</h2>
-              <p>Use sua senha atual para definir uma nova senha de acesso.</p>
+              <p>Confirme a senha atual antes de definir uma nova.</p>
             </div>
 
             <label class="row">
@@ -125,7 +121,7 @@
             <div class="account-form-heading">
               <span>Exclusão</span>
               <h2>Excluir conta</h2>
-              <p>Remove a conta e todos os personagens salvos no servidor.</p>
+              <p>Remove a conta e todos os personagens salvos.</p>
             </div>
 
             <label class="row">
@@ -133,9 +129,9 @@
               <input name="password" type="password" autocomplete="current-password" required />
             </label>
 
-            <label class="checkbox-row">
-              <input name="confirmDelete" type="checkbox" />
-              <span>Entendo que esta ação não pode ser desfeita.</span>
+            <label class="row">
+              <span>Digite EXCLUIR para confirmar</span>
+              <input name="confirmText" type="text" autocomplete="off" required />
             </label>
 
             <button type="submit" class="danger-button account-submit-button">Excluir conta</button>
