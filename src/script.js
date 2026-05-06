@@ -14025,10 +14025,13 @@ function getSelectedSubclassData() {
   }
 
   function buildAbilityPreviewCardHtml5e(abilityKey, breakdown, totalValue) {
+    const entries = Array.isArray(breakdown?.entries) ? breakdown.entries : [];
     return [
       `<strong>${escapeHtml(`${abilityKey.toUpperCase()} total ${totalValue}`)}</strong>`,
       `<p>${escapeHtml(`Base: ${breakdown?.base ?? "—"}`)}</p>`,
-      ...(breakdown?.entries || []).map((entry) => `<p>${escapeHtml(`${entry.source}: ${entry.amount >= 0 ? `+${entry.amount}` : entry.amount} ${abilityKeyToLabel(abilityKey)}`)}</p>`),
+      ...(entries.length
+        ? entries.map((entry) => `<p>${escapeHtml(`${entry.source}: ${entry.amount >= 0 ? `+${entry.amount}` : entry.amount} ${abilityKeyToLabel(abilityKey)}`)}</p>`)
+        : [`<p>${escapeHtml("Nenhum bônus aplicado ainda; o total acompanha o valor base.")}</p>`]),
     ].join("");
   }
 
@@ -14051,7 +14054,7 @@ function getSelectedSubclassData() {
         label.appendChild(preview);
       }
 
-      if (!Number.isFinite(baseValue) || !Number.isFinite(totalValue) || !entries.length) {
+      if (!Number.isFinite(baseValue) || !Number.isFinite(totalValue)) {
         preview.hidden = true;
         preview.innerHTML = "";
         return;
