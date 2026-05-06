@@ -3,29 +3,16 @@
     {
       "source": "/usuario.html",
       "destination": "/minha-conta.html",
-      "permanent": false
+      "permanent": true
     }
   ],
   "headers": [
     {
-      "source": "/(.*).html",
+      "source": "/(.*).js",
       "headers": [
         {
-          "key": "Cache-Control",
-          "value": "public, max-age=0, must-revalidate"
-        },
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        }
-      ]
-    },
-    {
-      "source": "/src/(.*).js",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=0, must-revalidate"
+          "key": "Content-Type",
+          "value": "text/javascript; charset=utf-8"
         },
         {
           "key": "X-Content-Type-Options",
