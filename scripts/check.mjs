@@ -19,6 +19,9 @@ import {
 const root = process.cwd();
 const requiredFiles = [
   "index.html",
+  "conta.html",
+  "minha-conta.html",
+  "usuario.html",
   "5e.html",
   "5.5e-2024.html",
   "src/script.js",
