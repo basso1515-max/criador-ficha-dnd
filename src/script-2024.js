@@ -1252,6 +1252,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     "treinamento-com-armas-marciais": ["marcial"],
   };
   const FEAT_WEAPON_MASTERY_IDS_2024 = new Set(["mestre-de-armas"]);
+  const EXPLICIT_WEAPON_MASTERY_CLASS_IDS_2024 = new Set(["barbaro", "guerreiro", "ladino", "paladino", "patrulheiro"]);
   const FEAT_ABILITY_BONUS_RULES_2024 = {
     atleta: { type: "choice", amount: 1, options: ["for", "des"] },
     ator: { type: "choice", amount: 1, options: ["car"] },
@@ -1323,9 +1324,11 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
   let multiclassRowCounter2024 = 0;
   const CUSTOM_SELECT_FIELDS_2024 = {};
   const FEAT_CUSTOM_SELECT_PREFIX_2024 = "feat-choice-2024:";
+  const FEATURE_CHOICE_CUSTOM_SELECT_PREFIX_2024 = "feature-choice-2024:";
   const WARLOCK_INVOCATION_CUSTOM_SELECT_PREFIX_2024 = "warlock-invocation-2024:";
   const LANGUAGE_CUSTOM_SELECT_PREFIX_2024 = "language-choice-2024:";
   let featCustomSelectKeys2024 = [];
+  let featureChoiceCustomSelectKeys2024 = [];
   let warlockInvocationCustomSelectKeys2024 = [];
   let languageCustomSelectKeys2024 = [];
   let activeMagicHoverTarget2024 = null;
@@ -2973,6 +2976,42 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     featCustomSelectKeys2024 = [];
   }
 
+  function cleanupFeatureChoiceFields2024() {
+    featureChoiceCustomSelectKeys2024.forEach((key) => {
+      delete CUSTOM_SELECT_FIELDS_2024[key];
+    });
+    featureChoiceCustomSelectKeys2024 = [];
+  }
+
+  function initializeFeatureChoiceFields2024() {
+    cleanupFeatureChoiceFields2024();
+    if (!el.featureChoicesContainer) return;
+
+    el.featureChoicesContainer.querySelectorAll("select[data-feature-choice-slot-key]").forEach((select) => {
+      const slotKey = select.getAttribute("data-feature-choice-slot-key") || "";
+      const fieldRoot = select.closest("[data-feature-choice-field-key]");
+      const input = fieldRoot?.querySelector("[data-feature-choice-input]");
+      const suggestions = fieldRoot?.querySelector("[data-feature-choice-suggestions]");
+      const hoverCard = fieldRoot?.querySelector("[data-feature-choice-hover-card]");
+      if (!slotKey || !fieldRoot || !input || !suggestions || !hoverCard) return;
+
+      const fieldKey = `${FEATURE_CHOICE_CUSTOM_SELECT_PREFIX_2024}${slotKey}`;
+      featureChoiceCustomSelectKeys2024.push(fieldKey);
+      CUSTOM_SELECT_FIELDS_2024[fieldKey] = createCustomSelectField2024({
+        key: fieldKey,
+        input,
+        select,
+        suggestions,
+        hoverCard,
+        placeholder: fieldRoot.getAttribute("data-feature-choice-placeholder") || "Selecione uma opção...",
+        describeOption: (value, label) => describeFeatureChoiceOption2024(select, value, label),
+        onCommit: () => onFeatureChoiceChanged2024({ target: select }),
+        showSuggestionSummary: true,
+      });
+      syncCustomSelectField2024(fieldKey);
+    });
+  }
+
   function initializeFeatChoiceFields2024() {
     cleanupFeatChoiceFields2024();
     if (!el.featChoices) return;
@@ -3503,8 +3542,75 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     return `${source.key}:slot-${slotIndex}`;
   }
 
+  function buildWeaponMasteryFeatureChoiceDefinition2024(entry) {
+    if (!entry?.classId || !EXPLICIT_WEAPON_MASTERY_CLASS_IDS_2024.has(entry.classId)) return null;
+    const picks = getWeaponMasteryLimitForClassEntry2024(entry);
+    if (!picks || !Number.isFinite(picks)) return null;
+    return {
+      id: "weapon-mastery",
+      kind: "class",
+      minLevel: 1,
+      featureLabel: "Maestria em Arma",
+      selectionLabel: "Arma dominada",
+      help: "Escolha explicitamente as armas cujas propriedades de Maestria ficam disponíveis para esta classe. Essas escolhas podem ser trocadas conforme a regra da característica.",
+      required: true,
+      disallowDuplicates: true,
+      optionSet: "weapon-mastery",
+      grantsSelectedWeaponMastery: true,
+      weaponMasteryScope: "class",
+      picks,
+    };
+  }
+
+  function buildWeaponMasteryFeatChoiceSource2024(entry) {
+    if (!FEAT_WEAPON_MASTERY_IDS_2024.has(entry?.featId) || !entry?.slotKey) return null;
+    const featLabel = entry?.feat?.name_pt || entry?.feat?.name || "Mestre das Armas";
+    return {
+      id: "weapon-mastery",
+      kind: "feat",
+      minLevel: entry?.slot?.level || 4,
+      featureLabel: featLabel,
+      selectionLabel: "Arma dominada",
+      help: "Escolha a arma simples ou marcial que recebe acesso à propriedade de Maestria pelo talento Mestre das Armas.",
+      required: true,
+      disallowDuplicates: true,
+      optionSet: "weapon-mastery",
+      grantsSelectedWeaponMastery: true,
+      weaponMasteryScope: "feat",
+      key: `${entry.slotKey}:feature-choice:feat:weapon-mastery`,
+      entry,
+      picks: 1,
+      ownerLabel: entry?.sourceLabel || "Talento",
+      title: featLabel,
+    };
+  }
+
+  function collectWeaponMasteryFeatureChoiceSources2024(classEntries = getResolvedClassEntries2024()) {
+    const resolvedEntries = normalizeClassEntriesArgument2024(classEntries);
+    const classSources = resolvedEntries
+      .map((entry) => {
+        const definition = buildWeaponMasteryFeatureChoiceDefinition2024(entry);
+        if (!definition) return null;
+        return {
+          ...definition,
+          key: buildFeatureChoiceSourceKey2024(entry, definition),
+          entry,
+          ownerLabel: entry.classData?.nome || entry.classLabel,
+          title: definition.featureLabel,
+        };
+      })
+      .filter(Boolean);
+
+    const featSources = collectSelectedFeatEntries2024({ classEntries: resolvedEntries })
+      .map((entry) => buildWeaponMasteryFeatChoiceSource2024(entry))
+      .filter(Boolean);
+
+    return [...classSources, ...featSources];
+  }
+
   function collectFeatureChoiceSources2024({ classEntries = getResolvedClassEntries2024() } = {}) {
-    return normalizeClassEntriesArgument2024(classEntries)
+    const resolvedEntries = normalizeClassEntriesArgument2024(classEntries);
+    const structuralSources = resolvedEntries
       .flatMap((entry) => getFeatureChoiceDefinitionsForEntry2024(entry)
         .map((definition) => {
           const picks = getFeatureChoicePickCount2024(definition, entry);
@@ -3522,6 +3628,10 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
           };
         })
         .filter(Boolean));
+    return [
+      ...structuralSources,
+      ...collectWeaponMasteryFeatureChoiceSources2024(resolvedEntries),
+    ];
   }
 
   function getCurrentFeatureChoiceSelectionMap2024() {
@@ -3562,12 +3672,109 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
       }));
   }
 
+  function isWeaponInSimpleOrMartialCatalog2024(weapon) {
+    return ["simples", "marcial", "marcial-leve"].includes(String(weapon?.categoria || ""));
+  }
+
+  function isWeaponEligibleForMasteryChoice2024(weapon, source) {
+    if (!weapon?.id || !weapon?.maestria || !isWeaponInSimpleOrMartialCatalog2024(weapon)) return false;
+    if (source?.weaponMasteryScope === "feat") return true;
+
+    const classId = String(source?.entry?.classId || "").trim();
+    if (classId === "barbaro" && weapon.tipo !== "corpo-a-corpo") return false;
+
+    const tags = new Set(source?.entry?.classData?.proficiencias?.armas || []);
+    return isCharacterProficientWithWeapon2024(weapon, tags);
+  }
+
+  function getWeaponMasteryChoiceOptions2024(source) {
+    return Array.from(WEAPON_BY_ID_2024.values())
+      .filter((weapon) => isWeaponEligibleForMasteryChoice2024(weapon, source))
+      .sort((a, b) => String(a.nome || "").localeCompare(String(b.nome || ""), "pt-BR"))
+      .map((weapon) => {
+        const mastery = PROPRIEDADES_MAESTRIA_ARMA?.[weapon.maestria] || {};
+        const masteryLabel = mastery.nome || labelFromSlug(weapon.maestria);
+        const damage = formatWeaponDamageBrief2024(weapon);
+        const properties = (weapon.propriedades || [])
+          .map((propertyId) => PROPRIEDADES_ARMA?.[propertyId]?.nome || labelFromSlug(propertyId))
+          .filter(Boolean);
+        return {
+          value: weapon.id,
+          label: `${weapon.nome || labelFromSlug(weapon.id)} (${masteryLabel})`,
+          summary: [
+            `${masteryLabel}: ${mastery.resumo || "Ativa a propriedade de Maestria desta arma."}`,
+            damage ? `Dano ${damage}` : "",
+            properties.length ? `Propriedades: ${formatList(properties)}` : "",
+          ].filter(Boolean).join(" • "),
+        };
+      });
+  }
+
   function getFeatureChoiceOptions2024(source) {
     if (!source) return [];
     if (Array.isArray(source.options)) return source.options;
     if (source.optionSet === "wizard-scholar-skills") return getWizardScholarSkillOptions2024(source);
     if (source.optionSet === "wizard-spells") return getWizardFeatureSpellOptions2024(source.spellLevel);
+    if (source.optionSet === "weapon-mastery") return getWeaponMasteryChoiceOptions2024(source);
     return [];
+  }
+
+  function getFeatureChoiceImpactLines2024(source, option = null) {
+    const lines = [];
+    const grants = option?.grants || {};
+
+    if (grants.armorTraining?.length || grants.weaponTraining?.length) {
+      const training = [
+        ...(grants.armorTraining || []).map((tag) => `armadura ${tag}`),
+        ...(grants.weaponTraining || []).map((tag) => `arma ${tag}`),
+      ];
+      lines.push(`Treinamentos: ${formatList(training)}.`);
+    }
+
+    if (grants.cantripBonus?.length) {
+      lines.push(`Conjuração: ${grants.cantripBonus.map((grant) => `+${grant.amount || 0} truque(s) de ${CLASS_BY_ID.get(grant.classId)?.nome || labelFromSlug(grant.classId)}`).join(" • ")}.`);
+    }
+
+    if (grants.skillCheckBonus?.length) {
+      lines.push(`Perícias: bônus em ${formatList(grants.skillCheckBonus.flatMap((grant) => grant.skillIds || []).map(formatSkillLabel))}.`);
+    }
+
+    if (source?.grantsSelectedExpertise) {
+      lines.push("Expertise: a perícia escolhida entra automaticamente no cálculo de bônus.");
+    }
+
+    if (source?.grantsSelectedSpell) {
+      lines.push("Magia: a seleção entra como magia sempre preparada/concedida no bloco de magia.");
+    }
+
+    if (source?.grantsSelectedWeaponMastery) {
+      lines.push("Maestria: a arma escolhida ativa sua propriedade de Maestria nas notas de ataque quando estiver equipada.");
+    }
+
+    if (!lines.length) {
+      lines.push("Registro: aparece no resumo da ficha e na seção de características do PDF.");
+    }
+
+    return lines;
+  }
+
+  function describeFeatureChoiceOption2024(select, value, label) {
+    const sourceKey = select?.getAttribute("data-feature-choice-source-key") || "";
+    const source = collectFeatureChoiceSources2024().find((item) => item.key === sourceKey);
+    const option = getFeatureChoiceOptions2024(source).find((item) => item.value === value) || null;
+    if (!option) return { summary: "", lines: [], body: "", search: label || "" };
+
+    return {
+      group: source?.title || "",
+      summary: option.summary || source?.help || "",
+      lines: [
+        source?.ownerLabel ? `Origem: ${source.ownerLabel}` : "",
+        source?.minLevel ? `Libera no nível ${source.minLevel}` : "",
+        ...getFeatureChoiceImpactLines2024(source, option),
+      ].filter(Boolean),
+      body: source?.help || "",
+      search: [label, option.label, option.summary, source?.title, source?.ownerLabel, source?.help].filter(Boolean).join(" "),
+    };
   }
 
   function getFeatureChoiceSelectionEntries2024({ classEntries = getResolvedClassEntries2024() } = {}) {
@@ -3682,6 +3889,75 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     `;
   }
 
+  function getFeatureChoiceCascadeMarkup2024(sources, selections) {
+    const totalChoices = sources.reduce((total, source) => total + source.picks, 0);
+    let selectedCount = 0;
+    const effectLabels = new Set();
+
+    sources.forEach((source) => {
+      const options = getFeatureChoiceOptions2024(source);
+      for (let slotIndex = 0; slotIndex < source.picks; slotIndex += 1) {
+        const value = String(selections.get(buildFeatureChoiceSlotKey2024(source, slotIndex)) || "").trim();
+        const option = options.find((item) => item.value === value);
+        if (!option) continue;
+        selectedCount += 1;
+        getFeatureChoiceImpactLines2024(source, option).forEach((line) => {
+          const label = line.split(":")[0] || "Registro";
+          effectLabels.add(label);
+        });
+      }
+      if (source.grantsSelectedExpertise) effectLabels.add("Expertise");
+      if (source.grantsSelectedSpell) effectLabels.add("Magia");
+      if (source.grantsSelectedWeaponMastery) effectLabels.add("Maestria");
+    });
+
+    const pendingCount = Math.max(0, totalChoices - selectedCount);
+    const selectedLines = buildSelectedFeatureChoiceLines2024().length;
+    const steps = [
+      {
+        label: "Fontes",
+        value: `${sources.length} recurso(s)`,
+        body: "Classe, multiclasse e subclasse liberam fontes conforme o nível atual.",
+      },
+      {
+        label: "Pendência",
+        value: pendingCount ? `${pendingCount} aberta(s)` : "resolvida",
+        body: "Cada escolha obrigatória entra nas pendências até ter uma opção válida.",
+      },
+      {
+        label: "Sorteio",
+        value: "aleatório",
+        body: "Os botões de sorteio escolhem apenas opções válidas e evitam repetição quando o recurso exige escolhas únicas.",
+      },
+      {
+        label: "Efeitos",
+        value: effectLabels.size ? formatList(Array.from(effectLabels)) : "resumo",
+        body: "As opções escolhidas podem alterar treinamentos, truques, bônus de perícia, expertise, magias concedidas ou notas de Maestria em ataques.",
+      },
+      {
+        label: "Resumo/PDF",
+        value: selectedLines ? `${selectedLines} linha(s)` : "aguardando",
+        body: "As escolhas selecionadas são adicionadas ao preview e ao campo de características exportado para o PDF.",
+      },
+    ];
+
+    return `
+      <div class="feature-choice-cascade" aria-label="Cascata das escolhas de recursos">
+        ${steps.map((step, index) => `
+          <span class="feature-choice-cascade-step${pendingCount && step.label === "Pendência" ? " is-warning" : ""}" tabindex="0">
+            <small>${escapeHtml(String(index + 1))}</small>
+            <strong>${escapeHtml(step.label)}</strong>
+            <span>${escapeHtml(step.value)}</span>
+            <span class="feature-choice-hover-card" role="tooltip">
+              <strong>${escapeHtml(step.label)}</strong>
+              <p>${escapeHtml(step.body)}</p>
+            </span>
+          </span>
+        `).join("")}
+      </div>
+    `;
+  }
+
   function renderFeatureChoiceCard2024(source, selections) {
     const options = getFeatureChoiceOptions2024(source);
     const selectedEntries = [];
@@ -3697,9 +3973,12 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
         || (options.length ? "Selecione uma opção para ver o efeito registrado na ficha." : source.emptyOptionsLabel || "Complete as escolhas anteriores para liberar opções válidas.");
       const label = source.picks > 1 ? `${source.selectionLabel || "Escolha"} ${slotIndex + 1}` : source.selectionLabel || "Escolha";
       return `
-        <label class="row feat-choice-field">
+        <label class="row generic-dropdown-field feat-choice-field" data-feature-choice-field-key="${escapeHtml(slotKey)}" data-feature-choice-placeholder="${escapeHtml(label)}">
           <span>${escapeHtml(label)}</span>
-          <select name="${escapeHtml(slotKey)}" data-feature-choice-source-key="${escapeHtml(source.key)}" data-feature-choice-slot-key="${escapeHtml(slotKey)}" ${options.length ? "" : "disabled"}>
+          <input data-feature-choice-input type="text" autocomplete="off" placeholder="${escapeHtml(options.length ? "Selecione..." : (source.emptyOptionsLabel || "Sem opções disponíveis"))}" ${options.length ? "" : "disabled"} />
+          <div data-feature-choice-suggestions class="dropdown-suggestions" hidden></div>
+          <div data-feature-choice-hover-card class="dropdown-hover-card" hidden></div>
+          <select class="native-select-hidden" tabindex="-1" aria-hidden="true" name="${escapeHtml(slotKey)}" data-feature-choice-source-key="${escapeHtml(source.key)}" data-feature-choice-slot-key="${escapeHtml(slotKey)}" ${options.length ? "" : "disabled"}>
             ${renderFeatureChoiceOptionElements2024(source, slotIndex, selectedValue, options, selections)}
           </select>
         </label>
@@ -3721,6 +4000,8 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     if (!el.featureChoicesPanel || !el.featureChoicesContainer) return;
 
     const sources = collectFeatureChoiceSources2024();
+    const selections = getCurrentFeatureChoiceSelectionMap2024();
+    cleanupFeatureChoiceFields2024();
     if (!sources.length) {
       el.featureChoicesPanel.hidden = true;
       el.featureChoicesSummary.textContent = "";
@@ -3729,7 +4010,6 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
       return;
     }
 
-    const selections = getCurrentFeatureChoiceSelectionMap2024();
     const totalChoices = sources.reduce((total, source) => total + source.picks, 0);
     const selectedCount = sources.reduce((total, source) => {
       let count = 0;
@@ -3747,8 +4027,9 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
       .map((source) => renderFeatureChoiceCard2024(source, selections))
       .join("");
     if (el.featureChoicesInfo) {
-      el.featureChoicesInfo.textContent = "Essas escolhas alimentam automaticamente resumo, pendências, sorteio, treinamentos, truques extras e magias sempre preparadas quando a regra permitir.";
+      el.featureChoicesInfo.innerHTML = getFeatureChoiceCascadeMarkup2024(sources, selections);
     }
+    initializeFeatureChoiceFields2024();
   }
 
   function onFeatureChoiceChanged2024(event) {
@@ -3758,15 +4039,29 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     const sourceKey = select.getAttribute("data-feature-choice-source-key") || "";
     const selectedValue = String(select.value || "").trim();
     const source = collectFeatureChoiceSources2024().find((item) => item.key === sourceKey);
+    let warning = "";
     if (selectedValue && source?.disallowDuplicates) {
       const duplicate = Array.from(el.featureChoicesContainer?.querySelectorAll("select[data-feature-choice-source-key]") || [])
         .some((other) => other !== select && other.getAttribute("data-feature-choice-source-key") === sourceKey && other.value === selectedValue);
       if (duplicate) {
-        select.value = "";
-        setStatus2024("Essa opção já foi escolhida para o mesmo recurso.", "warning");
-      } else {
-        setStatus2024("");
+        warning = "Essa opção já foi escolhida para o mesmo recurso.";
       }
+    }
+
+    if (!warning && selectedValue && source?.grantsSelectedWeaponMastery) {
+      const masterySourceKeys = new Set(collectFeatureChoiceSources2024()
+        .filter((item) => item.grantsSelectedWeaponMastery)
+        .map((item) => item.key));
+      const duplicate = Array.from(el.featureChoicesContainer?.querySelectorAll("select[data-feature-choice-source-key]") || [])
+        .some((other) => other !== select
+          && masterySourceKeys.has(other.getAttribute("data-feature-choice-source-key") || "")
+          && other.value === selectedValue);
+      if (duplicate) warning = "Essa arma já foi marcada como Maestria em outra fonte.";
+    }
+
+    if (warning) {
+      select.value = "";
+      setStatus2024(warning, "warning");
     } else {
       setStatus2024("");
     }
@@ -7147,6 +7442,12 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
         pending.push(`Revise ${source.title}: a mesma opção foi escolhida mais de uma vez.`);
       }
     });
+    const selectedWeaponMasteryValues = getFeatureChoiceSelectionEntries2024({ classEntries })
+      .filter(({ source }) => source.grantsSelectedWeaponMastery)
+      .map(({ value }) => value);
+    if (selectedWeaponMasteryValues.some((value, index) => selectedWeaponMasteryValues.indexOf(value) !== index)) {
+      pending.push("Revise Maestria em Arma: a mesma arma foi escolhida mais de uma vez.");
+    }
 
     const expertiseSelectionState = getExpertiseSelectionState2024({ background, race, classEntries });
     if (expertiseSelectionState.duplicates.length) {
@@ -8192,6 +8493,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
   function applyRandomFeatureChoices2024({ overwrite = false } = {}) {
     renderFeatureChoices2024();
     const selects = Array.from(el.featureChoicesContainer?.querySelectorAll("select[data-feature-choice-slot-key]") || []);
+    const sourcesByKey = new Map(collectFeatureChoiceSources2024().map((source) => [source.key, source]));
     if (overwrite) {
       selects.forEach((select) => {
         if (!select.disabled) select.value = "";
@@ -8201,9 +8503,17 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     selects.forEach((select) => {
       if (select.disabled || (!overwrite && select.value)) return;
       const sourceKey = select.getAttribute("data-feature-choice-source-key") || "";
+      const source = sourcesByKey.get(sourceKey);
       const usedValues = new Set(
         selects
-          .filter((other) => other !== select && other.getAttribute("data-feature-choice-source-key") === sourceKey)
+          .filter((other) => {
+            if (other === select) return false;
+            const otherSourceKey = other.getAttribute("data-feature-choice-source-key") || "";
+            if (source?.grantsSelectedWeaponMastery) {
+              return Boolean(sourcesByKey.get(otherSourceKey)?.grantsSelectedWeaponMastery);
+            }
+            return otherSourceKey === sourceKey;
+          })
           .map((other) => other.value)
           .filter(Boolean)
       );
@@ -10830,66 +11140,17 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     classEntries = getResolvedClassEntries2024()
   ) {
     const resolvedEntries = normalizeClassEntriesArgument2024(classEntries);
-    const weaponCounts = getSelectedWeaponCounts2024(cls, background);
-    const preferredClass = getPrimaryClassEntry2024(resolvedEntries)?.classData || cls;
-    const classMasteryLimit = resolvedEntries.reduce((total, entry) => {
-      const limit = getWeaponMasteryLimitForClassEntry2024(entry);
-      return Number.isFinite(total) && Number.isFinite(limit) ? total + limit : Number.POSITIVE_INFINITY;
-    }, 0);
-
-    if (classMasteryLimit > 0) {
-      if (!Number.isFinite(classMasteryLimit)) {
-        return {
-          enabled: true,
-          mode: "all",
-          weaponIds: new Set(),
-        };
-      }
-
-      const preferredWeaponIds = Array.from(weaponCounts.keys())
-        .map((weaponId) => WEAPON_BY_ID_2024.get(weaponId))
-        .filter((weapon) => weapon?.maestria)
-        .sort((a, b) => {
-          const scoreDiff = getWeaponMasteryPreferenceScore2024(b, preferredClass, abilityScores)
-            - getWeaponMasteryPreferenceScore2024(a, preferredClass, abilityScores);
-          if (scoreDiff !== 0) return scoreDiff;
-          return String(a?.nome || "").localeCompare(String(b?.nome || ""), "pt-BR");
-        })
-        .slice(0, classMasteryLimit)
-        .map((weapon) => weapon.id);
-
-      return {
-        enabled: preferredWeaponIds.length > 0,
-        mode: preferredWeaponIds.length ? "limited" : "none",
-        weaponIds: new Set(preferredWeaponIds),
-        limit: classMasteryLimit,
-      };
-    }
-
-    const chosenFeatIds = new Set(getActiveChosenFeatIds2024());
-    const hasFeatMastery = Array.from(FEAT_WEAPON_MASTERY_IDS_2024).some((featId) => chosenFeatIds.has(featId));
-    if (!hasFeatMastery) {
-      return {
-        enabled: false,
-        mode: "none",
-        weaponIds: new Set(),
-      };
-    }
-
-    const preferredWeapon = Array.from(weaponCounts.keys())
-      .map((weaponId) => WEAPON_BY_ID_2024.get(weaponId))
-      .filter((weapon) => weapon?.maestria)
-      .sort((a, b) => {
-        const scoreDiff = getWeaponMasteryPreferenceScore2024(b, preferredClass, abilityScores)
-          - getWeaponMasteryPreferenceScore2024(a, preferredClass, abilityScores);
-        if (scoreDiff !== 0) return scoreDiff;
-        return String(a?.nome || "").localeCompare(String(b?.nome || ""), "pt-BR");
-      })[0];
-
+    const sources = collectFeatureChoiceSources2024({ classEntries: resolvedEntries })
+      .filter((source) => source.grantsSelectedWeaponMastery);
+    const selectedWeaponIds = getFeatureChoiceSelectionEntries2024({ classEntries: resolvedEntries })
+      .filter(({ source, value }) => source.grantsSelectedWeaponMastery && WEAPON_BY_ID_2024.get(value)?.maestria)
+      .map(({ value }) => value);
+    const weaponIds = new Set(selectedWeaponIds);
     return {
-      enabled: Boolean(preferredWeapon),
-      mode: preferredWeapon ? "single" : "none",
-      weaponIds: new Set(preferredWeapon ? [preferredWeapon.id] : []),
+      enabled: weaponIds.size > 0,
+      mode: weaponIds.size ? "limited" : "none",
+      weaponIds,
+      limit: sources.reduce((total, source) => total + Number(source.picks || 0), 0),
     };
   }
 
