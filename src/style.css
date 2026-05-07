@@ -4239,6 +4239,11 @@ select[multiple] option {
   font-size: 13px;
 }
 
+.magic-spell-hover-source.is-warning {
+  color: #9f2f2f;
+  font-weight: 700;
+}
+
 .magic-spell-hover-badges {
   display: flex;
   flex-wrap: wrap;
@@ -4399,7 +4404,7 @@ select[multiple] option {
 
 .feature-choice-cascade {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 128px), 1fr));
   gap: 8px;
   margin-top: 10px;
 }

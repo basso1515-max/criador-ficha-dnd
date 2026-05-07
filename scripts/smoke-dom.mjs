@@ -58,6 +58,8 @@ const smokePages = [
         const featureSelects = () => Array.from(document.querySelectorAll("#featureChoicesContainer select[data-feature-choice-slot-key]"));
         const selectsForFeature = (featureId) => featureSelects()
           .filter((select) => (select.getAttribute("data-feature-choice-slot-key") || "").includes(":feature-choice:class:" + featureId + ":"));
+        const selectsForFeatureKind = (kind, featureId) => featureSelects()
+          .filter((select) => (select.getAttribute("data-feature-choice-slot-key") || "").includes(":feature-choice:" + kind + ":" + featureId + ":"));
         const assertFeatureSlots = (className, level, expectations) => {
           setClassLevel(className, level);
           assert(!document.querySelector("#featureChoicesPanel")?.hidden, "Painel de escolhas oculto para " + className + " nivel " + level);
@@ -71,6 +73,17 @@ const smokePages = [
         const chooseFeature = (featureId, value = "", slotIndex = 0) => {
           const select = selectsForFeature(featureId)[slotIndex];
           assert(select, "Escolha ausente: " + featureId + " slot " + slotIndex);
+          const option = value
+            ? Array.from(select.options).find((item) => item.value === value && !item.disabled)
+            : Array.from(select.options).find((item) => item.value && !item.disabled);
+          assert(option, "Opcao indisponivel para " + featureId + ": " + (value || "primeira valida"));
+          select.value = option.value;
+          dispatch(select, "change");
+          return option.value;
+        };
+        const chooseFeatureKind = (kind, featureId, value = "", slotIndex = 0) => {
+          const select = selectsForFeatureKind(kind, featureId)[slotIndex];
+          assert(select, "Escolha ausente: " + kind + " " + featureId + " slot " + slotIndex);
           const option = value
             ? Array.from(select.options).find((item) => item.value === value && !item.disabled)
             : Array.from(select.options).find((item) => item.value && !item.disabled);
@@ -94,6 +107,24 @@ const smokePages = [
         chooseFeature("signature-spells", "", 1);
         const previewText = document.querySelector("#preview")?.textContent || "";
         assert(previewText.includes("Escolhas de recursos") && previewText.includes("Magias Assinatura"), "Resumo/PDF automatico 5e nao recebeu escolhas de recursos.");
+
+        setClassLevel("Patrulheiro", 15);
+        setValue("#arquetipo", "patrulheiro-cacador", ["change"]);
+        [
+          ["hunter-prey", 1],
+          ["defensive-tactics", 1],
+          ["multiattack", 1],
+          ["superior-hunters-defense", 1],
+        ].forEach(([featureId, expectedCount]) => {
+          const count = selectsForFeatureKind("subclass", featureId).length;
+          assert(count === expectedCount, "Slots incorretos para Caçador " + featureId + ": esperado " + expectedCount + ", obtido " + count);
+        });
+        chooseFeatureKind("subclass", "hunter-prey", "colosso");
+        chooseFeatureKind("subclass", "defensive-tactics", "escapar-da-horda");
+        chooseFeatureKind("subclass", "multiattack", "saraivada");
+        chooseFeatureKind("subclass", "superior-hunters-defense", "evasao");
+        const hunterPreviewText = document.querySelector("#preview")?.textContent || "";
+        assert(hunterPreviewText.includes("Presa do Caçador") && hunterPreviewText.includes("Táticas Defensivas"), "Resumo/PDF automatico 5e nao recebeu escolhas do Caçador.");
       })();
     `,
     afterSetupSelectors: [
@@ -257,6 +288,58 @@ const smokePages = [
         featMasterySelects[0].value = featOption.value;
         dispatch(featMasterySelects[0], "change");
         assert((document.querySelector("#featureChoicesSummary2024")?.textContent || "").includes("4/4"), "Mestre das Armas nao entrou no resumo de escolhas.");
+
+        setClassLevel("patrulheiro", 7);
+        setValue("#subclasse2024", "patrulheiro-cacador", ["change"]);
+        const hunterPreySelects2024 = selectsForFeatureKind("subclass", "hunter-prey");
+        const hunterDefenseSelects2024 = selectsForFeatureKind("subclass", "defensive-tactics");
+        assert(hunterPreySelects2024.length === 1, "Presa do Caçador 2024 nao abriu seletor.");
+        assert(hunterDefenseSelects2024.length === 1, "Táticas Defensivas 2024 nao abriu seletor.");
+        hunterPreySelects2024[0].value = "colosso";
+        dispatch(hunterPreySelects2024[0], "change");
+        hunterDefenseSelects2024[0].value = "escapar-da-horda";
+        dispatch(hunterDefenseSelects2024[0], "change");
+        const hunterPreviewText2024 = document.querySelector("#preview2024")?.textContent || "";
+        assert(hunterPreviewText2024.includes("Presa do Caçador") && hunterPreviewText2024.includes("Táticas Defensivas"), "Resumo/PDF automatico 2024 nao recebeu escolhas do Caçador.");
+
+        setClassLevel("bruxo", 17);
+        setValue("#subclasse2024", "bruxo-infernal", ["change"]);
+        const agonizingInvocationSelect = Array.from(document.querySelectorAll('#warlockInvocationsContainer2024 select[data-warlock-invocation-slot-key]'))
+          .find((select) => Array.from(select.options).some((option) => option.value === "agonizing-blast" && !option.disabled));
+        assert(agonizingInvocationSelect, "Rajada Agonizante 2024 nao apareceu nas Invocações Místicas.");
+        agonizingInvocationSelect.value = "agonizing-blast";
+        dispatch(agonizingInvocationSelect, "change");
+        const agonizingDetailSelect = Array.from(document.querySelectorAll('#warlockInvocationsContainer2024 select[data-warlock-invocation-detail-name][data-warlock-invocation-detail-type="spell"]'))
+          .find((select) => Array.from(select.options).some((option) => option.value === "rajada-mistica" && !option.disabled));
+        assert(agonizingDetailSelect, "Detalhe de truque da Rajada Agonizante nao apareceu.");
+        agonizingDetailSelect.value = "rajada-mistica";
+        dispatch(agonizingDetailSelect, "change");
+        const warlockClassCardAfterInvocationDetail = Array.from(document.querySelectorAll("#magicSourcesList2024 .edition-summary-card"))
+          .find((card) => (card.querySelector("h3")?.textContent || "").startsWith("Bruxo"));
+        const invocationBlockedCantripItem = warlockClassCardAfterInvocationDetail?.querySelector('.spell-check-item[data-spell-id="rajada-mistica"]');
+        const invocationBlockedCantripInput = invocationBlockedCantripItem?.querySelector('input[type="checkbox"]');
+        const invocationWarningText = invocationBlockedCantripItem?.getAttribute("data-spell-warning-label") || "";
+        assert(invocationBlockedCantripInput?.disabled, "Truque escolhido no detalhe da Invocação Mística nao ficou bloqueado na seleção de Bruxo.");
+        assert(invocationWarningText.includes("Invocação Mística") && invocationWarningText.includes("Rajada Agonizante"), "Hover de detalhe da invocação nao explica a origem do bloqueio.");
+        const tomeInvocationSelect = Array.from(document.querySelectorAll('#warlockInvocationsContainer2024 select[data-warlock-invocation-slot-key]'))
+          .find((select) => select.value !== "agonizing-blast" && Array.from(select.options).some((option) => option.value === "pact-of-the-tome" && !option.disabled));
+        assert(tomeInvocationSelect, "Pacto do Tomo 2024 nao apareceu nas Invocações Místicas.");
+        tomeInvocationSelect.value = "pact-of-the-tome";
+        dispatch(tomeInvocationSelect, "change");
+        const tomeCard = Array.from(document.querySelectorAll("#magicSourcesList2024 .edition-summary-card"))
+          .find((card) => card.textContent.includes("Pacto do Tomo"));
+        assert(tomeCard, "Fonte de magias do Pacto do Tomo nao apareceu.");
+        const tomeCantripInput = tomeCard.querySelector('.spell-check-item[data-spell-id="ataque-certeiro"] input[type="checkbox"]');
+        assert(tomeCantripInput && !tomeCantripInput.disabled, "Ataque Certeiro nao ficou disponivel no Pacto do Tomo.");
+        tomeCantripInput.checked = true;
+        dispatch(tomeCantripInput, "change");
+        const warlockSpellCard = Array.from(document.querySelectorAll("#magicSourcesList2024 .edition-summary-card"))
+          .find((card) => (card.querySelector("h3")?.textContent || "").startsWith("Bruxo") && card.querySelector('.spell-check-item[data-spell-id="ataque-certeiro"]'));
+        const blockedCantripItem = warlockSpellCard?.querySelector('.spell-check-item[data-spell-id="ataque-certeiro"]');
+        const blockedCantripInput = blockedCantripItem?.querySelector('input[type="checkbox"]');
+        const warningText = blockedCantripItem?.getAttribute("data-spell-warning-label") || "";
+        assert(blockedCantripInput?.disabled, "Truque escolhido por Invocação Mística nao ficou bloqueado na seleção de Bruxo.");
+        assert(warningText.includes("Invocação Mística"), "Hover de bloqueio nao explica que o truque veio da Invocação Mística.");
 
         setClassLevel("paladino", 3);
         setValue("#subclasse2024", "paladino-vinganca", []);

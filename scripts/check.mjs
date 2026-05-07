@@ -608,6 +608,10 @@ function validateFeatureChoiceEngine5e() {
     "metamagic",
     "spell-mastery-1",
     "signature-spells",
+    "hunter-prey",
+    "defensive-tactics",
+    "multiattack",
+    "superior-hunters-defense",
   ];
 
   requiredHtmlIds.forEach((id) => {

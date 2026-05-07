@@ -296,6 +296,105 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
         },
       ],
     },
+    subclasses: {
+      "patrulheiro-cacador": [
+        {
+          id: "hunter-prey",
+          minLevel: 3,
+          featureLabel: "Presa do Caçador",
+          selectionLabel: "Presa",
+          help: "Escolha a especialização ofensiva oficial do Caçador. Essa escolha entra no resumo e no PDF.",
+          required: true,
+          options: [
+            {
+              value: "colosso",
+              label: "Colosso",
+              summary: "Uma vez por turno, causa +1d8 de dano contra uma criatura abaixo do máximo de pontos de vida.",
+            },
+            {
+              value: "matador-de-gigantes",
+              label: "Matador de Gigantes",
+              summary: "Pode usar a reação para atacar uma criatura Grande ou maior próxima que acerte ou erre você.",
+            },
+            {
+              value: "rompedor-de-horda",
+              label: "Rompedor de Horda",
+              summary: "Uma vez por turno, faz um ataque extra contra outra criatura próxima ao alvo original.",
+            },
+          ],
+        },
+        {
+          id: "defensive-tactics",
+          minLevel: 7,
+          featureLabel: "Táticas Defensivas",
+          selectionLabel: "Defesa",
+          help: "Escolha a defesa oficial do Caçador no nível 7. Essa escolha aparece nas pendências, resumo e exportação.",
+          required: true,
+          options: [
+            {
+              value: "escapar-da-horda",
+              label: "Escapar da Horda",
+              summary: "Ataques de oportunidade contra você sofrem desvantagem.",
+            },
+            {
+              value: "defesa-contra-ataques-multiplos",
+              label: "Defesa contra Ataques Múltiplos",
+              summary: "Depois que uma criatura acerta você, recebe +4 na CA contra ataques seguintes dela no turno.",
+            },
+            {
+              value: "vontade-de-aco",
+              label: "Vontade de Aço",
+              summary: "Recebe vantagem em salvaguardas contra ficar amedrontado.",
+            },
+          ],
+        },
+        {
+          id: "multiattack",
+          minLevel: 11,
+          featureLabel: "Ataque Múltiplo",
+          selectionLabel: "Ataque",
+          help: "Escolha a opção de ataque em área do Caçador no nível 11.",
+          required: true,
+          options: [
+            {
+              value: "saraivada",
+              label: "Saraivada",
+              summary: "Usa a ação para fazer ataques à distância contra criaturas em uma área pequena.",
+            },
+            {
+              value: "ataque-giratorio",
+              label: "Ataque Giratório",
+              summary: "Usa a ação para atacar corpo a corpo cada criatura ao seu alcance.",
+            },
+          ],
+        },
+        {
+          id: "superior-hunters-defense",
+          minLevel: 15,
+          featureLabel: "Defesa Superior do Caçador",
+          selectionLabel: "Defesa superior",
+          help: "Escolha a defesa final do Caçador no nível 15.",
+          required: true,
+          options: [
+            {
+              value: "evasao",
+              label: "Evasão",
+              summary: "Sofre menos dano em efeitos de Destreza que permitem metade do dano.",
+            },
+            {
+              value: "resistir-a-mare",
+              label: "Resistir à Maré",
+              summary: "Quando um inimigo erra você, pode redirecionar o ataque contra outra criatura.",
+            },
+            {
+              value: "esquiva-sobrenatural",
+              label: "Esquiva Sobrenatural",
+              summary: "Usa a reação para reduzir pela metade o dano de um ataque que acertou você.",
+            },
+          ],
+        },
+      ],
+    },
   };
   const LAND_CIRCLE_TERRAIN_OPTIONS = [
     { value: "artico", label: "Ártico" },
@@ -4681,9 +4780,12 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
 
   function getFeatureChoiceDefinitionsForEntry(entry) {
     if (!entry?.classId || !entry?.level) return [];
-    return (FEATURE_CHOICE_DEFINITIONS_5E.classes?.[entry.classId] || [])
-      .map((definition) => ({ ...definition, kind: "class" }))
-      .filter((definition) => entry.level >= Number(definition.minLevel || 1));
+    return [
+      ...(FEATURE_CHOICE_DEFINITIONS_5E.classes?.[entry.classId] || [])
+        .map((definition) => ({ ...definition, kind: "class" })),
+      ...(entry.subclassId ? (FEATURE_CHOICE_DEFINITIONS_5E.subclasses?.[entry.subclassId] || []) : [])
+        .map((definition) => ({ ...definition, kind: "subclass" })),
+    ].filter((definition) => entry.level >= Number(definition.minLevel || 1));
   }
 
   function getFeatureChoicePickCount(definition, entry) {
@@ -4718,12 +4820,15 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
         .map((definition) => {
           const picks = getFeatureChoicePickCount(definition, entry);
           if (!picks) return null;
+          const ownerLabel = definition.kind === "subclass"
+            ? (entry.subclassData?.nome || entry.subclassId || entry.classLabel)
+            : (entry.classData?.nome || entry.classLabel);
           return {
             ...definition,
             key: buildFeatureChoiceSourceKey(entry, definition),
             entry,
             picks,
-            ownerLabel: entry.classData?.nome || entry.classLabel,
+            ownerLabel,
             title: definition.featureLabel || definition.label || "Escolha de recurso",
           };
         })
@@ -4891,7 +4996,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     const pendingCount = Math.max(0, totalChoices - selectedCount);
     const selectedLines = buildSelectedFeatureChoiceLines().length;
     const steps = [
-      { label: "Fontes", value: `${sources.length} recurso(s)`, body: "Classes ativas liberam fontes de escolha conforme a distribuição de níveis." },
+      { label: "Fontes", value: `${sources.length} recurso(s)`, body: "Classes, multiclasse e subclasse liberam fontes de escolha conforme a distribuição de níveis." },
       { label: "Pendência", value: pendingCount ? `${pendingCount} aberta(s)` : "resolvida", body: "Cada escolha obrigatória permanece pendente até receber uma opção válida." },
       { label: "Sorteio", value: "aleatório", body: "O sorteio preenche opções válidas e evita repetição quando o recurso pede escolhas únicas." },
       { label: "Efeitos", value: effectLabels.size ? formatList(Array.from(effectLabels)) : "resumo", body: "As escolhas entram como registro de recurso ou como magias concedidas quando a regra permite." },
@@ -8952,14 +9057,14 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
         return "Aumenta o dano contra alvos afetados pelos seus efeitos feéricos.";
       case "patrulheiro-andarilho-feerico:forma feerica":
         return "Ganha resistência e mobilidade sobrenatural.";
-      case "patrulheiro-cacador:estilo de caca":
-        return "Escolhe uma especialização ofensiva contra suas presas.";
-      case "patrulheiro-cacador:defesa adaptativa":
-        return "Escolhe uma defesa para reduzir dano ou evitar ataques.";
-      case "patrulheiro-cacador:ataque em massa":
-        return "Atinge vários inimigos no mesmo turno.";
-      case "patrulheiro-cacador:defesa superior":
-        return "Evita ou reduz danos significativos.";
+      case "patrulheiro-cacador:presa do cacador":
+        return "Escolhe Colosso, Matador de Gigantes ou Rompedor de Horda.";
+      case "patrulheiro-cacador:taticas defensivas":
+        return "Escolhe Escapar da Horda, Defesa contra Ataques Múltiplos ou Vontade de Aço.";
+      case "patrulheiro-cacador:ataque multiplo":
+        return "Escolhe Saraivada ou Ataque Giratório para atingir vários inimigos.";
+      case "patrulheiro-cacador:defesa superior do cacador":
+        return "Escolhe Evasão, Resistir à Maré ou Esquiva Sobrenatural.";
       case "patrulheiro-exterminador:caca ao monstro":
         return "Marca um inimigo para ampliar sua pressão ofensiva.";
       case "patrulheiro-exterminador:conhecimento sobrenatural":
@@ -15505,6 +15610,7 @@ function buildMagicSpellHoverCardMarkup(target) {
   if (!spell) return "";
 
   const sourceLabel = target.getAttribute("data-source-label") || "";
+  const warningLabel = target.getAttribute("data-spell-warning-label") || "";
 
   // Determina se está no painel de selecionados (mostra descrição completa)
   // ou no painel de disponíveis (mostra resumo)
@@ -15539,6 +15645,14 @@ function buildMagicSpellHoverCardMarkup(target) {
       sourceLabel
         ? `<p class="magic-spell-hover-source">
             ${escapeHtml(`Selecionada em ${sourceLabel}`)}
+          </p>`
+        : ""
+    }
+
+    ${
+      warningLabel
+        ? `<p class="magic-spell-hover-source is-warning">
+            ${escapeHtml(warningLabel)}
           </p>`
         : ""
     }
@@ -15727,6 +15841,9 @@ function buildSpellChecklistItemMarkup(spell, source, kind, sourceMap = new Map(
     source.sourceKey
   );
     const duplicateTakenElsewhere = Boolean(duplicateSourceKey) && !selectedHere;
+    const duplicateWarning = duplicateTakenElsewhere
+      ? `Já escolhido em ${getSpellSelectionSourceLabel(duplicateSourceKey, sourceMap)}. Remova essa escolha nessa fonte para selecionar aqui.`
+      : "";
     const duplicateNote = duplicateTakenElsewhere
       ? `<span class="spell-source-badge">Já escolhida em ${escapeHtml(getSpellSelectionSourceLabel(duplicateSourceKey, sourceMap))}</span>`
       : "";
@@ -15736,6 +15853,7 @@ function buildSpellChecklistItemMarkup(spell, source, kind, sourceMap = new Map(
         class="spell-check-item${duplicateTakenElsewhere ? " is-disabled" : ""}"
         data-spell-id="${escapeHtml(spell.id)}"
         data-source-label="${escapeHtml(source.detailLabel || source.classLabel)}"
+        ${duplicateWarning ? `data-spell-warning-label="${escapeHtml(duplicateWarning)}"` : ""}
       >
         <input
           type="checkbox"

@@ -3277,7 +3277,9 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
       .filter((spell) => Number(spell?.nivel || 0) === 0)
       .filter((spell) => (spell?.classes || []).includes("bruxo"))
       .filter((spell) => !WARLOCK_NON_DAMAGE_CANTRIP_IDS_2024.has(spell.id))
-      .filter((spell) => normalizePt(spell?.descricao || "").includes("dano") || spell.id === "ataque-certeiro")
+      .filter((spell) => normalizePt(spell?.descricao || "").includes("dano")
+        || (spell?.tags || []).some((tag) => normalizePt(tag) === "dano")
+        || spell.id === "ataque-certeiro")
       .sort((a, b) => String(a.nome || "").localeCompare(String(b.nome || ""), "pt-BR"))
       .map((spell) => ({ value: spell.id, label: spell.nome || labelFromSlug(spell.id) }));
   }
@@ -3582,6 +3584,27 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
           sourceType: "warlock-invocation",
           sourceLabel: `${invocation.label}${entry?.classLabel ? ` (${entry.classLabel} nível ${entry.level})` : ""}`,
           fixedClassId: "",
+        };
+      })
+      .filter(Boolean);
+  }
+
+  function collectWarlockInvocationSpellDetailClaims2024(classEntries = null) {
+    return collectSelectedWarlockInvocations2024(classEntries)
+      .map(({ entry, invocation, slotKey, configuration, configurationDetail }) => {
+        if (configuration?.type !== "spell" || !configurationDetail?.value) return null;
+        const spell = SPELL_BY_ID_2024.get(configurationDetail.value);
+        if (!spell) return null;
+        const detailLabel = configurationDetail.summaryLabel || configuration.summaryLabel || configuration.label || "Magia";
+        const spellLabel = spell.nome || configurationDetail.label || labelFromSlug(spell.id);
+        return {
+          sourceKey: `warlock-invocation-detail:${slotKey}:${configuration.id || "spell"}`,
+          spellId: spell.id,
+          kind: Number(spell.nivel || 0) === 0 ? "cantrip" : "spell",
+          label: `${invocation?.label || "Invocação Mística"} - ${detailLabel}: ${spellLabel}`,
+          entry,
+          invocation,
+          configuration,
         };
       })
       .filter(Boolean);
@@ -9075,6 +9098,16 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
         granted.cantrips.forEach((spellId) => selection.cantrips.add(spellId));
         granted.spells.forEach((spellId) => selection.spells.add(spellId));
       }
+    });
+
+    const sourceMap = new Map(sources.map((source) => [source.sourceKey, source]));
+    const orderedSources = sources.slice().sort((a, b) => (
+      Number(isWarlockInvocationSpellSource2024(b)) - Number(isWarlockInvocationSpellSource2024(a))
+    ));
+
+    orderedSources.forEach((source) => {
+      const selection = getSpellSelectionForSource2024(source.sourceKey);
+      const granted = getGrantedSpellBucketsForSource2024(source);
 
       const eligibleSpells = getEligibleSpellsForSource2024(source);
       const cantripPool = shuffleArray2024(eligibleSpells.filter((spell) => Number(spell.nivel || 0) === 0));
@@ -9083,6 +9116,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
       while (Array.from(selection.cantrips).filter((spellId) => !granted.cantrips.has(spellId)).length < Number(source.limits.cantripLimit || 0) && cantripPool.length) {
         const spell = cantripPool.shift();
         if (!spell || selection.cantrips.has(spell.id)) continue;
+        if (getDuplicateSpellSelectionNotice2024(spell.id, "cantrip", source, sourceMap)) continue;
         selection.cantrips.add(spell.id);
       }
 
@@ -9096,6 +9130,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
       while (Array.from(selectedSpellIds).filter((spellId) => !granted.spells.has(spellId)).length < Number(source.limits.spellLimit || 0) && spellPool.length) {
         const spell = spellPool.shift();
         if (!spell || selectedSpellIds.has(spell.id)) continue;
+        if (getDuplicateSpellSelectionNotice2024(spell.id, "spell", source, sourceMap)) continue;
         const restriction = classifySpellForSource2024(spell, source);
         if (restriction.category === "flex" && flexibleSelected >= Number(source.limits.flexibleSpellAllowance || 0)) {
           continue;
@@ -9107,6 +9142,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
       selection.spells = selectedSpellIds;
       enforceSpellSelectionLimitsForSource2024(source);
     });
+    dedupeSpellSelectionsAcrossSources2024(sources);
 
     renderMagicSection2024();
     updatePreview();
@@ -12491,6 +12527,107 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     };
   }
 
+  function getSpellSelectionCollection2024(selection, kind) {
+    return kind === "cantrip" ? selection?.cantrips : selection?.spells;
+  }
+
+  function isWarlockInvocationSpellSource2024(sourceOrKey) {
+    const sourceKey = typeof sourceOrKey === "string" ? sourceOrKey : sourceOrKey?.sourceKey;
+    return String(sourceKey || "").startsWith("warlock-invocation:")
+      || String(sourceKey || "").startsWith("warlock-invocation-detail:");
+  }
+
+  function getSpellSelectionSourceLabel2024(sourceKey, sourceMap = new Map()) {
+    const source = sourceMap.get(sourceKey);
+    const invocationClaim = collectWarlockInvocationSpellDetailClaims2024()
+      .find((claim) => claim.sourceKey === sourceKey);
+    return source?.detailLabel || source?.classLabel || invocationClaim?.label || labelFromSlug(sourceKey);
+  }
+
+  function findSpellSelectedInSources2024(spellId, kind, sourceKeys = [], excludedSourceKey = "") {
+    for (const sourceKey of sourceKeys) {
+      if (!sourceKey || sourceKey === excludedSourceKey) continue;
+      const selection = spellSelectionState2024.get(sourceKey);
+      if (!selection) continue;
+      if (getSpellSelectionCollection2024(selection, kind)?.has(spellId)) {
+        return sourceKey;
+      }
+    }
+    return "";
+  }
+
+  function getDuplicateSpellSelectionNotice2024(spellId, kind, source, sourceMap = new Map()) {
+    if (!spellId || !source?.sourceKey) return null;
+    const invocationClaim = collectWarlockInvocationSpellDetailClaims2024()
+      .find((claim) => claim.spellId === spellId && claim.kind === kind && claim.sourceKey !== source.sourceKey);
+    if (invocationClaim) {
+      return {
+        sourceKey: invocationClaim.sourceKey,
+        label: invocationClaim.label,
+        message: `Já escolhido pela Invocação Mística (${invocationClaim.label}). Remova essa escolha lá para selecionar aqui.`,
+      };
+    }
+
+    const sourceKeys = sourceMap.size ? Array.from(sourceMap.keys()) : Array.from(spellSelectionState2024.keys());
+    const duplicateSourceKey = findSpellSelectedInSources2024(spellId, kind, sourceKeys, source.sourceKey);
+    if (!duplicateSourceKey) return null;
+
+    const duplicateLabel = getSpellSelectionSourceLabel2024(duplicateSourceKey, sourceMap);
+    const fromInvocation = isWarlockInvocationSpellSource2024(duplicateSourceKey);
+    return {
+      sourceKey: duplicateSourceKey,
+      label: duplicateLabel,
+      message: fromInvocation
+        ? `Já escolhido pela Invocação Mística (${duplicateLabel}). Remova essa escolha lá para selecionar aqui.`
+        : `Já escolhido em ${duplicateLabel}. Remova essa escolha nessa fonte para selecionar aqui.`,
+    };
+  }
+
+  function dedupeSpellSelectionsAcrossSources2024(sources = []) {
+    let changed = false;
+    const invocationClaims = collectWarlockInvocationSpellDetailClaims2024();
+
+    ["cantrip", "spell"].forEach((kind) => {
+      const invocationClaimedSpellIds = new Set(
+        invocationClaims
+          .filter((claim) => claim.kind === kind)
+          .map((claim) => claim.spellId)
+      );
+      const claims = new Map();
+      (sources || []).forEach((source) => {
+        const selection = getSpellSelectionForSource2024(source.sourceKey);
+        const bucket = getSpellSelectionCollection2024(selection, kind);
+        const granted = getGrantedSpellBucketsForSource2024(source);
+        const grantedBucket = kind === "cantrip" ? granted.cantrips : granted.spells;
+        Array.from(bucket || []).forEach((spellId) => {
+          if (invocationClaimedSpellIds.has(spellId) && !grantedBucket.has(spellId)) {
+            changed = bucket.delete(spellId) || changed;
+            return;
+          }
+          if (!claims.has(spellId)) claims.set(spellId, []);
+          claims.get(spellId).push({
+            source,
+            bucket,
+            granted: grantedBucket.has(spellId),
+          });
+        });
+      });
+
+      claims.forEach((entries, spellId) => {
+        if (entries.length <= 1) return;
+        const preferred = entries.find((entry) => entry.granted)
+          || entries.find((entry) => isWarlockInvocationSpellSource2024(entry.source))
+          || entries[0];
+        entries.forEach((entry) => {
+          if (entry === preferred || entry.granted) return;
+          changed = entry.bucket.delete(spellId) || changed;
+        });
+      });
+    });
+
+    return changed;
+  }
+
   function enforceSpellSelectionLimitsForSource2024(source) {
     if (!source) return false;
     const selection = getSpellSelectionForSource2024(source.sourceKey);
@@ -12611,6 +12748,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     ensureGrantedSpellSelections2024(sources);
     cleanupStaleSpellSelections2024(sources.map((source) => source.sourceKey));
     sources.forEach((source) => enforceSpellSelectionLimitsForSource2024(source));
+    dedupeSpellSelectionsAcrossSources2024(sources);
 
     return {
       classEntries,
@@ -12755,6 +12893,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
 
     const sourceLabel = target.getAttribute("data-source-label") || "";
     const grantLabel = target.getAttribute("data-spell-grant-label") || "";
+    const warningLabel = target.getAttribute("data-spell-warning-label") || "";
     const showFullDescription = target.getAttribute("data-spell-context") === "selected";
     const badges = [
       spell.ritual ? "Ritual" : "",
@@ -12768,6 +12907,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
       <p class="magic-spell-hover-meta">${escapeHtml(formatSpellSchoolLabel2024(spell))}</p>
       ${sourceLabel ? `<p class="magic-spell-hover-source">${escapeHtml(`Fonte da seleção: ${sourceLabel}`)}</p>` : ""}
       ${grantLabel ? `<p class="magic-spell-hover-source">${escapeHtml(grantLabel)}</p>` : ""}
+      ${warningLabel ? `<p class="magic-spell-hover-source is-warning">${escapeHtml(warningLabel)}</p>` : ""}
       ${badges.length ? `<div class="magic-spell-hover-badges">${badges.map((badge) => `<span>${escapeHtml(badge)}</span>`).join("")}</div>` : ""}
       <div class="magic-spell-hover-grid">
         <p><strong>Tempo:</strong> ${escapeHtml(spell.tempoConjuracao || "-")}</p>
@@ -13026,13 +13166,16 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     `;
   }
 
-  function buildSpellChecklistItemMarkup2024(spell, source, kind) {
+  function buildSpellChecklistItemMarkup2024(spell, source, kind, sourceMap = new Map()) {
     const selection = getSpellSelectionForSource2024(source.sourceKey);
     const metrics = getSpellSelectionMetrics2024(source);
     const forced = kind === "cantrip"
       ? metrics.granted.cantrips.has(spell.id)
       : metrics.granted.spells.has(spell.id);
     const checked = kind === "cantrip" ? selection.cantrips.has(spell.id) : selection.spells.has(spell.id);
+    const duplicateNotice = !checked && !forced
+      ? getDuplicateSpellSelectionNotice2024(spell.id, kind, source, sourceMap)
+      : null;
     const disabledBecauseLimit = kind === "cantrip"
       ? (!checked && metrics.selectedCantripChoices.length >= source.limits.cantripLimit)
       : (!checked && metrics.selectedSpellChoices.length >= source.limits.spellLimit);
@@ -13040,12 +13183,14 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
       && spell.restriction?.category === "flex"
       && !checked
       && metrics.selectedSpellChoices.filter((spellId) => getEligibleSpellsForSource2024(source).find((entry) => entry.id === spellId)?.restriction?.category === "flex").length >= source.limits.flexibleSpellAllowance;
-    const disabled = forced || disabledBecauseLimit || disabledBecauseFlex;
+    const disabledBecauseDuplicate = Boolean(duplicateNotice?.message);
+    const disabled = forced || disabledBecauseLimit || disabledBecauseFlex || disabledBecauseDuplicate;
     const grantedReason = forced ? getGrantedSpellReason2024(source, spell.id) : "";
     const detailLine = [
       spell.tempoConjuracao || "",
       spell.alcance || "",
       forced ? "Concedida automaticamente." : "",
+      duplicateNotice?.message || "",
       spell.restriction?.note || "",
     ].filter(Boolean).join(" • ");
 
@@ -13056,6 +13201,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
         data-spell-context="available"
         data-source-label="${escapeHtml(source.detailLabel || source.classLabel || "")}"
         ${grantedReason ? `data-spell-grant-label="${escapeHtml(grantedReason)}"` : ""}
+        ${duplicateNotice?.message ? `data-spell-warning-label="${escapeHtml(duplicateNotice.message)}"` : ""}
       >
         <input
           type="checkbox"
@@ -13114,6 +13260,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
       return;
     }
 
+    const sourceMap = new Map(context.sources.map((source) => [source.sourceKey, source]));
     el.magicSourcesList.innerHTML = context.sources.map((source) => {
       const eligibleSpells = getEligibleSpellsForSource2024(source);
       const cantrips = eligibleSpells.filter((spell) => Number(spell.nivel || 0) === 0);
@@ -13149,7 +13296,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
               <h4>Truques</h4>
               <div class="spell-checklist">
                 <div class="spell-check-group-list">
-                  ${cantrips.map((spell) => buildSpellChecklistItemMarkup2024(spell, source, "cantrip")).join("")}
+                  ${cantrips.map((spell) => buildSpellChecklistItemMarkup2024(spell, source, "cantrip", sourceMap)).join("")}
                 </div>
               </div>
             </div>
@@ -13159,7 +13306,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
               <h4>${escapeHtml(SPELL_LEVEL_LABELS_2024[group.level])}</h4>
               <div class="spell-checklist">
                 ${group.spells.length
-                  ? `<div class="spell-check-group-list">${group.spells.map((spell) => buildSpellChecklistItemMarkup2024(spell, source, "spell")).join("")}</div>`
+                  ? `<div class="spell-check-group-list">${group.spells.map((spell) => buildSpellChecklistItemMarkup2024(spell, source, "spell", sourceMap)).join("")}</div>`
                   : '<div class="spell-check-empty">Nenhuma magia disponível para este nível.</div>'}
               </div>
             </div>
@@ -13259,6 +13406,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     if (!input) return;
 
     const context = buildSpellcastingContext2024();
+    const sourceMap = new Map(context.sources.map((entry) => [entry.sourceKey, entry]));
     const source = context.sources.find((entry) => entry.sourceKey === input.getAttribute("data-source-key"));
     if (!source) return;
 
@@ -13266,10 +13414,22 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     const kind = input.getAttribute("data-kind");
     const bucket = kind === "cantrip" ? selection.cantrips : selection.spells;
 
-    if (input.checked) bucket.add(input.value);
-    else bucket.delete(input.value);
+    if (input.checked) {
+      const duplicateNotice = getDuplicateSpellSelectionNotice2024(input.value, kind, source, sourceMap);
+      if (duplicateNotice?.message) {
+        const spellName = SPELL_BY_ID_2024.get(input.value)?.nome || "Essa magia";
+        input.checked = false;
+        setStatus2024(`${spellName} ${duplicateNotice.message}`, "warning");
+        renderMagicSection2024();
+        return;
+      }
+      bucket.add(input.value);
+    } else {
+      bucket.delete(input.value);
+    }
 
     enforceSpellSelectionLimitsForSource2024(source);
+    dedupeSpellSelectionsAcrossSources2024(context.sources);
     renderMagicSection2024();
     updatePreview();
   }

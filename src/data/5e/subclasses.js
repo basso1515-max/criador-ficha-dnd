@@ -2732,16 +2732,16 @@ export const SUBCLASSES = {
     descricao: "Especialista em eliminar presas.",
     features: {
       3: [
-        { nome: "Estilo de Caça", descricao: "Escolhe bônus contra inimigos." }
+        { nome: "Presa do Caçador", descricao: "Escolhe Colosso, Matador de Gigantes ou Rompedor de Horda." }
       ],
       7: [
-        { nome: "Defesa Adaptativa", descricao: "Reduz dano ou evita ataques." }
+        { nome: "Táticas Defensivas", descricao: "Escolhe Escapar da Horda, Defesa contra Ataques Múltiplos ou Vontade de Aço." }
       ],
       11: [
-        { nome: "Ataque em Massa", descricao: "Ataca múltiplos inimigos." }
+        { nome: "Ataque Múltiplo", descricao: "Escolhe Saraivada ou Ataque Giratório." }
       ],
       15: [
-        { nome: "Defesa Superior", descricao: "Evita dano significativo." }
+        { nome: "Defesa Superior do Caçador", descricao: "Escolhe Evasão, Resistir à Maré ou Esquiva Sobrenatural." }
       ]
     }
   },
