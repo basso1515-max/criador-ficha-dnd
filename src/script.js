@@ -8236,6 +8236,8 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
         return "Mantém Proteção contra o Bem e Mal de forma constante.";
       case "paladino-devocao:aureola sagrada":
         return "Emana luz divina que protege aliados e fere inimigos.";
+      case "paladino-gloria:magias de juramento":
+        return "Mantém magias de juramento sempre preparadas.";
       case "paladino-gloria:inspiracao heroica":
         return "Concede bônus físicos a você ou a aliados.";
       case "paladino-gloria:aura de alacridade":
@@ -8262,6 +8264,8 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
         return "Pode reagir contra inimigos marcados quando eles atacam.";
       case "paladino-vinganca:anjo vingador":
         return "Ganha voo, aura de medo e mobilidade superior.";
+      case "paladino-ancioes:magias de juramento":
+        return "Mantém magias de juramento sempre preparadas.";
       case "paladino-ancioes:canalizar divindade":
         return "Usa Canalizar Divindade para prender inimigos ou recuperar vida rapidamente.";
       case "paladino-ancioes:aura de protecao":

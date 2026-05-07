@@ -629,7 +629,11 @@ const SUBCLASS_LIST = [
     3,
     "Busca feitos lendários, vigor heroico e liderança que inspira aliados a superarem limites.",
     {
-      3: [feature("Magias do Juramento"), feature("Atleta Inspirador"), feature("Desafio de Valor")],
+      3: [
+        feature("Magias do Juramento", "Sempre deixa preparadas magias específicas da Glória conforme o nível de Paladino."),
+        feature("Atleta Inspirador"),
+        feature("Desafio de Valor"),
+      ],
       7: [feature("Aura da Alacridade")],
       15: [feature("Defesa Gloriosa")],
       20: [feature("Lenda Viva")],
@@ -642,7 +646,11 @@ const SUBCLASS_LIST = [
     3,
     "Caça culpados com determinação implacável, foco em alvos únicos e perseguição obstinada.",
     {
-      3: [feature("Magias do Juramento"), feature("Inimizade Votiva"), feature("Abjurar Inimigo")],
+      3: [
+        feature("Magias do Juramento", "Sempre deixa preparadas magias específicas da Vingança conforme o nível de Paladino."),
+        feature("Inimizade Votiva"),
+        feature("Abjurar Inimigo"),
+      ],
       7: [feature("Vingador Implacável")],
       15: [feature("Alma da Vingança")],
       20: [feature("Anjo Vingador")],
@@ -655,7 +663,11 @@ const SUBCLASS_LIST = [
     3,
     "Protege a luz da vida, as maravilhas da natureza e a resistência contra forças profanas.",
     {
-      3: [feature("Magias do Juramento"), feature("Ira da Natureza"), feature("Repelir os Sem Fé")],
+      3: [
+        feature("Magias do Juramento", "Sempre deixa preparadas magias específicas dos Anciões conforme o nível de Paladino."),
+        feature("Ira da Natureza"),
+        feature("Repelir os Sem Fé"),
+      ],
       7: [feature("Aura de Proteção Mágica")],
       15: [feature("Sentinela Imortal")],
       20: [feature("Campeão Ancestral")],

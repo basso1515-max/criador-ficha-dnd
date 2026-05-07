@@ -7,6 +7,7 @@ import { SUBCLASSES as SUBCLASSES_5E } from "../src/data/5e/subclasses.js";
 import { CLASSES as CLASSES_2024 } from "../src/data/5.5e/classes.js";
 import { MAGIAS as MAGIAS_2024 } from "../src/data/5.5e/magias.js";
 import { SUBCLASSES as SUBCLASSES_2024 } from "../src/data/5.5e/subclasses.js";
+import { FEATURE_SUMMARIES_2024 } from "../src/data/5.5e/feature-summaries.js";
 import {
   WARLOCK_INVOCATIONS_5E,
   WARLOCK_INVOCATIONS_2024,
@@ -349,6 +350,83 @@ function validateWarlockData() {
   console.log("OK: dados estruturais do Bruxo");
 }
 
+const PALADIN_OATH_SPELLS_2024 = {
+  "paladino-devocao": ["protecao-contra-o-bem-e-o-mal", "escudo-da-fe", "ajuda", "zona-da-verdade", "farol-de-esperanca", "dissipar-magia", "movimento-livre", "guardiao-da-fe", "comunhao", "golpe-de-chama"],
+  "paladino-gloria": ["disparo-guia", "heroismo", "melhorar-habilidade", "arma-magica", "velocidade", "protecao-contra-energia", "compulsao", "movimento-livre", "comunhao", "golpe-de-chama"],
+  "paladino-vinganca": ["perdicao", "marca-do-cacador", "imobilizar-pessoa", "passo-da-neblina", "velocidade", "protecao-contra-energia", "banimento", "porta-dimensional", "imobilizar-monstro", "espionagem"],
+  "paladino-ancioes": ["golpe-prendedor", "falar-com-animais", "raio-de-lua", "passo-da-neblina", "crescer-plantas", "protecao-contra-energia", "tempestade-de-gelo", "pele-de-pedra", "comunhao-com-a-natureza", "passo-de-arvore"],
+};
+
+const PALADIN_OATH_SPELLS_5E_REQUESTED = {
+  "paladino-gloria": ["disparo-guia", "heroismo", "melhorar-habilidade", "arma-magica", "velocidade", "protecao-contra-energia", "compulsao", "movimento-livre", "comunhao", "golpe-de-chama"],
+  "paladino-vinganca": ["perdicao", "marca-do-cacador", "imobilizar-pessoa", "passo-da-neblina", "velocidade", "protecao-contra-energia", "banimento", "porta-dimensional", "imobilizar-monstro", "espionagem"],
+  "paladino-ancioes": ["golpe-prendedor", "falar-com-animais", "raio-de-lua", "passo-da-neblina", "crescer-plantas", "protecao-contra-energia", "tempestade-de-gelo", "pele-de-pedra", "comunhao-com-a-natureza", "passo-de-arvore"],
+};
+
+function normalizeFeatureName(name = "") {
+  return String(name || "")
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLowerCase()
+    .trim();
+}
+
+function validatePaladinOathSpellData() {
+  const errors = [];
+  const spellIds5e = collectSpellIds(MAGIAS_5E);
+  const spellIds2024 = collectSpellIds(MAGIAS_2024);
+  const subclasses5e = listRecords(SUBCLASSES_5E);
+  const subclasses2024 = listRecords(SUBCLASSES_2024);
+  const script5e = readFileSync(path.join(root, "src/script.js"), "utf8");
+  const script2024 = readFileSync(path.join(root, "src/script-2024.js"), "utf8");
+  const oathMap2024 = extractConstObjectBlock(script2024, "PALADIN_OATH_GRANTED_SPELL_IDS_2024");
+  const grantedSpellBlock5e = extractConstObjectBlock(script5e, "SUBCLASS_GRANTED_SPELL_SOURCE_DEFINITIONS");
+
+  Object.entries(PALADIN_OATH_SPELLS_2024).forEach(([subclassId, spellIds]) => {
+    if (!oathMap2024.includes(`"${subclassId}"`)) {
+      errors.push(`2024: ${subclassId} sem mapa de magias de juramento do Paladino.`);
+    }
+    const subclass = subclasses2024.find((item) => item.id === subclassId);
+    const summary = FEATURE_SUMMARIES_2024?.subclasses?.[subclassId]?.["Magias do Juramento"] || "";
+    if (!subclass) errors.push(`2024: subclasse ausente (${subclassId}).`);
+    if (!summary) errors.push(`2024: ${subclassId} sem resumo hover de Magias do Juramento.`);
+    spellIds.forEach((spellId) => {
+      if (!spellIds2024.has(spellId)) errors.push(`2024: ${subclassId} referencia magia ausente (${spellId}).`);
+      if (!script2024.includes(`"${spellId}"`)) errors.push(`2024: ${subclassId} nao registra ${spellId} no fluxo de magias.`);
+    });
+  });
+
+  Object.entries(PALADIN_OATH_SPELLS_5E_REQUESTED).forEach(([subclassId, spellIds]) => {
+    const subclass = subclasses5e.find((item) => item.id === subclassId);
+    if (!subclass) {
+      errors.push(`5e: subclasse ausente (${subclassId}).`);
+      return;
+    }
+
+    const hasFeature = getFeaturesAtLevel(subclass, 3)
+      .some((feature) => normalizeFeatureName(feature?.nome) === "magias de juramento");
+    if (!hasFeature) errors.push(`5e: ${subclassId} sem feature visivel Magias de Juramento no nivel 3.`);
+    if (!script5e.includes(`case "${subclassId}:magias de juramento":`)) {
+      errors.push(`5e: ${subclassId} sem hover explicativo de Magias de Juramento.`);
+    }
+    if (!grantedSpellBlock5e.includes(`"${subclassId}"`)) {
+      errors.push(`5e: ${subclassId} sem fonte automatica de magias de juramento.`);
+    }
+    spellIds.forEach((spellId) => {
+      if (!spellIds5e.has(spellId)) errors.push(`5e: ${subclassId} referencia magia ausente (${spellId}).`);
+      if (!grantedSpellBlock5e.includes(`"${spellId}"`)) errors.push(`5e: ${subclassId} nao registra ${spellId} no mapa de juramento.`);
+    });
+  });
+
+  if (errors.length) {
+    console.error("\nValidacao de magias de juramento do Paladino falhou:");
+    errors.forEach((error) => console.error(`- ${error}`));
+    process.exit(1);
+  }
+
+  console.log("OK: magias de juramento do Paladino");
+}
+
 function validateFeatureChoiceEngine2024() {
   const errors = [];
   const html2024 = readFileSync(path.join(root, "5.5e-2024.html"), "utf8");
@@ -437,6 +515,7 @@ function validateFeatureChoiceEngine5e() {
 }
 
 validateWarlockData();
+validatePaladinOathSpellData();
 validateFeatureChoiceEngine2024();
 validateFeatureChoiceEngine5e();
 

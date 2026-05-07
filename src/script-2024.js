@@ -179,8 +179,32 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     13: ["movimento-livre", "guardiao-da-fe"],
     17: ["comunhao", "golpe-de-chama"],
   };
+  const PALADIN_GLORY_GRANTED_SPELL_IDS_2024 = {
+    3: ["disparo-guia", "heroismo"],
+    5: ["melhorar-habilidade", "arma-magica"],
+    9: ["velocidade", "protecao-contra-energia"],
+    13: ["compulsao", "movimento-livre"],
+    17: ["comunhao", "golpe-de-chama"],
+  };
+  const PALADIN_VENGEANCE_GRANTED_SPELL_IDS_2024 = {
+    3: ["perdicao", "marca-do-cacador"],
+    5: ["imobilizar-pessoa", "passo-da-neblina"],
+    9: ["velocidade", "protecao-contra-energia"],
+    13: ["banimento", "porta-dimensional"],
+    17: ["imobilizar-monstro", "espionagem"],
+  };
+  const PALADIN_ANCIENTS_GRANTED_SPELL_IDS_2024 = {
+    3: ["golpe-prendedor", "falar-com-animais"],
+    5: ["raio-de-lua", "passo-da-neblina"],
+    9: ["crescer-plantas", "protecao-contra-energia"],
+    13: ["tempestade-de-gelo", "pele-de-pedra"],
+    17: ["comunhao-com-a-natureza", "passo-de-arvore"],
+  };
   const PALADIN_OATH_GRANTED_SPELL_IDS_2024 = {
     "paladino-devocao": PALADIN_DEVOTION_GRANTED_SPELL_IDS_2024,
+    "paladino-gloria": PALADIN_GLORY_GRANTED_SPELL_IDS_2024,
+    "paladino-vinganca": PALADIN_VENGEANCE_GRANTED_SPELL_IDS_2024,
+    "paladino-ancioes": PALADIN_ANCIENTS_GRANTED_SPELL_IDS_2024,
   };
   const ROGUE_SNEAK_ATTACK_DICE_BY_LEVEL_2024 = [0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10];
   const RANGER_FAVORED_ENEMY_BY_LEVEL_2024 = [0, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6];
@@ -3860,7 +3884,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
 
     const grantedSpellIds = getFeatureChoiceGrantedSpellIdsForEntry2024(entry);
     if (grantedSpellIds.length) {
-      mergeGrantedSpellIdsIntoConfig2024(config, grantedSpellIds);
+      mergeGrantedSpellIdsIntoConfig2024(config, grantedSpellIds, "Escolha de recurso");
     }
 
     return config;
@@ -11430,11 +11454,17 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     return Array.from(new Set(grantedSpellIds));
   }
 
-  function mergeGrantedSpellIdsIntoConfig2024(config, spellIds = []) {
+  function mergeGrantedSpellIdsIntoConfig2024(config, spellIds = [], grantLabel = "Magia concedida") {
     const grantedSpellIds = Array.from(new Set((spellIds || []).filter(Boolean)));
     if (!grantedSpellIds.length) return config;
     config.grantedSpellIds = Array.from(new Set([...(config.grantedSpellIds || []), ...grantedSpellIds]));
     config.allowedSpellIds = Array.from(new Set([...(config.allowedSpellIds || []), ...grantedSpellIds]));
+    config.grantedSpellDetails = { ...(config.grantedSpellDetails || {}) };
+    grantedSpellIds.forEach((spellId) => {
+      if (!config.grantedSpellDetails[spellId]) {
+        config.grantedSpellDetails[spellId] = grantLabel;
+      }
+    });
     return config;
   }
 
@@ -11459,7 +11489,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
             if (entry.level >= Number(requiredLevel)) grantedSpellIds.push(...spellIds);
           });
         }
-        mergeGrantedSpellIdsIntoConfig2024(config, grantedSpellIds);
+        mergeGrantedSpellIdsIntoConfig2024(config, grantedSpellIds, "Magias concedidas de Bardo");
         if (entry.level >= 10) {
           config.allowedClassIds = BARD_MAGICAL_SECRETS_CLASS_IDS_2024;
         }
@@ -11467,37 +11497,47 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
       if (entry.classId === "clerigo" && entry.subclassId) {
         mergeGrantedSpellIdsIntoConfig2024(
           config,
-          collectGrantedSpellIdsByLevel2024(CLERIC_DOMAIN_GRANTED_SPELL_IDS_2024[entry.subclassId], entry.level)
+          collectGrantedSpellIdsByLevel2024(CLERIC_DOMAIN_GRANTED_SPELL_IDS_2024[entry.subclassId], entry.level),
+          `Domínio Divino (${entry.subclassData?.nome || labelFromSlug(entry.subclassId)})`
         );
       }
       if (entry.classId === "paladino") {
-        const grantedSpellIds = ["destruicao-divina"];
-        if (entry.level >= 5) grantedSpellIds.push("encontrar-montaria");
+        const classGrantedSpellIds = ["destruicao-divina"];
+        if (entry.level >= 5) classGrantedSpellIds.push("encontrar-montaria");
+        mergeGrantedSpellIdsIntoConfig2024(config, classGrantedSpellIds, "Classe de Paladino");
         if (entry.subclassId) {
-          grantedSpellIds.push(...collectGrantedSpellIdsByLevel2024(PALADIN_OATH_GRANTED_SPELL_IDS_2024[entry.subclassId], entry.level));
+          mergeGrantedSpellIdsIntoConfig2024(
+            config,
+            collectGrantedSpellIdsByLevel2024(PALADIN_OATH_GRANTED_SPELL_IDS_2024[entry.subclassId], entry.level),
+            `Magias do Juramento (${entry.subclassData?.nome || labelFromSlug(entry.subclassId)})`
+          );
         }
-        mergeGrantedSpellIdsIntoConfig2024(config, grantedSpellIds);
       }
       if (entry.classId === "patrulheiro") {
-        mergeGrantedSpellIdsIntoConfig2024(config, ["marca-do-cacador"]);
+        mergeGrantedSpellIdsIntoConfig2024(config, ["marca-do-cacador"], "Classe de Patrulheiro");
       }
       if (entry.classId === "druida") {
-        const grantedSpellIds = [...DRUID_DRUIDIC_GRANTED_SPELL_IDS_2024];
+        mergeGrantedSpellIdsIntoConfig2024(config, DRUID_DRUIDIC_GRANTED_SPELL_IDS_2024, "Classe de Druida");
         if (entry.subclassId) {
-          grantedSpellIds.push(...collectGrantedSpellIdsByLevel2024(DRUID_CIRCLE_GRANTED_SPELL_IDS_2024[entry.subclassId], entry.level));
+          mergeGrantedSpellIdsIntoConfig2024(
+            config,
+            collectGrantedSpellIdsByLevel2024(DRUID_CIRCLE_GRANTED_SPELL_IDS_2024[entry.subclassId], entry.level),
+            `Círculo Druídico (${entry.subclassData?.nome || labelFromSlug(entry.subclassId)})`
+          );
         }
-        mergeGrantedSpellIdsIntoConfig2024(config, grantedSpellIds);
       }
       if (entry.classId === "feiticeiro" && entry.subclassId) {
         mergeGrantedSpellIdsIntoConfig2024(
           config,
-          collectGrantedSpellIdsByLevel2024(SORCERER_SUBCLASS_GRANTED_SPELL_IDS_2024[entry.subclassId], entry.level)
+          collectGrantedSpellIdsByLevel2024(SORCERER_SUBCLASS_GRANTED_SPELL_IDS_2024[entry.subclassId], entry.level),
+          `Origem de Feiticeiro (${entry.subclassData?.nome || labelFromSlug(entry.subclassId)})`
         );
       }
       if (entry.classId === "mago" && entry.subclassId) {
         mergeGrantedSpellIdsIntoConfig2024(
           config,
-          collectGrantedSpellIdsByLevel2024(WIZARD_SUBCLASS_GRANTED_SPELL_IDS_2024[entry.subclassId], entry.level)
+          collectGrantedSpellIdsByLevel2024(WIZARD_SUBCLASS_GRANTED_SPELL_IDS_2024[entry.subclassId], entry.level),
+          `Subclasse de Mago (${entry.subclassData?.nome || labelFromSlug(entry.subclassId)})`
         );
       }
       if (entry.classId === "bruxo") {
@@ -11512,7 +11552,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
         if (selectedInvocationIds.has("pact-of-the-chain")) {
           grantedSpellIds.push("encontrar-familiar");
         }
-        mergeGrantedSpellIdsIntoConfig2024(config, grantedSpellIds);
+        mergeGrantedSpellIdsIntoConfig2024(config, grantedSpellIds, "Patrono / invocação de Bruxo");
       }
       applyFeatureChoiceSpellcastingAdjustments2024(config, entry);
       return config;
@@ -11594,12 +11634,14 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
       detailLabel: entry?.classId && entry.classId !== limits?.sourceClassId
         ? `${classLabel} • lista de ${listLabel}`
         : classLabel,
+      listLabel,
       slotPool,
       slotTotals: getSpellSlotTotalsForLimits2024(limits),
       abilityLabel: formatAbilityLabel(config?.ability),
       spellSaveDC: 8 + proficiencyBonus + limits.abilityMod,
       spellAttackBonus: proficiencyBonus + limits.abilityMod,
       grantedSpellIds: Array.from(new Set(config?.grantedSpellIds || [])),
+      grantedSpellDetails: { ...(config?.grantedSpellDetails || {}) },
     };
   }
 
@@ -11639,6 +11681,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
       spellSaveDC: 8 + proficiencyBonus + limits.abilityMod,
       spellAttackBonus: proficiencyBonus + limits.abilityMod,
       grantedSpellIds: grantedSpellSet,
+      grantedSpellDetails: Object.fromEntries(grantedSpellSet.map((spellId) => [spellId, resolvedLabel])),
     };
   }
 
@@ -11723,6 +11766,30 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     });
 
     return buckets;
+  }
+
+  function getGrantedSpellReason2024(source, spellId) {
+    const sourceLabel = source?.grantedSpellDetails?.[spellId] || "esta fonte";
+    return `Sempre preparada por ${sourceLabel}; não conta contra o limite de escolhas manuais.`;
+  }
+
+  function getSpellNamesByIds2024(spellIds = []) {
+    return (spellIds || [])
+      .map((spellId) => SPELL_BY_ID_2024.get(spellId)?.nome || labelFromSlug(spellId))
+      .filter(Boolean);
+  }
+
+  function buildGrantedSpellGroupSummary2024(source, grantedSpellIds = []) {
+    const groups = new Map();
+    grantedSpellIds.forEach((spellId) => {
+      const label = source?.grantedSpellDetails?.[spellId] || "Magias automáticas";
+      if (!groups.has(label)) groups.set(label, []);
+      groups.get(label).push(SPELL_BY_ID_2024.get(spellId)?.nome || labelFromSlug(spellId));
+    });
+
+    return Array.from(groups.entries())
+      .map(([label, names]) => `${label}: ${formatList(names)}`)
+      .join("; ");
   }
 
   function collectFeatSpellSources2024({
@@ -12115,12 +12182,17 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     const entries = [];
     context.sources.forEach((source) => {
       const selection = getSpellSelectionForSource2024(source.sourceKey);
+      const granted = getGrantedSpellBucketsForSource2024(source);
       [...Array.from(selection.cantrips), ...Array.from(selection.spells)].forEach((spellId) => {
         const spell = SPELL_BY_ID_2024.get(spellId);
         if (!spell) return;
+        const isGranted = Number(spell.nivel || 0) === 0
+          ? granted.cantrips.has(spellId)
+          : granted.spells.has(spellId);
         entries.push({
           sourceKey: source.sourceKey,
-          sourceLabel: source.classLabel,
+          sourceLabel: source.detailLabel || source.classLabel,
+          grantReason: isGranted ? getGrantedSpellReason2024(source, spellId) : "",
           spell,
         });
       });
@@ -12215,6 +12287,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     if (!spell) return "";
 
     const sourceLabel = target.getAttribute("data-source-label") || "";
+    const grantLabel = target.getAttribute("data-spell-grant-label") || "";
     const showFullDescription = target.getAttribute("data-spell-context") === "selected";
     const badges = [
       spell.ritual ? "Ritual" : "",
@@ -12227,6 +12300,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
       <strong>${escapeHtml(spell.nome)}</strong>
       <p class="magic-spell-hover-meta">${escapeHtml(formatSpellSchoolLabel2024(spell))}</p>
       ${sourceLabel ? `<p class="magic-spell-hover-source">${escapeHtml(`Fonte da seleção: ${sourceLabel}`)}</p>` : ""}
+      ${grantLabel ? `<p class="magic-spell-hover-source">${escapeHtml(grantLabel)}</p>` : ""}
       ${badges.length ? `<div class="magic-spell-hover-badges">${badges.map((badge) => `<span>${escapeHtml(badge)}</span>`).join("")}</div>` : ""}
       <div class="magic-spell-hover-grid">
         <p><strong>Tempo:</strong> ${escapeHtml(spell.tempoConjuracao || "-")}</p>
@@ -12421,6 +12495,70 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     return parts.join(" • ");
   }
 
+  function buildMagicSourceCascadeMarkup2024(source, granted) {
+    const metrics = getSpellSelectionMetrics2024(source);
+    const grantedSpellIds = [
+      ...Array.from(granted?.cantrips || []),
+      ...Array.from(granted?.spells || []),
+    ];
+    const grantedNames = getSpellNamesByIds2024(grantedSpellIds);
+    const selectedTotal = metrics.selection.cantrips.size + metrics.selection.spells.size;
+    const manualChoiceParts = [
+      source.limits.cantripLimit ? `truques ${metrics.selectedCantripChoices.length}/${source.limits.cantripLimit}` : "",
+      source.limits.spellLimit ? `${source.limits.selectionLabel} ${metrics.selectedSpellChoices.length}/${source.limits.spellLimit}` : "",
+    ].filter(Boolean);
+    const slotText = formatSpellSlotTotals2024(source.slotTotals);
+    const steps = [
+      {
+        label: "Fonte",
+        value: source.detailLabel || source.classLabel,
+        body: `Esta fonte nasce da combinação atual e usa a lista de ${source.listLabel || source.classLabel}.`,
+      },
+      {
+        label: "Fixas",
+        value: grantedSpellIds.length ? `${grantedSpellIds.length} magia(s)` : "sem fixas",
+        body: grantedSpellIds.length
+          ? `${buildGrantedSpellGroupSummary2024(source, grantedSpellIds)}. Essas magias entram marcadas e ficam fora do limite manual.`
+          : "Esta fonte não adiciona magias fixas; apenas as escolhas manuais contam.",
+      },
+      {
+        label: "Escolhas",
+        value: manualChoiceParts.length ? manualChoiceParts.join(" / ") : "nenhuma",
+        body: manualChoiceParts.length
+          ? "A contagem mostra somente escolhas manuais; magias fixas permanecem separadas."
+          : "Nada precisa ser escolhido manualmente para esta fonte.",
+      },
+      {
+        label: "Espaços",
+        value: slotText,
+        body: "Os espaços exibidos consideram a combinação de classes atual e continuam separados dos espaços de pacto quando houver.",
+      },
+      {
+        label: "Ficha/PDF",
+        value: selectedTotal ? `${selectedTotal} marcada(s)` : "aguardando",
+        body: grantedNames.length
+          ? `O bloco de magias escolhidas e o PDF recebem as escolhas marcadas, incluindo ${formatList(grantedNames)}.`
+          : "O bloco de magias escolhidas e o PDF recebem as escolhas marcadas para esta fonte.",
+      },
+    ];
+
+    return `
+      <div class="feature-choice-cascade magic-source-cascade" aria-label="Cascata de magias de ${escapeHtml(source.classLabel || "fonte")}">
+        ${steps.map((step, index) => `
+          <span class="feature-choice-cascade-step magic-source-cascade-step" tabindex="0">
+            <small>${escapeHtml(String(index + 1))}</small>
+            <strong>${escapeHtml(step.label)}</strong>
+            <span>${escapeHtml(step.value)}</span>
+            <span class="feature-choice-hover-card magic-source-hover-card" role="tooltip">
+              <strong>${escapeHtml(step.label)}</strong>
+              <p>${escapeHtml(step.body)}</p>
+            </span>
+          </span>
+        `).join("")}
+      </div>
+    `;
+  }
+
   function buildSpellChecklistItemMarkup2024(spell, source, kind) {
     const selection = getSpellSelectionForSource2024(source.sourceKey);
     const metrics = getSpellSelectionMetrics2024(source);
@@ -12436,6 +12574,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
       && !checked
       && metrics.selectedSpellChoices.filter((spellId) => getEligibleSpellsForSource2024(source).find((entry) => entry.id === spellId)?.restriction?.category === "flex").length >= source.limits.flexibleSpellAllowance;
     const disabled = forced || disabledBecauseLimit || disabledBecauseFlex;
+    const grantedReason = forced ? getGrantedSpellReason2024(source, spell.id) : "";
     const detailLine = [
       spell.tempoConjuracao || "",
       spell.alcance || "",
@@ -12448,7 +12587,8 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
         class="spell-check-item${disabled ? " is-disabled" : ""}"
         data-spell-id="${escapeHtml(spell.id)}"
         data-spell-context="available"
-        data-source-label="${escapeHtml(source.classLabel || "")}"
+        data-source-label="${escapeHtml(source.detailLabel || source.classLabel || "")}"
+        ${grantedReason ? `data-spell-grant-label="${escapeHtml(grantedReason)}"` : ""}
       >
         <input
           type="checkbox"
@@ -12511,6 +12651,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
       const eligibleSpells = getEligibleSpellsForSource2024(source);
       const cantrips = eligibleSpells.filter((spell) => Number(spell.nivel || 0) === 0);
       const granted = getGrantedSpellBucketsForSource2024(source);
+      const cascadeMarkup = buildMagicSourceCascadeMarkup2024(source, granted);
       const minSpellLevel = clampInt(source.limits.minSpellLevel || 1, 1, 9);
       const maxSpellLevel = clampInt(source.limits.maxSpellLevel || 0, 0, 9);
       const spellGroups = SPELL_SLOT_LEVELS_2024
@@ -12534,6 +12675,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
               ? `<li>${escapeHtml(source.usageNote)}</li>`
               : `<li>Espaços desta fonte: ${escapeHtml(formatSpellSlotTotals2024(source.slotTotals))}.</li>`}
           </ul>
+          ${cascadeMarkup}
           ${cantrips.length ? `
             <div class="spell-check-group">
               <h4>Truques</h4>
@@ -12591,6 +12733,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
                     data-spell-id="${escapeHtml(entry.spell?.id || "")}"
                     data-spell-context="selected"
                     data-source-label="${escapeHtml(entry.sourceLabel || "")}"
+                    ${entry.grantReason ? `data-spell-grant-label="${escapeHtml(entry.grantReason)}"` : ""}
                   >
                     <strong>${escapeHtml(entry.spell?.nome || "")}</strong>
                     ${context?.sources?.length > 1 ? `<small>${escapeHtml(entry.sourceLabel || "")}</small>` : ""}

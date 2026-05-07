@@ -4453,6 +4453,18 @@ select[multiple] option {
   margin-top: 10px;
 }
 
+.magic-source-cascade {
+  margin: 12px 0 16px;
+}
+
+.magic-source-cascade-step {
+  min-height: 64px;
+}
+
+.magic-source-hover-card {
+  width: min(340px, 86vw);
+}
+
 .feature-choice-cascade-step {
   position: relative;
   display: grid;

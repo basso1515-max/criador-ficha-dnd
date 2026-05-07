@@ -235,6 +235,16 @@ const smokePages = [
         dispatch(featMasterySelects[0], "change");
         assert((document.querySelector("#featureChoicesSummary2024")?.textContent || "").includes("4/4"), "Mestre das Armas nao entrou no resumo de escolhas.");
 
+        setClassLevel("paladino", 3);
+        setValue("#subclasse2024", "paladino-vinganca", []);
+        setValue("#nivel2024", 3, ["input", "change"]);
+        const paladinMagicText = document.querySelector("#magicSourcesList2024")?.textContent || "";
+        assert(paladinMagicText.includes("Perdição") && paladinMagicText.includes("Marca do Predador"), "Juramento da Vingança 2024 nao exibiu magias fixas.");
+        const vengeanceGranted = document.querySelector('#magicSourcesList2024 .spell-check-item[data-spell-id="perdicao"] input[type="checkbox"]');
+        assert(vengeanceGranted?.checked && vengeanceGranted?.disabled, "Perdição nao ficou marcada e travada como magia de juramento.");
+        assert(document.querySelector("#magicSourcesList2024 .magic-source-cascade"), "Cascata de magia 2024 ausente para Paladino.");
+        assert((document.querySelector("#magicSpellHoverCard2024")?.outerHTML || "").includes("magic-spell-hover-card"), "Hovercard de magia 2024 ausente para juramento.");
+
         assertFeatureSlots("mago", 20, [["scholar", 1], ["spell-mastery-1", 1], ["spell-mastery-2", 1], ["signature-spells", 2]]);
         markSkill("arcanismo");
         chooseFeature("scholar", "arcanismo");
@@ -251,6 +261,8 @@ const smokePages = [
       ".feature-choice-cascade",
       "[data-feature-choice-hover-card]",
       ".spell-check-item[data-spell-id]",
+      ".magic-source-cascade",
+      ".magic-source-hover-card",
       "#magicSpellHoverCard2024",
     ],
   },

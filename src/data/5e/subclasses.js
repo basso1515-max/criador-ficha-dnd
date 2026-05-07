@@ -2549,6 +2549,7 @@ export const SUBCLASSES = {
     descricao: "Busca a perfeição física e heroísmo lendário.",
     features: {
       3: [
+        { nome: "Magias de Juramento", descricao: "Ganha magias adicionais sempre preparadas." },
         { nome: "Inspiração Heroica", descricao: "Pode conceder bônus físicos a si ou aliados." }
       ],
       7: [
@@ -2616,6 +2617,7 @@ export const SUBCLASSES = {
     descricao: "Protege a luz, a vida e a natureza.",
     features: {
       3: [
+        { nome: "Magias de Juramento", descricao: "Ganha magias adicionais sempre preparadas." },
         { nome: "Canalizar Divindade", descricao: "Pode prender inimigos ou recuperar vida rapidamente." }
       ],
       7: [
