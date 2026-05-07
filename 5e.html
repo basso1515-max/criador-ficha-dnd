@@ -9,6 +9,7 @@
 
   <script defer src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
   <script type="module" defer src="./src/script.js"></script>
+  <script type="module" defer src="./src/analytics.js"></script>
 </head>
 
 <body data-standalone-route="5e">
@@ -246,6 +247,13 @@
             <div id="raceDetailChoicesSummary" class="note subtle"></div>
             <div id="raceDetailChoicesContainer" class="feat-choice-list"></div>
             <div id="raceDetailChoicesInfo" class="note subtle"></div>
+          </fieldset>
+
+          <fieldset id="warlockChoicesPanel" class="feat-choices-fieldset" hidden>
+            <legend>Pacto e Invocações do Bruxo</legend>
+            <div id="warlockChoicesSummary" class="note subtle"></div>
+            <div id="warlockChoicesContainer" class="feat-choice-list"></div>
+            <div id="warlockChoicesInfo" class="note subtle"></div>
           </fieldset>
 
           <fieldset id="languageChoicesPanel" class="feat-choices-fieldset" hidden>

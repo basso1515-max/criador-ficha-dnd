@@ -1,6 +1,7 @@
 import { createHash, randomBytes, randomUUID, scryptSync, timingSafeEqual } from "node:crypto";
 import { createReadStream, existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { createServer } from "node:http";
+import crypto from "node:crypto";
 import path from "node:path";
 
 const root = process.cwd();
@@ -30,6 +31,8 @@ const MIME_TYPES = {
   ".svg": "image/svg+xml",
   ".txt": "text/plain; charset=utf-8",
 };
+
+const DEV_NO_CACHE_EXTENSIONS = new Set([".css", ".html", ".js"]);
 
 function createEmptyStore() {
   return {
