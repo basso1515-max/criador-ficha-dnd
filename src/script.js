@@ -15767,7 +15767,8 @@ function buildCantripChecklistMarkup(spells, source, sourceMap = new Map(), dupl
 }
 
 function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplicateSourceKeys = []) {
-  const grouped = groupSpellsByLevel(spells.filter((spell) => spell.nivel > 0));
+  const maxSpellLevel = Number(source?.limits?.maxSpellLevel || 0);
+  const grouped = groupSpellsByLevel(spells.filter((spell) => spell.nivel > 0 && Number(spell.nivel || 0) <= maxSpellLevel));
   if (!grouped.length) {
     return `<div class="spell-check-empty">Nenhuma magia disponível para este nível.</div>`;
   }
@@ -15815,7 +15816,8 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
         : "";
       const distributionMarkup = buildSpellLevelDistributionMarkup(source);
       const warningMarkup = buildSpellSelectionWarningMarkup(source, selection);
-      const groupedSpellLevels = groupSpellsByLevel(availableSpells);
+      const groupedSpellLevels = groupSpellsByLevel(availableSpells)
+        .filter(([level]) => Number(level) > 0 && Number(level) <= Number(source.limits.maxSpellLevel || 0));
       const spellLevelBlocksMarkup = groupedSpellLevels.length
         ? groupedSpellLevels.map(([level, levelSpells]) => `
             <div class="row">
