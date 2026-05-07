@@ -153,7 +153,7 @@ export const MAGIAS = {
         "escola": "adivinhação",
         "ritual": false,
         "concentracao": true,
-        "tempoConjuracao": "Uma ação",
+        "tempoConjuracao": "Ação",
         "alcance": "9 m",
         "componentes": [
           "V"
@@ -214,7 +214,7 @@ export const MAGIAS = {
         "escola": "conjuração",
         "ritual": false,
         "concentracao": true,
-        "tempoConjuracao": "Uma ação",
+        "tempoConjuracao": "Ação",
         "alcance": "18 m",
         "componentes": [
           "V",
@@ -247,7 +247,7 @@ export const MAGIAS = {
         "escola": "conjuração",
         "ritual": false,
         "concentracao": false,
-        "tempoConjuracao": "Uma ação",
+        "tempoConjuracao": "Ação",
         "alcance": "18 m",
         "componentes": [
           "V",
@@ -278,7 +278,7 @@ export const MAGIAS = {
         "escola": "conjuração",
         "ritual": false,
         "concentracao": false,
-        "tempoConjuracao": "Uma ação",
+        "tempoConjuracao": "Ação",
         "alcance": "9 m",
         "componentes": [
           "V",
@@ -342,7 +342,7 @@ export const MAGIAS = {
         "escola": "conjuração",
         "ritual": false,
         "concentracao": false,
-        "tempoConjuracao": "Uma ação",
+        "tempoConjuracao": "Ação",
         "alcance": "9 m",
         "componentes": [
           "V",
@@ -404,7 +404,7 @@ export const MAGIAS = {
         "escola": "conjuração",
         "ritual": false,
         "concentracao": false,
-        "tempoConjuracao": "Uma ação",
+        "tempoConjuracao": "Ação",
         "alcance": "Pessoal (3 m)",
         "componentes": [
           "V"
@@ -436,7 +436,7 @@ export const MAGIAS = {
         "escola": "encantamento",
         "ritual": false,
         "concentracao": true,
-        "tempoConjuracao": "Uma ação",
+        "tempoConjuracao": "Ação",
         "alcance": "Pessoal",
         "componentes": [
           "V",
@@ -467,7 +467,7 @@ export const MAGIAS = {
         "escola": "encantamento",
         "ritual": false,
         "concentracao": false,
-        "tempoConjuracao": "Uma ação",
+        "tempoConjuracao": "Ação",
         "alcance": "18 m",
         "componentes": [
           "V"

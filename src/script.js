@@ -227,6 +227,76 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
   const RANDOM_HAIR_COLORS = ["pretos", "castanho-escuros", "castanho-claros", "ruivos", "loiros", "grisalhos"];
   const SPELL_LIST = flattenMagicDataset(MAGIAS);
   const SPELL_BY_ID = new Map(SPELL_LIST.map((spell) => [spell.id, spell]));
+  const SORCERER_METAMAGIC_OPTIONS_BY_LEVEL_5E = [
+    0, 0, 0, 2, 2, 2, 2, 2, 2, 2,
+    3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4,
+  ];
+  const FEATURE_CHOICE_METAMAGIC_OPTIONS_5E = [
+    { value: "magia-cuidadosa", label: "Magia Cuidadosa", summary: "Protege algumas criaturas dos efeitos completos de uma magia de salvaguarda." },
+    { value: "magia-distante", label: "Magia Distante", summary: "Amplia o alcance de uma magia ou torna toque em alcance curto." },
+    { value: "magia-potencializada", label: "Magia Potencializada", summary: "Rerrola parte dos dados de dano de uma magia." },
+    { value: "magia-estendida", label: "Magia Estendida", summary: "Aumenta a duração de uma magia sustentada." },
+    { value: "magia-elevada", label: "Magia Elevada", summary: "Impõe desvantagem à primeira salvaguarda de um alvo contra a magia." },
+    { value: "magia-acelerada", label: "Magia Acelerada", summary: "Converte a conjuração de uma magia elegível em ação bônus." },
+    { value: "magia-sutil", label: "Magia Sutil", summary: "Conjura sem componentes verbal ou somático." },
+    { value: "magia-gemea", label: "Magia Gêmea", summary: "Faz uma magia elegível mirar uma segunda criatura." },
+    { value: "magia-buscadora", label: "Magia Buscadora", summary: "Ajuda a converter um ataque mágico errado em acerto." },
+    { value: "magia-transmutada", label: "Magia Transmutada", summary: "Troca o tipo de dano elemental de uma magia compatível." },
+  ];
+  const FEATURE_CHOICE_DEFINITIONS_5E = {
+    classes: {
+      feiticeiro: [
+        {
+          id: "metamagic",
+          minLevel: 3,
+          featureLabel: "Metamagia",
+          selectionLabel: "Metamagia",
+          help: "Escolha as opções conhecidas de Metamagia do Feiticeiro legacy. O total aumenta nos níveis 10 e 17.",
+          required: true,
+          disallowDuplicates: true,
+          picksByLevel: SORCERER_METAMAGIC_OPTIONS_BY_LEVEL_5E,
+          options: FEATURE_CHOICE_METAMAGIC_OPTIONS_5E,
+        },
+      ],
+      mago: [
+        {
+          id: "spell-mastery-1",
+          minLevel: 18,
+          featureLabel: "Maestria de Magias",
+          selectionLabel: "Magia de 1º círculo",
+          help: "Escolha a magia de 1º círculo que passa a ficar preparada e disponível sem gastar espaço no círculo mínimo.",
+          required: true,
+          optionSet: "wizard-spells",
+          spellLevel: 1,
+          grantsSelectedSpell: true,
+        },
+        {
+          id: "spell-mastery-2",
+          minLevel: 18,
+          featureLabel: "Maestria de Magias",
+          selectionLabel: "Magia de 2º círculo",
+          help: "Escolha a magia de 2º círculo que passa a ficar preparada e disponível sem gastar espaço no círculo mínimo.",
+          required: true,
+          optionSet: "wizard-spells",
+          spellLevel: 2,
+          grantsSelectedSpell: true,
+        },
+        {
+          id: "signature-spells",
+          minLevel: 20,
+          featureLabel: "Magias Assinatura",
+          selectionLabel: "Magia de 3º círculo",
+          help: "Escolha duas magias de 3º círculo que ficam preparadas e têm um uso gratuito cada por descanso.",
+          required: true,
+          optionSet: "wizard-spells",
+          spellLevel: 3,
+          grantsSelectedSpell: true,
+          disallowDuplicates: true,
+          picks: 2,
+        },
+      ],
+    },
+  };
   const LAND_CIRCLE_TERRAIN_OPTIONS = [
     { value: "artico", label: "Ártico" },
     { value: "costa", label: "Costa" },
@@ -2029,6 +2099,10 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     warlockInvocationsSummary: $("warlockInvocationsSummary"),
     warlockInvocationsContainer: $("warlockInvocationsContainer"),
     warlockInvocationsInfo: $("warlockInvocationsInfo"),
+    featureChoicesPanel: $("featureChoicesPanel"),
+    featureChoicesSummary: $("featureChoicesSummary"),
+    featureChoicesContainer: $("featureChoicesContainer"),
+    featureChoicesInfo: $("featureChoicesInfo"),
     raceDetailChoicesPanel: $("raceDetailChoicesPanel"),
     raceDetailChoicesSummary: $("raceDetailChoicesSummary"),
     raceDetailChoicesContainer: $("raceDetailChoicesContainer"),
@@ -2175,10 +2249,12 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
   const PHYSICAL_FIELDS = ["idade", "altura", "peso", "olhos", "pele", "cabelo"];
   const CUSTOM_SELECT_FIELDS = {};
   const FEAT_CUSTOM_SELECT_PREFIX = "feat-slot:";
+  const FEATURE_CHOICE_CUSTOM_SELECT_PREFIX = "feature-choice:";
   const WARLOCK_INVOCATION_CUSTOM_SELECT_PREFIX = "warlock-invocation:";
   const LANGUAGE_CUSTOM_SELECT_PREFIX = "language-slot:";
   const EQUIPMENT_CUSTOM_SELECT_PREFIX = "equipment-choice:";
   let featCustomSelectKeys = [];
+  let featureChoiceCustomSelectKeys = [];
   let warlockInvocationCustomSelectKeys = [];
   let languageCustomSelectKeys = [];
   let equipmentCustomSelectKeys = [];
@@ -2352,6 +2428,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     renderFeatDetailChoices();
     renderSubclassDetailChoices();
     renderWarlockInvocationChoices();
+    renderFeatureChoices();
     renderRaceDetailChoices();
     renderLanguageChoices();
     renderExpertiseChoices();
@@ -2379,6 +2456,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     renderFeatDetailChoices();
     renderSubclassDetailChoices();
     renderWarlockInvocationChoices();
+    renderFeatureChoices();
     renderRaceDetailChoices();
     renderLanguageChoices();
     renderExpertiseChoices();
@@ -2412,6 +2490,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     if (el.featDetailChoicesContainer) el.featDetailChoicesContainer.addEventListener("change", onFeatDetailChoiceChanged);
     if (el.subclassDetailChoicesContainer) el.subclassDetailChoicesContainer.addEventListener("change", onSubclassDetailChoiceChanged);
     if (el.warlockInvocationsContainer) el.warlockInvocationsContainer.addEventListener("change", onWarlockInvocationChoiceChanged);
+    if (el.featureChoicesContainer) el.featureChoicesContainer.addEventListener("change", onFeatureChoiceChanged);
     if (el.raceDetailChoicesContainer) el.raceDetailChoicesContainer.addEventListener("change", onRaceDetailChoiceChanged);
     if (el.languageChoicesContainer) el.languageChoicesContainer.addEventListener("change", onLanguageChoiceChanged);
     if (el.expertiseChoicesContainer) el.expertiseChoicesContainer.addEventListener("change", onExpertiseChoiceChanged);
@@ -2571,6 +2650,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     onBackgroundChanged();
     onSubclassChanged();
     renderWarlockInvocationChoices();
+    renderFeatureChoices();
     renderLanguageChoices();
     onAlignmentChanged();
     onDivinityChanged();
@@ -3188,6 +3268,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     renderFightingStyleChoices();
     renderFeatChoices();
     renderWarlockInvocationChoices();
+    renderFeatureChoices();
     renderMagicSection();
     atualizarPreview();
   }
@@ -3201,6 +3282,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     renderFightingStyleChoices();
     renderFeatChoices();
     renderWarlockInvocationChoices();
+    renderFeatureChoices();
     renderMagicSection();
     atualizarPreview();
   }
@@ -3227,6 +3309,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     renderFightingStyleChoices();
     renderFeatChoices();
     renderWarlockInvocationChoices();
+    renderFeatureChoices();
     renderMagicSection();
     atualizarPreview();
   }
@@ -3242,6 +3325,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     renderFightingStyleChoices();
     renderFeatChoices();
     renderWarlockInvocationChoices();
+    renderFeatureChoices();
     renderMagicSection();
     atualizarPreview();
   }
@@ -4588,6 +4672,371 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     ].filter(Boolean));
   }
 
+  function cleanupFeatureChoiceFields() {
+    featureChoiceCustomSelectKeys.forEach((key) => {
+      delete CUSTOM_SELECT_FIELDS[key];
+    });
+    featureChoiceCustomSelectKeys = [];
+  }
+
+  function getFeatureChoiceDefinitionsForEntry(entry) {
+    if (!entry?.classId || !entry?.level) return [];
+    return (FEATURE_CHOICE_DEFINITIONS_5E.classes?.[entry.classId] || [])
+      .map((definition) => ({ ...definition, kind: "class" }))
+      .filter((definition) => entry.level >= Number(definition.minLevel || 1));
+  }
+
+  function getFeatureChoicePickCount(definition, entry) {
+    if (Array.isArray(definition?.picksByLevel)) {
+      return clampInt(definition.picksByLevel[clampInt(entry?.level, 0, 20)] || 0, 0, 20);
+    }
+    return clampInt(definition?.picks || 1, 0, 20);
+  }
+
+  function buildFeatureChoiceSourceKey(entry, definition) {
+    return `${entry?.uid || entry?.classId || "class"}:feature-choice:${definition?.kind || "class"}:${definition?.id || "choice"}`;
+  }
+
+  function buildFeatureChoiceSlotKey(source, slotIndex) {
+    return `${source.key}:slot-${slotIndex}`;
+  }
+
+  function getCurrentFeatureClassEntries() {
+    return collectClassEntries(getSelectedClassData(), getSelectedSubclassData(), getTotalCharacterLevel())
+      .filter((entry) => entry?.classData && entry.level > 0);
+  }
+
+  function normalizeFeatureClassEntries(classEntries = null) {
+    return Array.isArray(classEntries)
+      ? classEntries.filter((entry) => entry?.classData && entry.level > 0)
+      : getCurrentFeatureClassEntries();
+  }
+
+  function collectFeatureChoiceSources({ classEntries = null } = {}) {
+    return normalizeFeatureClassEntries(classEntries)
+      .flatMap((entry) => getFeatureChoiceDefinitionsForEntry(entry)
+        .map((definition) => {
+          const picks = getFeatureChoicePickCount(definition, entry);
+          if (!picks) return null;
+          return {
+            ...definition,
+            key: buildFeatureChoiceSourceKey(entry, definition),
+            entry,
+            picks,
+            ownerLabel: entry.classData?.nome || entry.classLabel,
+            title: definition.featureLabel || definition.label || "Escolha de recurso",
+          };
+        })
+        .filter(Boolean));
+  }
+
+  function getCurrentFeatureChoiceSelectionMap() {
+    const selections = new Map();
+    el.featureChoicesContainer?.querySelectorAll("select[data-feature-choice-slot-key]").forEach((select) => {
+      selections.set(select.getAttribute("data-feature-choice-slot-key") || "", select.value || "");
+    });
+    return selections;
+  }
+
+  function getWizardFeatureSpellOptions(spellLevel) {
+    return SPELL_LIST
+      .filter((spell) => Number(spell.nivel || 0) === Number(spellLevel || 0))
+      .filter((spell) => (spell.normalizedClasses || []).includes("mago"))
+      .sort((a, b) => String(a.nome || "").localeCompare(String(b.nome || ""), "pt-BR"))
+      .map((spell) => ({
+        value: spell.id,
+        label: spell.nome || labelFromSlug(spell.id),
+        summary: spell.resumo || [
+          spell.escola ? `Escola: ${schoolLabelFromKey(spell.normalizedSchool)}` : "",
+          spell.tempoConjuracao ? `Conjuração: ${spell.tempoConjuracao}` : "",
+        ].filter(Boolean).join(" • "),
+      }));
+  }
+
+  function getFeatureChoiceOptions(source) {
+    if (!source) return [];
+    if (Array.isArray(source.options)) return source.options;
+    if (source.optionSet === "wizard-spells") return getWizardFeatureSpellOptions(source.spellLevel);
+    return [];
+  }
+
+  function getFeatureChoiceImpactLines(source, option = null) {
+    if (source?.grantsSelectedSpell) {
+      return ["Magia: entra como magia preparada/concedida no bloco de magia e no PDF."];
+    }
+    if (source?.id === "metamagic") {
+      return ["Metamagia: fica registrada nas características do personagem e no PDF."];
+    }
+    if (option?.summary) return [`Registro: ${option.summary}`];
+    return ["Registro: aparece no resumo da ficha e na seção de características do PDF."];
+  }
+
+  function describeFeatureChoiceOption(select, value, label) {
+    const sourceKey = select?.getAttribute("data-feature-choice-source-key") || "";
+    const source = collectFeatureChoiceSources().find((item) => item.key === sourceKey);
+    const option = getFeatureChoiceOptions(source).find((item) => item.value === value) || null;
+    if (!option) return { summary: "", lines: [], body: "", search: label || "" };
+
+    return {
+      group: source?.title || "",
+      summary: option.summary || source?.help || "",
+      lines: [
+        source?.ownerLabel ? `Origem: ${source.ownerLabel}` : "",
+        source?.minLevel ? `Libera no nível ${source.minLevel}` : "",
+        ...getFeatureChoiceImpactLines(source, option),
+      ].filter(Boolean),
+      body: source?.help || "",
+      search: [label, option.label, option.summary, source?.title, source?.ownerLabel, source?.help].filter(Boolean).join(" "),
+    };
+  }
+
+  function getFeatureChoiceSelectionEntries({ classEntries = null } = {}) {
+    const sources = collectFeatureChoiceSources({ classEntries });
+    const selections = getCurrentFeatureChoiceSelectionMap();
+    const entries = [];
+
+    sources.forEach((source) => {
+      const options = getFeatureChoiceOptions(source);
+      for (let slotIndex = 0; slotIndex < source.picks; slotIndex += 1) {
+        const slotKey = buildFeatureChoiceSlotKey(source, slotIndex);
+        const value = String(selections.get(slotKey) || "").trim();
+        if (!value) continue;
+        const option = options.find((item) => item.value === value);
+        if (!option) continue;
+        entries.push({ source, slotIndex, slotKey, value, option });
+      }
+    });
+
+    return entries;
+  }
+
+  function buildSelectedFeatureChoiceLines(classEntries = null) {
+    return getFeatureChoiceSelectionEntries({ classEntries }).map(({ source, slotIndex, option }) => {
+      const slotLabel = source.picks > 1 ? `${source.title} ${slotIndex + 1}` : source.title;
+      const effect = option.summary ? `: ${option.summary}` : "";
+      return `${slotLabel} - ${option.label}${effect}`;
+    });
+  }
+
+  function collectFeatureChoicePendingLines(stateOrEntries = null) {
+    const classEntries = Array.isArray(stateOrEntries)
+      ? stateOrEntries
+      : (Array.isArray(stateOrEntries?.classEntries) ? stateOrEntries.classEntries : null);
+    const sources = collectFeatureChoiceSources({ classEntries });
+    const selections = getCurrentFeatureChoiceSelectionMap();
+    const pending = [];
+
+    sources.forEach((source) => {
+      const options = getFeatureChoiceOptions(source);
+      const selectedValues = [];
+      let selectedCount = 0;
+      for (let slotIndex = 0; slotIndex < source.picks; slotIndex += 1) {
+        const value = String(selections.get(buildFeatureChoiceSlotKey(source, slotIndex)) || "").trim();
+        if (value && options.some((option) => option.value === value)) {
+          selectedCount += 1;
+          selectedValues.push(value);
+        }
+      }
+      if (source.required && selectedCount < source.picks) {
+        pending.push(`Configure ${source.title} de ${source.ownerLabel} (${selectedCount}/${source.picks}).`);
+      }
+      if (source.disallowDuplicates && selectedValues.some((value, index) => selectedValues.indexOf(value) !== index)) {
+        pending.push(`Revise ${source.title}: a mesma opção foi escolhida mais de uma vez.`);
+      }
+    });
+
+    return pending;
+  }
+
+  function renderFeatureChoiceOptionElements(source, slotIndex, selectedValue, options, selections) {
+    const usedValues = new Set();
+    if (source.disallowDuplicates) {
+      for (let index = 0; index < source.picks; index += 1) {
+        if (index === slotIndex) continue;
+        const value = selections.get(buildFeatureChoiceSlotKey(source, index));
+        if (value) usedValues.add(value);
+      }
+    }
+
+    const optionHtml = (options || [])
+      .map((option) => {
+        const disabled = usedValues.has(option.value) && selectedValue !== option.value;
+        return `<option value="${escapeHtml(option.value)}"${selectedValue === option.value ? " selected" : ""}${disabled ? " disabled" : ""}>${escapeHtml(option.label)}</option>`;
+      })
+      .join("");
+    const placeholder = options.length ? "Selecione..." : (source.emptyOptionsLabel || "Sem opções disponíveis");
+    return `
+      <option value=""${selectedValue ? "" : " selected"} disabled>${escapeHtml(placeholder)}</option>
+      ${optionHtml}
+    `;
+  }
+
+  function getFeatureChoiceCascadeMarkup(sources, selections) {
+    const totalChoices = sources.reduce((total, source) => total + source.picks, 0);
+    let selectedCount = 0;
+    const effectLabels = new Set();
+
+    sources.forEach((source) => {
+      const options = getFeatureChoiceOptions(source);
+      for (let slotIndex = 0; slotIndex < source.picks; slotIndex += 1) {
+        const value = String(selections.get(buildFeatureChoiceSlotKey(source, slotIndex)) || "").trim();
+        const option = options.find((item) => item.value === value);
+        if (!option) continue;
+        selectedCount += 1;
+        getFeatureChoiceImpactLines(source, option).forEach((line) => effectLabels.add(line.split(":")[0] || "Registro"));
+      }
+      if (source.grantsSelectedSpell) effectLabels.add("Magia");
+    });
+
+    const pendingCount = Math.max(0, totalChoices - selectedCount);
+    const selectedLines = buildSelectedFeatureChoiceLines().length;
+    const steps = [
+      { label: "Fontes", value: `${sources.length} recurso(s)`, body: "Classes ativas liberam fontes de escolha conforme a distribuição de níveis." },
+      { label: "Pendência", value: pendingCount ? `${pendingCount} aberta(s)` : "resolvida", body: "Cada escolha obrigatória permanece pendente até receber uma opção válida." },
+      { label: "Sorteio", value: "aleatório", body: "O sorteio preenche opções válidas e evita repetição quando o recurso pede escolhas únicas." },
+      { label: "Efeitos", value: effectLabels.size ? formatList(Array.from(effectLabels)) : "resumo", body: "As escolhas entram como registro de recurso ou como magias concedidas quando a regra permite." },
+      { label: "Resumo/PDF", value: selectedLines ? `${selectedLines} linha(s)` : "aguardando", body: "As escolhas selecionadas alimentam o preview, os campos automáticos e o PDF." },
+    ];
+
+    return `
+      <div class="feature-choice-cascade" aria-label="Cascata das escolhas de recursos">
+        ${steps.map((step, index) => `
+          <span class="feature-choice-cascade-step${pendingCount && step.label === "Pendência" ? " is-warning" : ""}" tabindex="0">
+            <small>${escapeHtml(String(index + 1))}</small>
+            <strong>${escapeHtml(step.label)}</strong>
+            <span>${escapeHtml(step.value)}</span>
+            <span class="feature-choice-hover-card" role="tooltip">
+              <strong>${escapeHtml(step.label)}</strong>
+              <p>${escapeHtml(step.body)}</p>
+            </span>
+          </span>
+        `).join("")}
+      </div>
+    `;
+  }
+
+  function renderFeatureChoiceCard(source, selections) {
+    const options = getFeatureChoiceOptions(source);
+    const fields = Array.from({ length: source.picks }, (_, slotIndex) => {
+      const slotKey = buildFeatureChoiceSlotKey(source, slotIndex);
+      const selectedValue = String(selections.get(slotKey) || "").trim();
+      const selectedOption = options.find((option) => option.value === selectedValue);
+      const label = source.picks > 1 ? `${source.selectionLabel || "Escolha"} ${slotIndex + 1}` : source.selectionLabel || "Escolha";
+      const description = selectedOption?.summary
+        || (options.length ? "Selecione uma opção para ver o efeito registrado na ficha." : source.emptyOptionsLabel || "Complete escolhas anteriores para liberar opções válidas.");
+
+      return `
+        <label class="row generic-dropdown-field feat-choice-field" data-feature-choice-field-key="${escapeHtml(slotKey)}" data-feature-choice-placeholder="${escapeHtml(label)}">
+          <span>${escapeHtml(label)}</span>
+          <input data-feature-choice-input type="text" autocomplete="off" placeholder="${escapeHtml(options.length ? "Selecione..." : (source.emptyOptionsLabel || "Sem opções disponíveis"))}" ${options.length ? "" : "disabled"} />
+          <div data-feature-choice-suggestions class="dropdown-suggestions" hidden></div>
+          <div data-feature-choice-hover-card class="dropdown-hover-card" hidden></div>
+          <select class="native-select-hidden" tabindex="-1" aria-hidden="true" name="${escapeHtml(slotKey)}" data-feature-choice-source-key="${escapeHtml(source.key)}" data-feature-choice-slot-key="${escapeHtml(slotKey)}" ${options.length ? "" : "disabled"}>
+            ${renderFeatureChoiceOptionElements(source, slotIndex, selectedValue, options, selections)}
+          </select>
+        </label>
+        <p class="feat-choice-description${selectedOption ? "" : " is-empty"}">${escapeHtml(description)}</p>
+      `;
+    }).join("");
+
+    return `
+      <article class="feat-choice-card feat-choice-card--active">
+        <strong>${escapeHtml(source.title)}</strong>
+        <p class="feat-choice-meta">${escapeHtml(source.ownerLabel)} • Nível ${escapeHtml(String(source.minLevel || 1))} • ${escapeHtml(source.picks === 1 ? "1 escolha" : `${source.picks} escolhas`)}</p>
+        ${source.help ? `<p class="note subtle">${escapeHtml(source.help)}</p>` : ""}
+        ${fields}
+      </article>
+    `;
+  }
+
+  function initializeFeatureChoiceFields() {
+    cleanupFeatureChoiceFields();
+    if (!el.featureChoicesContainer) return;
+
+    el.featureChoicesContainer.querySelectorAll("select[data-feature-choice-slot-key]").forEach((select) => {
+      const slotKey = select.getAttribute("data-feature-choice-slot-key") || "";
+      const fieldRoot = select.closest("[data-feature-choice-field-key]");
+      const input = fieldRoot?.querySelector("[data-feature-choice-input]");
+      const suggestions = fieldRoot?.querySelector("[data-feature-choice-suggestions]");
+      const hoverCard = fieldRoot?.querySelector("[data-feature-choice-hover-card]");
+      if (!slotKey || !fieldRoot || !input || !suggestions || !hoverCard) return;
+
+      const fieldKey = `${FEATURE_CHOICE_CUSTOM_SELECT_PREFIX}${slotKey}`;
+      featureChoiceCustomSelectKeys.push(fieldKey);
+      CUSTOM_SELECT_FIELDS[fieldKey] = createCustomSelectField({
+        key: fieldKey,
+        input,
+        select,
+        suggestions,
+        hoverCard,
+        placeholder: fieldRoot.getAttribute("data-feature-choice-placeholder") || "Selecione uma opção...",
+        describeOption: (value, label) => describeFeatureChoiceOption(select, value, label),
+        onCommit: () => onFeatureChoiceChanged({ target: select }),
+        showSuggestionSummary: true,
+      });
+      syncCustomSelectField(fieldKey);
+    });
+  }
+
+  function renderFeatureChoices() {
+    if (!el.featureChoicesPanel || !el.featureChoicesContainer) return;
+
+    const sources = collectFeatureChoiceSources();
+    const selections = getCurrentFeatureChoiceSelectionMap();
+    cleanupFeatureChoiceFields();
+    if (!sources.length) {
+      el.featureChoicesPanel.hidden = true;
+      el.featureChoicesSummary.textContent = "";
+      el.featureChoicesContainer.innerHTML = "";
+      if (el.featureChoicesInfo) el.featureChoicesInfo.textContent = "";
+      return;
+    }
+
+    const totalChoices = sources.reduce((total, source) => total + source.picks, 0);
+    const selectedCount = sources.reduce((total, source) => {
+      const options = getFeatureChoiceOptions(source);
+      let count = 0;
+      for (let index = 0; index < source.picks; index += 1) {
+        const value = selections.get(buildFeatureChoiceSlotKey(source, index));
+        if (value && options.some((option) => option.value === value)) count += 1;
+      }
+      return total + count;
+    }, 0);
+
+    el.featureChoicesPanel.hidden = false;
+    el.featureChoicesSummary.textContent = `${selectedCount}/${totalChoices} escolha(s) de recurso configurada(s).`;
+    el.featureChoicesContainer.innerHTML = sources.map((source) => renderFeatureChoiceCard(source, selections)).join("");
+    if (el.featureChoicesInfo) {
+      el.featureChoicesInfo.innerHTML = getFeatureChoiceCascadeMarkup(sources, selections);
+    }
+    initializeFeatureChoiceFields();
+  }
+
+  function onFeatureChoiceChanged(event) {
+    const select = event?.target?.closest?.("select[data-feature-choice-slot-key]");
+    if (!select) return;
+
+    const sourceKey = select.getAttribute("data-feature-choice-source-key") || "";
+    const selectedValue = String(select.value || "").trim();
+    const source = collectFeatureChoiceSources().find((item) => item.key === sourceKey);
+    if (selectedValue && source?.disallowDuplicates) {
+      const duplicate = Array.from(el.featureChoicesContainer?.querySelectorAll("select[data-feature-choice-source-key]") || [])
+        .some((other) => other !== select && other.getAttribute("data-feature-choice-source-key") === sourceKey && other.value === selectedValue);
+      if (duplicate) {
+        select.value = "";
+        setStatus("Essa opção já foi escolhida para o mesmo recurso.");
+      } else {
+        setStatus("");
+      }
+    } else {
+      setStatus("");
+    }
+
+    renderFeatureChoices();
+    renderMagicSection();
+    atualizarPreview();
+  }
+
   function cleanupLanguageChoiceFields() {
     languageCustomSelectKeys.forEach((key) => {
       delete CUSTOM_SELECT_FIELDS[key];
@@ -5086,6 +5535,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     renderEquipmentChoices();
     renderFeatChoices();
     renderWarlockInvocationChoices();
+    renderFeatureChoices();
     renderMagicSection();
   }
 
@@ -5094,6 +5544,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     renderFightingStyleChoices();
     renderFeatChoices();
     renderWarlockInvocationChoices();
+    renderFeatureChoices();
     renderMagicSection();
     atualizarPreview();
   }
@@ -6764,9 +7215,38 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
   function collectClassFeatureSpellSources(state = {}) {
     const sources = [];
     const classEntries = Array.isArray(state.classEntries) ? state.classEntries : [];
+    const selectedFeatureChoices = Array.isArray(state.selectedFeatureChoices) ? state.selectedFeatureChoices : [];
 
     classEntries.forEach((entry) => {
       if (!entry?.classData || !entry.level) return;
+
+      const selectedSpellGroups = new Map();
+      selectedFeatureChoices
+        .filter(({ source }) => source?.grantsSelectedSpell && source?.entry?.uid === entry.uid)
+        .forEach(({ source, value }) => {
+          if (!value) return;
+          if (!selectedSpellGroups.has(source.key)) {
+            selectedSpellGroups.set(source.key, {
+              source,
+              spellIds: [],
+            });
+          }
+          selectedSpellGroups.get(source.key).spellIds.push(value);
+        });
+
+      selectedSpellGroups.forEach(({ source, spellIds }) => {
+        sources.push(buildClassFeatureSpellSource({
+          state,
+          entry,
+          sourceKeySuffix: `feature-choice-${source.id || "spells"}`,
+          featureLabel: source.title || "Escolha de recurso",
+          sourceClassId: source.entry?.classId || entry.classId,
+          ability: SPELLCASTING_RULES[entry.classId]?.ability || "int",
+          grantedSpellIds: dedupeStringList(spellIds),
+          selectionLabel: source.selectionLabel || "Magias de recurso",
+          showInPicker: false,
+        }));
+      });
 
       const definitions = CLASS_BONUS_PICKER_SOURCE_DEFINITIONS[entry.classId] || [];
       definitions.forEach((definition) => {
@@ -10295,6 +10775,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     fillRandomFeatChoices({ overwrite });
     fillRandomFeatDetailChoices({ overwrite });
     fillRandomWarlockInvocationChoices({ overwrite });
+    fillRandomFeatureChoices({ overwrite });
     fillRandomSubclassDetailChoices({ overwrite });
     fillRandomRaceDetailChoices({ overwrite });
     fillRandomSkillChoices({ overwrite });
@@ -10495,6 +10976,36 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       handleWarlockInvocationSelection(target);
       guard += 1;
     }
+  }
+
+  function fillRandomFeatureChoices({ overwrite = false } = {}) {
+    if (!el.featureChoicesContainer) return;
+
+    renderFeatureChoices();
+    const selects = Array.from(el.featureChoicesContainer.querySelectorAll("select[data-feature-choice-slot-key]"));
+    if (overwrite) {
+      selects.forEach((select) => {
+        if (!select.disabled) select.value = "";
+      });
+      renderFeatureChoices();
+    }
+
+    Array.from(el.featureChoicesContainer.querySelectorAll("select[data-feature-choice-slot-key]")).forEach((select) => {
+      if (select.disabled || (!overwrite && select.value)) return;
+      const sourceKey = select.getAttribute("data-feature-choice-source-key") || "";
+      const usedValues = new Set(
+        Array.from(el.featureChoicesContainer.querySelectorAll("select[data-feature-choice-source-key]"))
+          .filter((other) => other !== select && other.getAttribute("data-feature-choice-source-key") === sourceKey)
+          .map((other) => other.value)
+          .filter(Boolean)
+      );
+      const selectedValue = pickRandom(listOptionValues(select, { filter: (value) => !usedValues.has(value) }));
+      if (!selectedValue) return;
+      select.value = selectedValue;
+    });
+
+    renderFeatureChoices();
+    renderMagicSection();
   }
 
   function fillRandomSubclassDetailChoices({ overwrite = false } = {}) {
@@ -15780,6 +16291,8 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
     const selectedFightingStyles = collectSelectedFightingStyles(fightingStyleGrants);
     const selectedWarlockPactBoons = collectSelectedWarlockPactBoons(classEntries);
     const selectedWarlockInvocations = collectSelectedWarlockInvocations(classEntries);
+    const featureChoiceSources = collectFeatureChoiceSources({ classEntries });
+    const selectedFeatureChoices = getFeatureChoiceSelectionEntries({ classEntries });
 
     const attrs = {
       for: clampInt(el.for.value, 1, 20),
@@ -15878,6 +16391,8 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
       selectedFightingStyles,
       selectedWarlockPactBoons,
       selectedWarlockInvocations,
+      featureChoiceSources,
+      selectedFeatureChoices,
       equipmentSelections: collectEquipmentSelectionState(),
       selectedSpellsBySource: getSpellSelectionSnapshot(),
       spellSlotsUsed: collectSpellSlotUsageState(),
@@ -16449,6 +16964,7 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
       invocations: state.selectedWarlockInvocations,
     });
     const classEntries = getResolvedClassEntries(state);
+    const selectedFeatureChoiceLines = buildSelectedFeatureChoiceLines(classEntries);
 
     if (raceTraits.length) {
       sections.push({
@@ -16491,6 +17007,14 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
       sections.push({
         title: "Bruxo - Invocações Místicas",
         lines: selectedWarlockChoiceLines,
+        bucket: "secondary",
+      });
+    }
+
+    if (selectedFeatureChoiceLines.length) {
+      sections.push({
+        title: "Escolhas de recursos",
+        lines: selectedFeatureChoiceLines,
         bucket: "secondary",
       });
     }
@@ -17433,6 +17957,7 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
     const attackPreview = (ficha.ataques?.linhas || [])
       .map((linha) => `${linha.nome} (${linha.bonusAtaque}; ${linha.danoTipo})`)
       .join(", ");
+    const featureChoicePending = collectFeatureChoicePendingLines(state);
 
     preview.innerHTML = `
       <h3>${ficha.texto.nome || "Sem nome"}</h3>
@@ -17463,6 +17988,7 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
       </ul>
 
       <p><strong>Perícias proficientes:</strong> ${proficientSkills.length ? proficientSkills.join(", ") : "Nenhuma"}</p>
+      ${featureChoicePending.length ? `<p><strong>Pendências de recursos:</strong> ${escapeHtml(featureChoicePending.join(" ")).replaceAll("\n", "<br>")}</p>` : ""}
       <p><strong>Ataques:</strong> ${escapeHtml(attackPreview || "Nenhum ataque automático").replaceAll("\n", "<br>")}</p>
       <p><strong>Ataques & Conjuração:</strong> ${escapeHtml(ficha.ataques?.resumo || "-").replaceAll("\n", "<br>")}</p>
       <p><strong>Características & Talentos:</strong><br>${escapeHtml(ficha.texto.caracteristicasETalentos || "-").replaceAll("\n", "<br>")}</p>

@@ -38,6 +38,70 @@ const smokePages = [
       ".attr-total-preview:not([hidden])",
       "#btnRandomizeAll",
     ],
+    setup: `
+      (() => {
+        const assert = (condition, message) => {
+          if (!condition) throw new Error(message);
+        };
+        const dispatch = (node, type) => node.dispatchEvent(new Event(type, { bubbles: true }));
+        const setValue = (selector, value, events = ["change"]) => {
+          const node = document.querySelector(selector);
+          assert(node, "Campo ausente: " + selector);
+          node.value = String(value);
+          events.forEach((eventName) => dispatch(node, eventName));
+          return node;
+        };
+        const setClassLevel = (className, level) => {
+          setValue("#classe", className, ["change"]);
+          setValue("#nivel", level, ["input", "change"]);
+        };
+        const featureSelects = () => Array.from(document.querySelectorAll("#featureChoicesContainer select[data-feature-choice-slot-key]"));
+        const selectsForFeature = (featureId) => featureSelects()
+          .filter((select) => (select.getAttribute("data-feature-choice-slot-key") || "").includes(":feature-choice:class:" + featureId + ":"));
+        const assertFeatureSlots = (className, level, expectations) => {
+          setClassLevel(className, level);
+          assert(!document.querySelector("#featureChoicesPanel")?.hidden, "Painel de escolhas oculto para " + className + " nivel " + level);
+          expectations.forEach(([featureId, expectedCount]) => {
+            const count = selectsForFeature(featureId).length;
+            assert(count === expectedCount, "Slots incorretos para " + featureId + ": esperado " + expectedCount + ", obtido " + count);
+          });
+          assert(document.querySelector(".feature-choice-cascade"), "Cascata de escolhas 5e ausente.");
+          assert(document.querySelector("[data-feature-choice-hover-card]"), "Hovercard de escolhas 5e ausente.");
+        };
+        const chooseFeature = (featureId, value = "", slotIndex = 0) => {
+          const select = selectsForFeature(featureId)[slotIndex];
+          assert(select, "Escolha ausente: " + featureId + " slot " + slotIndex);
+          const option = value
+            ? Array.from(select.options).find((item) => item.value === value && !item.disabled)
+            : Array.from(select.options).find((item) => item.value && !item.disabled);
+          assert(option, "Opcao indisponivel para " + featureId + ": " + (value || "primeira valida"));
+          select.value = option.value;
+          dispatch(select, "change");
+          return option.value;
+        };
+
+        assertFeatureSlots("Feiticeiro", 17, [["metamagic", 4]]);
+        const metamagic = new Set();
+        for (let index = 0; index < 4; index += 1) {
+          metamagic.add(chooseFeature("metamagic", "", index));
+        }
+        assert(metamagic.size === 4, "Metamagia 5e permitiu escolha duplicada no smoke.");
+
+        assertFeatureSlots("Mago", 20, [["spell-mastery-1", 1], ["spell-mastery-2", 1], ["signature-spells", 2]]);
+        chooseFeature("spell-mastery-1");
+        chooseFeature("spell-mastery-2");
+        chooseFeature("signature-spells", "", 0);
+        chooseFeature("signature-spells", "", 1);
+        const previewText = document.querySelector("#preview")?.textContent || "";
+        assert(previewText.includes("Escolhas de recursos") && previewText.includes("Magias Assinatura"), "Resumo/PDF automatico 5e nao recebeu escolhas de recursos.");
+      })();
+    `,
+    afterSetupSelectors: [
+      "#featureChoicesPanel:not([hidden])",
+      "select[data-feature-choice-slot-key]",
+      ".feature-choice-cascade",
+      "[data-feature-choice-hover-card]",
+    ],
   },
   {
     name: "5.5e-2024",
@@ -68,6 +132,8 @@ const smokePages = [
         const featureSelects = () => Array.from(document.querySelectorAll("#featureChoicesContainer2024 select[data-feature-choice-slot-key]"));
         const selectsForFeature = (featureId) => featureSelects()
           .filter((select) => (select.getAttribute("data-feature-choice-slot-key") || "").includes(":feature-choice:class:" + featureId + ":"));
+        const selectsForFeatureKind = (kind, featureId) => featureSelects()
+          .filter((select) => (select.getAttribute("data-feature-choice-slot-key") || "").includes(":feature-choice:" + kind + ":" + featureId));
         const assertFeatureSlots = (classId, level, expectations) => {
           setClassLevel(classId, level);
           assert(!document.querySelector("#featureChoicesPanel2024")?.hidden, "Painel de escolhas oculto para " + classId + " nivel " + level);
@@ -99,6 +165,13 @@ const smokePages = [
           const text = document.querySelector("#featureChoicesSummary2024")?.textContent || "";
           assert(text.includes(expectedText), "Resumo de escolhas nao contem " + expectedText + ": " + text);
         };
+        const chooseFeat = (featId) => {
+          const select = Array.from(document.querySelectorAll("#featChoices2024 select[data-feat-choice-id]"))
+            .find((candidate) => Array.from(candidate.options).some((option) => option.value === featId && !option.disabled));
+          assert(select, "Slot de talento ausente para " + featId);
+          select.value = featId;
+          dispatch(select, "change");
+        };
 
         ["for", "des", "con", "int", "sab", "car"].forEach((ability) => {
           const input = document.querySelector('[name="base-' + ability + '"]');
@@ -121,6 +194,15 @@ const smokePages = [
         const druidTraining = document.querySelector("#proficiencySummary2024")?.textContent || "";
         assert(druidTraining.includes("Armaduras médias") && druidTraining.includes("Armas marciais"), "Guardiao nao atualizou treinamentos do druida.");
 
+        assertFeatureSlots("barbaro", 4, [["weapon-mastery", 3]]);
+        const barbarianMasteries = new Set();
+        for (let index = 0; index < 3; index += 1) {
+          barbarianMasteries.add(chooseFeature("weapon-mastery", "", index));
+        }
+        assert(barbarianMasteries.size === 3, "Maestria em Arma do barbaro permitiu duplicidade.");
+        assertFeatureSummary("3/3");
+        assert((document.querySelector("#preview2024")?.textContent || "").includes("Maestria em Arma"), "Resumo/PDF automatico 2024 nao recebeu Maestria em Arma.");
+
         assertFeatureSlots("feiticeiro", 17, [["metamagic", 6]]);
         const metamagic = new Set();
         for (let index = 0; index < 6; index += 1) {
@@ -137,12 +219,37 @@ const smokePages = [
         chooseFeature("signature-spells", "", 0);
         chooseFeature("signature-spells", "", 1);
         assertFeatureSummary("5/5");
+
+        assertFeatureSlots("barbaro", 4, [["weapon-mastery", 3]]);
+        const masteryValuesForFeat = new Set();
+        for (let index = 0; index < 3; index += 1) {
+          masteryValuesForFeat.add(chooseFeature("weapon-mastery", "", index));
+        }
+        chooseFeat("mestre-de-armas");
+        const featMasterySelects = selectsForFeatureKind("feat", "weapon-mastery");
+        assert(featMasterySelects.length === 1, "Mestre das Armas nao abriu escolha explicita de maestria.");
+        const featOption = Array.from(featMasterySelects[0].options)
+          .find((option) => option.value && !option.disabled && !masteryValuesForFeat.has(option.value));
+        assert(featOption, "Mestre das Armas nao tem arma valida para escolher.");
+        featMasterySelects[0].value = featOption.value;
+        dispatch(featMasterySelects[0], "change");
+        assert((document.querySelector("#featureChoicesSummary2024")?.textContent || "").includes("4/4"), "Mestre das Armas nao entrou no resumo de escolhas.");
+
+        assertFeatureSlots("mago", 20, [["scholar", 1], ["spell-mastery-1", 1], ["spell-mastery-2", 1], ["signature-spells", 2]]);
+        markSkill("arcanismo");
+        chooseFeature("scholar", "arcanismo");
+        chooseFeature("spell-mastery-1");
+        chooseFeature("spell-mastery-2");
+        chooseFeature("signature-spells", "", 0);
+        chooseFeature("signature-spells", "", 1);
       })();
     `,
     afterSetupSelectors: [
       ".attr-total-preview:not([hidden])",
       "#featureChoicesPanel2024:not([hidden])",
       "select[data-feature-choice-slot-key]",
+      ".feature-choice-cascade",
+      "[data-feature-choice-hover-card]",
       ".spell-check-item[data-spell-id]",
       "#magicSpellHoverCard2024",
     ],
