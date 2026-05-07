@@ -15,6 +15,10 @@ Gerador de ficha preenchível de D&D com entradas separadas para `5e` e `5.5e (2
 ## Comandos
 
 - `npm run serve`: sobe o servidor HTTP com API de contas em `http://127.0.0.1:8000`.
+- `npm run serve:watchdog`: sobe o servidor e reinicia automaticamente se ele cair.
+- `npm run server:install-startup`: instala uma tarefa agendada do Windows para manter o servidor ativo ao fazer login.
+- `npm run server:status`: mostra se a tarefa agendada existe e se a API local esta respondendo.
+- `npm run server:uninstall-startup`: remove a tarefa agendada.
 - `npm run check`: valida a sintaxe dos arquivos `.js` e `.mjs` da aplicação.
 
 ## Navegação
@@ -36,6 +40,16 @@ npm run serve
 ```
 
 Para publicar na internet, use HTTPS e um ambiente com armazenamento persistente. Deploy estático sem backend persistente não mantém cadastros entre execuções.
+
+### Manter ativo no Windows
+
+Para evitar que login e cadastro parem quando o terminal for fechado, instale o supervisor local:
+
+```powershell
+npm run server:install-startup
+```
+
+Esse comando registra a tarefa agendada `CriadorFichaDndServer`, inicia o watchdog imediatamente e volta a subir o servidor em `http://127.0.0.1:8000` sempre que o Windows fizer login. Os logs ficam em `out/server-watchdog.log`.
 
 ### Vercel
 
