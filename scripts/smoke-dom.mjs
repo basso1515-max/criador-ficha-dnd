@@ -194,6 +194,29 @@ const smokePages = [
         const druidTraining = document.querySelector("#proficiencySummary2024")?.textContent || "";
         assert(druidTraining.includes("Armaduras médias") && druidTraining.includes("Armas marciais"), "Guardiao nao atualizou treinamentos do druida.");
 
+        setValue("#subclasse2024", "druida-terra", []);
+        setValue("#nivel2024", 5, ["input", "change"]);
+        const landPanel = document.querySelector("#subclassDetailChoicesPanel2024");
+        assert(landPanel && !landPanel.hidden, "Painel de detalhes de subclasse nao abriu para Círculo da Terra.");
+        assert(document.querySelector("#subclassDetailChoicesInfo2024 .subclass-detail-cascade"), "Cascata de detalhes de subclasse ausente para Círculo da Terra.");
+        assert(document.querySelector("#subclassDetailChoicesInfo2024 .subclass-detail-hover-card"), "Hovercard da cascata de detalhes de subclasse ausente.");
+        assert(document.querySelector("#subclassDetailChoicesContainer2024 [data-subclass-detail-hover-card]"), "Hovercard do seletor de terreno ausente.");
+        const terrainSelect = document.querySelector('#subclassDetailChoicesContainer2024 select[data-subclass-detail-slot-key]');
+        assert(terrainSelect, "Seletor de terreno do Círculo da Terra ausente.");
+        terrainSelect.value = "arido";
+        dispatch(terrainSelect, "change");
+        const landMagicText = document.querySelector("#magicSourcesList2024")?.textContent || "";
+        assert(
+          landMagicText.includes("Nublar")
+            && landMagicText.includes("Mãos Flamejantes")
+            && landMagicText.includes("Raio de Fogo")
+            && landMagicText.includes("Bola de Fogo"),
+          "Círculo da Terra arido 2024 nao exibiu as magias fixas esperadas."
+        );
+        const fireballGranted = document.querySelector('#magicSourcesList2024 .spell-check-item[data-spell-id="bola-de-fogo"] input[type="checkbox"]');
+        assert(fireballGranted?.checked && fireballGranted?.disabled, "Bola de Fogo nao ficou marcada e travada como magia do Círculo da Terra.");
+        assert((document.querySelector("#preview2024")?.textContent || "").includes("Árido"), "Preview nao registrou o terreno do Círculo da Terra.");
+
         assertFeatureSlots("barbaro", 4, [["weapon-mastery", 3]]);
         const barbarianMasteries = new Set();
         for (let index = 0; index < 3; index += 1) {
@@ -235,6 +258,16 @@ const smokePages = [
         dispatch(featMasterySelects[0], "change");
         assert((document.querySelector("#featureChoicesSummary2024")?.textContent || "").includes("4/4"), "Mestre das Armas nao entrou no resumo de escolhas.");
 
+        setClassLevel("paladino", 3);
+        setValue("#subclasse2024", "paladino-vinganca", []);
+        setValue("#nivel2024", 3, ["input", "change"]);
+        const paladinMagicText = document.querySelector("#magicSourcesList2024")?.textContent || "";
+        assert(paladinMagicText.includes("Perdição") && paladinMagicText.includes("Marca do Predador"), "Juramento da Vingança 2024 nao exibiu magias fixas.");
+        const vengeanceGranted = document.querySelector('#magicSourcesList2024 .spell-check-item[data-spell-id="perdicao"] input[type="checkbox"]');
+        assert(vengeanceGranted?.checked && vengeanceGranted?.disabled, "Perdição nao ficou marcada e travada como magia de juramento.");
+        assert(document.querySelector("#magicSourcesList2024 .magic-source-cascade"), "Cascata de magia 2024 ausente para Paladino.");
+        assert((document.querySelector("#magicSpellHoverCard2024")?.outerHTML || "").includes("magic-spell-hover-card"), "Hovercard de magia 2024 ausente para juramento.");
+
         assertFeatureSlots("mago", 20, [["scholar", 1], ["spell-mastery-1", 1], ["spell-mastery-2", 1], ["signature-spells", 2]]);
         markSkill("arcanismo");
         chooseFeature("scholar", "arcanismo");
@@ -251,6 +284,8 @@ const smokePages = [
       ".feature-choice-cascade",
       "[data-feature-choice-hover-card]",
       ".spell-check-item[data-spell-id]",
+      ".magic-source-cascade",
+      ".magic-source-hover-card",
       "#magicSpellHoverCard2024",
     ],
   },

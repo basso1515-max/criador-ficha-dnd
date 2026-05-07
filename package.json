@@ -8,9 +8,15 @@
     "check": "node scripts/check.mjs",
     "smoke:dom": "node scripts/smoke-dom.mjs",
     "serve": "node scripts/serve.mjs",
+    "serve:watchdog": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/server-watchdog.ps1",
+    "server:install-startup": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/install-server-startup.ps1",
+    "server:uninstall-startup": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/uninstall-server-startup.ps1",
+    "server:status": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/server-status.ps1",
     "start": "npm run serve"
   },
   "dependencies": {
+    "@upstash/redis": "^1.38.0",
+    "@vercel/analytics": "^2.0.1",
     "pdf-lib": "^1.17.1",
     "pdf-parse": "^2.4.5",
     "pdfjs-dist": "^5.6.205"

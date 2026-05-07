@@ -31,6 +31,8 @@ const MIME_TYPES = {
   ".txt": "text/plain; charset=utf-8",
 };
 
+const DEV_NO_CACHE_EXTENSIONS = new Set([".css", ".html", ".js"]);
+
 function createEmptyStore() {
   return {
     version: STORE_VERSION,

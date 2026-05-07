@@ -534,7 +534,7 @@ export const FEATURE_SUMMARIES_2024 = {
       "Nimbo Sagrado": "Ação bônus por 10 minutos: sua Aura de Proteção vira luz solar, causa dano Radiante igual a Carisma + proficiência a inimigos que começam nela e dá Vantagem contra ínferos e mortos-vivos."
     },
     "paladino-gloria": {
-      "Magias do Juramento": "Sempre deixa preparadas magias de juramento específicas da Glória.",
+      "Magias do Juramento": "Sempre deixa preparadas as magias da Glória conforme o nível: Disparo Guia, Heroísmo, Melhorar Habilidade, Arma Mágica, Velocidade, Proteção Contra Energia, Compulsão, Movimentação Livre, Comunhão e Golpe de Chama.",
       "Atleta Inspirador": "Canaliza divindade para feitos atléticos extraordinários e liderança marcial.",
       "Desafio de Valor": "Marca um desafio nobre e recompensa enfrentar o inimigo de frente.",
       "Aura da Alacridade": "Sua aura acelera aliados e melhora o reposicionamento do grupo.",
@@ -542,7 +542,7 @@ export const FEATURE_SUMMARIES_2024 = {
       "Lenda Viva": "Como uma Ação Bônus, você recebe os benefícios abaixo por 10 minutos"
     },
     "paladino-vinganca": {
-      "Magias do Juramento": "Sempre deixa preparadas magias de juramento específicas da Vingança.",
+      "Magias do Juramento": "Sempre deixa preparadas as magias da Vingança conforme o nível: Perdição, Marca do Predador, Imobilizar Pessoa, Passo da Neblina, Velocidade, Proteção Contra Energia, Banimento, Porta Dimensional, Imobilizar Monstro e Espionagem.",
       "Inimizade Votiva": "Canaliza o juramento para focar um alvo e persegui-lo com vantagem.",
       "Abjurar Inimigo": "Condena um alvo com poder sagrado, travando seu avanço e sua moral.",
       "Vingador Implacável": "Ao atingir uma criatura com um Ataque de Oportunidade, você pode reduzir o Deslocamento da criatura para 0 até o final do turno atual",
@@ -550,7 +550,7 @@ export const FEATURE_SUMMARIES_2024 = {
       "Anjo Vingador": "Como uma Ação Bônus, você adquire os benefícios abaixo por 10 minutos ou até a encerrar (nenhuma ação é necessária)"
     },
     "paladino-ancioes": {
-      "Magias do Juramento": "Sempre deixa preparadas magias de juramento específicas dos Anciões.",
+      "Magias do Juramento": "Sempre deixa preparadas as magias dos Anciões conforme o nível: Golpe Prendedor, Falar com Animais, Raio de Lua, Passo da Neblina, Crescer Plantas, Proteção Contra Energia, Tempestade de Gelo, Pele de Pedra, Comunhão com a Natureza e Passo de Árvore.",
       "Ira da Natureza": "Usa vinhas e poder natural para prender ou conter inimigos.",
       "Repelir os Sem Fé": "Afasta criaturas profanas ou extraplanares com autoridade sagrada.",
       "Aura de Proteção Mágica": "Sua aura reduz o impacto de magias hostis sobre você e aliados.",
