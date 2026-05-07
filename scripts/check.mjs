@@ -363,6 +363,13 @@ const PALADIN_OATH_SPELLS_5E_REQUESTED = {
   "paladino-ancioes": ["golpe-prendedor", "falar-com-animais", "raio-de-lua", "passo-da-neblina", "crescer-plantas", "protecao-contra-energia", "tempestade-de-gelo", "pele-de-pedra", "comunhao-com-a-natureza", "passo-de-arvore"],
 };
 
+const DRUID_LAND_CIRCLE_SPELLS_2024 = {
+  arido: ["nublar", "maos-flamejantes", "disparo-de-fogo", "bola-de-fogo", "praga", "muralha-de-pedra"],
+  polar: ["neblina", "imobilizar-pessoa", "raio-de-gelo", "tempestade-de-granizo", "tempestade-de-gelo", "cone-de-frio"],
+  temperado: ["passo-da-neblina", "toque-chocante", "sono", "relampago", "movimento-livre", "passo-de-arvore"],
+  tropical: ["disparo-acido", "raio-do-enjoo", "teia", "nevoa-fetida", "metamorfose", "praga-de-insetos"],
+};
+
 function normalizeFeatureName(name = "") {
   return String(name || "")
     .normalize("NFD")
@@ -425,6 +432,111 @@ function validatePaladinOathSpellData() {
   }
 
   console.log("OK: magias de juramento do Paladino");
+}
+
+function validateDruidCircleSpellData() {
+  const errors = [];
+  const spellIds5e = collectSpellIds(MAGIAS_5E);
+  const spellIds2024 = collectSpellIds(MAGIAS_2024);
+  const subclasses2024 = listRecords(SUBCLASSES_2024);
+  const html5e = readFileSync(path.join(root, "5e.html"), "utf8");
+  const html2024 = readFileSync(path.join(root, "5.5e-2024.html"), "utf8");
+  const script5e = readFileSync(path.join(root, "src/script.js"), "utf8");
+  const script2024 = readFileSync(path.join(root, "src/script-2024.js"), "utf8");
+  const landMap2024 = extractConstObjectBlock(script2024, "DRUID_LAND_CIRCLE_SPELL_IDS_2024");
+  const circleMap2024 = extractConstObjectBlock(script2024, "DRUID_CIRCLE_GRANTED_SPELL_IDS_2024");
+
+  [
+    "subclassDetailChoicesPanel2024",
+    "subclassDetailChoicesSummary2024",
+    "subclassDetailChoicesContainer2024",
+    "subclassDetailChoicesInfo2024",
+  ].forEach((id) => {
+    if (!html2024.includes(id)) errors.push(`2024: painel de detalhes de subclasse sem #${id}.`);
+  });
+
+  [
+    "SUBCLASS_DETAIL_DEFINITIONS_2024",
+    "DRUID_LAND_CIRCLE_TERRAIN_OPTIONS_2024",
+    "DRUID_LAND_CIRCLE_SPELL_IDS_2024",
+    "collectSubclassDetailSources2024",
+    "renderSubclassDetailChoices2024",
+    "getSubclassDetailCascadeMarkup2024",
+    "data-subclass-detail-hover-card",
+    "subclass-detail-cascade",
+    'entry.subclassId === "druida-terra"',
+    "collectDruidLandCircleSpellIds2024",
+  ].forEach((marker) => {
+    if (!script2024.includes(marker)) errors.push(`2024: fluxo do Círculo da Terra sem marcador ${marker}.`);
+  });
+
+  const landSubclass = subclasses2024.find((item) => item.id === "druida-terra");
+  const landSummary = FEATURE_SUMMARIES_2024?.subclasses?.["druida-terra"]?.["Magias do Círculo da Terra"] || "";
+  if (!landSubclass) errors.push("2024: subclasse druida-terra ausente.");
+  if (!landSummary) errors.push("2024: druida-terra sem resumo hover de Magias do Círculo da Terra.");
+
+  Object.entries(DRUID_LAND_CIRCLE_SPELLS_2024).forEach(([terrain, spellIds]) => {
+    if (!landMap2024.includes(terrain)) errors.push(`2024: terreno ${terrain} sem mapa de magias do Círculo da Terra.`);
+    spellIds.forEach((spellId) => {
+      if (!spellIds2024.has(spellId)) errors.push(`2024: Círculo da Terra/${terrain} referencia magia ausente (${spellId}).`);
+      if (!landMap2024.includes(`"${spellId}"`)) errors.push(`2024: Círculo da Terra/${terrain} nao registra ${spellId} no fluxo de magias.`);
+    });
+  });
+
+  ["druida-lua", "druida-estrelas", "druida-mar"].forEach((subclassId) => {
+    const subclass = subclasses2024.find((item) => item.id === subclassId);
+    if (!subclass) {
+      errors.push(`2024: subclasse ausente (${subclassId}).`);
+      return;
+    }
+    const hasCircleSpellsFeature = Object.values(subclass.features || {})
+      .flat()
+      .some((feature) => normalizeFeatureName(feature?.nome).includes("magias do circulo"));
+    if (hasCircleSpellsFeature && !circleMap2024.includes(`"${subclassId}"`)) {
+      errors.push(`2024: ${subclassId} tem Magias do Circulo, mas nao tem mapa automatico.`);
+    }
+  });
+
+  [
+    "subclassDetailChoicesPanel",
+    "subclassDetailChoicesSummary",
+    "subclassDetailChoicesContainer",
+    "subclassDetailChoicesInfo",
+  ].forEach((id) => {
+    if (!html5e.includes(id)) errors.push(`5e: painel equivalente de detalhes de subclasse sem #${id}.`);
+  });
+
+  [
+    "SUBCLASS_DETAIL_DEFINITIONS",
+    "DRUID_LAND_CIRCLE_SPELLS",
+    "collectSubclassDetailSources",
+    "collectSubclassSpellSources",
+    'subclassId === "druida-terra"',
+  ].forEach((marker) => {
+    if (!script5e.includes(marker)) errors.push(`5e: fluxo equivalente do Círculo da Terra sem marcador ${marker}.`);
+  });
+
+  [
+    "imobilizar-pessoa",
+    "crescer-espinhos",
+    "tempestade-de-granizo",
+    "movimento-livre",
+    "cone-de-frio",
+    "praga",
+    "muralha-de-pedra",
+    "passo-de-arvore",
+  ].forEach((spellId) => {
+    if (!spellIds5e.has(spellId)) errors.push(`5e: Círculo da Terra referencia magia ausente (${spellId}).`);
+    if (!script5e.includes(`"${spellId}"`)) errors.push(`5e: Círculo da Terra nao registra ${spellId} no mapa de terreno.`);
+  });
+
+  if (errors.length) {
+    console.error("\nValidacao de magias do Círculo da Terra do Druida falhou:");
+    errors.forEach((error) => console.error(`- ${error}`));
+    process.exit(1);
+  }
+
+  console.log("OK: magias do Círculo da Terra do Druida");
 }
 
 function validateFeatureChoiceEngine2024() {
@@ -516,6 +628,7 @@ function validateFeatureChoiceEngine5e() {
 
 validateWarlockData();
 validatePaladinOathSpellData();
+validateDruidCircleSpellData();
 validateFeatureChoiceEngine2024();
 validateFeatureChoiceEngine5e();
 

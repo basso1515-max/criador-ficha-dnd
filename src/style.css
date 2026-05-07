@@ -4465,6 +4465,18 @@ select[multiple] option {
   width: min(340px, 86vw);
 }
 
+.subclass-detail-cascade {
+  margin: 12px 0 16px;
+}
+
+.subclass-detail-cascade-step {
+  min-height: 64px;
+}
+
+.subclass-detail-hover-card {
+  width: min(340px, 86vw);
+}
+
 .feature-choice-cascade-step {
   position: relative;
   display: grid;
