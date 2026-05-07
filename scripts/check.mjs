@@ -365,6 +365,13 @@ function validateFeatureChoiceEngine2024() {
     "collectFeatureChoiceSources2024",
     "applyRandomFeatureChoices2024",
     "getFeatureChoiceSelectionEntries2024",
+    "getFeatureChoiceCascadeMarkup2024",
+    "data-feature-choice-hover-card",
+    "EXPLICIT_WEAPON_MASTERY_CLASS_IDS_2024",
+    '["barbaro", "guerreiro", "ladino", "paladino", "patrulheiro"]',
+    "getWeaponMasteryChoiceOptions2024",
+    "grantsSelectedWeaponMastery",
+    "weapon-mastery",
     "divine-order",
     "primal-order",
     "metamagic",
@@ -390,7 +397,47 @@ function validateFeatureChoiceEngine2024() {
   console.log("OK: motor de escolhas de recursos 2024");
 }
 
+function validateFeatureChoiceEngine5e() {
+  const errors = [];
+  const html5e = readFileSync(path.join(root, "5e.html"), "utf8");
+  const script5e = readFileSync(path.join(root, "src/script.js"), "utf8");
+  const requiredHtmlIds = [
+    "featureChoicesPanel",
+    "featureChoicesSummary",
+    "featureChoicesContainer",
+    "featureChoicesInfo",
+  ];
+  const requiredScriptMarkers = [
+    "FEATURE_CHOICE_DEFINITIONS_5E",
+    "renderFeatureChoices",
+    "collectFeatureChoiceSources",
+    "fillRandomFeatureChoices",
+    "getFeatureChoiceSelectionEntries",
+    "getFeatureChoiceCascadeMarkup",
+    "data-feature-choice-hover-card",
+    "metamagic",
+    "spell-mastery-1",
+    "signature-spells",
+  ];
+
+  requiredHtmlIds.forEach((id) => {
+    if (!html5e.includes(id)) errors.push(`5e: painel de escolhas de recursos sem #${id}.`);
+  });
+  requiredScriptMarkers.forEach((marker) => {
+    if (!script5e.includes(marker)) errors.push(`5e: motor de escolhas de recursos sem marcador ${marker}.`);
+  });
+
+  if (errors.length) {
+    console.error("\nValidacao do motor de escolhas de recursos 5e falhou:");
+    errors.forEach((error) => console.error(`- ${error}`));
+    process.exit(1);
+  }
+
+  console.log("OK: motor de escolhas de recursos 5e");
+}
+
 validateWarlockData();
 validateFeatureChoiceEngine2024();
+validateFeatureChoiceEngine5e();
 
 console.log("\nValidacao concluida com sucesso.");
