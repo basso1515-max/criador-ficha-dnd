@@ -23,6 +23,8 @@ const el = {
 };
 
 const returnTo = getSafeReturnTo();
+const LOGIN_SUCCESS_PAGE = "./minha-conta.html";
+const REGISTER_SUCCESS_PAGE = "./index.html";
 
 function setStatus(message, tone = "info") {
   if (!el.status) return;
@@ -66,13 +68,13 @@ function getSafeReturnTo() {
   }
 }
 
-function completeAuth(message) {
+function completeAuth(message, redirectTo) {
   renderAccountPage();
   setStatus(message, "success");
 
-  if (returnTo) {
+  if (redirectTo) {
     window.setTimeout(() => {
-      window.location.href = returnTo;
+      window.location.href = redirectTo;
     }, 700);
   }
 }
@@ -87,7 +89,7 @@ el.loginForm?.addEventListener("submit", async (event) => {
       password: formData.get("password"),
     });
     el.loginForm.reset();
-    completeAuth("Conta acessada.");
+    completeAuth("Conta acessada. Redirecionando para sua página.", LOGIN_SUCCESS_PAGE);
   } catch (error) {
     setStatus(error?.message || "Não foi possível entrar na conta.", "warning");
   }
@@ -104,7 +106,7 @@ el.registerForm?.addEventListener("submit", async (event) => {
       password: formData.get("password"),
     });
     el.registerForm.reset();
-    completeAuth("Conta criada.");
+    completeAuth("Conta criada. Redirecionando para a página inicial.", REGISTER_SUCCESS_PAGE);
   } catch (error) {
     setStatus(error?.message || "Não foi possível criar a conta.", "warning");
   }
