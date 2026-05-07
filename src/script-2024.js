@@ -13126,7 +13126,8 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
         .map((level) => ({
           level,
           spells: eligibleSpells.filter((spell) => Number(spell.nivel || 0) === level),
-        }));
+        }))
+        .filter((group) => group.spells.length > 0);
 
       return `
         <section class="edition-summary-card">
@@ -13172,7 +13173,9 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     if (!el.selectedSpellBook) return;
     const selectedEntries = getUniqueSelectedSpellEntries2024(getSelectedSpellEntries2024(context));
     const grouped = Object.fromEntries(
-      [0, ...SPELL_SLOT_LEVELS_2024].map((level) => [level, selectedEntries.filter((entry) => Number(entry.spell?.nivel || 0) === level)])
+      [0, ...SPELL_SLOT_LEVELS_2024]
+        .map((level) => [level, selectedEntries.filter((entry) => Number(entry.spell?.nivel || 0) === level)])
+        .filter(([, entries]) => entries.length > 0)
     );
 
     el.selectedSpellBook.innerHTML = `
