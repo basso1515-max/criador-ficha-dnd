@@ -486,6 +486,155 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       options: DIVINE_SOUL_AFFINITY_OPTIONS,
     },
   };
+  const COMPANION_CHOICE_DEFINITIONS_5E = [
+    {
+      id: "wild-companion",
+      kind: "class",
+      classId: "druida",
+      minClassLevel: 2,
+      required: false,
+      featureLabel: "Companheiro Selvagem",
+      selectionLabel: "Forma do familiar",
+      cascadeRole: "Familiar opcional",
+      description: "Regra opcional: registre a forma mais usada do familiar feérico criado com uso de Forma Selvagem.",
+      options: [
+        {
+          value: "batedor-aereo",
+          label: "Batedor aéreo",
+          summary: "Familiar feérico alado para reconhecimento, entrega de toque e vigia.",
+          mechanics: [
+            "Regra opcional de Tasha: conjura Encontrar Familiar sem componentes materiais ao gastar Forma Selvagem.",
+            "O familiar é feérico em vez de besta e desaparece após metade do seu nível de druida em horas.",
+            "Não cria pendência obrigatória se a mesa não usar esta regra opcional.",
+          ],
+        },
+        {
+          value: "furtivo-terrestre",
+          label: "Furtivo terrestre",
+          summary: "Familiar feérico discreto para infiltração, sentidos e ações de ajuda.",
+          mechanics: [
+            "Regra opcional de Tasha: conjura Encontrar Familiar sem componentes materiais ao gastar Forma Selvagem.",
+            "O familiar é feérico em vez de besta e desaparece após metade do seu nível de druida em horas.",
+            "Bom registro para formas pequenas que exploram espaços apertados.",
+          ],
+        },
+        {
+          value: "aquatico",
+          label: "Explorador aquático",
+          summary: "Familiar feérico voltado a água, travessias e reconhecimento submerso.",
+          mechanics: [
+            "Regra opcional de Tasha: conjura Encontrar Familiar sem componentes materiais ao gastar Forma Selvagem.",
+            "O familiar é feérico em vez de besta e desaparece após metade do seu nível de druida em horas.",
+            "Anote aqui quando a campanha usa rios, costa ou cenas submersas com frequência.",
+          ],
+        },
+      ],
+    },
+    {
+      id: "beast-master-companion",
+      kind: "subclass",
+      classId: "patrulheiro",
+      subclassId: "patrulheiro-mestre-feras",
+      minClassLevel: 3,
+      featureLabel: "Companheiro Animal",
+      selectionLabel: "Companheiro",
+      cascadeRole: "Animal ou fera primal",
+      description: "Escolha o tipo de aliado registrado para o Mestre das Feras 5e.",
+      options: [
+        {
+          value: "animal-terrestre",
+          label: "Animal terrestre",
+          summary: "Companheiro de solo para linha de frente, rastreio e proteção próxima.",
+          mechanics: [
+            "Na versão base, escolha uma besta apropriada ao desafio permitido pela subclasse.",
+            "Com a opção de Tasha, pode representar a Fera da Terra usando seu bônus de proficiência.",
+            "Registre aqui para o resumo lembrar comando, deslocamento e papel tático do aliado.",
+          ],
+        },
+        {
+          value: "animal-voador",
+          label: "Animal voador",
+          summary: "Companheiro aéreo para vigia, mobilidade vertical e perseguição.",
+          mechanics: [
+            "Na versão base, escolha uma besta apropriada ao desafio permitido pela subclasse.",
+            "Com a opção de Tasha, pode representar a Fera do Céu usando seu bônus de proficiência.",
+            "Útil para cenas de exploração, reconhecimento e alcance em três dimensões.",
+          ],
+        },
+        {
+          value: "animal-aquatico",
+          label: "Animal aquático",
+          summary: "Companheiro anfíbio ou nadador para travessias e combate em água.",
+          mechanics: [
+            "Na versão base, escolha uma besta apropriada ao desafio permitido pela subclasse.",
+            "Com a opção de Tasha, pode representar a Fera do Mar usando seu bônus de proficiência.",
+            "Boa marca quando a aventura usa rios, costa, pântanos ou áreas submersas.",
+          ],
+        },
+      ],
+    },
+    {
+      id: "drake-companion",
+      kind: "subclass",
+      classId: "patrulheiro",
+      subclassId: "patrulheiro-dracos",
+      minClassLevel: 3,
+      featureLabel: "Companheiro Dracônico",
+      selectionLabel: "Essência dracônica",
+      cascadeRole: "Draco",
+      description: "Escolha a essência do draco do Drakewarden para registrar dano, resistência e tema.",
+      options: [
+        { value: "acido", label: "Ácido", summary: "Draco corrosivo para dano de ácido e tema cáustico.", mechanics: ["A essência escolhida define a afinidade elemental do draco.", "Use no resumo para lembrar dano extra, resistência e sopro quando liberados."] },
+        { value: "frio", label: "Frio", summary: "Draco gélido para resistência e dano de frio.", mechanics: ["A essência escolhida define a afinidade elemental do draco.", "Use no resumo para lembrar dano extra, resistência e sopro quando liberados."] },
+        { value: "fogo", label: "Fogo", summary: "Draco ígneo para presença ofensiva clássica.", mechanics: ["A essência escolhida define a afinidade elemental do draco.", "Use no resumo para lembrar dano extra, resistência e sopro quando liberados."] },
+        { value: "relampago", label: "Relâmpago", summary: "Draco elétrico para tema veloz e dano de relâmpago.", mechanics: ["A essência escolhida define a afinidade elemental do draco.", "Use no resumo para lembrar dano extra, resistência e sopro quando liberados."] },
+        { value: "veneno", label: "Veneno", summary: "Draco venenoso para tema tóxico e resistência associada.", mechanics: ["A essência escolhida define a afinidade elemental do draco.", "Use no resumo para lembrar dano extra, resistência e sopro quando liberados."] },
+      ],
+    },
+    {
+      id: "wildfire-spirit",
+      kind: "subclass",
+      classId: "druida",
+      subclassId: "druida-fogo-selvagem",
+      minClassLevel: 2,
+      featureLabel: "Espírito Selvagem",
+      selectionLabel: "Manifestação",
+      cascadeRole: "Espírito",
+      description: "Registre a manifestação do Espírito Selvagem do Círculo do Fogo Selvagem.",
+      options: [
+        {
+          value: "chama-ofensiva",
+          label: "Chama ofensiva",
+          summary: "Espírito focado em dano, pressão e explosão inicial de invocação.",
+          mechanics: [
+            "Invocado ao gastar Forma Selvagem; aparece em espaço próximo e usa o bloco do Espírito Selvagem.",
+            "Age após seu turno e pode receber comandos para mover e atacar.",
+            "A escolha ajuda a lembrar o papel prioritário do espírito na ficha.",
+          ],
+        },
+        {
+          value: "chama-curativa",
+          label: "Chama curativa",
+          summary: "Espírito voltado a suporte, posicionamento e cura do grupo.",
+          mechanics: [
+            "Invocado ao gastar Forma Selvagem; aparece em espaço próximo e usa o bloco do Espírito Selvagem.",
+            "Interage com os recursos de cura e fogo do círculo conforme avança de nível.",
+            "Boa marca para druida que usa o espírito como ponto de apoio tático.",
+          ],
+        },
+        {
+          value: "chama-movel",
+          label: "Chama móvel",
+          summary: "Espírito priorizado para teleporte, reposicionamento e controle de campo.",
+          mechanics: [
+            "Invocado ao gastar Forma Selvagem; aparece em espaço próximo e usa o bloco do Espírito Selvagem.",
+            "O teleporte flamejante muda alcance, fuga e posicionamento do grupo.",
+            "Registre esta opção quando mobilidade for o papel central do aliado.",
+          ],
+        },
+      ],
+    },
+  ];
   const RACIAL_SPELLCASTING_ABILITY_OPTIONS = ["int", "sab", "car"].map((abilityKey) => ({
     value: abilityKey,
     label: abilityKeyToLabel(abilityKey),
@@ -2202,6 +2351,10 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     featureChoicesSummary: $("featureChoicesSummary"),
     featureChoicesContainer: $("featureChoicesContainer"),
     featureChoicesInfo: $("featureChoicesInfo"),
+    companionChoicesPanel: $("companionChoicesPanel"),
+    companionChoicesSummary: $("companionChoicesSummary"),
+    companionChoicesContainer: $("companionChoicesContainer"),
+    companionChoicesInfo: $("companionChoicesInfo"),
     raceDetailChoicesPanel: $("raceDetailChoicesPanel"),
     raceDetailChoicesSummary: $("raceDetailChoicesSummary"),
     raceDetailChoicesContainer: $("raceDetailChoicesContainer"),
@@ -2349,11 +2502,13 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
   const CUSTOM_SELECT_FIELDS = {};
   const FEAT_CUSTOM_SELECT_PREFIX = "feat-slot:";
   const FEATURE_CHOICE_CUSTOM_SELECT_PREFIX = "feature-choice:";
+  const COMPANION_CHOICE_CUSTOM_SELECT_PREFIX = "companion-choice:";
   const WARLOCK_INVOCATION_CUSTOM_SELECT_PREFIX = "warlock-invocation:";
   const LANGUAGE_CUSTOM_SELECT_PREFIX = "language-slot:";
   const EQUIPMENT_CUSTOM_SELECT_PREFIX = "equipment-choice:";
   let featCustomSelectKeys = [];
   let featureChoiceCustomSelectKeys = [];
+  let companionChoiceCustomSelectKeys = [];
   let warlockInvocationCustomSelectKeys = [];
   let languageCustomSelectKeys = [];
   let equipmentCustomSelectKeys = [];
@@ -2528,6 +2683,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     renderSubclassDetailChoices();
     renderWarlockInvocationChoices();
     renderFeatureChoices();
+    renderCompanionChoices();
     renderRaceDetailChoices();
     renderLanguageChoices();
     renderExpertiseChoices();
@@ -2556,6 +2712,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     renderSubclassDetailChoices();
     renderWarlockInvocationChoices();
     renderFeatureChoices();
+    renderCompanionChoices();
     renderRaceDetailChoices();
     renderLanguageChoices();
     renderExpertiseChoices();
@@ -2590,6 +2747,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     if (el.subclassDetailChoicesContainer) el.subclassDetailChoicesContainer.addEventListener("change", onSubclassDetailChoiceChanged);
     if (el.warlockInvocationsContainer) el.warlockInvocationsContainer.addEventListener("change", onWarlockInvocationChoiceChanged);
     if (el.featureChoicesContainer) el.featureChoicesContainer.addEventListener("change", onFeatureChoiceChanged);
+    if (el.companionChoicesContainer) el.companionChoicesContainer.addEventListener("change", onCompanionChoiceChanged);
     if (el.raceDetailChoicesContainer) el.raceDetailChoicesContainer.addEventListener("change", onRaceDetailChoiceChanged);
     if (el.languageChoicesContainer) el.languageChoicesContainer.addEventListener("change", onLanguageChoiceChanged);
     if (el.expertiseChoicesContainer) el.expertiseChoicesContainer.addEventListener("change", onExpertiseChoiceChanged);
@@ -3368,6 +3526,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     renderFeatChoices();
     renderWarlockInvocationChoices();
     renderFeatureChoices();
+    renderCompanionChoices();
     renderMagicSection();
     atualizarPreview();
   }
@@ -3382,6 +3541,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     renderFeatChoices();
     renderWarlockInvocationChoices();
     renderFeatureChoices();
+    renderCompanionChoices();
     renderMagicSection();
     atualizarPreview();
   }
@@ -3409,6 +3569,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     renderFeatChoices();
     renderWarlockInvocationChoices();
     renderFeatureChoices();
+    renderCompanionChoices();
     renderMagicSection();
     atualizarPreview();
   }
@@ -3425,6 +3586,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     renderFeatChoices();
     renderWarlockInvocationChoices();
     renderFeatureChoices();
+    renderCompanionChoices();
     renderMagicSection();
     atualizarPreview();
   }
@@ -3448,6 +3610,8 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     renderFightingStyleChoices();
     renderFeatChoices();
     renderWarlockInvocationChoices();
+    renderFeatureChoices();
+    renderCompanionChoices();
     renderMagicSection();
     atualizarPreview();
   }
@@ -4778,6 +4942,13 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     featureChoiceCustomSelectKeys = [];
   }
 
+  function cleanupCompanionChoiceFields() {
+    companionChoiceCustomSelectKeys.forEach((key) => {
+      delete CUSTOM_SELECT_FIELDS[key];
+    });
+    companionChoiceCustomSelectKeys = [];
+  }
+
   function getFeatureChoiceDefinitionsForEntry(entry) {
     if (!entry?.classId || !entry?.level) return [];
     return [
@@ -5140,6 +5311,339 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     renderFeatureChoices();
     renderMagicSection();
     atualizarPreview();
+  }
+
+  function buildCompanionChoiceSlotKey(source, slotIndex) {
+    return `${source.key}:slot-${slotIndex}`;
+  }
+
+  function getCurrentCompanionChoiceSelectionMap() {
+    const selections = new Map();
+    if (!el.companionChoicesContainer) return selections;
+
+    el.companionChoicesContainer.querySelectorAll("select[data-companion-choice-slot-key]").forEach((select) => {
+      selections.set(select.getAttribute("data-companion-choice-slot-key") || "", select.value || "");
+    });
+
+    return selections;
+  }
+
+  function getCompanionChoiceDefinitionsForEntry(entry) {
+    if (!entry?.classId || !entry.level) return [];
+    return COMPANION_CHOICE_DEFINITIONS_5E.filter((definition) => {
+      if (entry.level < Number(definition.minClassLevel || 1)) return false;
+      if (definition.kind === "class") return entry.classId === definition.classId;
+      if (definition.kind === "subclass") {
+        return entry.classId === definition.classId && entry.subclassId === definition.subclassId;
+      }
+      return false;
+    });
+  }
+
+  function collectCompanionChoiceSources(classEntries = null) {
+    const entries = Array.isArray(classEntries)
+      ? classEntries
+      : collectClassEntries(getSelectedClassData(), getSelectedSubclassData(), getTotalCharacterLevel());
+
+    return (entries || [])
+      .flatMap((entry) => getCompanionChoiceDefinitionsForEntry(entry).map((definition) => {
+        const ownerLabel = definition.kind === "subclass"
+          ? (entry.subclassData?.nome || labelFromSlug(entry.subclassId))
+          : (entry.classData?.nome || entry.classLabel || labelFromSlug(entry.classId));
+        return {
+          ...definition,
+          key: `${entry.uid}:companion:${definition.kind}:${definition.id}`,
+          entry,
+          entryUid: entry.uid,
+          classId: entry.classId,
+          subclassId: entry.subclassId || "",
+          classLabel: entry.classData?.nome || entry.classLabel || labelFromSlug(entry.classId),
+          subclassLabel: entry.subclassData?.nome || (entry.subclassId ? labelFromSlug(entry.subclassId) : ""),
+          ownerLabel,
+          title: definition.featureLabel,
+          label: definition.selectionLabel || "Companheiro",
+          picks: 1,
+          required: definition.required !== false,
+          options: definition.options || [],
+        };
+      }))
+      .filter(Boolean);
+  }
+
+  function collectSelectedCompanionChoices(sources = collectCompanionChoiceSources()) {
+    const selections = getCurrentCompanionChoiceSelectionMap();
+    const choices = [];
+
+    sources.forEach((source) => {
+      for (let slotIndex = 0; slotIndex < source.picks; slotIndex += 1) {
+        const slotKey = buildCompanionChoiceSlotKey(source, slotIndex);
+        const value = String(selections.get(slotKey) || "").trim();
+        const option = (source.options || []).find((item) => item.value === value);
+        if (!option) continue;
+        choices.push({
+          source,
+          slotIndex,
+          slotKey,
+          sourceKey: source.key,
+          entryUid: source.entryUid,
+          classId: source.classId,
+          subclassId: source.subclassId,
+          featureLabel: source.featureLabel,
+          classLabel: source.classLabel,
+          subclassLabel: source.subclassLabel,
+          value,
+          option,
+          label: option.label || value,
+        });
+      }
+    });
+
+    return choices;
+  }
+
+  function getCompanionChoiceImpactLines(source, option = null) {
+    const lines = Array.isArray(option?.mechanics) ? option.mechanics.slice() : [];
+    lines.push("Registro: aparece no painel de companheiro, no preview e nos campos automáticos exportados para o PDF.");
+    return lines;
+  }
+
+  function describeCompanionChoiceOption(select, value, label) {
+    const sourceKey = select?.getAttribute("data-companion-choice-source-key") || "";
+    const source = collectCompanionChoiceSources().find((item) => item.key === sourceKey);
+    const option = (source?.options || []).find((item) => item.value === value) || null;
+    if (!option) return { summary: "", lines: [], body: "", search: label || "" };
+
+    return {
+      group: source?.featureLabel || source?.title || "",
+      summary: option.summary || source?.description || "",
+      lines: [
+        source?.classLabel ? `Classe: ${source.classLabel}` : "",
+        source?.subclassLabel ? `Subclasse: ${source.subclassLabel}` : "",
+        source?.minClassLevel ? `Libera no nível ${source.minClassLevel}` : "",
+        source?.required === false ? "Opcional: não cria pendência obrigatória." : "",
+        ...getCompanionChoiceImpactLines(source, option),
+      ].filter(Boolean),
+      body: source?.description || "",
+      search: [
+        label,
+        option.label,
+        option.summary,
+        ...(option.mechanics || []),
+        source?.featureLabel,
+        source?.ownerLabel,
+        source?.description,
+      ].filter(Boolean).join(" "),
+    };
+  }
+
+  function renderCompanionChoiceOptionElements(source, selectedValue) {
+    const options = source.options || [];
+    const safeSelectedValue = options.some((option) => option.value === selectedValue) ? selectedValue : "";
+    const optionHtml = options
+      .map((option) => `
+        <option value="${escapeHtml(option.value)}"${safeSelectedValue === option.value ? " selected" : ""}>${escapeHtml(option.label)}</option>
+      `)
+      .join("");
+    return `
+      <option value=""${safeSelectedValue ? "" : " selected"} disabled>${escapeHtml(options.length ? "Selecione..." : "Sem opções disponíveis")}</option>
+      ${optionHtml}
+    `;
+  }
+
+  function getCompanionChoiceCascadeMarkup(sources, selections) {
+    const totalChoices = sources.reduce((total, source) => total + source.picks, 0);
+    let selectedCount = 0;
+    const selectedLabels = [];
+    const mechanicLabels = new Set();
+
+    sources.forEach((source) => {
+      for (let slotIndex = 0; slotIndex < source.picks; slotIndex += 1) {
+        const slotKey = buildCompanionChoiceSlotKey(source, slotIndex);
+        const value = String(selections.get(slotKey) || "").trim();
+        const option = (source.options || []).find((item) => item.value === value);
+        if (!option) continue;
+        selectedCount += 1;
+        selectedLabels.push(`${source.featureLabel}: ${option.label}`);
+        getCompanionChoiceImpactLines(source, option)
+          .filter((line) => !line.startsWith("Registro:"))
+          .map((line) => line.split(":")[0] || line.split(".")[0] || "Mecânica")
+          .forEach((line) => mechanicLabels.add(line));
+      }
+    });
+
+    const requiredTotal = sources
+      .filter((source) => source.required)
+      .reduce((total, source) => total + source.picks, 0);
+    const requiredSelected = sources
+      .filter((source) => source.required)
+      .reduce((total, source) => {
+        let count = 0;
+        for (let slotIndex = 0; slotIndex < source.picks; slotIndex += 1) {
+          const value = String(selections.get(buildCompanionChoiceSlotKey(source, slotIndex)) || "").trim();
+          if (value && (source.options || []).some((option) => option.value === value)) count += 1;
+        }
+        return total + count;
+      }, 0);
+    const pendingCount = Math.max(0, requiredTotal - requiredSelected);
+    const selectedLines = buildSelectedCompanionChoiceLines().length;
+    const steps = [
+      { label: "Fonte", value: `${sources.length} recurso(s)`, body: "Subclasses e regras opcionais que criam aliados especiais aparecem aqui ao atingir o nível correto." },
+      { label: "Pendência", value: pendingCount ? `${pendingCount} aberta(s)` : "resolvida", body: "Somente fontes obrigatórias entram como pendência; regras opcionais aparecem para registro sem travar a ficha." },
+      { label: "Tipo", value: selectedLabels.length ? formatList(selectedLabels) : "aguardando", body: "O tipo escolhido registra o aliado principal, essência dracônica ou manifestação do espírito." },
+      { label: "Mecânica", value: mechanicLabels.size ? formatList(Array.from(mechanicLabels)) : "aguardando", body: "O hover e a descrição destacam comando, duração, resistência, dano ou função tática relevante." },
+      { label: "Resumo/PDF", value: selectedLines ? `${selectedLines} linha(s)` : "aguardando", body: "A escolha entra no preview e nos campos automáticos usados na exportação do PDF." },
+    ];
+
+    return `
+      <div class="feature-choice-cascade companion-choice-cascade" aria-label="Cascata dos companheiros e formas especiais">
+        ${steps.map((step, index) => `
+          <span class="feature-choice-cascade-step companion-choice-cascade-step${pendingCount && step.label === "Pendência" ? " is-warning" : ""}" tabindex="0">
+            <small>${escapeHtml(String(index + 1))}</small>
+            <strong>${escapeHtml(step.label)}</strong>
+            <span>${escapeHtml(step.value)}</span>
+            <span class="feature-choice-hover-card companion-choice-hover-card" role="tooltip">
+              <strong>${escapeHtml(step.label)}</strong>
+              <p>${escapeHtml(step.body)}</p>
+            </span>
+          </span>
+        `).join("")}
+      </div>
+    `;
+  }
+
+  function renderCompanionChoiceCard(source, selections) {
+    const slotKey = buildCompanionChoiceSlotKey(source, 0);
+    const selectedValue = String(selections.get(slotKey) || "").trim();
+    const selectedOption = (source.options || []).find((option) => option.value === selectedValue);
+    const description = selectedOption?.summary
+      || source.description
+      || "Escolha o tipo do companheiro ou forma especial para registrar na ficha.";
+    const label = source.label || "Companheiro";
+
+    return `
+      <article class="feat-choice-card feat-choice-card--active">
+        <strong>${escapeHtml(`${source.classLabel}${source.subclassLabel ? ` • ${source.subclassLabel}` : ""}`)}</strong>
+        <p class="feat-choice-meta">${escapeHtml(`${source.featureLabel} • ${source.description || "Registre o aliado especial deste recurso."}`)}</p>
+        <label class="row generic-dropdown-field feat-choice-field" data-companion-choice-field-key="${escapeHtml(slotKey)}" data-companion-choice-placeholder="${escapeHtml(label)}">
+          <span>${escapeHtml(label)}</span>
+          <input data-companion-choice-input type="text" autocomplete="off" placeholder="${escapeHtml((source.options || []).length ? "Selecione..." : "Sem opções disponíveis")}" ${(source.options || []).length ? "" : "disabled"} />
+          <div data-companion-choice-suggestions class="dropdown-suggestions" hidden></div>
+          <div data-companion-choice-hover-card class="dropdown-hover-card" hidden></div>
+          <select class="native-select-hidden" tabindex="-1" aria-hidden="true" name="${escapeHtml(slotKey)}" data-companion-choice-source-key="${escapeHtml(source.key)}" data-companion-choice-slot-key="${escapeHtml(slotKey)}" ${(source.options || []).length ? "" : "disabled"}>
+            ${renderCompanionChoiceOptionElements(source, selectedValue)}
+          </select>
+        </label>
+        <p class="feat-choice-description${selectedOption ? "" : " is-empty"}">${escapeHtml(description)}</p>
+      </article>
+    `;
+  }
+
+  function initializeCompanionChoiceFields() {
+    cleanupCompanionChoiceFields();
+    if (!el.companionChoicesContainer) return;
+
+    el.companionChoicesContainer.querySelectorAll("select[data-companion-choice-slot-key]").forEach((select) => {
+      const slotKey = select.getAttribute("data-companion-choice-slot-key") || "";
+      const fieldRoot = select.closest("[data-companion-choice-field-key]");
+      const input = fieldRoot?.querySelector("[data-companion-choice-input]");
+      const suggestions = fieldRoot?.querySelector("[data-companion-choice-suggestions]");
+      const hoverCard = fieldRoot?.querySelector("[data-companion-choice-hover-card]");
+      if (!slotKey || !fieldRoot || !input || !suggestions || !hoverCard) return;
+
+      const fieldKey = `${COMPANION_CHOICE_CUSTOM_SELECT_PREFIX}${slotKey}`;
+      companionChoiceCustomSelectKeys.push(fieldKey);
+      CUSTOM_SELECT_FIELDS[fieldKey] = createCustomSelectField({
+        key: fieldKey,
+        input,
+        select,
+        suggestions,
+        hoverCard,
+        placeholder: fieldRoot.getAttribute("data-companion-choice-placeholder") || "Selecione uma opção...",
+        describeOption: (value, label) => describeCompanionChoiceOption(select, value, label),
+        onCommit: () => onCompanionChoiceChanged({ target: select }),
+        showSuggestionSummary: true,
+      });
+      syncCustomSelectField(fieldKey);
+    });
+  }
+
+  function renderCompanionChoices() {
+    if (!el.companionChoicesPanel || !el.companionChoicesContainer) return;
+
+    const sources = collectCompanionChoiceSources();
+    const selections = getCurrentCompanionChoiceSelectionMap();
+    cleanupCompanionChoiceFields();
+    if (!sources.length) {
+      el.companionChoicesPanel.hidden = true;
+      el.companionChoicesSummary.textContent = "";
+      el.companionChoicesContainer.innerHTML = "";
+      if (el.companionChoicesInfo) el.companionChoicesInfo.textContent = "";
+      return;
+    }
+
+    const totalChoices = sources.reduce((total, source) => total + source.picks, 0);
+    const selectedCount = sources.reduce((total, source) => {
+      let count = 0;
+      for (let slotIndex = 0; slotIndex < source.picks; slotIndex += 1) {
+        const value = String(selections.get(buildCompanionChoiceSlotKey(source, slotIndex)) || "").trim();
+        if (value && (source.options || []).some((option) => option.value === value)) count += 1;
+      }
+      return total + count;
+    }, 0);
+
+    el.companionChoicesPanel.hidden = false;
+    el.companionChoicesSummary.textContent = `${selectedCount}/${totalChoices} companheiro(s) ou forma(s) especial(is) configurado(s).`;
+    el.companionChoicesContainer.innerHTML = sources.map((source) => renderCompanionChoiceCard(source, selections)).join("");
+    if (el.companionChoicesInfo) {
+      el.companionChoicesInfo.innerHTML = getCompanionChoiceCascadeMarkup(sources, selections);
+    }
+    initializeCompanionChoiceFields();
+  }
+
+  function onCompanionChoiceChanged(event) {
+    const select = event?.target?.closest?.("select[data-companion-choice-slot-key]");
+    if (!select || !el.companionChoicesContainer) return;
+
+    setStatus("");
+    renderCompanionChoices();
+    atualizarPreview();
+  }
+
+  function buildSelectedCompanionChoiceLines(classEntries = null, selectedChoices = null) {
+    const choices = Array.isArray(selectedChoices)
+      ? selectedChoices
+      : collectSelectedCompanionChoices(collectCompanionChoiceSources(classEntries));
+    return choices.map(({ source, option }) => {
+      const mechanics = getCompanionChoiceImpactLines(source, option)
+        .filter((line) => !line.startsWith("Registro:"))
+        .join(" ");
+      const summary = [option?.summary, mechanics].filter(Boolean).join(" ");
+      return `${source?.featureLabel || "Companheiro"} (${source?.ownerLabel || "Fonte"}) - ${option?.label || "Escolha"}${summary ? `: ${summary}` : ""}`;
+    });
+  }
+
+  function collectCompanionChoicePendingLines(stateOrEntries = null) {
+    const classEntries = Array.isArray(stateOrEntries)
+      ? stateOrEntries
+      : (Array.isArray(stateOrEntries?.classEntries) ? stateOrEntries.classEntries : null);
+    const sources = collectCompanionChoiceSources(classEntries);
+    const selections = getCurrentCompanionChoiceSelectionMap();
+    const pending = [];
+
+    sources.forEach((source) => {
+      if (!source.required) return;
+      const options = source.options || [];
+      let selectedCount = 0;
+      for (let slotIndex = 0; slotIndex < source.picks; slotIndex += 1) {
+        const value = String(selections.get(buildCompanionChoiceSlotKey(source, slotIndex)) || "").trim();
+        if (value && options.some((option) => option.value === value)) selectedCount += 1;
+      }
+      if (selectedCount < source.picks) {
+        pending.push(`Configure ${source.featureLabel} de ${source.ownerLabel} (${selectedCount}/${source.picks}).`);
+      }
+    });
+
+    return pending;
   }
 
   function cleanupLanguageChoiceFields() {
@@ -5641,6 +6145,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     renderFeatChoices();
     renderWarlockInvocationChoices();
     renderFeatureChoices();
+    renderCompanionChoices();
     renderMagicSection();
   }
 
@@ -5650,6 +6155,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     renderFeatChoices();
     renderWarlockInvocationChoices();
     renderFeatureChoices();
+    renderCompanionChoices();
     renderMagicSection();
     atualizarPreview();
   }
@@ -10886,6 +11392,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     fillRandomWarlockInvocationChoices({ overwrite });
     fillRandomFeatureChoices({ overwrite });
     fillRandomSubclassDetailChoices({ overwrite });
+    fillRandomCompanionChoices({ overwrite });
     fillRandomRaceDetailChoices({ overwrite });
     fillRandomSkillChoices({ overwrite });
     fillRandomLanguageChoices({ overwrite });
@@ -11135,6 +11642,28 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       select.value = selectedValue;
       onSubclassDetailChoiceChanged({ target: select });
     });
+  }
+
+  function fillRandomCompanionChoices({ overwrite = false } = {}) {
+    if (!el.companionChoicesContainer) return;
+
+    renderCompanionChoices();
+    if (overwrite) {
+      el.companionChoicesContainer.querySelectorAll("select[data-companion-choice-slot-key]").forEach((select) => {
+        select.value = "";
+      });
+      renderCompanionChoices();
+    }
+
+    const selects = Array.from(el.companionChoicesContainer.querySelectorAll("select[data-companion-choice-slot-key]"));
+    selects.forEach((select) => {
+      if (select.disabled || (!overwrite && select.value)) return;
+      const selectedValue = pickRandom(listOptionValues(select));
+      if (!selectedValue) return;
+      select.value = selectedValue;
+    });
+
+    renderCompanionChoices();
   }
 
   function fillRandomRaceDetailChoices({ overwrite = false } = {}) {
@@ -16405,6 +16934,8 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
     const selectedFeatDetails = collectSelectedFeatDetails(featDetailSources);
     const subclassDetailSources = collectSubclassDetailSources(classEntries);
     const selectedSubclassDetails = collectSelectedSubclassDetails(subclassDetailSources);
+    const companionChoiceSources = collectCompanionChoiceSources(classEntries);
+    const selectedCompanionChoices = collectSelectedCompanionChoices(companionChoiceSources);
     const raceDetailSources = collectRaceDetailSources({ race, subrace });
     const selectedRaceDetails = collectSelectedRaceDetails(raceDetailSources);
     const languageGrants = collectLanguageChoiceSources({ race, subrace, background: bg, classEntries, selectedFeats });
@@ -16506,6 +17037,8 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
       selectedFeats,
       selectedFeatDetails,
       selectedSubclassDetails,
+      companionChoiceSources,
+      selectedCompanionChoices,
       selectedRaceDetails,
       languageGrants,
       selectedLanguages,
@@ -17089,6 +17622,7 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
     });
     const classEntries = getResolvedClassEntries(state);
     const selectedFeatureChoiceLines = buildSelectedFeatureChoiceLines(classEntries);
+    const selectedCompanionChoiceLines = buildSelectedCompanionChoiceLines(classEntries, state.selectedCompanionChoices);
 
     if (raceTraits.length) {
       sections.push({
@@ -17139,6 +17673,14 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
       sections.push({
         title: "Escolhas de recursos",
         lines: selectedFeatureChoiceLines,
+        bucket: "secondary",
+      });
+    }
+
+    if (selectedCompanionChoiceLines.length) {
+      sections.push({
+        title: "Companheiros e formas especiais",
+        lines: selectedCompanionChoiceLines,
         bucket: "secondary",
       });
     }
@@ -18081,7 +18623,10 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
     const attackPreview = (ficha.ataques?.linhas || [])
       .map((linha) => `${linha.nome} (${linha.bonusAtaque}; ${linha.danoTipo})`)
       .join(", ");
-    const featureChoicePending = collectFeatureChoicePendingLines(state);
+    const featureChoicePending = [
+      ...collectFeatureChoicePendingLines(state),
+      ...collectCompanionChoicePendingLines(state),
+    ];
 
     preview.innerHTML = `
       <h3>${ficha.texto.nome || "Sem nome"}</h3>

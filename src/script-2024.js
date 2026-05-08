@@ -198,6 +198,146 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
       options: DRUID_LAND_CIRCLE_TERRAIN_OPTIONS_2024,
     },
   };
+  const COMPANION_CHOICE_DEFINITIONS_2024 = [
+    {
+      id: "wild-companion",
+      kind: "class",
+      classId: "druida",
+      minClassLevel: 2,
+      featureLabel: "Companheiro Selvagem",
+      selectionLabel: "Forma do familiar",
+      cascadeRole: "Familiar feérico",
+      description: "Registre a forma mais comum do familiar feérico criado por Companheiro Selvagem.",
+      options: [
+        {
+          value: "batedor-aereo",
+          label: "Batedor aéreo",
+          summary: "Familiar feérico alado para reconhecimento, entrega de toque e vigia.",
+          mechanics: [
+            "Conjura Encontrar Familiar sem componentes materiais ao gastar espaço de magia ou uso de Forma Selvagem.",
+            "O familiar é feérico e desaparece no próximo Descanso Longo.",
+            "Use esta escolha para lembrar a função tática mais comum na mesa.",
+          ],
+        },
+        {
+          value: "furtivo-terrestre",
+          label: "Furtivo terrestre",
+          summary: "Familiar feérico discreto para infiltração, sentidos e ações de ajuda.",
+          mechanics: [
+            "Conjura Encontrar Familiar sem componentes materiais ao gastar espaço de magia ou uso de Forma Selvagem.",
+            "O familiar é feérico e desaparece no próximo Descanso Longo.",
+            "Bom registro para formas pequenas que exploram espaços apertados.",
+          ],
+        },
+        {
+          value: "aquatico",
+          label: "Explorador aquático",
+          summary: "Familiar feérico voltado a água, travessias e reconhecimento submerso.",
+          mechanics: [
+            "Conjura Encontrar Familiar sem componentes materiais ao gastar espaço de magia ou uso de Forma Selvagem.",
+            "O familiar é feérico e desaparece no próximo Descanso Longo.",
+            "Anote aqui quando a campanha usa rios, costa ou cenas submersas com frequência.",
+          ],
+        },
+        {
+          value: "mensageiro",
+          label: "Mensageiro",
+          summary: "Familiar feérico priorizado para comunicação, entrega e interação segura.",
+          mechanics: [
+            "Conjura Encontrar Familiar sem componentes materiais ao gastar espaço de magia ou uso de Forma Selvagem.",
+            "O familiar é feérico e desaparece no próximo Descanso Longo.",
+            "Ajuda a registrar o papel narrativo sem trocar a regra base de Encontrar Familiar.",
+          ],
+        },
+      ],
+    },
+    {
+      id: "primal-companion",
+      kind: "subclass",
+      classId: "patrulheiro",
+      subclassId: "patrulheiro-mestre-feras",
+      minClassLevel: 3,
+      featureLabel: "Companheiro Primal",
+      selectionLabel: "Fera primal",
+      cascadeRole: "Companheiro",
+      description: "Escolha qual bloco primal do Mestre das Feras fica registrado como aliado principal.",
+      options: [
+        {
+          value: "fera-da-terra",
+          label: "Fera da Terra",
+          summary: "Aliado terrestre resistente para linha de frente, investida e controle de espaço.",
+          mechanics: [
+            "Usa seu bônus de proficiência em partes do bloco de estatísticas.",
+            "Age depois do seu turno; se não for comandada, usa Esquivar.",
+            "Nível 11 melhora o ataque do companheiro; nível 15 permite compartilhar magias com ele.",
+          ],
+        },
+        {
+          value: "fera-do-mar",
+          label: "Fera do Mar",
+          summary: "Aliado anfíbio para nado, agarrões e cenas em água.",
+          mechanics: [
+            "Usa seu bônus de proficiência em partes do bloco de estatísticas.",
+            "Age depois do seu turno; se não for comandada, usa Esquivar.",
+            "Escolha útil quando a campanha alterna combate em solo e água.",
+          ],
+        },
+        {
+          value: "fera-do-ceu",
+          label: "Fera do Céu",
+          summary: "Aliado voador para mobilidade, perseguição e ameaça à distância curta.",
+          mechanics: [
+            "Usa seu bônus de proficiência em partes do bloco de estatísticas.",
+            "Age depois do seu turno; se não for comandada, usa Esquivar.",
+            "A mobilidade aérea muda posicionamento, alcance e exploração vertical.",
+          ],
+        },
+      ],
+    },
+    {
+      id: "draconic-companion",
+      kind: "subclass",
+      classId: "feiticeiro",
+      subclassId: "feiticeiro-draconico",
+      minClassLevel: 18,
+      featureLabel: "Companheiro Dracônico",
+      selectionLabel: "Espírito dracônico",
+      cascadeRole: "Espírito invocado",
+      description: "Registre o tipo do espírito de Invocar Dragão favorecido pelo Companheiro Dracônico.",
+      options: [
+        {
+          value: "cromatico",
+          label: "Dragão cromático",
+          summary: "Espírito agressivo associado a dano elemental direto e presença ofensiva.",
+          mechanics: [
+            "Pode conjurar Invocar Dragão sem componente material e uma vez sem espaço por Descanso Longo.",
+            "Ao conjurar, pode dispensar Concentração e reduzir a duração para 1 minuto.",
+            "Use o tipo escolhido para lembrar resistência, sopro e aparência do espírito.",
+          ],
+        },
+        {
+          value: "metalico",
+          label: "Dragão metálico",
+          summary: "Espírito protetor com leitura defensiva, controle de área e apoio ao grupo.",
+          mechanics: [
+            "Pode conjurar Invocar Dragão sem componente material e uma vez sem espaço por Descanso Longo.",
+            "Ao conjurar, pode dispensar Concentração e reduzir a duração para 1 minuto.",
+            "Ajuda a registrar o papel de guarda ou suporte do companheiro invocado.",
+          ],
+        },
+        {
+          value: "gema",
+          label: "Dragão de gema",
+          summary: "Espírito exótico ligado a energia psíquica, mobilidade e presença sobrenatural.",
+          mechanics: [
+            "Pode conjurar Invocar Dragão sem componente material e uma vez sem espaço por Descanso Longo.",
+            "Ao conjurar, pode dispensar Concentração e reduzir a duração para 1 minuto.",
+            "Boa marca para personagens com linhagem dracônica mais mística ou planar.",
+          ],
+        },
+      ],
+    },
+  ];
   const SORCERER_SORCERY_POINTS_BY_LEVEL_2024 = [0, 0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20];
   const SORCERER_METAMAGIC_OPTIONS_BY_LEVEL_2024 = [0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 4, 4, 4, 4, 6, 6, 6, 6];
   const SORCERER_SUBCLASS_GRANTED_SPELL_IDS_2024 = {
@@ -1407,11 +1547,13 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
   const FEAT_CUSTOM_SELECT_PREFIX_2024 = "feat-choice-2024:";
   const FEATURE_CHOICE_CUSTOM_SELECT_PREFIX_2024 = "feature-choice-2024:";
   const SUBCLASS_DETAIL_CUSTOM_SELECT_PREFIX_2024 = "subclass-detail-2024:";
+  const COMPANION_CHOICE_CUSTOM_SELECT_PREFIX_2024 = "companion-choice-2024:";
   const WARLOCK_INVOCATION_CUSTOM_SELECT_PREFIX_2024 = "warlock-invocation-2024:";
   const LANGUAGE_CUSTOM_SELECT_PREFIX_2024 = "language-choice-2024:";
   let featCustomSelectKeys2024 = [];
   let featureChoiceCustomSelectKeys2024 = [];
   let subclassDetailCustomSelectKeys2024 = [];
+  let companionChoiceCustomSelectKeys2024 = [];
   let warlockInvocationCustomSelectKeys2024 = [];
   let languageCustomSelectKeys2024 = [];
   let activeMagicHoverTarget2024 = null;
@@ -1558,6 +1700,10 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     subclassDetailChoicesSummary: document.getElementById("subclassDetailChoicesSummary2024"),
     subclassDetailChoicesContainer: document.getElementById("subclassDetailChoicesContainer2024"),
     subclassDetailChoicesInfo: document.getElementById("subclassDetailChoicesInfo2024"),
+    companionChoicesPanel: document.getElementById("companionChoicesPanel2024"),
+    companionChoicesSummary: document.getElementById("companionChoicesSummary2024"),
+    companionChoicesContainer: document.getElementById("companionChoicesContainer2024"),
+    companionChoicesInfo: document.getElementById("companionChoicesInfo2024"),
     equipmentChoices: document.getElementById("equipmentChoices2024"),
     magicSection: document.getElementById("magicSection2024"),
     magicSummary: document.getElementById("magicSummary2024"),
@@ -1786,6 +1932,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     el.warlockInvocationsContainer?.addEventListener("change", onWarlockInvocationChoiceChanged2024);
     el.featureChoicesContainer?.addEventListener("change", onFeatureChoiceChanged2024);
     el.subclassDetailChoicesContainer?.addEventListener("change", onSubclassDetailChoiceChanged2024);
+    el.companionChoicesContainer?.addEventListener("change", onCompanionChoiceChanged2024);
     el.equipmentChoices?.addEventListener("change", onEquipmentChoicesChanged2024);
     el.equipmentChoices?.addEventListener("input", onEquipmentChoicesInput2024);
     el.featChoices?.addEventListener("change", onFeatChoiceChanged2024);
@@ -1868,6 +2015,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     renderSkillChoices2024();
     renderFeatureChoices2024();
     renderSubclassDetailChoices2024();
+    renderCompanionChoices2024();
     renderExpertiseChoices2024();
     renderEquipmentChoices();
     renderHitPointRollControls2024();
@@ -3079,6 +3227,13 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     subclassDetailCustomSelectKeys2024 = [];
   }
 
+  function cleanupCompanionChoiceFields2024() {
+    companionChoiceCustomSelectKeys2024.forEach((key) => {
+      delete CUSTOM_SELECT_FIELDS_2024[key];
+    });
+    companionChoiceCustomSelectKeys2024 = [];
+  }
+
   function initializeFeatureChoiceFields2024() {
     cleanupFeatureChoiceFields2024();
     if (!el.featureChoicesContainer) return;
@@ -3131,6 +3286,35 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
         placeholder: fieldRoot.getAttribute("data-subclass-detail-placeholder") || "Selecione uma opção...",
         describeOption: (value, label) => describeSubclassDetailOption2024(select, value, label),
         onCommit: () => onSubclassDetailChoiceChanged2024({ target: select }),
+        showSuggestionSummary: true,
+      });
+      syncCustomSelectField2024(fieldKey);
+    });
+  }
+
+  function initializeCompanionChoiceFields2024() {
+    cleanupCompanionChoiceFields2024();
+    if (!el.companionChoicesContainer) return;
+
+    el.companionChoicesContainer.querySelectorAll("select[data-companion-choice-slot-key]").forEach((select) => {
+      const slotKey = select.getAttribute("data-companion-choice-slot-key") || "";
+      const fieldRoot = select.closest("[data-companion-choice-field-key]");
+      const input = fieldRoot?.querySelector("[data-companion-choice-input]");
+      const suggestions = fieldRoot?.querySelector("[data-companion-choice-suggestions]");
+      const hoverCard = fieldRoot?.querySelector("[data-companion-choice-hover-card]");
+      if (!slotKey || !fieldRoot || !input || !suggestions || !hoverCard) return;
+
+      const fieldKey = `${COMPANION_CHOICE_CUSTOM_SELECT_PREFIX_2024}${slotKey}`;
+      companionChoiceCustomSelectKeys2024.push(fieldKey);
+      CUSTOM_SELECT_FIELDS_2024[fieldKey] = createCustomSelectField2024({
+        key: fieldKey,
+        input,
+        select,
+        suggestions,
+        hoverCard,
+        placeholder: fieldRoot.getAttribute("data-companion-choice-placeholder") || "Selecione uma opção...",
+        describeOption: (value, label) => describeCompanionChoiceOption2024(select, value, label),
+        onCommit: () => onCompanionChoiceChanged2024({ target: select }),
         showSuggestionSummary: true,
       });
       syncCustomSelectField2024(fieldKey);
@@ -4553,6 +4737,285 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
 
   function formatSelectedSubclassDetailSummary2024(classEntries = getResolvedClassEntries2024()) {
     return buildSelectedSubclassDetailLines2024(classEntries).join(" • ");
+  }
+
+  function buildCompanionChoiceSlotKey2024(source, slotIndex) {
+    return `${source.key}:slot-${slotIndex}`;
+  }
+
+  function getCurrentCompanionChoiceSelectionMap2024() {
+    return readSelectValues(el.companionChoicesContainer, "data-companion-choice-slot-key");
+  }
+
+  function getCompanionChoiceDefinitionsForEntry2024(entry) {
+    if (!entry?.classId || !entry.level) return [];
+    return COMPANION_CHOICE_DEFINITIONS_2024.filter((definition) => {
+      if (entry.level < Number(definition.minClassLevel || 1)) return false;
+      if (definition.kind === "class") return entry.classId === definition.classId;
+      if (definition.kind === "subclass") {
+        return entry.classId === definition.classId && entry.subclassId === definition.subclassId;
+      }
+      return false;
+    });
+  }
+
+  function collectCompanionChoiceSources2024(classEntries = getResolvedClassEntries2024()) {
+    return normalizeClassEntriesArgument2024(classEntries)
+      .flatMap((entry) => getCompanionChoiceDefinitionsForEntry2024(entry).map((definition) => {
+        const ownerLabel = definition.kind === "subclass"
+          ? (entry.subclassData?.nome || labelFromSlug(entry.subclassId))
+          : (entry.classData?.nome || entry.classLabel || labelFromSlug(entry.classId));
+        return {
+          ...definition,
+          key: `${entry.uid}:companion:${definition.kind}:${definition.id}`,
+          entry,
+          entryUid: entry.uid,
+          classId: entry.classId,
+          subclassId: entry.subclassId || "",
+          classLabel: entry.classData?.nome || entry.classLabel || labelFromSlug(entry.classId),
+          subclassLabel: entry.subclassData?.nome || (entry.subclassId ? labelFromSlug(entry.subclassId) : ""),
+          ownerLabel,
+          title: definition.featureLabel,
+          label: definition.selectionLabel || "Companheiro",
+          picks: 1,
+          required: definition.required !== false,
+          options: definition.options || [],
+        };
+      }))
+      .filter(Boolean);
+  }
+
+  function collectSelectedCompanionChoices2024(sources = collectCompanionChoiceSources2024()) {
+    const selections = getCurrentCompanionChoiceSelectionMap2024();
+    const choices = [];
+
+    sources.forEach((source) => {
+      for (let slotIndex = 0; slotIndex < source.picks; slotIndex += 1) {
+        const slotKey = buildCompanionChoiceSlotKey2024(source, slotIndex);
+        const value = String(selections.get(slotKey) || "").trim();
+        const option = (source.options || []).find((item) => item.value === value);
+        if (!option) continue;
+        choices.push({
+          source,
+          slotIndex,
+          slotKey,
+          sourceKey: source.key,
+          entryUid: source.entryUid,
+          classId: source.classId,
+          subclassId: source.subclassId,
+          featureLabel: source.featureLabel,
+          classLabel: source.classLabel,
+          subclassLabel: source.subclassLabel,
+          value,
+          option,
+          label: option.label || value,
+        });
+      }
+    });
+
+    return choices;
+  }
+
+  function getCompanionChoiceImpactLines2024(source, option = null) {
+    const lines = Array.isArray(option?.mechanics) ? option.mechanics.slice() : [];
+    lines.push("Registro: aparece no painel de companheiro, no preview e nas características exportadas para o PDF.");
+    return lines;
+  }
+
+  function describeCompanionChoiceOption2024(select, value, label) {
+    const sourceKey = select?.getAttribute("data-companion-choice-source-key") || "";
+    const source = collectCompanionChoiceSources2024().find((item) => item.key === sourceKey);
+    const option = (source?.options || []).find((item) => item.value === value) || null;
+    if (!option) return { summary: "", lines: [], body: "", search: label || "" };
+
+    return {
+      group: source?.featureLabel || source?.title || "",
+      summary: option.summary || source?.description || "",
+      lines: [
+        source?.classLabel ? `Classe: ${source.classLabel}` : "",
+        source?.subclassLabel ? `Subclasse: ${source.subclassLabel}` : "",
+        source?.minClassLevel ? `Libera no nível ${source.minClassLevel}` : "",
+        ...getCompanionChoiceImpactLines2024(source, option),
+      ].filter(Boolean),
+      body: source?.description || "",
+      search: [
+        label,
+        option.label,
+        option.summary,
+        ...(option.mechanics || []),
+        source?.featureLabel,
+        source?.ownerLabel,
+        source?.description,
+      ].filter(Boolean).join(" "),
+    };
+  }
+
+  function renderCompanionChoiceOptionElements2024(source, selectedValue) {
+    const options = source.options || [];
+    const safeSelectedValue = options.some((option) => option.value === selectedValue) ? selectedValue : "";
+    const optionHtml = options
+      .map((option) => `
+        <option value="${escapeHtml(option.value)}"${safeSelectedValue === option.value ? " selected" : ""}>${escapeHtml(option.label)}</option>
+      `)
+      .join("");
+    return `
+      <option value=""${safeSelectedValue ? "" : " selected"} disabled>${escapeHtml(options.length ? "Selecione..." : "Sem opções disponíveis")}</option>
+      ${optionHtml}
+    `;
+  }
+
+  function getCompanionChoiceCascadeMarkup2024(sources, selections) {
+    const totalChoices = sources.reduce((total, source) => total + source.picks, 0);
+    let selectedCount = 0;
+    const selectedLabels = [];
+    const mechanicLabels = new Set();
+
+    sources.forEach((source) => {
+      for (let slotIndex = 0; slotIndex < source.picks; slotIndex += 1) {
+        const slotKey = buildCompanionChoiceSlotKey2024(source, slotIndex);
+        const value = String(selections.get(slotKey) || "").trim();
+        const option = (source.options || []).find((item) => item.value === value);
+        if (!option) continue;
+        selectedCount += 1;
+        selectedLabels.push(`${source.featureLabel}: ${option.label}`);
+        getCompanionChoiceImpactLines2024(source, option)
+          .filter((line) => !line.startsWith("Registro:"))
+          .map((line) => line.split(":")[0] || line.split(".")[0] || "Mecânica")
+          .forEach((line) => mechanicLabels.add(line));
+      }
+    });
+
+    const pendingCount = Math.max(0, totalChoices - selectedCount);
+    const selectedLines = buildSelectedCompanionChoiceLines2024().length;
+    const steps = [
+      {
+        label: "Fonte",
+        value: `${sources.length} recurso(s)`,
+        body: "Recursos de classe e subclasse que criam familiar, fera, espírito ou companheiro aparecem aqui ao atingir o nível correto.",
+      },
+      {
+        label: "Pendência",
+        value: pendingCount ? `${pendingCount} aberta(s)` : "resolvida",
+        body: "Enquanto a escolha estiver pendente, o resumo mecânico do aliado fica incompleto no preview e na exportação.",
+      },
+      {
+        label: "Tipo",
+        value: selectedLabels.length ? formatList(selectedLabels) : "aguardando",
+        body: "O tipo escolhido registra a forma principal do aliado ou do espírito especial usado pelo personagem.",
+      },
+      {
+        label: "Mecânica",
+        value: mechanicLabels.size ? formatList(Array.from(mechanicLabels)) : "aguardando",
+        body: "O hover e a descrição destacam como comandar, conjurar ou manter o companheiro conforme a regra do recurso.",
+      },
+      {
+        label: "Ficha/PDF",
+        value: selectedLines ? `${selectedLines} linha(s)` : "aguardando",
+        body: "A escolha entra no preview, nas características da ficha e no PDF junto com os recursos de classe.",
+      },
+    ];
+
+    return `
+      <div class="feature-choice-cascade companion-choice-cascade" aria-label="Cascata dos companheiros e formas especiais">
+        ${steps.map((step, index) => `
+          <span class="feature-choice-cascade-step companion-choice-cascade-step${pendingCount && step.label === "Pendência" ? " is-warning" : ""}" tabindex="0">
+            <small>${escapeHtml(String(index + 1))}</small>
+            <strong>${escapeHtml(step.label)}</strong>
+            <span>${escapeHtml(step.value)}</span>
+            <span class="feature-choice-hover-card companion-choice-hover-card" role="tooltip">
+              <strong>${escapeHtml(step.label)}</strong>
+              <p>${escapeHtml(step.body)}</p>
+            </span>
+          </span>
+        `).join("")}
+      </div>
+    `;
+  }
+
+  function renderCompanionChoiceCard2024(source, selections) {
+    const slotKey = buildCompanionChoiceSlotKey2024(source, 0);
+    const selectedValue = String(selections.get(slotKey) || "").trim();
+    const selectedOption = (source.options || []).find((option) => option.value === selectedValue);
+    const description = selectedOption?.summary
+      || source.description
+      || "Escolha o tipo do companheiro ou forma especial para registrar na ficha.";
+    const label = source.label || "Companheiro";
+
+    return `
+      <article class="feat-choice-card feat-choice-card--active">
+        <strong>${escapeHtml(`${source.classLabel}${source.subclassLabel ? ` • ${source.subclassLabel}` : ""}`)}</strong>
+        <p class="feat-choice-meta">${escapeHtml(`${source.featureLabel} • ${source.description || "Registre o aliado especial deste recurso."}`)}</p>
+        <label class="row generic-dropdown-field feat-choice-field" data-companion-choice-field-key="${escapeHtml(slotKey)}" data-companion-choice-placeholder="${escapeHtml(label)}">
+          <span>${escapeHtml(label)}</span>
+          <input data-companion-choice-input type="text" autocomplete="off" placeholder="${escapeHtml((source.options || []).length ? "Selecione..." : "Sem opções disponíveis")}" ${(source.options || []).length ? "" : "disabled"} />
+          <div data-companion-choice-suggestions class="dropdown-suggestions" hidden></div>
+          <div data-companion-choice-hover-card class="dropdown-hover-card" hidden></div>
+          <select class="native-select-hidden" tabindex="-1" aria-hidden="true" name="${escapeHtml(slotKey)}" data-companion-choice-source-key="${escapeHtml(source.key)}" data-companion-choice-slot-key="${escapeHtml(slotKey)}" ${(source.options || []).length ? "" : "disabled"}>
+            ${renderCompanionChoiceOptionElements2024(source, selectedValue)}
+          </select>
+        </label>
+        <p class="feat-choice-description${selectedOption ? "" : " is-empty"}">${escapeHtml(description)}</p>
+      </article>
+    `;
+  }
+
+  function renderCompanionChoices2024() {
+    if (!el.companionChoicesPanel || !el.companionChoicesContainer) return;
+
+    const sources = collectCompanionChoiceSources2024();
+    const selections = getCurrentCompanionChoiceSelectionMap2024();
+    cleanupCompanionChoiceFields2024();
+    if (!sources.length) {
+      el.companionChoicesPanel.hidden = true;
+      el.companionChoicesSummary.textContent = "";
+      el.companionChoicesContainer.innerHTML = "";
+      if (el.companionChoicesInfo) el.companionChoicesInfo.textContent = "";
+      return;
+    }
+
+    const totalChoices = sources.reduce((total, source) => total + source.picks, 0);
+    const selectedCount = sources.reduce((total, source) => {
+      let count = 0;
+      for (let slotIndex = 0; slotIndex < source.picks; slotIndex += 1) {
+        const value = String(selections.get(buildCompanionChoiceSlotKey2024(source, slotIndex)) || "").trim();
+        if (value && (source.options || []).some((option) => option.value === value)) count += 1;
+      }
+      return total + count;
+    }, 0);
+
+    el.companionChoicesPanel.hidden = false;
+    el.companionChoicesSummary.textContent = `${selectedCount}/${totalChoices} companheiro(s) ou forma(s) especial(is) configurado(s).`;
+    el.companionChoicesContainer.innerHTML = sources
+      .map((source) => renderCompanionChoiceCard2024(source, selections))
+      .join("");
+    if (el.companionChoicesInfo) {
+      el.companionChoicesInfo.innerHTML = getCompanionChoiceCascadeMarkup2024(sources, selections);
+    }
+    initializeCompanionChoiceFields2024();
+  }
+
+  function onCompanionChoiceChanged2024(event) {
+    const select = event?.target?.closest?.("select[data-companion-choice-slot-key]");
+    if (!select || !el.companionChoicesContainer) return;
+
+    setStatus2024("");
+    renderCompanionChoices2024();
+    updatePreview();
+  }
+
+  function buildSelectedCompanionChoiceLines2024(classEntries = getResolvedClassEntries2024()) {
+    const sources = collectCompanionChoiceSources2024(classEntries);
+    return collectSelectedCompanionChoices2024(sources).map(({ source, option }) => {
+      const mechanics = getCompanionChoiceImpactLines2024(source, option)
+        .filter((line) => !line.startsWith("Registro:"))
+        .join(" ");
+      const summary = [option.summary, mechanics].filter(Boolean).join(" ");
+      return `${source.featureLabel} (${source.ownerLabel}) - ${option.label}${summary ? `: ${summary}` : ""}`;
+    });
+  }
+
+  function formatSelectedCompanionChoiceSummary2024(classEntries = getResolvedClassEntries2024()) {
+    return buildSelectedCompanionChoiceLines2024(classEntries).join(" • ");
   }
 
   function describeClassOption2024(value) {
@@ -7458,6 +7921,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     const featSummary = formatSelectedFeatSummary(race, cls, subclass, level);
     const featureChoiceSummary = formatSelectedFeatureChoiceSummary2024(classEntries);
     const subclassDetailSummary = formatSelectedSubclassDetailSummary2024(classEntries);
+    const companionChoiceSummary = formatSelectedCompanionChoiceSummary2024(classEntries);
     const skillSelectionState = getSkillChoiceSelectionState2024({ background, race, classEntries });
     const equipmentSummary = formatEquipmentSummary(cls, background);
     const quickSheetData = getQuickSheetData();
@@ -7488,6 +7952,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
       classDistribution,
       classEntries,
       cls,
+      companionChoiceSummary,
       currencyBreakdown,
       derivedCombat,
       divinitySummary,
@@ -7635,6 +8100,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
   function buildClassPreviewItems2024({
     classDistribution,
     classEntries,
+    companionChoiceSummary,
     derivedCombat,
     featureChoiceSummary,
     subclassDetailSummary,
@@ -7659,6 +8125,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
         ),
         previewItem("Escolhas de recursos", featureChoiceSummary || "Nenhuma escolha estrutural ativa ou configurada"),
         previewItem("Detalhes de subclasse", subclassDetailSummary || "Nenhuma escolha oficial de subclasse ativa"),
+        previewItem("Companheiros e formas", companionChoiceSummary || "Nenhum companheiro ou forma especial configurado"),
         ...classEntries.map(buildClassEntryPreviewItem2024),
       ]
       : [previewItem("Classe", "Selecione a classe para ver progressão, perícias e recursos")];
@@ -7931,6 +8398,19 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
       }
       if (selectedCount < source.picks) {
         pending.push(`Configure ${source.label} de ${source.subclassLabel} (${selectedCount}/${source.picks}).`);
+      }
+    });
+
+    const companionChoiceSelections = getCurrentCompanionChoiceSelectionMap2024();
+    collectCompanionChoiceSources2024(classEntries).forEach((source) => {
+      const options = source.options || [];
+      let selectedCount = 0;
+      for (let slotIndex = 0; slotIndex < source.picks; slotIndex += 1) {
+        const value = String(companionChoiceSelections.get(buildCompanionChoiceSlotKey2024(source, slotIndex)) || "").trim();
+        if (value && options.some((option) => option.value === value)) selectedCount += 1;
+      }
+      if (source.required && selectedCount < source.picks) {
+        pending.push(`Configure ${source.featureLabel} de ${source.ownerLabel} (${selectedCount}/${source.picks}).`);
       }
     });
 
@@ -9032,6 +9512,24 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     renderMagicSection2024();
   }
 
+  function applyRandomCompanionChoices2024({ overwrite = false } = {}) {
+    renderCompanionChoices2024();
+    const selects = Array.from(el.companionChoicesContainer?.querySelectorAll("select[data-companion-choice-slot-key]") || []);
+    if (overwrite) {
+      selects.forEach((select) => {
+        if (!select.disabled) select.value = "";
+      });
+    }
+
+    selects.forEach((select) => {
+      if (select.disabled || (!overwrite && select.value)) return;
+      const nextValue = pickRandom2024(listOptionValues2024(select));
+      if (nextValue) select.value = nextValue;
+    });
+
+    renderCompanionChoices2024();
+  }
+
   function applyRandomExpertiseChoices2024({ overwrite = false } = {}) {
     const selects = Array.from(el.expertiseChoices?.querySelectorAll("select[data-expertise-slot-key]") || []);
     if (overwrite) {
@@ -9163,6 +9661,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
         applyRandomWarlockInvocationChoices2024({ overwrite });
         applyRandomFeatureChoices2024({ overwrite });
         applyRandomSubclassDetailChoices2024({ overwrite });
+        applyRandomCompanionChoices2024({ overwrite });
         applyRandomEquipmentChoices2024({ overwrite });
         applyRandomSpellSelections2024({ overwrite });
         updatePreview();
@@ -13555,6 +14054,11 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     const subclassDetailLines = buildSelectedSubclassDetailLines2024(resolvedEntries);
     if (subclassDetailLines.length) {
       sections.push(buildFeatureSummarySection2024("Detalhes de subclasse", subclassDetailLines));
+    }
+
+    const companionChoiceLines = buildSelectedCompanionChoiceLines2024(resolvedEntries);
+    if (companionChoiceLines.length) {
+      sections.push(buildFeatureSummarySection2024("Companheiros e formas especiais", companionChoiceLines));
     }
 
     return sections.filter(Boolean).join("\n\n");

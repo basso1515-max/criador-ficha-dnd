@@ -92,6 +92,20 @@ const smokePages = [
           dispatch(select, "change");
           return option.value;
         };
+        const companionSelects = () => Array.from(document.querySelectorAll("#companionChoicesContainer select[data-companion-choice-slot-key]"));
+        const selectsForCompanion = (companionId) => companionSelects()
+          .filter((select) => (select.getAttribute("data-companion-choice-slot-key") || "").includes(":companion:") && (select.getAttribute("data-companion-choice-slot-key") || "").includes(":" + companionId + ":"));
+        const chooseCompanion = (companionId, value = "") => {
+          const select = selectsForCompanion(companionId)[0];
+          assert(select, "Escolha de companheiro ausente: " + companionId);
+          const option = value
+            ? Array.from(select.options).find((item) => item.value === value && !item.disabled)
+            : Array.from(select.options).find((item) => item.value && !item.disabled);
+          assert(option, "Opcao de companheiro indisponivel para " + companionId + ": " + (value || "primeira valida"));
+          select.value = option.value;
+          dispatch(select, "change");
+          return option.value;
+        };
 
         assertFeatureSlots("Feiticeiro", 17, [["metamagic", 4]]);
         const metamagic = new Set();
@@ -125,6 +139,26 @@ const smokePages = [
         chooseFeatureKind("subclass", "superior-hunters-defense", "evasao");
         const hunterPreviewText = document.querySelector("#preview")?.textContent || "";
         assert(hunterPreviewText.includes("Presa do Caçador") && hunterPreviewText.includes("Táticas Defensivas"), "Resumo/PDF automatico 5e nao recebeu escolhas do Caçador.");
+
+        setClassLevel("Patrulheiro", 3);
+        setValue("#arquetipo", "patrulheiro-mestre-feras", ["change"]);
+        assert(!document.querySelector("#companionChoicesPanel")?.hidden, "Painel de companheiro 5e nao abriu para Mestre das Feras.");
+        assert(document.querySelector("#companionChoicesInfo .companion-choice-cascade"), "Cascata de companheiro 5e ausente.");
+        assert(document.querySelector("#companionChoicesContainer [data-companion-choice-hover-card]"), "Hovercard do seletor de companheiro 5e ausente.");
+        chooseCompanion("beast-master-companion", "animal-terrestre");
+        assert((document.querySelector("#preview")?.textContent || "").includes("Companheiro Animal"), "Preview 5e nao recebeu Companheiro Animal.");
+
+        setValue("#arquetipo", "patrulheiro-dracos", ["change"]);
+        chooseCompanion("drake-companion", "fogo");
+        assert((document.querySelector("#preview")?.textContent || "").includes("Companheiro Dracônico"), "Preview 5e nao recebeu Companheiro Dracônico do Drakewarden.");
+
+        setClassLevel("Druida", 2);
+        setValue("#arquetipo", "druida-fogo-selvagem", ["change"]);
+        chooseCompanion("wildfire-spirit", "chama-ofensiva");
+        assert((document.querySelector("#preview")?.textContent || "").includes("Espírito Selvagem"), "Preview 5e nao recebeu Espírito Selvagem.");
+
+        setClassLevel("Patrulheiro", 15);
+        setValue("#arquetipo", "patrulheiro-cacador", ["change"]);
       })();
     `,
     afterSetupSelectors: [
@@ -202,6 +236,20 @@ const smokePages = [
           assert(select, "Slot de talento ausente para " + featId);
           select.value = featId;
           dispatch(select, "change");
+        };
+        const companionSelects = () => Array.from(document.querySelectorAll("#companionChoicesContainer2024 select[data-companion-choice-slot-key]"));
+        const selectsForCompanion = (companionId) => companionSelects()
+          .filter((select) => (select.getAttribute("data-companion-choice-slot-key") || "").includes(":companion:") && (select.getAttribute("data-companion-choice-slot-key") || "").includes(":" + companionId + ":"));
+        const chooseCompanion = (companionId, value = "") => {
+          const select = selectsForCompanion(companionId)[0];
+          assert(select, "Escolha de companheiro ausente: " + companionId);
+          const option = value
+            ? Array.from(select.options).find((item) => item.value === value && !item.disabled)
+            : Array.from(select.options).find((item) => item.value && !item.disabled);
+          assert(option, "Opcao de companheiro indisponivel para " + companionId + ": " + (value || "primeira valida"));
+          select.value = option.value;
+          dispatch(select, "change");
+          return option.value;
         };
 
         ["for", "des", "con", "int", "sab", "car"].forEach((ability) => {
@@ -301,6 +349,23 @@ const smokePages = [
         dispatch(hunterDefenseSelects2024[0], "change");
         const hunterPreviewText2024 = document.querySelector("#preview2024")?.textContent || "";
         assert(hunterPreviewText2024.includes("Presa do Caçador") && hunterPreviewText2024.includes("Táticas Defensivas"), "Resumo/PDF automatico 2024 nao recebeu escolhas do Caçador.");
+
+        setClassLevel("druida", 2);
+        assert(!document.querySelector("#companionChoicesPanel2024")?.hidden, "Painel de companheiro 2024 nao abriu para Druida.");
+        assert(document.querySelector("#companionChoicesInfo2024 .companion-choice-cascade"), "Cascata de companheiro 2024 ausente.");
+        assert(document.querySelector("#companionChoicesContainer2024 [data-companion-choice-hover-card]"), "Hovercard do seletor de companheiro 2024 ausente.");
+        chooseCompanion("wild-companion", "batedor-aereo");
+        assert((document.querySelector("#preview2024")?.textContent || "").includes("Companheiro Selvagem"), "Preview 2024 nao recebeu Companheiro Selvagem.");
+
+        setClassLevel("patrulheiro", 3);
+        setValue("#subclasse2024", "patrulheiro-mestre-feras", ["change"]);
+        chooseCompanion("primal-companion", "fera-da-terra");
+        assert((document.querySelector("#preview2024")?.textContent || "").includes("Companheiro Primal"), "Preview 2024 nao recebeu Companheiro Primal.");
+
+        setClassLevel("feiticeiro", 18);
+        setValue("#subclasse2024", "feiticeiro-draconico", ["change"]);
+        chooseCompanion("draconic-companion", "cromatico");
+        assert((document.querySelector("#preview2024")?.textContent || "").includes("Companheiro Dracônico"), "Preview 2024 nao recebeu Companheiro Dracônico.");
 
         setClassLevel("bruxo", 17);
         setValue("#subclasse2024", "bruxo-infernal", ["change"]);

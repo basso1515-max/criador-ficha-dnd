@@ -630,10 +630,87 @@ function validateFeatureChoiceEngine5e() {
   console.log("OK: motor de escolhas de recursos 5e");
 }
 
+function validateCompanionChoiceEngines() {
+  const errors = [];
+  const html2024 = readFileSync(path.join(root, "5.5e-2024.html"), "utf8");
+  const html5e = readFileSync(path.join(root, "5e.html"), "utf8");
+  const script2024 = readFileSync(path.join(root, "src/script-2024.js"), "utf8");
+  const script5e = readFileSync(path.join(root, "src/script.js"), "utf8");
+
+  [
+    "companionChoicesPanel2024",
+    "companionChoicesSummary2024",
+    "companionChoicesContainer2024",
+    "companionChoicesInfo2024",
+  ].forEach((id) => {
+    if (!html2024.includes(id)) errors.push(`2024: painel de companheiros sem #${id}.`);
+  });
+
+  [
+    "COMPANION_CHOICE_DEFINITIONS_2024",
+    "renderCompanionChoices2024",
+    "collectCompanionChoiceSources2024",
+    "applyRandomCompanionChoices2024",
+    "buildSelectedCompanionChoiceLines2024",
+    "getCompanionChoiceCascadeMarkup2024",
+    "data-companion-choice-hover-card",
+    "companion-choice-cascade",
+    "wild-companion",
+    "primal-companion",
+    "draconic-companion",
+    "patrulheiro-mestre-feras",
+    "feiticeiro-draconico",
+  ].forEach((marker) => {
+    if (!script2024.includes(marker)) errors.push(`2024: motor de companheiros sem marcador ${marker}.`);
+  });
+
+  [
+    "companionChoicesPanel",
+    "companionChoicesSummary",
+    "companionChoicesContainer",
+    "companionChoicesInfo",
+  ].forEach((id) => {
+    if (!html5e.includes(id)) errors.push(`5e: painel equivalente de companheiros sem #${id}.`);
+  });
+
+  [
+    "COMPANION_CHOICE_DEFINITIONS_5E",
+    "renderCompanionChoices",
+    "collectCompanionChoiceSources",
+    "fillRandomCompanionChoices",
+    "buildSelectedCompanionChoiceLines",
+    "collectCompanionChoicePendingLines",
+    "getCompanionChoiceCascadeMarkup",
+    "data-companion-choice-hover-card",
+    "companion-choice-cascade",
+    "beast-master-companion",
+    "drake-companion",
+    "wildfire-spirit",
+    "patrulheiro-mestre-feras",
+    "patrulheiro-dracos",
+    "druida-fogo-selvagem",
+  ].forEach((marker) => {
+    if (!script5e.includes(marker)) errors.push(`5e: motor equivalente de companheiros sem marcador ${marker}.`);
+  });
+
+  if (script5e.includes('"feiticeiro-draconico",\n      minClassLevel')) {
+    errors.push("5e: Feiticeiro Dracônico foi tratado como se tivesse companheiro equivalente direto.");
+  }
+
+  if (errors.length) {
+    console.error("\nValidacao do motor de companheiros e formas especiais falhou:");
+    errors.forEach((error) => console.error(`- ${error}`));
+    process.exit(1);
+  }
+
+  console.log("OK: motor de companheiros e formas especiais");
+}
+
 validateWarlockData();
 validatePaladinOathSpellData();
 validateDruidCircleSpellData();
 validateFeatureChoiceEngine2024();
 validateFeatureChoiceEngine5e();
+validateCompanionChoiceEngines();
 
 console.log("\nValidacao concluida com sucesso.");
