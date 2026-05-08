@@ -486,6 +486,211 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       options: DIVINE_SOUL_AFFINITY_OPTIONS,
     },
   };
+  const ARTIFICER_INFUSION_LIMITS_BY_LEVEL = [
+    { known: 0, active: 0 },
+    { known: 0, active: 0 },
+    { known: 4, active: 2 },
+    { known: 4, active: 2 },
+    { known: 4, active: 2 },
+    { known: 4, active: 2 },
+    { known: 6, active: 3 },
+    { known: 6, active: 3 },
+    { known: 6, active: 3 },
+    { known: 6, active: 3 },
+    { known: 8, active: 4 },
+    { known: 8, active: 4 },
+    { known: 8, active: 4 },
+    { known: 8, active: 4 },
+    { known: 10, active: 5 },
+    { known: 10, active: 5 },
+    { known: 10, active: 5 },
+    { known: 10, active: 5 },
+    { known: 12, active: 6 },
+    { known: 12, active: 6 },
+    { known: 12, active: 6 },
+  ];
+  const ARTIFICER_INFUSION_TARGET_OPTIONS = {
+    armor: [
+      { value: "armadura-couro-batido", label: "Armadura de couro batido", summary: "Armadura média inicial comum para Artífices." },
+      { value: "cota-de-escamas", label: "Cota de escamas", summary: "Armadura média, bom alvo para defesa aprimorada ou resistência." },
+      { value: "meia-armadura", label: "Meia armadura", summary: "Armadura média de alta CA quando disponível na campanha." },
+      { value: "armadura-pesada", label: "Armadura pesada", summary: "Alvo típico de Armeiros ou personagens treinados em armadura pesada." },
+      { value: "outra-armadura", label: "Outra armadura", summary: "Use quando o item específico será anotado manualmente na ficha." },
+    ],
+    shield: [
+      { value: "escudo", label: "Escudo", summary: "Escudo empunhado pelo Artífice ou por um aliado." },
+      { value: "outro-escudo", label: "Outro escudo", summary: "Use quando há mais de um escudo elegível no grupo." },
+    ],
+    weapon: [
+      { value: "arma-corpo-a-corpo", label: "Arma corpo a corpo", summary: "Arma simples ou marcial sem regra especial de munição." },
+      { value: "arma-distancia", label: "Arma à distância", summary: "Arma simples ou marcial usada para ataques à distância." },
+      { value: "besta", label: "Besta", summary: "Alvo comum para Tiro Repetidor." },
+      { value: "arma-arremesso", label: "Arma de arremesso", summary: "Alvo comum para Arma Retornante." },
+      { value: "outra-arma", label: "Outra arma", summary: "Use quando o item específico será anotado manualmente na ficha." },
+    ],
+    focus: [
+      { value: "bastao", label: "Bastão", summary: "Foco arcano em forma de bastão." },
+      { value: "cajado", label: "Cajado", summary: "Foco arcano em forma de cajado." },
+      { value: "varinha", label: "Varinha", summary: "Foco arcano em forma de varinha." },
+      { value: "outro-foco", label: "Outro foco arcano", summary: "Use quando a mesa permite outro foco apropriado." },
+    ],
+    wearable: [
+      { value: "botas", label: "Botas", summary: "Par de botas, sapatos ou grevas apropriado." },
+      { value: "elmo", label: "Elmo", summary: "Elmo, capacete ou item de cabeça apropriado." },
+      { value: "anel", label: "Anel", summary: "Anel usado pelo Artífice ou aliado." },
+      { value: "manto", label: "Manto ou capa", summary: "Manto, capa ou peça vestível equivalente." },
+      { value: "luvas", label: "Luvas", summary: "Luvas, manoplas ou item de mãos apropriado." },
+    ],
+    homunculus: [
+      { value: "gema-ou-cristal", label: "Gema ou cristal", summary: "Núcleo usado para criar o servo homúnculo." },
+      { value: "foco-miniatura", label: "Foco miniaturizado", summary: "Objeto arcano pequeno usado como corpo do homúnculo." },
+    ],
+    replicate: [
+      { value: "item-replicado", label: "Item replicado", summary: "O próprio item mágico criado pela infusão." },
+      { value: "item-replicado-aliado", label: "Item replicado para aliado", summary: "Item criado e entregue a outro personagem." },
+    ],
+  };
+  const ARTIFICER_INFUSION_CATALOG = [
+    {
+      id: "enhanced-arcane-focus",
+      label: "Foco Arcano Aprimorado",
+      minLevel: 2,
+      targetGroups: ["focus"],
+      summary: "Bônus em ataques de magia e ignora cobertura parcial com foco arcano.",
+      description: "Infusão para Artífice conjurador que usa bastão, cajado ou varinha como foco.",
+    },
+    {
+      id: "enhanced-defense",
+      label: "Defesa Aprimorada",
+      minLevel: 2,
+      targetGroups: ["armor", "shield"],
+      summary: "Aumenta a CA de armadura ou escudo infundido.",
+      description: "Boa infusão ativa para o Artífice da linha de frente ou para proteger um aliado.",
+    },
+    {
+      id: "enhanced-weapon",
+      label: "Arma Aprimorada",
+      minLevel: 2,
+      targetGroups: ["weapon"],
+      summary: "Bônus em jogadas de ataque e dano com a arma infundida.",
+      description: "Infusão simples e consistente para armas que ainda não são mágicas.",
+    },
+    {
+      id: "homunculus-servant",
+      label: "Servo Homúnculo",
+      minLevel: 2,
+      targetGroups: ["homunculus"],
+      summary: "Cria um constructo auxiliar ligado ao Artífice.",
+      description: "Registre o núcleo físico do homúnculo e use o resumo para lembrar o aliado criado.",
+    },
+    {
+      id: "mind-sharpener",
+      label: "Afiador Mental",
+      minLevel: 2,
+      targetGroups: ["armor", "wearable"],
+      summary: "Ajuda a manter concentração ao falhar em teste de Constituição.",
+      description: "Infusão defensiva para conjuradores que precisam sustentar magia importante.",
+    },
+    {
+      id: "repeating-shot",
+      label: "Tiro Repetidor",
+      minLevel: 2,
+      targetGroups: ["weapon"],
+      summary: "Arma com munição recebe bônus e dispensa munição carregada.",
+      description: "Excelente para besta ou arma de munição que o personagem usa todo turno.",
+    },
+    {
+      id: "returning-weapon",
+      label: "Arma Retornante",
+      minLevel: 2,
+      targetGroups: ["weapon"],
+      summary: "Arma arremessada recebe bônus e volta à mão após o ataque.",
+      description: "Infusão para machadinhas, adagas, lanças e outros itens de arremesso.",
+    },
+    {
+      id: "armor-of-magical-strength",
+      label: "Armadura de Força Mágica",
+      minLevel: 2,
+      targetGroups: ["armor"],
+      summary: "Armadura usa cargas para reforçar testes e salvaguardas de Força.",
+      description: "Boa opção para Artífice ou aliado que precisa resistir a empurrões, agarrões e quedas.",
+    },
+    {
+      id: "boots-of-the-winding-path",
+      label: "Botas do Caminho Sinuoso",
+      minLevel: 6,
+      targetGroups: ["wearable"],
+      summary: "Teleporte curto de volta a um espaço ocupado recentemente.",
+      description: "Infusão de mobilidade para reposicionar sem gastar deslocamento normal.",
+    },
+    {
+      id: "radiant-weapon",
+      label: "Arma Radiante",
+      minLevel: 6,
+      targetGroups: ["weapon"],
+      summary: "Arma iluminada com bônus e reação para cegar atacante.",
+      description: "Infusão ofensiva e defensiva para personagem que espera ser atacado.",
+    },
+    {
+      id: "repulsion-shield",
+      label: "Escudo Repulsor",
+      minLevel: 6,
+      targetGroups: ["shield"],
+      summary: "Escudo com bônus de CA e reação para empurrar atacante.",
+      description: "Boa escolha para tanque, Armeiro ou aliado que controla espaço no combate.",
+    },
+    {
+      id: "resistant-armor",
+      label: "Armadura Resistente",
+      minLevel: 6,
+      targetGroups: ["armor"],
+      summary: "Armadura concede resistência a um tipo de dano escolhido ao infundir.",
+      description: "Use o item alvo para registrar a armadura; anote o tipo de dano nas observações se precisar.",
+    },
+    {
+      id: "spell-refueling-ring",
+      label: "Anel de Reabastecimento de Magia",
+      minLevel: 6,
+      targetGroups: ["wearable"],
+      summary: "Recupera um espaço de magia baixo uma vez por dia.",
+      description: "Infusão forte para personagens que gastam muitos espaços de magia.",
+    },
+    {
+      id: "helm-of-awareness",
+      label: "Elmo de Atenção",
+      minLevel: 10,
+      targetGroups: ["wearable"],
+      summary: "Melhora iniciativa e impede surpresa enquanto usado.",
+      description: "Infusão preventiva para abrir combates em melhor posição.",
+    },
+    {
+      id: "arcane-propulsion-armor",
+      label: "Armadura de Propulsão Arcana",
+      minLevel: 14,
+      targetGroups: ["armor"],
+      summary: "Armadura especial com manoplas arremessáveis e mobilidade arcana.",
+      description: "Infusão tardia para Artífice que usa armadura como plataforma principal.",
+    },
+    { id: "replicate-common-item", label: "Replicar Item Mágico: item comum", minLevel: 2, targetGroups: ["replicate"], summary: "Cria um item mágico comum permitido pela mesa, exceto poções e pergaminhos.", description: "Use este registro quando a campanha permite a opção aberta de item comum." },
+    { id: "replicate-alchemy-jug", label: "Replicar Item Mágico: Jarra de Alquimia", minLevel: 2, targetGroups: ["replicate"], summary: "Cria uma Jarra de Alquimia.", description: "Item utilitário para produzir líquidos comuns e resolver cenas de exploração." },
+    { id: "replicate-bag-of-holding", label: "Replicar Item Mágico: Bolsa de Carga", minLevel: 2, targetGroups: ["replicate"], summary: "Cria uma Bolsa de Carga.", description: "Item de armazenamento extradimensional; ótimo alvo para uma infusão ativa recorrente." },
+    { id: "replicate-goggles-of-night", label: "Replicar Item Mágico: Óculos Noturnos", minLevel: 2, targetGroups: ["replicate"], summary: "Cria Óculos Noturnos.", description: "Item para visão no escuro em personagens que não a possuem." },
+    { id: "replicate-rope-of-climbing", label: "Replicar Item Mágico: Corda de Escalada", minLevel: 2, targetGroups: ["replicate"], summary: "Cria uma Corda de Escalada.", description: "Item de exploração vertical e infiltração." },
+    { id: "replicate-sending-stones", label: "Replicar Item Mágico: Pedras de Mensagem", minLevel: 2, targetGroups: ["replicate"], summary: "Cria Pedras de Mensagem.", description: "Item de comunicação para separar o grupo com menos risco." },
+    { id: "replicate-wand-of-magic-detection", label: "Replicar Item Mágico: Varinha de Detecção de Magia", minLevel: 2, targetGroups: ["replicate"], summary: "Cria uma varinha utilitária de detecção mágica.", description: "Item para investigação mágica sem gastar tantos recursos do grupo." },
+    { id: "replicate-boots-of-elvenkind", label: "Replicar Item Mágico: Botas Élficas", minLevel: 6, targetGroups: ["replicate"], summary: "Cria Botas Élficas.", description: "Item para furtividade e infiltração." },
+    { id: "replicate-cloak-of-elvenkind", label: "Replicar Item Mágico: Manto Élfico", minLevel: 6, targetGroups: ["replicate"], summary: "Cria um Manto Élfico.", description: "Item defensivo e furtivo para missões de infiltração." },
+    { id: "replicate-gloves-of-thievery", label: "Replicar Item Mágico: Luvas de Ladinagem", minLevel: 6, targetGroups: ["replicate"], summary: "Cria Luvas de Ladinagem.", description: "Item para abrir fechaduras e manipular mecanismos." },
+    { id: "replicate-pipes-of-haunting", label: "Replicar Item Mágico: Flautas Assombradoras", minLevel: 6, targetGroups: ["replicate"], summary: "Cria Flautas Assombradoras.", description: "Item de controle e intimidação em área." },
+    { id: "replicate-cloak-of-protection", label: "Replicar Item Mágico: Manto de Proteção", minLevel: 10, targetGroups: ["replicate"], summary: "Cria um Manto de Proteção.", description: "Item defensivo geral para CA e salvaguardas." },
+    { id: "replicate-gauntlets-of-ogre-power", label: "Replicar Item Mágico: Manoplas de Força do Ogro", minLevel: 10, targetGroups: ["replicate"], summary: "Cria Manoplas de Força do Ogro.", description: "Item para fixar Força alta em personagem que precisa lutar corpo a corpo." },
+    { id: "replicate-headband-of-intellect", label: "Replicar Item Mágico: Tiara do Intelecto", minLevel: 10, targetGroups: ["replicate"], summary: "Cria uma Tiara do Intelecto.", description: "Item para elevar Inteligência de personagem que depende desse atributo." },
+    { id: "replicate-winged-boots", label: "Replicar Item Mágico: Botas Aladas", minLevel: 10, targetGroups: ["replicate"], summary: "Cria Botas Aladas.", description: "Item de mobilidade aérea com grande impacto tático." },
+    { id: "replicate-amulet-of-health", label: "Replicar Item Mágico: Amuleto da Saúde", minLevel: 14, targetGroups: ["replicate"], summary: "Cria um Amuleto da Saúde.", description: "Item para elevar Constituição e melhorar sobrevivência." },
+    { id: "replicate-belt-of-hill-giant-strength", label: "Replicar Item Mágico: Cinturão de Força do Gigante da Colina", minLevel: 14, targetGroups: ["replicate"], summary: "Cria um cinturão de Força elevada.", description: "Item tardio para personagem que precisa de Força muito alta." },
+    { id: "replicate-boots-of-speed", label: "Replicar Item Mágico: Botas de Velocidade", minLevel: 14, targetGroups: ["replicate"], summary: "Cria Botas de Velocidade.", description: "Item de mobilidade e defesa para combates decisivos." },
+    { id: "replicate-ring-of-protection", label: "Replicar Item Mágico: Anel de Proteção", minLevel: 14, targetGroups: ["replicate"], summary: "Cria um Anel de Proteção.", description: "Item defensivo tardio para CA e salvaguardas." },
+  ];
   const COMPANION_CHOICE_DEFINITIONS_5E = [
     {
       id: "wild-companion",
@@ -2351,6 +2556,10 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     featureChoicesSummary: $("featureChoicesSummary"),
     featureChoicesContainer: $("featureChoicesContainer"),
     featureChoicesInfo: $("featureChoicesInfo"),
+    artificerInfusionsPanel: $("artificerInfusionsPanel"),
+    artificerInfusionsSummary: $("artificerInfusionsSummary"),
+    artificerInfusionsContainer: $("artificerInfusionsContainer"),
+    artificerInfusionsInfo: $("artificerInfusionsInfo"),
     companionChoicesPanel: $("companionChoicesPanel"),
     companionChoicesSummary: $("companionChoicesSummary"),
     companionChoicesContainer: $("companionChoicesContainer"),
@@ -2502,12 +2711,14 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
   const CUSTOM_SELECT_FIELDS = {};
   const FEAT_CUSTOM_SELECT_PREFIX = "feat-slot:";
   const FEATURE_CHOICE_CUSTOM_SELECT_PREFIX = "feature-choice:";
+  const ARTIFICER_INFUSION_CUSTOM_SELECT_PREFIX = "artificer-infusion:";
   const COMPANION_CHOICE_CUSTOM_SELECT_PREFIX = "companion-choice:";
   const WARLOCK_INVOCATION_CUSTOM_SELECT_PREFIX = "warlock-invocation:";
   const LANGUAGE_CUSTOM_SELECT_PREFIX = "language-slot:";
   const EQUIPMENT_CUSTOM_SELECT_PREFIX = "equipment-choice:";
   let featCustomSelectKeys = [];
   let featureChoiceCustomSelectKeys = [];
+  let artificerInfusionCustomSelectKeys = [];
   let companionChoiceCustomSelectKeys = [];
   let warlockInvocationCustomSelectKeys = [];
   let languageCustomSelectKeys = [];
@@ -2683,6 +2894,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     renderSubclassDetailChoices();
     renderWarlockInvocationChoices();
     renderFeatureChoices();
+    renderArtificerInfusions();
     renderCompanionChoices();
     renderRaceDetailChoices();
     renderLanguageChoices();
@@ -2712,6 +2924,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     renderSubclassDetailChoices();
     renderWarlockInvocationChoices();
     renderFeatureChoices();
+    renderArtificerInfusions();
     renderCompanionChoices();
     renderRaceDetailChoices();
     renderLanguageChoices();
@@ -2747,6 +2960,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     if (el.subclassDetailChoicesContainer) el.subclassDetailChoicesContainer.addEventListener("change", onSubclassDetailChoiceChanged);
     if (el.warlockInvocationsContainer) el.warlockInvocationsContainer.addEventListener("change", onWarlockInvocationChoiceChanged);
     if (el.featureChoicesContainer) el.featureChoicesContainer.addEventListener("change", onFeatureChoiceChanged);
+    if (el.artificerInfusionsContainer) el.artificerInfusionsContainer.addEventListener("change", onArtificerInfusionChanged);
     if (el.companionChoicesContainer) el.companionChoicesContainer.addEventListener("change", onCompanionChoiceChanged);
     if (el.raceDetailChoicesContainer) el.raceDetailChoicesContainer.addEventListener("change", onRaceDetailChoiceChanged);
     if (el.languageChoicesContainer) el.languageChoicesContainer.addEventListener("change", onLanguageChoiceChanged);
@@ -2908,6 +3122,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     onSubclassChanged();
     renderWarlockInvocationChoices();
     renderFeatureChoices();
+    renderArtificerInfusions();
     renderLanguageChoices();
     onAlignmentChanged();
     onDivinityChanged();
@@ -3526,6 +3741,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     renderFeatChoices();
     renderWarlockInvocationChoices();
     renderFeatureChoices();
+    renderArtificerInfusions();
     renderCompanionChoices();
     renderMagicSection();
     atualizarPreview();
@@ -3541,6 +3757,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     renderFeatChoices();
     renderWarlockInvocationChoices();
     renderFeatureChoices();
+    renderArtificerInfusions();
     renderCompanionChoices();
     renderMagicSection();
     atualizarPreview();
@@ -3569,6 +3786,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     renderFeatChoices();
     renderWarlockInvocationChoices();
     renderFeatureChoices();
+    renderArtificerInfusions();
     renderCompanionChoices();
     renderMagicSection();
     atualizarPreview();
@@ -3586,6 +3804,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     renderFeatChoices();
     renderWarlockInvocationChoices();
     renderFeatureChoices();
+    renderArtificerInfusions();
     renderCompanionChoices();
     renderMagicSection();
     atualizarPreview();
@@ -3611,6 +3830,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     renderFeatChoices();
     renderWarlockInvocationChoices();
     renderFeatureChoices();
+    renderArtificerInfusions();
     renderCompanionChoices();
     renderMagicSection();
     atualizarPreview();
@@ -4942,6 +5162,13 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     featureChoiceCustomSelectKeys = [];
   }
 
+  function cleanupArtificerInfusionFields() {
+    artificerInfusionCustomSelectKeys.forEach((key) => {
+      delete CUSTOM_SELECT_FIELDS[key];
+    });
+    artificerInfusionCustomSelectKeys = [];
+  }
+
   function cleanupCompanionChoiceFields() {
     companionChoiceCustomSelectKeys.forEach((key) => {
       delete CUSTOM_SELECT_FIELDS[key];
@@ -5311,6 +5538,485 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     renderFeatureChoices();
     renderMagicSection();
     atualizarPreview();
+  }
+
+  function getArtificerInfusionLimits(level) {
+    return ARTIFICER_INFUSION_LIMITS_BY_LEVEL[clampInt(level, 0, 20)] || ARTIFICER_INFUSION_LIMITS_BY_LEVEL[0];
+  }
+
+  function getArtificerEntriesForInfusions(classEntries = null) {
+    const entries = Array.isArray(classEntries)
+      ? classEntries
+      : collectClassEntries(getSelectedClassData(), getSelectedSubclassData(), getTotalCharacterLevel());
+    return (entries || []).filter((entry) => entry?.classId === "artifice" && entry.level >= 2);
+  }
+
+  function buildArtificerInfusionKnownSlotKey(entry, slotIndex) {
+    return `${entry?.uid || "artifice"}:artificer-infusion:known:${slotIndex}`;
+  }
+
+  function buildArtificerInfusionActiveSlotKey(entry, slotIndex) {
+    return `${entry?.uid || "artifice"}:artificer-infusion:active:${slotIndex}`;
+  }
+
+  function buildArtificerInfusionTargetSlotKey(entry, slotIndex) {
+    return `${entry?.uid || "artifice"}:artificer-infusion:target:${slotIndex}`;
+  }
+
+  function getCurrentArtificerInfusionSelectionMap(attrName) {
+    const selections = new Map();
+    if (!el.artificerInfusionsContainer) return selections;
+    el.artificerInfusionsContainer.querySelectorAll(`select[${attrName}]`).forEach((select) => {
+      selections.set(select.getAttribute(attrName) || "", select.value || "");
+    });
+    return selections;
+  }
+
+  function getCurrentArtificerKnownSelectionMap() {
+    return getCurrentArtificerInfusionSelectionMap("data-artificer-infusion-known-slot-key");
+  }
+
+  function getCurrentArtificerActiveSelectionMap() {
+    return getCurrentArtificerInfusionSelectionMap("data-artificer-infusion-active-slot-key");
+  }
+
+  function getCurrentArtificerTargetSelectionMap() {
+    return getCurrentArtificerInfusionSelectionMap("data-artificer-infusion-target-slot-key");
+  }
+
+  function getArtificerInfusionById(infusionId) {
+    return ARTIFICER_INFUSION_CATALOG.find((infusion) => infusion.id === infusionId) || null;
+  }
+
+  function getAvailableArtificerInfusionOptions(entry) {
+    return ARTIFICER_INFUSION_CATALOG
+      .filter((infusion) => Number(entry?.level || 0) >= Number(infusion.minLevel || 2))
+      .sort((a, b) => {
+        const levelDiff = Number(a.minLevel || 0) - Number(b.minLevel || 0);
+        if (levelDiff !== 0) return levelDiff;
+        return String(a.label || "").localeCompare(String(b.label || ""), "pt-BR");
+      });
+  }
+
+  function getArtificerInfusionTargetOptions(infusion) {
+    const groups = Array.isArray(infusion?.targetGroups) ? infusion.targetGroups : [];
+    return groups
+      .flatMap((group) => ARTIFICER_INFUSION_TARGET_OPTIONS[group] || [])
+      .filter((option, index, list) => list.findIndex((item) => item.value === option.value) === index);
+  }
+
+  function getSelectedKnownArtificerInfusionsForEntry(entry, knownSelections = getCurrentArtificerKnownSelectionMap()) {
+    const limits = getArtificerInfusionLimits(entry?.level || 0);
+    const available = getAvailableArtificerInfusionOptions(entry);
+    const availableById = new Map(available.map((infusion) => [infusion.id, infusion]));
+    const selected = [];
+
+    for (let slotIndex = 0; slotIndex < limits.known; slotIndex += 1) {
+      const slotKey = buildArtificerInfusionKnownSlotKey(entry, slotIndex);
+      const infusion = availableById.get(String(knownSelections.get(slotKey) || "").trim());
+      if (!infusion) continue;
+      selected.push({
+        entry,
+        entryUid: entry.uid,
+        slotIndex,
+        slotKey,
+        infusionId: infusion.id,
+        infusion,
+        label: infusion.label,
+      });
+    }
+
+    return selected;
+  }
+
+  function collectArtificerInfusionSelectionState(classEntries = null) {
+    const entries = getArtificerEntriesForInfusions(classEntries);
+    const knownSelections = getCurrentArtificerKnownSelectionMap();
+    const activeSelections = getCurrentArtificerActiveSelectionMap();
+    const targetSelections = getCurrentArtificerTargetSelectionMap();
+    const sources = entries.map((entry) => ({
+      entry,
+      entryUid: entry.uid,
+      classId: entry.classId,
+      classLabel: entry.classData?.nome || entry.classLabel || "Artífice",
+      level: entry.level,
+      limits: getArtificerInfusionLimits(entry.level),
+      availableInfusions: getAvailableArtificerInfusionOptions(entry),
+    }));
+    const knownEntries = [];
+    const activeEntries = [];
+    const pending = [];
+
+    sources.forEach((source) => {
+      const selectedKnown = getSelectedKnownArtificerInfusionsForEntry(source.entry, knownSelections);
+      const knownById = new Map(selectedKnown.map((item) => [item.infusionId, item.infusion]));
+      knownEntries.push(...selectedKnown.map((item) => ({ ...item, source })));
+
+      if (selectedKnown.length < source.limits.known) {
+        pending.push(`Complete as infusões conhecidas de ${source.classLabel} (${selectedKnown.length}/${source.limits.known}).`);
+      }
+
+      let activeConfigured = 0;
+      for (let slotIndex = 0; slotIndex < source.limits.active; slotIndex += 1) {
+        const activeSlotKey = buildArtificerInfusionActiveSlotKey(source.entry, slotIndex);
+        const targetSlotKey = buildArtificerInfusionTargetSlotKey(source.entry, slotIndex);
+        const infusion = knownById.get(String(activeSelections.get(activeSlotKey) || "").trim());
+        const targetOptions = getArtificerInfusionTargetOptions(infusion);
+        const targetValue = String(targetSelections.get(targetSlotKey) || "").trim();
+        const target = targetOptions.find((option) => option.value === targetValue) || null;
+        if (infusion && target) {
+          activeConfigured += 1;
+          activeEntries.push({
+            source,
+            entry: source.entry,
+            entryUid: source.entryUid,
+            slotIndex,
+            activeSlotKey,
+            targetSlotKey,
+            infusionId: infusion.id,
+            infusion,
+            targetValue,
+            target,
+          });
+        } else if (infusion && !target) {
+          pending.push(`Escolha o item alvo de ${infusion.label} (${source.classLabel}).`);
+        }
+      }
+
+      if (activeConfigured < source.limits.active) {
+        pending.push(`Configure as infusões ativas de ${source.classLabel} (${activeConfigured}/${source.limits.active}).`);
+      }
+    });
+
+    return { sources, knownEntries, activeEntries, pending };
+  }
+
+  function describeArtificerInfusionOption(select, value, label) {
+    const infusion = getArtificerInfusionById(value);
+    if (!infusion) return { summary: "", lines: [], body: "", search: label || value || "" };
+    const targetOptions = getArtificerInfusionTargetOptions(infusion);
+    return {
+      group: "Infusões de Artífice",
+      summary: infusion.summary || "",
+      lines: [
+        `Pré-requisito: Artífice nível ${infusion.minLevel || 2}`,
+        targetOptions.length ? `Alvos: ${formatList(targetOptions.map((option) => option.label))}` : "",
+        "Escolha conhecida: conta no limite de infusões conhecidas.",
+        "Escolha ativa: precisa de item alvo para aparecer completa na ficha.",
+      ].filter(Boolean),
+      body: infusion.description || "",
+      search: [
+        infusion.label,
+        infusion.summary,
+        infusion.description,
+        ...(targetOptions || []).map((option) => option.label),
+      ].filter(Boolean).join(" "),
+    };
+  }
+
+  function describeArtificerInfusionTargetOption(select, value, label) {
+    const infusionId = select?.getAttribute("data-artificer-infusion-target-for") || "";
+    const infusion = getArtificerInfusionById(infusionId);
+    const option = getArtificerInfusionTargetOptions(infusion).find((item) => item.value === value) || null;
+    if (!option) return { summary: "", lines: [], body: "", search: label || value || "" };
+    return {
+      group: infusion?.label || "Item alvo",
+      summary: option.summary || "",
+      lines: [
+        infusion?.label ? `Infusão ativa: ${infusion.label}` : "",
+        "O item alvo é registrado junto da infusão no preview e no PDF.",
+      ].filter(Boolean),
+      body: infusion?.description || "",
+      search: [label, option.label, option.summary, infusion?.label, infusion?.summary].filter(Boolean).join(" "),
+    };
+  }
+
+  function initializeArtificerInfusionFields() {
+    cleanupArtificerInfusionFields();
+    if (!el.artificerInfusionsContainer) return;
+
+    el.artificerInfusionsContainer.querySelectorAll("select[data-artificer-infusion-slot-key]").forEach((select) => {
+      const slotKey = select.getAttribute("data-artificer-infusion-slot-key") || "";
+      const fieldRoot = select.closest("[data-artificer-infusion-field-key]");
+      const input = fieldRoot?.querySelector("[data-artificer-infusion-input]");
+      const suggestions = fieldRoot?.querySelector("[data-artificer-infusion-suggestions]");
+      const hoverCard = fieldRoot?.querySelector("[data-artificer-infusion-hover-card]");
+      if (!slotKey || !fieldRoot || !input || !suggestions || !hoverCard) return;
+
+      const fieldKey = `${ARTIFICER_INFUSION_CUSTOM_SELECT_PREFIX}${slotKey}`;
+      const kind = select.getAttribute("data-artificer-infusion-kind") || "known";
+      artificerInfusionCustomSelectKeys.push(fieldKey);
+      CUSTOM_SELECT_FIELDS[fieldKey] = createCustomSelectField({
+        key: fieldKey,
+        input,
+        select,
+        suggestions,
+        hoverCard,
+        placeholder: fieldRoot.getAttribute("data-artificer-infusion-placeholder") || "Selecione...",
+        describeOption: kind === "target"
+          ? (value, label) => describeArtificerInfusionTargetOption(select, value, label)
+          : (value, label) => describeArtificerInfusionOption(select, value, label),
+        onCommit: () => onArtificerInfusionChanged({ target: select }),
+        showSuggestionSummary: true,
+      });
+      syncCustomSelectField(fieldKey);
+    });
+  }
+
+  function renderArtificerInfusionOptionElements(options = [], selectedValue = "", usedValues = new Set()) {
+    const safeSelectedValue = options.some((option) => option.id === selectedValue || option.value === selectedValue) ? selectedValue : "";
+    const optionHtml = options.map((option) => {
+      const value = option.id || option.value;
+      const disabled = usedValues.has(value) && safeSelectedValue !== value;
+      return `<option value="${escapeHtml(value)}"${safeSelectedValue === value ? " selected" : ""}${disabled ? " disabled" : ""}>${escapeHtml(option.label)}</option>`;
+    }).join("");
+    return `
+      <option value=""${safeSelectedValue ? "" : " selected"} disabled>${escapeHtml(options.length ? "Selecione..." : "Sem opções disponíveis")}</option>
+      ${optionHtml}
+    `;
+  }
+
+  function renderArtificerInfusionSelectField({
+    slotKey,
+    kind,
+    label,
+    placeholder,
+    selectedValue,
+    options,
+    usedValues = new Set(),
+    disabled = false,
+    attrs = "",
+  }) {
+    return `
+      <label class="row generic-dropdown-field feat-choice-field" data-artificer-infusion-field-key="${escapeHtml(slotKey)}" data-artificer-infusion-placeholder="${escapeHtml(label)}">
+        <span>${escapeHtml(label)}</span>
+        <input data-artificer-infusion-input type="text" autocomplete="off" placeholder="${escapeHtml(placeholder || (options.length ? "Selecione..." : "Sem opções disponíveis"))}" ${disabled ? "disabled" : ""} />
+        <div data-artificer-infusion-suggestions class="dropdown-suggestions" hidden></div>
+        <div data-artificer-infusion-hover-card class="dropdown-hover-card" hidden></div>
+        <select class="native-select-hidden" tabindex="-1" aria-hidden="true" name="${escapeHtml(slotKey)}" data-artificer-infusion-slot-key="${escapeHtml(slotKey)}" data-artificer-infusion-kind="${escapeHtml(kind)}" ${attrs} ${disabled ? "disabled" : ""}>
+          ${renderArtificerInfusionOptionElements(options, selectedValue, usedValues)}
+        </select>
+      </label>
+    `;
+  }
+
+  function renderArtificerInfusionKnownFields(source, knownSelections) {
+    const selectedValues = new Set();
+    for (let index = 0; index < source.limits.known; index += 1) {
+      const value = String(knownSelections.get(buildArtificerInfusionKnownSlotKey(source.entry, index)) || "").trim();
+      if (value) selectedValues.add(value);
+    }
+
+    return Array.from({ length: source.limits.known }, (_, slotIndex) => {
+      const slotKey = buildArtificerInfusionKnownSlotKey(source.entry, slotIndex);
+      const selectedValue = String(knownSelections.get(slotKey) || "").trim();
+      const usedValues = new Set(Array.from(selectedValues).filter((value) => value !== selectedValue));
+      return renderArtificerInfusionSelectField({
+        slotKey,
+        kind: "known",
+        label: `Conhecida ${slotIndex + 1}`,
+        selectedValue,
+        options: source.availableInfusions,
+        usedValues,
+        attrs: `data-artificer-infusion-known-slot-key="${escapeHtml(slotKey)}" data-artificer-infusion-entry-uid="${escapeHtml(source.entryUid)}"`,
+      });
+    }).join("");
+  }
+
+  function renderArtificerInfusionActiveFields(source, knownSelections, activeSelections, targetSelections) {
+    const knownEntries = getSelectedKnownArtificerInfusionsForEntry(source.entry, knownSelections);
+    const knownOptions = knownEntries.map((entry) => entry.infusion);
+    const activeSelectedValues = new Set();
+    for (let index = 0; index < source.limits.active; index += 1) {
+      const value = String(activeSelections.get(buildArtificerInfusionActiveSlotKey(source.entry, index)) || "").trim();
+      if (value) activeSelectedValues.add(value);
+    }
+
+    return Array.from({ length: source.limits.active }, (_, slotIndex) => {
+      const activeSlotKey = buildArtificerInfusionActiveSlotKey(source.entry, slotIndex);
+      const targetSlotKey = buildArtificerInfusionTargetSlotKey(source.entry, slotIndex);
+      const selectedValue = knownOptions.some((infusion) => infusion.id === activeSelections.get(activeSlotKey))
+        ? String(activeSelections.get(activeSlotKey) || "")
+        : "";
+      const selectedInfusion = getArtificerInfusionById(selectedValue);
+      const targetOptions = getArtificerInfusionTargetOptions(selectedInfusion);
+      const selectedTarget = targetOptions.some((option) => option.value === targetSelections.get(targetSlotKey))
+        ? String(targetSelections.get(targetSlotKey) || "")
+        : "";
+      const usedValues = new Set(Array.from(activeSelectedValues).filter((value) => value !== selectedValue));
+
+      return `
+        <div class="feat-choice-layout artificer-infusion-active-row">
+          <div class="feat-choice-main">
+            ${renderArtificerInfusionSelectField({
+              slotKey: activeSlotKey,
+              kind: "active",
+              label: `Ativa ${slotIndex + 1}`,
+              placeholder: knownOptions.length ? "Selecione..." : "Escolha infusões conhecidas antes",
+              selectedValue,
+              options: knownOptions,
+              usedValues,
+              disabled: !knownOptions.length,
+              attrs: `data-artificer-infusion-active-slot-key="${escapeHtml(activeSlotKey)}" data-artificer-infusion-entry-uid="${escapeHtml(source.entryUid)}"`,
+            })}
+          </div>
+          <div class="feat-choice-side">
+            ${renderArtificerInfusionSelectField({
+              slotKey: targetSlotKey,
+              kind: "target",
+              label: "Item alvo",
+              placeholder: selectedInfusion ? "Selecione o item..." : "Escolha a infusão ativa",
+              selectedValue: selectedTarget,
+              options: targetOptions,
+              disabled: !selectedInfusion,
+              attrs: `data-artificer-infusion-target-slot-key="${escapeHtml(targetSlotKey)}" data-artificer-infusion-target-for="${escapeHtml(selectedValue)}" data-artificer-infusion-entry-uid="${escapeHtml(source.entryUid)}"`,
+            })}
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  function getArtificerInfusionCascadeMarkup(selectionState) {
+    const sources = selectionState?.sources || [];
+    const knownTotal = sources.reduce((total, source) => total + source.limits.known, 0);
+    const activeTotal = sources.reduce((total, source) => total + source.limits.active, 0);
+    const knownCount = selectionState?.knownEntries?.length || 0;
+    const activeCount = selectionState?.activeEntries?.length || 0;
+    const pendingCount = selectionState?.pending?.length || 0;
+    const activeLabels = (selectionState?.activeEntries || []).map((entry) => `${entry.infusion.label} em ${entry.target.label}`);
+    const steps = [
+      { label: "Nível", value: sources.length ? sources.map((source) => `${source.classLabel} ${source.level}`).join(" • ") : "aguardando", body: "O nível de Artífice define quantas infusões são conhecidas e quantas podem ficar ativas." },
+      { label: "Catálogo", value: `${ARTIFICER_INFUSION_CATALOG.length} opções`, body: "O catálogo filtra pré-requisitos de nível e inclui infusões base e opções de Replicar Item Mágico." },
+      { label: "Conhecidas", value: `${knownCount}/${knownTotal}`, body: "Infusões conhecidas são a lista preparada do Artífice; escolhas duplicadas são bloqueadas." },
+      { label: "Ativas", value: `${activeCount}/${activeTotal}`, body: "Infusões ativas precisam escolher uma infusão conhecida e um item alvo válido." },
+      { label: "Ficha/PDF", value: activeLabels.length ? formatList(activeLabels) : "aguardando", body: "As infusões ativas e seus itens alvo entram no preview e nos campos automáticos do PDF." },
+    ];
+
+    return `
+      <div class="feature-choice-cascade artificer-infusion-cascade" aria-label="Cascata das infusões de Artífice">
+        ${steps.map((step, index) => `
+          <span class="feature-choice-cascade-step artificer-infusion-cascade-step${pendingCount && ["Conhecidas", "Ativas"].includes(step.label) ? " is-warning" : ""}" tabindex="0">
+            <small>${escapeHtml(String(index + 1))}</small>
+            <strong>${escapeHtml(step.label)}</strong>
+            <span>${escapeHtml(step.value)}</span>
+            <span class="feature-choice-hover-card artificer-infusion-hover-card" role="tooltip">
+              <strong>${escapeHtml(step.label)}</strong>
+              <p>${escapeHtml(step.body)}</p>
+            </span>
+          </span>
+        `).join("")}
+      </div>
+    `;
+  }
+
+  function renderArtificerInfusionEntryCard(source, maps) {
+    return `
+      <article class="feat-choice-card feat-choice-card--active">
+        <strong>${escapeHtml(`${source.classLabel} ${source.level}`)}</strong>
+        <p class="feat-choice-meta">${escapeHtml(`Infusões conhecidas ${source.limits.known} • Infusões ativas ${source.limits.active}`)}</p>
+        <p class="note subtle">Escolha primeiro o catálogo conhecido. Depois marque quais infusões estão ativas e o item alvo de cada uma.</p>
+        <div class="feat-choice-layout">
+          <div class="feat-choice-main">
+            <strong>Conhecidas</strong>
+            ${renderArtificerInfusionKnownFields(source, maps.knownSelections)}
+          </div>
+          <div class="feat-choice-side">
+            <strong>Ativas e item alvo</strong>
+            ${renderArtificerInfusionActiveFields(source, maps.knownSelections, maps.activeSelections, maps.targetSelections)}
+          </div>
+        </div>
+      </article>
+    `;
+  }
+
+  function renderArtificerInfusions() {
+    if (!el.artificerInfusionsPanel || !el.artificerInfusionsContainer) return;
+
+    const entries = getArtificerEntriesForInfusions();
+    const knownSelections = getCurrentArtificerKnownSelectionMap();
+    const activeSelections = getCurrentArtificerActiveSelectionMap();
+    const targetSelections = getCurrentArtificerTargetSelectionMap();
+    cleanupArtificerInfusionFields();
+    if (!entries.length) {
+      el.artificerInfusionsPanel.hidden = true;
+      el.artificerInfusionsSummary.textContent = "";
+      el.artificerInfusionsContainer.innerHTML = "";
+      if (el.artificerInfusionsInfo) el.artificerInfusionsInfo.textContent = "";
+      return;
+    }
+
+    const selectionState = collectArtificerInfusionSelectionState(entries);
+    const knownTotal = selectionState.sources.reduce((total, source) => total + source.limits.known, 0);
+    const activeTotal = selectionState.sources.reduce((total, source) => total + source.limits.active, 0);
+    el.artificerInfusionsPanel.hidden = false;
+    el.artificerInfusionsSummary.textContent = `Conhecidas ${selectionState.knownEntries.length}/${knownTotal} • Ativas ${selectionState.activeEntries.length}/${activeTotal}.`;
+    el.artificerInfusionsContainer.innerHTML = selectionState.sources
+      .map((source) => renderArtificerInfusionEntryCard(source, { knownSelections, activeSelections, targetSelections }))
+      .join("");
+    if (el.artificerInfusionsInfo) {
+      el.artificerInfusionsInfo.innerHTML = getArtificerInfusionCascadeMarkup(selectionState);
+    }
+    initializeArtificerInfusionFields();
+  }
+
+  function onArtificerInfusionChanged(event) {
+    const select = event?.target?.closest?.("select[data-artificer-infusion-slot-key]");
+    if (!select || !el.artificerInfusionsContainer) return;
+
+    const kind = select.getAttribute("data-artificer-infusion-kind") || "";
+    const duplicateSelector = kind === "known"
+      ? "select[data-artificer-infusion-known-slot-key]"
+      : kind === "active"
+        ? "select[data-artificer-infusion-active-slot-key]"
+        : "";
+    if (duplicateSelector && select.value) {
+      const entryUid = select.getAttribute("data-artificer-infusion-entry-uid") || "";
+      const duplicate = Array.from(el.artificerInfusionsContainer.querySelectorAll(duplicateSelector))
+        .some((other) => other !== select
+          && other.getAttribute("data-artificer-infusion-entry-uid") === entryUid
+          && other.value === select.value);
+      if (duplicate) {
+        select.value = "";
+        setStatus(kind === "known"
+          ? "Essa infusão já foi escolhida como conhecida."
+          : "Essa infusão já está ativa em outro item.");
+        renderArtificerInfusions();
+        atualizarPreview();
+        return;
+      }
+    }
+
+    setStatus("");
+    renderArtificerInfusions();
+    atualizarPreview();
+  }
+
+  function buildSelectedArtificerInfusionLines(selectionState = null) {
+    const state = selectionState || collectArtificerInfusionSelectionState();
+    const lines = [];
+
+    state.sources.forEach((source) => {
+      const known = state.knownEntries.filter((entry) => entry.entryUid === source.entryUid);
+      const active = state.activeEntries.filter((entry) => entry.entryUid === source.entryUid);
+      lines.push(`${source.classLabel} ${source.level}: ${known.length}/${source.limits.known} conhecidas; ${active.length}/${source.limits.active} ativas.`);
+      if (known.length) {
+        lines.push(`Conhecidas: ${formatList(known.map((entry) => entry.infusion.label))}.`);
+      }
+      active.forEach((entry) => {
+        lines.push(`${entry.infusion.label} -> ${entry.target.label}: ${entry.infusion.summary || "Infusão ativa registrada."}`);
+      });
+    });
+
+    return lines;
+  }
+
+  function collectArtificerInfusionPendingLines(stateOrEntries = null) {
+    if (stateOrEntries?.artificerInfusionState) return stateOrEntries.artificerInfusionState.pending || [];
+    const classEntries = Array.isArray(stateOrEntries)
+      ? stateOrEntries
+      : (Array.isArray(stateOrEntries?.classEntries) ? stateOrEntries.classEntries : null);
+    return collectArtificerInfusionSelectionState(classEntries).pending;
   }
 
   function buildCompanionChoiceSlotKey(source, slotIndex) {
@@ -6145,6 +6851,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     renderFeatChoices();
     renderWarlockInvocationChoices();
     renderFeatureChoices();
+    renderArtificerInfusions();
     renderCompanionChoices();
     renderMagicSection();
   }
@@ -6155,6 +6862,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     renderFeatChoices();
     renderWarlockInvocationChoices();
     renderFeatureChoices();
+    renderArtificerInfusions();
     renderCompanionChoices();
     renderMagicSection();
     atualizarPreview();
@@ -11391,6 +12099,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     fillRandomFeatDetailChoices({ overwrite });
     fillRandomWarlockInvocationChoices({ overwrite });
     fillRandomFeatureChoices({ overwrite });
+    fillRandomArtificerInfusions({ overwrite });
     fillRandomSubclassDetailChoices({ overwrite });
     fillRandomCompanionChoices({ overwrite });
     fillRandomRaceDetailChoices({ overwrite });
@@ -11622,6 +12331,47 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
 
     renderFeatureChoices();
     renderMagicSection();
+  }
+
+  function fillRandomArtificerInfusions({ overwrite = false } = {}) {
+    if (!el.artificerInfusionsContainer) return;
+
+    renderArtificerInfusions();
+    if (overwrite) {
+      el.artificerInfusionsContainer.querySelectorAll("select[data-artificer-infusion-slot-key]").forEach((select) => {
+        select.value = "";
+      });
+      renderArtificerInfusions();
+    }
+
+    const fillUniqueSelects = (selector, scopeAttr) => {
+      const selects = Array.from(el.artificerInfusionsContainer.querySelectorAll(selector));
+      selects.forEach((select) => {
+        if (select.disabled || (!overwrite && select.value)) return;
+        const scope = select.getAttribute(scopeAttr) || "";
+        const usedValues = new Set(
+          selects
+            .filter((other) => other !== select && other.getAttribute(scopeAttr) === scope)
+            .map((other) => other.value)
+            .filter(Boolean)
+        );
+        const selectedValue = pickRandom(listOptionValues(select, { filter: (value) => !usedValues.has(value) }));
+        if (selectedValue) select.value = selectedValue;
+      });
+    };
+
+    fillUniqueSelects("select[data-artificer-infusion-known-slot-key]", "data-artificer-infusion-entry-uid");
+    renderArtificerInfusions();
+    fillUniqueSelects("select[data-artificer-infusion-active-slot-key]", "data-artificer-infusion-entry-uid");
+    renderArtificerInfusions();
+
+    Array.from(el.artificerInfusionsContainer.querySelectorAll("select[data-artificer-infusion-target-slot-key]")).forEach((select) => {
+      if (select.disabled || (!overwrite && select.value)) return;
+      const selectedValue = pickRandom(listOptionValues(select));
+      if (selectedValue) select.value = selectedValue;
+    });
+
+    renderArtificerInfusions();
   }
 
   function fillRandomSubclassDetailChoices({ overwrite = false } = {}) {
@@ -16948,6 +17698,7 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
     const selectedWarlockInvocations = collectSelectedWarlockInvocations(classEntries);
     const featureChoiceSources = collectFeatureChoiceSources({ classEntries });
     const selectedFeatureChoices = getFeatureChoiceSelectionEntries({ classEntries });
+    const artificerInfusionState = collectArtificerInfusionSelectionState(classEntries);
 
     const attrs = {
       for: clampInt(el.for.value, 1, 20),
@@ -17050,6 +17801,7 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
       selectedWarlockInvocations,
       featureChoiceSources,
       selectedFeatureChoices,
+      artificerInfusionState,
       equipmentSelections: collectEquipmentSelectionState(),
       selectedSpellsBySource: getSpellSelectionSnapshot(),
       spellSlotsUsed: collectSpellSlotUsageState(),
@@ -17622,6 +18374,7 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
     });
     const classEntries = getResolvedClassEntries(state);
     const selectedFeatureChoiceLines = buildSelectedFeatureChoiceLines(classEntries);
+    const selectedArtificerInfusionLines = buildSelectedArtificerInfusionLines(state.artificerInfusionState);
     const selectedCompanionChoiceLines = buildSelectedCompanionChoiceLines(classEntries, state.selectedCompanionChoices);
 
     if (raceTraits.length) {
@@ -17673,6 +18426,14 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
       sections.push({
         title: "Escolhas de recursos",
         lines: selectedFeatureChoiceLines,
+        bucket: "secondary",
+      });
+    }
+
+    if (selectedArtificerInfusionLines.length) {
+      sections.push({
+        title: "Artífice - Infusões",
+        lines: selectedArtificerInfusionLines,
         bucket: "secondary",
       });
     }
@@ -18625,6 +19386,7 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
       .join(", ");
     const featureChoicePending = [
       ...collectFeatureChoicePendingLines(state),
+      ...collectArtificerInfusionPendingLines(state),
       ...collectCompanionChoicePendingLines(state),
     ];
 

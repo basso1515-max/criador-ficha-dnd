@@ -706,11 +706,63 @@ function validateCompanionChoiceEngines() {
   console.log("OK: motor de companheiros e formas especiais");
 }
 
+function validateArtificerInfusionEngine5e() {
+  const errors = [];
+  const html5e = readFileSync(path.join(root, "5e.html"), "utf8");
+  const script5e = readFileSync(path.join(root, "src/script.js"), "utf8");
+
+  [
+    "artificerInfusionsPanel",
+    "artificerInfusionsSummary",
+    "artificerInfusionsContainer",
+    "artificerInfusionsInfo",
+  ].forEach((id) => {
+    if (!html5e.includes(id)) errors.push(`5e: painel de infusões de Artífice sem #${id}.`);
+  });
+
+  [
+    "ARTIFICER_INFUSION_LIMITS_BY_LEVEL",
+    "ARTIFICER_INFUSION_CATALOG",
+    "ARTIFICER_INFUSION_TARGET_OPTIONS",
+    "renderArtificerInfusions",
+    "collectArtificerInfusionSelectionState",
+    "collectArtificerInfusionPendingLines",
+    "buildSelectedArtificerInfusionLines",
+    "fillRandomArtificerInfusions",
+    "getArtificerInfusionCascadeMarkup",
+    "data-artificer-infusion-hover-card",
+    "artificer-infusion-cascade",
+    "enhanced-defense",
+    "repeating-shot",
+    "replicate-bag-of-holding",
+    "spell-refueling-ring",
+    "arcane-propulsion-armor",
+  ].forEach((marker) => {
+    if (!script5e.includes(marker)) errors.push(`5e: motor de infusões de Artífice sem marcador ${marker}.`);
+  });
+
+  if (!script5e.includes("{ known: 4, active: 2 }")) {
+    errors.push("5e: tabela de infusões não registra 4 conhecidas/2 ativas no nível inicial.");
+  }
+  if (!script5e.includes("{ known: 12, active: 6 }")) {
+    errors.push("5e: tabela de infusões não registra 12 conhecidas/6 ativas no nível alto.");
+  }
+
+  if (errors.length) {
+    console.error("\nValidacao do motor de infusões do Artífice falhou:");
+    errors.forEach((error) => console.error(`- ${error}`));
+    process.exit(1);
+  }
+
+  console.log("OK: motor de infusões do Artífice 5e");
+}
+
 validateWarlockData();
 validatePaladinOathSpellData();
 validateDruidCircleSpellData();
 validateFeatureChoiceEngine2024();
 validateFeatureChoiceEngine5e();
 validateCompanionChoiceEngines();
+validateArtificerInfusionEngine5e();
 
 console.log("\nValidacao concluida com sucesso.");

@@ -106,6 +106,48 @@ const smokePages = [
           dispatch(select, "change");
           return option.value;
         };
+        const infusionKnownSelects = () => Array.from(document.querySelectorAll("#artificerInfusionsContainer select[data-artificer-infusion-known-slot-key]"));
+        const infusionActiveSelects = () => Array.from(document.querySelectorAll("#artificerInfusionsContainer select[data-artificer-infusion-active-slot-key]"));
+        const infusionTargetSelects = () => Array.from(document.querySelectorAll("#artificerInfusionsContainer select[data-artificer-infusion-target-slot-key]"));
+        const chooseKnownInfusion = (slotIndex, value) => {
+          const select = infusionKnownSelects()[slotIndex];
+          assert(select, "Slot de infusao conhecida ausente: " + slotIndex);
+          const option = Array.from(select.options).find((item) => item.value === value && !item.disabled);
+          assert(option, "Infusao conhecida indisponivel: " + value);
+          select.value = value;
+          dispatch(select, "change");
+        };
+        const chooseActiveInfusion = (slotIndex, infusionValue, targetValue) => {
+          const select = infusionActiveSelects()[slotIndex];
+          assert(select, "Slot de infusao ativa ausente: " + slotIndex);
+          const option = Array.from(select.options).find((item) => item.value === infusionValue && !item.disabled);
+          assert(option, "Infusao ativa indisponivel: " + infusionValue);
+          select.value = infusionValue;
+          dispatch(select, "change");
+          const target = infusionTargetSelects()[slotIndex];
+          assert(target, "Slot de item alvo ausente: " + slotIndex);
+          const targetOption = Array.from(target.options).find((item) => item.value === targetValue && !item.disabled);
+          assert(targetOption, "Item alvo indisponivel: " + targetValue);
+          target.value = targetValue;
+          dispatch(target, "change");
+        };
+
+        setClassLevel("Artífice", 2);
+        assert(!document.querySelector("#artificerInfusionsPanel")?.hidden, "Painel de infusoes de Artifice nao abriu no nivel 2.");
+        assert(infusionKnownSelects().length === 4, "Artifice nivel 2 nao exibiu 4 infusoes conhecidas.");
+        assert(infusionActiveSelects().length === 2, "Artifice nivel 2 nao exibiu 2 infusoes ativas.");
+        assert(document.querySelector("#artificerInfusionsInfo .artificer-infusion-cascade"), "Cascata de infusoes de Artifice ausente.");
+        assert(document.querySelector("#artificerInfusionsContainer [data-artificer-infusion-hover-card]"), "Hovercard de infusoes de Artifice ausente.");
+        chooseKnownInfusion(0, "enhanced-defense");
+        chooseKnownInfusion(1, "repeating-shot");
+        chooseKnownInfusion(2, "enhanced-weapon");
+        chooseKnownInfusion(3, "replicate-bag-of-holding");
+        chooseActiveInfusion(0, "enhanced-defense", "cota-de-escamas");
+        chooseActiveInfusion(1, "repeating-shot", "besta");
+        const infusionSummary = document.querySelector("#artificerInfusionsSummary")?.textContent || "";
+        assert(infusionSummary.includes("Conhecidas 4/4") && infusionSummary.includes("Ativas 2/2"), "Resumo de infusoes nao fechou 4/4 e 2/2: " + infusionSummary);
+        const infusionPreview = document.querySelector("#preview")?.textContent || "";
+        assert(infusionPreview.includes("Artífice - Infusões") && infusionPreview.includes("Defesa Aprimorada") && infusionPreview.includes("Cota de escamas"), "Preview/PDF automatico 5e nao recebeu infusoes ativas com alvo.");
 
         assertFeatureSlots("Feiticeiro", 17, [["metamagic", 4]]);
         const metamagic = new Set();
