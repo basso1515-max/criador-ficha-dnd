@@ -676,6 +676,61 @@ function validateFeatureChoiceEngine5e() {
   console.log("OK: motor de escolhas de recursos 5e");
 }
 
+function validateSubclassProficiencyChoiceEngine5e() {
+  const errors = [];
+  const html5e = readFileSync(path.join(root, "5e.html"), "utf8");
+  const script5e = readFileSync(path.join(root, "src/script.js"), "utf8");
+
+  [
+    "subclassProficiencyChoicesPanel",
+    "subclassProficiencyChoicesSummary",
+    "subclassProficiencyChoicesContainer",
+    "subclassProficiencyChoicesInfo",
+  ].forEach((id) => {
+    if (!html5e.includes(id)) errors.push(`5e: painel de proficiências de subclasse sem #${id}.`);
+  });
+
+  [
+    "SUBCLASS_PROFICIENCY_CHOICE_DEFINITIONS",
+    "KENSEI_WEAPON_PICKS_BY_LEVEL",
+    "collectSubclassProficiencyChoiceSources",
+    "collectSelectedSubclassProficiencyChoices",
+    "collectSelectedSubclassProficiencyWeaponTags",
+    "collectSubclassProficiencyChoicePendingLines",
+    "fillRandomSubclassProficiencyChoices",
+    "renderSubclassProficiencyChoices",
+    "data-subclass-proficiency-hover-card",
+    "subclass-proficiency-cascade",
+    "student-of-war-artisan-tool",
+    "master-of-intrigue-gaming-set",
+    "bladesinger-one-handed-weapon",
+    "kensei-weapons",
+    "guerreiro-mestre-de-batalha",
+    "ladino-mentor",
+    "mago-lamina-cantante",
+    "monge-kensei",
+  ].forEach((marker) => {
+    if (!script5e.includes(marker)) errors.push(`5e: motor de proficiências de subclasse sem marcador ${marker}.`);
+  });
+
+  [
+    "escolha uma ferramenta artesanal (Estudante da Guerra)",
+    "escolha um conjunto de jogos (Mestre da Intriga)",
+    "escolha um tipo de arma corpo a corpo de uma mão (Lâmina Cantante)",
+    "escolha armas do kensei para ganhar proficiência, se necessário",
+  ].forEach((oldNote) => {
+    if (script5e.includes(oldNote)) errors.push(`5e: proficiência de subclasse ainda registrada como nota solta (${oldNote}).`);
+  });
+
+  if (errors.length) {
+    console.error("\nValidacao do motor de proficiências de subclasse 5e falhou:");
+    errors.forEach((error) => console.error(`- ${error}`));
+    process.exit(1);
+  }
+
+  console.log("OK: motor de proficiências de subclasse 5e");
+}
+
 function validateCompanionChoiceEngines() {
   const errors = [];
   const html2024 = readFileSync(path.join(root, "5.5e-2024.html"), "utf8");
@@ -808,6 +863,7 @@ validatePaladinOathSpellData();
 validateDruidCircleSpellData();
 validateFeatureChoiceEngine2024();
 validateFeatureChoiceEngine5e();
+validateSubclassProficiencyChoiceEngine5e();
 validateCompanionChoiceEngines();
 validateArtificerInfusionEngine5e();
 

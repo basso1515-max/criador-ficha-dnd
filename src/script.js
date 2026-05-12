@@ -561,6 +561,64 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       options: DIVINE_SOUL_AFFINITY_OPTIONS,
     },
   };
+  const KENSEI_WEAPON_PICKS_BY_LEVEL = [
+    0, 0, 0, 2, 2, 2, 3, 3, 3, 3,
+    3, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5,
+  ];
+  const SUBCLASS_PROFICIENCY_CHOICE_DEFINITIONS = {
+    "guerreiro-mestre-de-batalha": [
+      {
+        id: "student-of-war-artisan-tool",
+        minLevel: 3,
+        featureLabel: "Estudante da Guerra",
+        selectionLabel: "Ferramenta artesanal",
+        help: "Escolha a ferramenta artesanal concedida pelo Mestre de Batalha no nível 3.",
+        required: true,
+        optionSet: "artisan-tools",
+        grants: ["tool"],
+      },
+    ],
+    "ladino-mentor": [
+      {
+        id: "master-of-intrigue-gaming-set",
+        minLevel: 3,
+        featureLabel: "Mestre da Intriga",
+        selectionLabel: "Conjunto de jogos",
+        help: "Escolha o conjunto de jogos concedido pelo Mentor/Mastermind junto com kit de disfarce e kit de falsificação.",
+        required: true,
+        optionSet: "gaming-sets",
+        grants: ["tool"],
+      },
+    ],
+    "mago-lamina-cantante": [
+      {
+        id: "bladesinger-one-handed-weapon",
+        minLevel: 2,
+        featureLabel: "Treinamento em Guerra e Canção",
+        selectionLabel: "Arma corpo a corpo de uma mão",
+        help: "Escolha o tipo de arma corpo a corpo de uma mão com o qual a Lâmina Cantante ganha proficiência.",
+        required: true,
+        optionSet: "bladesinger-weapons",
+        grants: ["weapon"],
+      },
+    ],
+    "monge-kensei": [
+      {
+        id: "kensei-weapons",
+        minLevel: 3,
+        featureLabel: "Armas do Kensei",
+        selectionLabel: "Arma do kensei",
+        help: "Escolha as armas do Kensei. No nível 3, registre uma arma corpo a corpo e uma à distância; nos níveis 6, 11 e 17, registre armas adicionais.",
+        required: true,
+        disallowDuplicates: true,
+        picksByLevel: KENSEI_WEAPON_PICKS_BY_LEVEL,
+        slotLabels: ["Arma corpo a corpo", "Arma à distância"],
+        slotOptionSets: ["kensei-melee-weapons", "kensei-ranged-weapons"],
+        optionSet: "kensei-weapons",
+        grants: ["weapon"],
+      },
+    ],
+  };
   const ARTIFICER_INFUSION_LIMITS_BY_LEVEL = [
     { known: 0, active: 0 },
     { known: 0, active: 0 },
@@ -2641,6 +2699,10 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     subclassDetailChoicesSummary: $("subclassDetailChoicesSummary"),
     subclassDetailChoicesContainer: $("subclassDetailChoicesContainer"),
     subclassDetailChoicesInfo: $("subclassDetailChoicesInfo"),
+    subclassProficiencyChoicesPanel: $("subclassProficiencyChoicesPanel"),
+    subclassProficiencyChoicesSummary: $("subclassProficiencyChoicesSummary"),
+    subclassProficiencyChoicesContainer: $("subclassProficiencyChoicesContainer"),
+    subclassProficiencyChoicesInfo: $("subclassProficiencyChoicesInfo"),
     warlockInvocationsPanel: $("warlockInvocationsPanel"),
     warlockInvocationsSummary: $("warlockInvocationsSummary"),
     warlockInvocationsContainer: $("warlockInvocationsContainer"),
@@ -2804,6 +2866,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
   const CUSTOM_SELECT_FIELDS = {};
   const FEAT_CUSTOM_SELECT_PREFIX = "feat-slot:";
   const FEATURE_CHOICE_CUSTOM_SELECT_PREFIX = "feature-choice:";
+  const SUBCLASS_PROFICIENCY_CHOICE_CUSTOM_SELECT_PREFIX = "subclass-proficiency-choice:";
   const ARTIFICER_INFUSION_CUSTOM_SELECT_PREFIX = "artificer-infusion:";
   const COMPANION_CHOICE_CUSTOM_SELECT_PREFIX = "companion-choice:";
   const WARLOCK_INVOCATION_CUSTOM_SELECT_PREFIX = "warlock-invocation:";
@@ -2812,6 +2875,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
   const EQUIPMENT_CUSTOM_SELECT_PREFIX = "equipment-choice:";
   let featCustomSelectKeys = [];
   let featureChoiceCustomSelectKeys = [];
+  let subclassProficiencyChoiceCustomSelectKeys = [];
   let artificerInfusionCustomSelectKeys = [];
   let companionChoiceCustomSelectKeys = [];
   let warlockInvocationCustomSelectKeys = [];
@@ -2989,6 +3053,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     renderSubclassDetailChoices();
     renderWarlockInvocationChoices();
     renderFeatureChoices();
+    renderSubclassProficiencyChoices();
     renderArtificerInfusions();
     renderCompanionChoices();
     renderRaceDetailChoices();
@@ -3019,6 +3084,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     renderSubclassDetailChoices();
     renderWarlockInvocationChoices();
     renderFeatureChoices();
+    renderSubclassProficiencyChoices();
     renderArtificerInfusions();
     renderCompanionChoices();
     renderRaceDetailChoices();
@@ -3055,6 +3121,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     if (el.subclassDetailChoicesContainer) el.subclassDetailChoicesContainer.addEventListener("change", onSubclassDetailChoiceChanged);
     if (el.warlockInvocationsContainer) el.warlockInvocationsContainer.addEventListener("change", onWarlockInvocationChoiceChanged);
     if (el.featureChoicesContainer) el.featureChoicesContainer.addEventListener("change", onFeatureChoiceChanged);
+    if (el.subclassProficiencyChoicesContainer) el.subclassProficiencyChoicesContainer.addEventListener("change", onSubclassProficiencyChoiceChanged);
     if (el.artificerInfusionsContainer) el.artificerInfusionsContainer.addEventListener("change", onArtificerInfusionChanged);
     if (el.companionChoicesContainer) el.companionChoicesContainer.addEventListener("change", onCompanionChoiceChanged);
     if (el.raceDetailChoicesContainer) el.raceDetailChoicesContainer.addEventListener("change", onRaceDetailChoiceChanged);
@@ -3217,6 +3284,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     onSubclassChanged();
     renderWarlockInvocationChoices();
     renderFeatureChoices();
+    renderSubclassProficiencyChoices();
     renderArtificerInfusions();
     renderLanguageChoices();
     onAlignmentChanged();
@@ -3836,6 +3904,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     renderFeatChoices();
     renderWarlockInvocationChoices();
     renderFeatureChoices();
+    renderSubclassProficiencyChoices();
     renderArtificerInfusions();
     renderCompanionChoices();
     renderLanguageChoices();
@@ -3853,6 +3922,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     renderFeatChoices();
     renderWarlockInvocationChoices();
     renderFeatureChoices();
+    renderSubclassProficiencyChoices();
     renderArtificerInfusions();
     renderCompanionChoices();
     renderLanguageChoices();
@@ -3883,6 +3953,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     renderFeatChoices();
     renderWarlockInvocationChoices();
     renderFeatureChoices();
+    renderSubclassProficiencyChoices();
     renderArtificerInfusions();
     renderCompanionChoices();
     renderLanguageChoices();
@@ -3902,6 +3973,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     renderFeatChoices();
     renderWarlockInvocationChoices();
     renderFeatureChoices();
+    renderSubclassProficiencyChoices();
     renderArtificerInfusions();
     renderCompanionChoices();
     renderLanguageChoices();
@@ -3929,6 +4001,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     renderFeatChoices();
     renderWarlockInvocationChoices();
     renderFeatureChoices();
+    renderSubclassProficiencyChoices();
     renderArtificerInfusions();
     renderCompanionChoices();
     renderLanguageChoices();
@@ -5668,6 +5741,474 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     atualizarPreview();
   }
 
+  function cleanupSubclassProficiencyChoiceFields() {
+    subclassProficiencyChoiceCustomSelectKeys.forEach((key) => {
+      delete CUSTOM_SELECT_FIELDS[key];
+    });
+    subclassProficiencyChoiceCustomSelectKeys = [];
+  }
+
+  function getSubclassProficiencyChoicePickCount(definition, entry) {
+    if (Array.isArray(definition?.picksByLevel)) {
+      return clampInt(definition.picksByLevel[clampInt(entry?.level, 0, 20)] || 0, 0, 20);
+    }
+    return clampInt(definition?.picks || 1, 0, 20);
+  }
+
+  function buildSubclassProficiencyChoiceSourceKey(entry, definition) {
+    return `${entry?.uid || entry?.classId || "class"}:subclass-proficiency:${entry?.subclassId || "subclass"}:${definition?.id || "choice"}`;
+  }
+
+  function buildSubclassProficiencyChoiceSlotKey(source, slotIndex) {
+    return `${source.key}:slot-${slotIndex}`;
+  }
+
+  function collectSubclassProficiencyChoiceSources(classEntries = null) {
+    return normalizeFeatureClassEntries(classEntries)
+      .flatMap((entry) => {
+        const definitions = entry.subclassId
+          ? (SUBCLASS_PROFICIENCY_CHOICE_DEFINITIONS[entry.subclassId] || [])
+          : [];
+        return definitions
+          .filter((definition) => entry.level >= Number(definition.minLevel || 1))
+          .map((definition) => {
+            const picks = getSubclassProficiencyChoicePickCount(definition, entry);
+            if (!picks) return null;
+            return {
+              ...definition,
+              key: buildSubclassProficiencyChoiceSourceKey(entry, definition),
+              entry,
+              entryUid: entry.uid,
+              classId: entry.classId,
+              subclassId: entry.subclassId,
+              classLabel: entry.classData?.nome || entry.classLabel || labelFromSlug(entry.classId),
+              subclassLabel: entry.subclassData?.nome || labelFromSlug(entry.subclassId),
+              ownerLabel: entry.subclassData?.nome || entry.classData?.nome || entry.classLabel,
+              title: definition.featureLabel || "Proficiência de subclasse",
+              picks,
+            };
+          })
+          .filter(Boolean);
+      });
+  }
+
+  function getCurrentSubclassProficiencyChoiceSelectionMap() {
+    const selections = new Map();
+    el.subclassProficiencyChoicesContainer?.querySelectorAll("select[data-subclass-proficiency-slot-key]").forEach((select) => {
+      selections.set(select.getAttribute("data-subclass-proficiency-slot-key") || "", select.value || "");
+    });
+    return selections;
+  }
+
+  function isSimpleOrMartialWeapon(weapon) {
+    return ["simples", "marcial"].includes(String(weapon?.categoria || ""));
+  }
+
+  function isKenseiEligibleWeapon(weapon) {
+    if (!weapon?.id || !isSimpleOrMartialWeapon(weapon)) return false;
+    if (weapon.id === "arco-longo") return true;
+    const properties = new Set(weapon.propriedades || []);
+    return !properties.has("heavy") && !properties.has("special");
+  }
+
+  function isBladesingerEligibleWeapon(weapon) {
+    if (!weapon?.id || !isSimpleOrMartialWeapon(weapon) || weapon.tipo !== "corpo-a-corpo") return false;
+    const properties = new Set(weapon.propriedades || []);
+    return !properties.has("twoHanded");
+  }
+
+  function buildSubclassProficiencyToolOptions(listKey, groupLabel, summaryPrefix) {
+    return (EQUIPMENT_OPTION_LISTS?.[listKey] || [])
+      .map((item) => ({
+        value: item.id,
+        label: item.label,
+        group: groupLabel,
+        proficiencyLabel: item.proficiencyLabel || item.label,
+        summary: `${summaryPrefix} ${lowercaseFirst(item.label)}.`,
+      }))
+      .sort((a, b) => String(a.label || "").localeCompare(String(b.label || ""), "pt-BR"));
+  }
+
+  function buildSubclassProficiencyWeaponOptions(filter, groupLabel, summaryPrefix) {
+    return WEAPON_DATASET
+      .filter(filter)
+      .sort((a, b) => String(a.nome || "").localeCompare(String(b.nome || ""), "pt-BR"))
+      .map((weapon) => {
+        const properties = (weapon.propriedades || [])
+          .map((propertyId) => PROPRIEDADES_ARMA?.[propertyId]?.nome || labelFromSlug(propertyId))
+          .filter(Boolean);
+        const damage = weapon.dano?.dado
+          ? `${weapon.dano.dado} ${getDamageTypeLabel(weapon.dano.tipo)}`
+          : "";
+        return {
+          value: weapon.id || weapon.datasetKey,
+          label: weapon.nome || labelFromSlug(weapon.id || weapon.datasetKey),
+          group: groupLabel,
+          proficiencyLabel: weapon.nome || labelFromSlug(weapon.id || weapon.datasetKey),
+          summary: [
+            summaryPrefix,
+            damage ? `Dano: ${damage}` : "",
+            properties.length ? `Propriedades: ${formatList(properties)}` : "",
+          ].filter(Boolean).join(" • "),
+        };
+      });
+  }
+
+  function getSubclassProficiencyChoiceOptionSet(source, slotIndex = 0) {
+    return source?.slotOptionSets?.[slotIndex] || source?.optionSet || "";
+  }
+
+  function getSubclassProficiencyChoiceOptions(source, slotIndex = 0) {
+    const optionSet = getSubclassProficiencyChoiceOptionSet(source, slotIndex);
+    switch (optionSet) {
+      case "artisan-tools":
+        return buildSubclassProficiencyToolOptions("artisanTools", "Ferramentas artesanais", "Proficiência com");
+      case "gaming-sets":
+        return buildSubclassProficiencyToolOptions("gamingSets", "Conjuntos de jogos", "Proficiência com");
+      case "bladesinger-weapons":
+        return buildSubclassProficiencyWeaponOptions(
+          isBladesingerEligibleWeapon,
+          "Armas corpo a corpo de uma mão",
+          "A Lâmina Cantante ganha proficiência com esta arma"
+        );
+      case "kensei-melee-weapons":
+        return buildSubclassProficiencyWeaponOptions(
+          (weapon) => isKenseiEligibleWeapon(weapon) && weapon.tipo === "corpo-a-corpo",
+          "Armas do Kensei corpo a corpo",
+          "Arma do Kensei corpo a corpo"
+        );
+      case "kensei-ranged-weapons":
+        return buildSubclassProficiencyWeaponOptions(
+          (weapon) => isKenseiEligibleWeapon(weapon) && weapon.tipo === "distancia",
+          "Armas do Kensei à distância",
+          "Arma do Kensei à distância"
+        );
+      case "kensei-weapons":
+        return buildSubclassProficiencyWeaponOptions(
+          isKenseiEligibleWeapon,
+          "Armas do Kensei",
+          "Arma adicional do Kensei"
+        );
+      default:
+        return [];
+    }
+  }
+
+  function collectSelectedSubclassProficiencyChoices(sources = collectSubclassProficiencyChoiceSources()) {
+    const selections = getCurrentSubclassProficiencyChoiceSelectionMap();
+    const choices = [];
+
+    sources.forEach((source) => {
+      for (let slotIndex = 0; slotIndex < source.picks; slotIndex += 1) {
+        const slotKey = buildSubclassProficiencyChoiceSlotKey(source, slotIndex);
+        const value = String(selections.get(slotKey) || "").trim();
+        if (!value) continue;
+        const option = getSubclassProficiencyChoiceOptions(source, slotIndex).find((item) => item.value === value);
+        if (!option) continue;
+        choices.push({
+          source,
+          slotIndex,
+          slotKey,
+          value,
+          option,
+          grants: source.grants || [],
+        });
+      }
+    });
+
+    return choices;
+  }
+
+  function collectSelectedSubclassProficiencyWeaponTags(selectedChoices = []) {
+    const tags = new Set();
+    (Array.isArray(selectedChoices) ? selectedChoices : [])
+      .filter((choice) => (choice?.grants || choice?.source?.grants || []).includes("weapon"))
+      .forEach((choice) => {
+        const normalized = normalizeEquipmentTag(choice.value);
+        if (normalized) tags.add(normalized);
+      });
+    return tags;
+  }
+
+  function collectSelectedSubclassProficiencyLabels(selectedChoices = []) {
+    return dedupeStringList((Array.isArray(selectedChoices) ? selectedChoices : [])
+      .map((choice) => choice?.option?.proficiencyLabel || choice?.option?.label || choice?.value)
+      .filter(Boolean)
+      .map((label) => lowercaseFirst(label)));
+  }
+
+  function getSubclassProficiencyChoiceImpactLines(source, option = null) {
+    const grants = source?.grants || [];
+    const lines = [];
+    if (grants.includes("tool")) {
+      lines.push(`Proficiências: ${option?.proficiencyLabel || option?.label || "a ferramenta escolhida"} entra em Proficiências & Idiomas e no PDF.`);
+    }
+    if (grants.includes("weapon")) {
+      lines.push(`Ataques: ${option?.proficiencyLabel || option?.label || "a arma escolhida"} passa a contar como proficiente nos ataques automáticos.`);
+      lines.push("Proficiências: a arma escolhida também entra em Proficiências & Idiomas.");
+    }
+    if (!lines.length) {
+      lines.push("Registro: aparece nas proficiências automáticas da ficha e no PDF.");
+    }
+    return lines;
+  }
+
+  function describeSubclassProficiencyChoiceOption(select, value, label) {
+    const sourceKey = select?.getAttribute("data-subclass-proficiency-source-key") || "";
+    const slotIndex = clampInt(select?.getAttribute("data-subclass-proficiency-slot-index"), 0, 20);
+    const source = collectSubclassProficiencyChoiceSources().find((item) => item.key === sourceKey);
+    const option = getSubclassProficiencyChoiceOptions(source, slotIndex).find((item) => item.value === value) || null;
+    if (!option) return { summary: "", lines: [], body: "", search: label || "" };
+
+    return {
+      group: source?.title || "",
+      summary: option.summary || source?.help || "",
+      lines: [
+        source?.classLabel ? `Classe: ${source.classLabel}` : "",
+        source?.subclassLabel ? `Subclasse: ${source.subclassLabel}` : "",
+        source?.minLevel ? `Libera no nível ${source.minLevel}` : "",
+        ...getSubclassProficiencyChoiceImpactLines(source, option),
+      ].filter(Boolean),
+      body: source?.help || "",
+      search: [label, option.label, option.summary, source?.title, source?.ownerLabel, source?.help].filter(Boolean).join(" "),
+    };
+  }
+
+  function renderSubclassProficiencyChoiceOptionElements(source, slotIndex, selectedValue, selections) {
+    const options = getSubclassProficiencyChoiceOptions(source, slotIndex);
+    const usedValues = new Set();
+    if (source.disallowDuplicates) {
+      for (let index = 0; index < source.picks; index += 1) {
+        if (index === slotIndex) continue;
+        const value = selections.get(buildSubclassProficiencyChoiceSlotKey(source, index));
+        if (value) usedValues.add(value);
+      }
+    }
+
+    const optionHtml = options.map((option) => {
+      const disabled = usedValues.has(option.value) && selectedValue !== option.value;
+      return `<option value="${escapeHtml(option.value)}"${selectedValue === option.value ? " selected" : ""}${disabled ? " disabled" : ""}>${escapeHtml(option.label)}</option>`;
+    }).join("");
+
+    return `
+      <option value=""${selectedValue ? "" : " selected"} disabled>${escapeHtml(options.length ? "Selecione..." : "Sem opções disponíveis")}</option>
+      ${optionHtml}
+    `;
+  }
+
+  function getSubclassProficiencyChoiceCascadeMarkup(sources, selections) {
+    const totalChoices = sources.reduce((total, source) => total + source.picks, 0);
+    let selectedCount = 0;
+    const selectedLabels = [];
+    const applicationLabels = new Set();
+
+    sources.forEach((source) => {
+      for (let slotIndex = 0; slotIndex < source.picks; slotIndex += 1) {
+        const value = String(selections.get(buildSubclassProficiencyChoiceSlotKey(source, slotIndex)) || "").trim();
+        const option = getSubclassProficiencyChoiceOptions(source, slotIndex).find((item) => item.value === value);
+        if (!option) continue;
+        selectedCount += 1;
+        selectedLabels.push(`${source.subclassLabel}: ${option.label}`);
+        (source.grants || []).forEach((grant) => applicationLabels.add(grant === "weapon" ? "armas/ataques" : "ferramentas"));
+      }
+    });
+
+    const pendingCount = Math.max(0, totalChoices - selectedCount);
+    const sourceLabels = sources.map((source) => `${source.subclassLabel}: ${source.title} (${source.picks})`);
+    const steps = [
+      {
+        label: "Fontes",
+        value: `${sources.length} subclasse(s)`,
+        body: sourceLabels.length ? `Ativas agora: ${formatList(sourceLabels)}.` : "Subclasses com proficiência variável entram aqui quando alcançam o nível exigido.",
+      },
+      {
+        label: "Pendência",
+        value: pendingCount ? `${selectedCount}/${totalChoices}` : "resolvida",
+        body: pendingCount ? `${pendingCount} escolha(s) de proficiência ainda precisam de uma opção válida.` : "Todas as proficiências variáveis de subclasse estão configuradas.",
+      },
+      {
+        label: "Aplicação",
+        value: applicationLabels.size ? formatList(Array.from(applicationLabels)) : "aguardando",
+        body: "Ferramentas entram no bloco de proficiências; armas também entram nos cálculos de ataque quando aparecem na ficha.",
+      },
+      {
+        label: "Escolhas",
+        value: selectedLabels.length ? formatList(selectedLabels) : "aguardando",
+        body: "As escolhas selecionadas substituem as antigas notas soltas de proficiência de subclasse.",
+      },
+      {
+        label: "Resumo/PDF",
+        value: selectedCount ? `${selectedCount} linha(s)` : "aguardando",
+        body: "As proficiências selecionadas alimentam o preview, o campo Proficiências & Idiomas e a exportação para PDF.",
+      },
+    ];
+
+    return `
+      <div class="feature-choice-cascade subclass-proficiency-cascade" aria-label="Cascata das proficiências de subclasse">
+        ${steps.map((step, index) => `
+          <span class="feature-choice-cascade-step subclass-proficiency-cascade-step${pendingCount && step.label === "Pendência" ? " is-warning" : ""}" tabindex="0">
+            <small>${escapeHtml(String(index + 1))}</small>
+            <strong>${escapeHtml(step.label)}</strong>
+            <span>${escapeHtml(step.value)}</span>
+            <span class="feature-choice-hover-card subclass-proficiency-hover-card" role="tooltip">
+              <strong>${escapeHtml(step.label)}</strong>
+              <p>${escapeHtml(step.body)}</p>
+            </span>
+          </span>
+        `).join("")}
+      </div>
+    `;
+  }
+
+  function renderSubclassProficiencyChoiceCard(source, selections) {
+    const fields = Array.from({ length: source.picks }, (_, slotIndex) => {
+      const slotKey = buildSubclassProficiencyChoiceSlotKey(source, slotIndex);
+      const selectedValue = String(selections.get(slotKey) || "").trim();
+      const options = getSubclassProficiencyChoiceOptions(source, slotIndex);
+      const selectedOption = options.find((option) => option.value === selectedValue);
+      const label = source.slotLabels?.[slotIndex]
+        || (source.picks > 1 ? `${source.selectionLabel || "Proficiência"} ${slotIndex + 1}` : source.selectionLabel || "Proficiência");
+      const description = selectedOption?.summary || source.help || "Escolha a proficiência concedida por esta subclasse.";
+
+      return `
+        <label class="row generic-dropdown-field feat-choice-field" data-subclass-proficiency-field-key="${escapeHtml(slotKey)}" data-subclass-proficiency-placeholder="${escapeHtml(label)}">
+          <span>${escapeHtml(label)}</span>
+          <input data-subclass-proficiency-input type="text" autocomplete="off" placeholder="${escapeHtml(options.length ? "Selecione..." : "Sem opções disponíveis")}" ${options.length ? "" : "disabled"} />
+          <div data-subclass-proficiency-suggestions class="dropdown-suggestions" hidden></div>
+          <div data-subclass-proficiency-hover-card class="dropdown-hover-card" hidden></div>
+          <select class="native-select-hidden" tabindex="-1" aria-hidden="true" name="${escapeHtml(slotKey)}" data-subclass-proficiency-source-key="${escapeHtml(source.key)}" data-subclass-proficiency-slot-key="${escapeHtml(slotKey)}" data-subclass-proficiency-slot-index="${escapeHtml(String(slotIndex))}" ${options.length ? "" : "disabled"}>
+            ${renderSubclassProficiencyChoiceOptionElements(source, slotIndex, selectedValue, selections)}
+          </select>
+        </label>
+        <p class="feat-choice-description${selectedOption ? "" : " is-empty"}">${escapeHtml(description)}</p>
+      `;
+    }).join("");
+
+    return `
+      <article class="feat-choice-card feat-choice-card--active">
+        <strong>${escapeHtml(source.title)}</strong>
+        <p class="feat-choice-meta">${escapeHtml(source.ownerLabel)} • Nível ${escapeHtml(String(source.minLevel || 1))} • ${escapeHtml(source.picks === 1 ? "1 escolha" : `${source.picks} escolhas`)}</p>
+        ${source.help ? `<p class="note subtle">${escapeHtml(source.help)}</p>` : ""}
+        ${fields}
+      </article>
+    `;
+  }
+
+  function initializeSubclassProficiencyChoiceFields() {
+    cleanupSubclassProficiencyChoiceFields();
+    if (!el.subclassProficiencyChoicesContainer) return;
+
+    el.subclassProficiencyChoicesContainer.querySelectorAll("select[data-subclass-proficiency-slot-key]").forEach((select) => {
+      const slotKey = select.getAttribute("data-subclass-proficiency-slot-key") || "";
+      const fieldRoot = select.closest("[data-subclass-proficiency-field-key]");
+      const input = fieldRoot?.querySelector("[data-subclass-proficiency-input]");
+      const suggestions = fieldRoot?.querySelector("[data-subclass-proficiency-suggestions]");
+      const hoverCard = fieldRoot?.querySelector("[data-subclass-proficiency-hover-card]");
+      if (!slotKey || !fieldRoot || !input || !suggestions || !hoverCard) return;
+
+      const fieldKey = `${SUBCLASS_PROFICIENCY_CHOICE_CUSTOM_SELECT_PREFIX}${slotKey}`;
+      subclassProficiencyChoiceCustomSelectKeys.push(fieldKey);
+      CUSTOM_SELECT_FIELDS[fieldKey] = createCustomSelectField({
+        key: fieldKey,
+        input,
+        select,
+        suggestions,
+        hoverCard,
+        placeholder: fieldRoot.getAttribute("data-subclass-proficiency-placeholder") || "Selecione uma proficiência...",
+        describeOption: (value, label) => describeSubclassProficiencyChoiceOption(select, value, label),
+        onCommit: () => onSubclassProficiencyChoiceChanged({ target: select }),
+        showSuggestionSummary: true,
+      });
+      syncCustomSelectField(fieldKey);
+    });
+  }
+
+  function renderSubclassProficiencyChoices() {
+    if (!el.subclassProficiencyChoicesPanel || !el.subclassProficiencyChoicesContainer) return;
+
+    const sources = collectSubclassProficiencyChoiceSources();
+    const selections = getCurrentSubclassProficiencyChoiceSelectionMap();
+    cleanupSubclassProficiencyChoiceFields();
+    if (!sources.length) {
+      el.subclassProficiencyChoicesPanel.hidden = true;
+      el.subclassProficiencyChoicesSummary.textContent = "";
+      el.subclassProficiencyChoicesContainer.innerHTML = "";
+      if (el.subclassProficiencyChoicesInfo) el.subclassProficiencyChoicesInfo.textContent = "";
+      return;
+    }
+
+    const totalChoices = sources.reduce((total, source) => total + source.picks, 0);
+    const selectedCount = sources.reduce((total, source) => {
+      let count = 0;
+      for (let index = 0; index < source.picks; index += 1) {
+        const value = selections.get(buildSubclassProficiencyChoiceSlotKey(source, index));
+        if (value && getSubclassProficiencyChoiceOptions(source, index).some((option) => option.value === value)) count += 1;
+      }
+      return total + count;
+    }, 0);
+
+    el.subclassProficiencyChoicesPanel.hidden = false;
+    el.subclassProficiencyChoicesSummary.textContent = `${selectedCount}/${totalChoices} proficiência(s) de subclasse configurada(s).`;
+    el.subclassProficiencyChoicesContainer.innerHTML = sources.map((source) => renderSubclassProficiencyChoiceCard(source, selections)).join("");
+    if (el.subclassProficiencyChoicesInfo) {
+      el.subclassProficiencyChoicesInfo.innerHTML = getSubclassProficiencyChoiceCascadeMarkup(sources, selections);
+    }
+    initializeSubclassProficiencyChoiceFields();
+  }
+
+  function onSubclassProficiencyChoiceChanged(event) {
+    const select = event?.target?.closest?.("select[data-subclass-proficiency-slot-key]");
+    if (!select) return;
+
+    const sourceKey = select.getAttribute("data-subclass-proficiency-source-key") || "";
+    const selectedValue = String(select.value || "").trim();
+    const source = collectSubclassProficiencyChoiceSources().find((item) => item.key === sourceKey);
+    if (selectedValue && source?.disallowDuplicates) {
+      const duplicate = Array.from(el.subclassProficiencyChoicesContainer?.querySelectorAll("select[data-subclass-proficiency-source-key]") || [])
+        .some((other) => other !== select && other.getAttribute("data-subclass-proficiency-source-key") === sourceKey && other.value === selectedValue);
+      if (duplicate) {
+        select.value = "";
+        setStatus("Essa proficiência já foi escolhida para a mesma subclasse.");
+      } else {
+        setStatus("");
+      }
+    } else {
+      setStatus("");
+    }
+
+    renderSubclassProficiencyChoices();
+    atualizarPreview();
+  }
+
+  function collectSubclassProficiencyChoicePendingLines(stateOrEntries = null) {
+    const classEntries = Array.isArray(stateOrEntries)
+      ? stateOrEntries
+      : (Array.isArray(stateOrEntries?.classEntries) ? stateOrEntries.classEntries : null);
+    const sources = collectSubclassProficiencyChoiceSources(classEntries);
+    const selections = getCurrentSubclassProficiencyChoiceSelectionMap();
+    const pending = [];
+
+    sources.forEach((source) => {
+      let selectedCount = 0;
+      const selectedValues = [];
+      for (let slotIndex = 0; slotIndex < source.picks; slotIndex += 1) {
+        const value = String(selections.get(buildSubclassProficiencyChoiceSlotKey(source, slotIndex)) || "").trim();
+        if (value && getSubclassProficiencyChoiceOptions(source, slotIndex).some((option) => option.value === value)) {
+          selectedCount += 1;
+          selectedValues.push(value);
+        }
+      }
+      if (source.required && selectedCount < source.picks) {
+        pending.push(`Configure ${source.title} de ${source.ownerLabel} (${selectedCount}/${source.picks}).`);
+      }
+      if (source.disallowDuplicates && selectedValues.some((value, index) => selectedValues.indexOf(value) !== index)) {
+        pending.push(`Revise ${source.title}: a mesma proficiência foi escolhida mais de uma vez.`);
+      }
+    });
+
+    return pending;
+  }
+
   function getArtificerInfusionLimits(level) {
     return ARTIFICER_INFUSION_LIMITS_BY_LEVEL[clampInt(level, 0, 20)] || ARTIFICER_INFUSION_LIMITS_BY_LEVEL[0];
   }
@@ -6979,6 +7520,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     renderFeatChoices();
     renderWarlockInvocationChoices();
     renderFeatureChoices();
+    renderSubclassProficiencyChoices();
     renderArtificerInfusions();
     renderCompanionChoices();
     renderLanguageChoices();
@@ -6991,6 +7533,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     renderFeatChoices();
     renderWarlockInvocationChoices();
     renderFeatureChoices();
+    renderSubclassProficiencyChoices();
     renderArtificerInfusions();
     renderCompanionChoices();
     renderLanguageChoices();
@@ -12380,6 +12923,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     fillRandomFeatDetailChoices({ overwrite });
     fillRandomWarlockInvocationChoices({ overwrite });
     fillRandomFeatureChoices({ overwrite });
+    fillRandomSubclassProficiencyChoices({ overwrite });
     fillRandomArtificerInfusions({ overwrite });
     fillRandomSubclassDetailChoices({ overwrite });
     fillRandomCompanionChoices({ overwrite });
@@ -12612,6 +13156,35 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
 
     renderFeatureChoices();
     renderMagicSection();
+  }
+
+  function fillRandomSubclassProficiencyChoices({ overwrite = false } = {}) {
+    if (!el.subclassProficiencyChoicesContainer) return;
+
+    renderSubclassProficiencyChoices();
+    if (overwrite) {
+      el.subclassProficiencyChoicesContainer.querySelectorAll("select[data-subclass-proficiency-slot-key]").forEach((select) => {
+        if (!select.disabled) select.value = "";
+      });
+      renderSubclassProficiencyChoices();
+    }
+
+    Array.from(el.subclassProficiencyChoicesContainer.querySelectorAll("select[data-subclass-proficiency-slot-key]")).forEach((select) => {
+      if (select.disabled || (!overwrite && select.value)) return;
+      const sourceKey = select.getAttribute("data-subclass-proficiency-source-key") || "";
+      const usedValues = new Set(
+        Array.from(el.subclassProficiencyChoicesContainer.querySelectorAll("select[data-subclass-proficiency-source-key]"))
+          .filter((other) => other !== select && other.getAttribute("data-subclass-proficiency-source-key") === sourceKey)
+          .map((other) => other.value)
+          .filter(Boolean)
+      );
+      const selectedValue = pickRandom(listOptionValues(select, { filter: (value) => !usedValues.has(value) }));
+      if (!selectedValue) return;
+      select.value = selectedValue;
+    });
+
+    renderSubclassProficiencyChoices();
+    atualizarPreview();
   }
 
   function fillRandomArtificerInfusions({ overwrite = false } = {}) {
@@ -14288,8 +14861,8 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     return { weaponTags, armorTags };
   }
 
-  function collectSubclassExtraProficiencies(classEntries = []) {
-    const labels = [];
+  function collectSubclassExtraProficiencies(classEntries = [], selectedChoices = []) {
+    const labels = collectSelectedSubclassProficiencyLabels(selectedChoices);
     const notes = [];
 
     (Array.isArray(classEntries) ? classEntries : []).forEach((entry) => {
@@ -14309,9 +14882,6 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
         case "artifice-ferreiro-batalha":
           if (entry.level >= 3) labels.push("ferramentas de ferreiro");
           break;
-        case "guerreiro-mestre-de-batalha":
-          if (entry.level >= 3) notes.push("escolha uma ferramenta artesanal (Estudante da Guerra)");
-          break;
         case "ladino-assassino":
           if (entry.level >= 3) {
             labels.push("kit de disfarce");
@@ -14322,17 +14892,6 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
           if (entry.level >= 3) {
             labels.push("kit de disfarce");
             labels.push("kit de falsificação");
-            notes.push("escolha um conjunto de jogos (Mestre da Intriga)");
-          }
-          break;
-        case "mago-lamina-cantante":
-          if (entry.level >= 2) {
-            notes.push("escolha um tipo de arma corpo a corpo de uma mão (Lâmina Cantante)");
-          }
-          break;
-        case "monge-kensei":
-          if (entry.level >= 3) {
-            notes.push("escolha armas do kensei para ganhar proficiência, se necessário");
           }
           break;
         case "monge-mestre-bebado":
@@ -15467,6 +16026,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     const raceTraitTags = collectTraitWeaponProficiencyTags(getRaceTraitList(state?.race, state?.subrace));
     const subclassCombatAdjustments = collectSubclassCombatProficiencyAdjustments(resolvedClassEntries);
     const featWeaponTags = collectFeatWeaponProficiencyTags(state?.selectedFeats, state?.selectedFeatDetails);
+    const subclassChoiceWeaponTags = collectSelectedSubclassProficiencyWeaponTags(state?.selectedSubclassProficiencyChoices);
 
     resolvedClassEntries.forEach((entry, index) => {
       const weaponProficiencies = index === 0
@@ -15481,6 +16041,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
 
     raceTraitTags.forEach((tag) => tags.add(tag));
     subclassCombatAdjustments.weaponTags.forEach((tag) => tags.add(tag));
+    subclassChoiceWeaponTags.forEach((tag) => tags.add(tag));
     featWeaponTags.forEach((tag) => tags.add(tag));
 
     return tags;
@@ -17979,6 +18540,8 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
     const selectedWarlockInvocations = collectSelectedWarlockInvocations(classEntries);
     const featureChoiceSources = collectFeatureChoiceSources({ classEntries });
     const selectedFeatureChoices = getFeatureChoiceSelectionEntries({ classEntries });
+    const subclassProficiencyChoiceSources = collectSubclassProficiencyChoiceSources(classEntries);
+    const selectedSubclassProficiencyChoices = collectSelectedSubclassProficiencyChoices(subclassProficiencyChoiceSources);
     const artificerInfusionState = collectArtificerInfusionSelectionState(classEntries);
 
     const attrs = {
@@ -18082,6 +18645,8 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
       selectedWarlockInvocations,
       featureChoiceSources,
       selectedFeatureChoices,
+      subclassProficiencyChoiceSources,
+      selectedSubclassProficiencyChoices,
       artificerInfusionState,
       equipmentSelections: collectEquipmentSelectionState(),
       selectedSpellsBySource: getSpellSelectionSnapshot(),
@@ -18404,7 +18969,7 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
     const backgroundLoadout = equipmentLoadout?.backgroundLoadout || resolveBackgroundEquipmentLoadout(bg, state);
     const raceTraits = getRaceTraitList(state?.race, state?.subrace);
     const subclassCombatAdjustments = collectSubclassCombatProficiencyAdjustments(resolvedClassEntries);
-    const subclassExtraProficiencies = collectSubclassExtraProficiencies(resolvedClassEntries);
+    const subclassExtraProficiencies = collectSubclassExtraProficiencies(resolvedClassEntries, state?.selectedSubclassProficiencyChoices);
     const featArmorTags = collectFeatArmorProficiencyTags(state?.selectedFeats);
     const featExtraProficiencies = collectFeatExtraProficiencyLabels(state?.selectedFeats, state?.selectedFeatDetails);
     const proficiencyItems = [];
@@ -19670,6 +20235,7 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
       .join(", ");
     const featureChoicePending = [
       ...collectFeatureChoicePendingLines(state),
+      ...collectSubclassProficiencyChoicePendingLines(state),
       ...collectArtificerInfusionPendingLines(state),
       ...collectCompanionChoicePendingLines(state),
     ];
