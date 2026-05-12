@@ -785,7 +785,10 @@ export const CLASSES = {
         {
           nome: "Explorador Nato",
           descricao: "Seu treinamento favorece deslocamento, navegação e sobrevivência em terrenos familiares.",
-          detalhes: []
+          detalhes: [
+            "Escolha um terreno favorito no nível 1; escolha terrenos adicionais nos níveis 6 e 10.",
+            "Em terreno favorito, recebe benefícios de viagem, navegação, rastreamento, furtividade solitária e coleta de alimento."
+          ]
         }
       ],
       2: [

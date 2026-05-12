@@ -16,6 +16,10 @@ import {
   WARLOCK_MYSTIC_ARCANUM_SLOTS_2024,
   WARLOCK_PACT_BOONS_5E,
 } from "../src/data/warlock-invocations.js";
+import {
+  RANGER_NATURAL_EXPLORER_BY_LEVEL_5E,
+  RANGER_NATURAL_EXPLORER_OPTIONS_5E,
+} from "../src/data/subclass-learned-options.js";
 
 const root = process.cwd();
 const requiredFiles = [
@@ -341,6 +345,16 @@ function validateWarlockData() {
     errors.push("2024: src/script-2024.js voltou a duplicar a tabela de invocacoes de Bruxo.");
   }
 
+  [
+    "describeWarlockInvocationOption5e",
+    "data-warlock-invocation-hover-card",
+    "WARLOCK_INVOCATION_CUSTOM_SELECT_PREFIX",
+    "Passe o mouse sobre uma invocação",
+    "formatWarlockInvocationPrerequisites(invocation)",
+  ].forEach((marker) => {
+    if (!script5e.includes(marker)) errors.push(`5e: hover de invocacoes de Bruxo sem marcador ${marker}.`);
+  });
+
   if (errors.length) {
     console.error("\nValidacao estrutural do Bruxo falhou:");
     errors.forEach((error) => console.error(`- ${error}`));
@@ -605,6 +619,10 @@ function validateFeatureChoiceEngine5e() {
     "getFeatureChoiceSelectionEntries",
     "getFeatureChoiceCascadeMarkup",
     "data-feature-choice-hover-card",
+    "RANGER_NATURAL_EXPLORER_BY_LEVEL_5E",
+    "RANGER_NATURAL_EXPLORER_OPTIONS_5E",
+    "natural-explorer",
+    "Terreno favorito",
     "metamagic",
     "spell-mastery-1",
     "signature-spells",
@@ -619,6 +637,34 @@ function validateFeatureChoiceEngine5e() {
   });
   requiredScriptMarkers.forEach((marker) => {
     if (!script5e.includes(marker)) errors.push(`5e: motor de escolhas de recursos sem marcador ${marker}.`);
+  });
+
+  const expectedNaturalExplorerTerrains = [
+    "artico",
+    "costa",
+    "deserto",
+    "floresta",
+    "pastagem",
+    "montanha",
+    "pantano",
+    "subterraneo",
+  ];
+  if (RANGER_NATURAL_EXPLORER_BY_LEVEL_5E.length !== 21) {
+    errors.push("5e: tabela de Explorador Nato deve cobrir niveis 0 a 20.");
+  }
+  if (
+    RANGER_NATURAL_EXPLORER_BY_LEVEL_5E[1] !== 1
+    || RANGER_NATURAL_EXPLORER_BY_LEVEL_5E[6] !== 2
+    || RANGER_NATURAL_EXPLORER_BY_LEVEL_5E[10] !== 3
+    || RANGER_NATURAL_EXPLORER_BY_LEVEL_5E[20] !== 3
+  ) {
+    errors.push("5e: progressao de Explorador Nato deve liberar terrenos nos niveis 1, 6 e 10.");
+  }
+  expectedNaturalExplorerTerrains.forEach((terrain) => {
+    const option = RANGER_NATURAL_EXPLORER_OPTIONS_5E.find((item) => item.value === terrain);
+    if (!option?.label || !option?.summary) {
+      errors.push(`5e: Explorador Nato sem label/resumo para terreno ${terrain}.`);
+    }
   });
 
   if (errors.length) {

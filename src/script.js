@@ -28,6 +28,8 @@ import {
   FOUR_ELEMENTS_DISCIPLINES_BY_LEVEL_5E,
   RANGER_FAVORED_ENEMY_BY_LEVEL_5E,
   RANGER_FAVORED_ENEMY_OPTIONS_5E,
+  RANGER_NATURAL_EXPLORER_BY_LEVEL_5E,
+  RANGER_NATURAL_EXPLORER_OPTIONS_5E,
 } from "./data/subclass-learned-options.js";
 import { buildRandomCharacterNameForRace } from "./data/character-name-randomizer.js";
 import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggleButtons } from "./user-area.js";
@@ -266,6 +268,17 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
           disallowDuplicates: true,
           picksByLevel: RANGER_FAVORED_ENEMY_BY_LEVEL_5E,
           options: RANGER_FAVORED_ENEMY_OPTIONS_5E,
+        },
+        {
+          id: "natural-explorer",
+          minLevel: 1,
+          featureLabel: "Explorador Nato",
+          selectionLabel: "Terreno favorito",
+          help: "Escolha os terrenos favoritos do Patrulheiro legacy. O Patrulheiro escolhe 1 no nível 1 e ganha terrenos adicionais nos níveis 6 e 10; cada escolha registra onde os benefícios de viagem, navegação, rastreamento e sobrevivência se aplicam.",
+          required: true,
+          disallowDuplicates: true,
+          picksByLevel: RANGER_NATURAL_EXPLORER_BY_LEVEL_5E,
+          options: RANGER_NATURAL_EXPLORER_OPTIONS_5E,
         },
       ],
       feiticeiro: [
@@ -5367,6 +5380,13 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     }
     if (source?.id === "favored-enemy") {
       return ["Rastreamento: registra vantagem de conhecimento/rastreio contra esse tipo.", "Idioma: libera uma escolha associada no painel de idiomas."];
+    }
+    if (source?.id === "natural-explorer") {
+      return [
+        "Exploração: aplica os benefícios de viagem, navegação e rastreamento do Explorador Nato nesse terreno.",
+        "Perícias: dobra o bônus de proficiência em testes de INT ou SAB relacionados ao terreno quando a perícia já é proficiente.",
+        "Progressão: 1 terreno no nível 1, outro no nível 6 e outro no nível 10.",
+      ];
     }
     if (option?.summary) return [`Registro: ${option.summary}`];
     return ["Registro: aparece no resumo da ficha e na seção de características do PDF."];

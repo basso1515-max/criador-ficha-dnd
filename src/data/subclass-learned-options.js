@@ -107,6 +107,62 @@ export const RANGER_FAVORED_ENEMY_OPTIONS_5E = [
   },
 ];
 
+export const RANGER_NATURAL_EXPLORER_BY_LEVEL_5E = [
+  0, 1, 1, 1, 1, 1, 2, 2, 2, 2,
+  3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+];
+
+export const RANGER_NATURAL_EXPLORER_OPTIONS_5E = [
+  {
+    value: "artico",
+    label: "Ártico",
+    group: "Terreno favorito",
+    summary: "Neve, gelo e tundra; favorece navegação e sobrevivência em frio extremo.",
+  },
+  {
+    value: "costa",
+    label: "Costa",
+    group: "Terreno favorito",
+    summary: "Litorais, ilhas, recifes e rios largos; favorece travessias costeiras e rastros na margem.",
+  },
+  {
+    value: "deserto",
+    label: "Deserto",
+    group: "Terreno favorito",
+    summary: "Ermos secos, dunas e salinas; favorece rotas com pouca água e rastros em areia.",
+  },
+  {
+    value: "floresta",
+    label: "Floresta",
+    group: "Terreno favorito",
+    summary: "Bosques, matas e selvas; favorece trilhas, abrigo e caça sob cobertura vegetal.",
+  },
+  {
+    value: "pastagem",
+    label: "Pastagem",
+    group: "Terreno favorito",
+    summary: "Planícies, campos e savanas; favorece deslocamento e rastreamento em áreas abertas.",
+  },
+  {
+    value: "montanha",
+    label: "Montanha",
+    group: "Terreno favorito",
+    summary: "Montes, penhascos e altitudes; favorece rotas íngremes, passagens e sobrevivência vertical.",
+  },
+  {
+    value: "pantano",
+    label: "Pântano",
+    group: "Terreno favorito",
+    summary: "Pântanos, mangues e brejos; favorece navegação em lama, água parada e vegetação densa.",
+  },
+  {
+    value: "subterraneo",
+    label: "Subterrâneo",
+    group: "Terreno favorito",
+    summary: "Cavernas, ruínas profundas e Subterrâneo; favorece rotas sem céu aberto e sinais no subsolo.",
+  },
+];
+
 export const BATTLE_MASTER_MANEUVERS_5E = [
   {
     value: "ambush",
