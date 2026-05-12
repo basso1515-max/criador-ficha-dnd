@@ -106,6 +106,18 @@ const smokePages = [
           dispatch(select, "change");
           return option.value;
         };
+        const fightingStyleSelects = () => Array.from(document.querySelectorAll("#fightingStyleContainer select[data-style-slot-key]"));
+        const chooseFightingStyle = (value = "", slotIndex = 0) => {
+          const select = fightingStyleSelects()[slotIndex];
+          assert(select, "Escolha de estilo de luta ausente: " + slotIndex);
+          const option = value
+            ? Array.from(select.options).find((item) => item.value === value && !item.disabled)
+            : Array.from(select.options).find((item) => item.value && !item.disabled);
+          assert(option, "Estilo indisponivel: " + (value || "primeiro valido"));
+          select.value = option.value;
+          dispatch(select, "change");
+          return option.value;
+        };
         const infusionKnownSelects = () => Array.from(document.querySelectorAll("#artificerInfusionsContainer select[data-artificer-infusion-known-slot-key]"));
         const infusionActiveSelects = () => Array.from(document.querySelectorAll("#artificerInfusionsContainer select[data-artificer-infusion-active-slot-key]"));
         const infusionTargetSelects = () => Array.from(document.querySelectorAll("#artificerInfusionsContainer select[data-artificer-infusion-target-slot-key]"));
@@ -163,6 +175,26 @@ const smokePages = [
         chooseFeature("signature-spells", "", 1);
         const previewText = document.querySelector("#preview")?.textContent || "";
         assert(previewText.includes("Escolhas de recursos") && previewText.includes("Magias Assinatura"), "Resumo/PDF automatico 5e nao recebeu escolhas de recursos.");
+
+        setClassLevel("Patrulheiro", 2);
+        assert(!document.querySelector("#fightingStylePanel")?.hidden, "Painel de Estilo de Luta 5e nao abriu para Patrulheiro nivel 2.");
+        assert(fightingStyleSelects().length === 1, "Patrulheiro nivel 2 nao exibiu 1 estilo de luta.");
+        assert(document.querySelector("#fightingStyleInfo .fighting-style-cascade"), "Cascata de Estilo de Luta 5e ausente.");
+        assert(document.querySelector("#fightingStyleContainer [data-fighting-style-hover-card]"), "Hovercard de Estilo de Luta 5e ausente.");
+        chooseFightingStyle("arquearia");
+        assert((document.querySelector("#preview")?.textContent || "").includes("Arquearia"), "Preview 5e nao registrou Estilo de Luta do Patrulheiro.");
+
+        setClassLevel("Patrulheiro", 14);
+        assert(selectsForFeature("favored-enemy").length === 3, "Inimigo Favorito 5e nao abriu 3 escolhas no nivel 14.");
+        assert(!document.querySelector("#languageChoicesPanel")?.hidden, "Idiomas associados de Inimigo Favorito nao abriram no Patrulheiro.");
+        chooseFeature("favored-enemy", "bestas", 0);
+        const duplicateFavoredEnemy = Array.from(selectsForFeature("favored-enemy")[1].options)
+          .find((option) => option.value === "bestas");
+        assert(duplicateFavoredEnemy?.disabled, "Inimigo Favorito repetido nao ficou bloqueado.");
+        chooseFeature("favored-enemy", "mortos-vivos", 1);
+        chooseFeature("favored-enemy", "humanoides-duas-racas", 2);
+        const favoredEnemyPreviewText = document.querySelector("#preview")?.textContent || "";
+        assert(favoredEnemyPreviewText.includes("Inimigo Favorito") && favoredEnemyPreviewText.includes("Bestas"), "Preview/PDF automatico 5e nao recebeu Inimigo Favorito configurado.");
 
         setClassLevel("Patrulheiro", 15);
         setValue("#arquetipo", "patrulheiro-cacador", ["change"]);
@@ -416,6 +448,12 @@ const smokePages = [
         featMasterySelects[0].value = featOption.value;
         dispatch(featMasterySelects[0], "change");
         assert((document.querySelector("#featureChoicesSummary2024")?.textContent || "").includes("4/4"), "Mestre das Armas nao entrou no resumo de escolhas.");
+
+        setClassLevel("patrulheiro", 2);
+        const rangerStyleFeatSlots = Array.from(document.querySelectorAll('#featChoices2024 article[data-feat-slot-type="style"] select[data-feat-choice-id]'));
+        assert(rangerStyleFeatSlots.length === 1, "Guardiao 2024 nao abriu 1 slot de talento de Estilo de Luta no nivel 2.");
+        assert(Array.from(rangerStyleFeatSlots[0].options).some((option) => option.value === "arquearia"), "Arquearia nao apareceu como talento de Estilo de Luta 2024.");
+        assert(selectsForFeature("favored-enemy").length === 0, "Guardiao 2024 abriu seletor legacy de Inimigo Favorito indevidamente.");
 
         setClassLevel("patrulheiro", 7);
         setValue("#subclasse2024", "patrulheiro-cacador", ["change"]);

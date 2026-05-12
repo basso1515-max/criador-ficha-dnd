@@ -15,6 +15,98 @@ export const FOUR_ELEMENTS_DISCIPLINES_BY_LEVEL_5E = [
   2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4,
 ];
 
+export const RANGER_FAVORED_ENEMY_BY_LEVEL_5E = [
+  0, 1, 1, 1, 1, 1, 2, 2, 2, 2,
+  2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3,
+];
+
+export const RANGER_FAVORED_ENEMY_OPTIONS_5E = [
+  {
+    value: "aberracoes",
+    label: "Aberrações",
+    group: "Tipo de criatura",
+    summary: "Rastreamento e conhecimento contra criaturas alienígenas, mutantes ou antinaturais.",
+  },
+  {
+    value: "bestas",
+    label: "Bestas",
+    group: "Tipo de criatura",
+    summary: "Rastreamento e conhecimento contra animais naturais e criaturas similares.",
+  },
+  {
+    value: "celestiais",
+    label: "Celestiais",
+    group: "Tipo de criatura",
+    summary: "Rastreamento e conhecimento contra servos e entidades dos planos superiores.",
+  },
+  {
+    value: "constructos",
+    label: "Constructos",
+    group: "Tipo de criatura",
+    summary: "Rastreamento e conhecimento contra criaturas artificiais ou animadas por magia.",
+  },
+  {
+    value: "dragoes",
+    label: "Dragões",
+    group: "Tipo de criatura",
+    summary: "Rastreamento e conhecimento contra dragões verdadeiros e criaturas dracônicas.",
+  },
+  {
+    value: "elementais",
+    label: "Elementais",
+    group: "Tipo de criatura",
+    summary: "Rastreamento e conhecimento contra criaturas ligadas aos planos elementais.",
+  },
+  {
+    value: "fadas",
+    label: "Fadas",
+    group: "Tipo de criatura",
+    summary: "Rastreamento e conhecimento contra seres feéricos e espíritos caprichosos.",
+  },
+  {
+    value: "corruptores",
+    label: "Corruptores",
+    group: "Tipo de criatura",
+    summary: "Rastreamento e conhecimento contra demônios, diabos e outras entidades ínferas.",
+  },
+  {
+    value: "gigantes",
+    label: "Gigantes",
+    group: "Tipo de criatura",
+    summary: "Rastreamento e conhecimento contra gigantes e criaturas aparentadas.",
+  },
+  {
+    value: "monstruosidades",
+    label: "Monstruosidades",
+    group: "Tipo de criatura",
+    summary: "Rastreamento e conhecimento contra predadores e horrores não naturais.",
+  },
+  {
+    value: "limos",
+    label: "Limos",
+    group: "Tipo de criatura",
+    summary: "Rastreamento e conhecimento contra gosmas, oozes e formas amorfas.",
+  },
+  {
+    value: "plantas",
+    label: "Plantas",
+    group: "Tipo de criatura",
+    summary: "Rastreamento e conhecimento contra plantas animadas e ameaças vegetais.",
+  },
+  {
+    value: "mortos-vivos",
+    label: "Mortos-vivos",
+    group: "Tipo de criatura",
+    summary: "Rastreamento e conhecimento contra mortos-vivos corpóreos ou incorpóreos.",
+  },
+  {
+    value: "humanoides-duas-racas",
+    label: "Humanoides (duas raças/povos)",
+    group: "Alternativa humanoide",
+    summary: "Use este slot para a opção oficial de dois povos humanoides; registre os nomes específicos nas notas da ficha.",
+  },
+];
+
 export const BATTLE_MASTER_MANEUVERS_5E = [
   {
     value: "ambush",

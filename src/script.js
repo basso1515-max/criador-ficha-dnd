@@ -26,6 +26,8 @@ import {
   BATTLE_MASTER_MANEUVERS_BY_LEVEL_5E,
   FOUR_ELEMENTS_DISCIPLINES_5E,
   FOUR_ELEMENTS_DISCIPLINES_BY_LEVEL_5E,
+  RANGER_FAVORED_ENEMY_BY_LEVEL_5E,
+  RANGER_FAVORED_ENEMY_OPTIONS_5E,
 } from "./data/subclass-learned-options.js";
 import { buildRandomCharacterNameForRace } from "./data/character-name-randomizer.js";
 import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggleButtons } from "./user-area.js";
@@ -253,6 +255,19 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
   ];
   const FEATURE_CHOICE_DEFINITIONS_5E = {
     classes: {
+      patrulheiro: [
+        {
+          id: "favored-enemy",
+          minLevel: 1,
+          featureLabel: "Inimigo Favorito",
+          selectionLabel: "Inimigo",
+          help: "Escolha os tipos de inimigo do Patrulheiro legacy. O Patrulheiro escolhe 1 no nível 1 e ganha escolhas adicionais nos níveis 6 e 14; cada escolha também libera um idioma associado no painel de idiomas.",
+          required: true,
+          disallowDuplicates: true,
+          picksByLevel: RANGER_FAVORED_ENEMY_BY_LEVEL_5E,
+          options: RANGER_FAVORED_ENEMY_OPTIONS_5E,
+        },
+      ],
       feiticeiro: [
         {
           id: "metamagic",
@@ -1888,32 +1903,50 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     arquearia: {
       id: "arquearia",
       label: "Arquearia",
+      group: "Ofensivo à distância",
+      summary: "+2 em ataques feitos com armas à distância.",
       description: "+2 nas jogadas de ataque com armas à distância.",
+      application: "Automático nos ataques à distância da ficha.",
     },
     defesa: {
       id: "defesa",
       label: "Defesa",
+      group: "Defensivo",
+      summary: "+1 na CA enquanto estiver usando armadura.",
       description: "+1 na CA enquanto estiver usando armadura.",
+      application: "Automático no cálculo de CA quando uma armadura está equipada.",
     },
     duelismo: {
       id: "duelismo",
       label: "Duelismo",
+      group: "Ofensivo corpo a corpo",
+      summary: "+2 no dano com arma corpo a corpo de uma mão quando não usa outra arma.",
       description: "+2 no dano com arma corpo a corpo empunhada com uma mão e sem outra arma.",
+      application: "Registrado no resumo; confirme a condição de mão livre durante o jogo.",
     },
     "armas-grandes": {
       id: "armas-grandes",
       label: "Armas Grandes",
+      group: "Ofensivo pesado",
+      summary: "Rerrola 1 ou 2 nos dados de dano de armas de duas mãos elegíveis.",
       description: "Quando tirar 1 ou 2 nos dados de dano de armas de duas mãos, pode rerrolar esses dados.",
+      application: "Registrado no resumo; a rerrolagem acontece na mesa após a rolagem de dano.",
     },
     protecao: {
       id: "protecao",
       label: "Proteção",
+      group: "Defensivo",
+      summary: "Com escudo, usa a reação para proteger um aliado adjacente.",
       description: "Com escudo, use sua reação para impor desvantagem ao ataque contra um aliado adjacente.",
+      application: "Registrado no resumo; exige escudo e uso da reação.",
     },
     "duas-armas": {
       id: "duas-armas",
       label: "Combate com Duas Armas",
+      group: "Ofensivo corpo a corpo",
+      summary: "Adiciona o modificador de habilidade ao dano do ataque da mão secundária.",
       description: "Adiciona o modificador de habilidade ao dano do ataque da mão secundária.",
+      application: "Registrado no resumo; aplique quando fizer o ataque da mão secundária.",
     },
   };
   const LANGUAGE_METADATA = {
@@ -2761,6 +2794,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
   const ARTIFICER_INFUSION_CUSTOM_SELECT_PREFIX = "artificer-infusion:";
   const COMPANION_CHOICE_CUSTOM_SELECT_PREFIX = "companion-choice:";
   const WARLOCK_INVOCATION_CUSTOM_SELECT_PREFIX = "warlock-invocation:";
+  const FIGHTING_STYLE_CUSTOM_SELECT_PREFIX = "fighting-style:";
   const LANGUAGE_CUSTOM_SELECT_PREFIX = "language-slot:";
   const EQUIPMENT_CUSTOM_SELECT_PREFIX = "equipment-choice:";
   let featCustomSelectKeys = [];
@@ -2768,6 +2802,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
   let artificerInfusionCustomSelectKeys = [];
   let companionChoiceCustomSelectKeys = [];
   let warlockInvocationCustomSelectKeys = [];
+  let fightingStyleCustomSelectKeys = [];
   let languageCustomSelectKeys = [];
   let equipmentCustomSelectKeys = [];
   let hitPointRollControlsSignature = "";
@@ -3790,6 +3825,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     renderFeatureChoices();
     renderArtificerInfusions();
     renderCompanionChoices();
+    renderLanguageChoices();
     renderMagicSection();
     atualizarPreview();
   }
@@ -3806,6 +3842,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     renderFeatureChoices();
     renderArtificerInfusions();
     renderCompanionChoices();
+    renderLanguageChoices();
     renderMagicSection();
     atualizarPreview();
   }
@@ -3835,6 +3872,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     renderFeatureChoices();
     renderArtificerInfusions();
     renderCompanionChoices();
+    renderLanguageChoices();
     renderMagicSection();
     atualizarPreview();
   }
@@ -3853,6 +3891,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     renderFeatureChoices();
     renderArtificerInfusions();
     renderCompanionChoices();
+    renderLanguageChoices();
     renderMagicSection();
     atualizarPreview();
   }
@@ -3879,6 +3918,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     renderFeatureChoices();
     renderArtificerInfusions();
     renderCompanionChoices();
+    renderLanguageChoices();
     renderMagicSection();
     atualizarPreview();
   }
@@ -5223,6 +5263,13 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     companionChoiceCustomSelectKeys = [];
   }
 
+  function cleanupFightingStyleChoiceFields() {
+    fightingStyleCustomSelectKeys.forEach((key) => {
+      delete CUSTOM_SELECT_FIELDS[key];
+    });
+    fightingStyleCustomSelectKeys = [];
+  }
+
   function getFeatureChoiceDefinitionsForEntry(entry) {
     if (!entry?.classId || !entry?.level) return [];
     return [
@@ -5317,6 +5364,9 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     }
     if (source?.id === "metamagic") {
       return ["Metamagia: fica registrada nas características do personagem e no PDF."];
+    }
+    if (source?.id === "favored-enemy") {
+      return ["Rastreamento: registra vantagem de conhecimento/rastreio contra esse tipo.", "Idioma: libera uma escolha associada no painel de idiomas."];
     }
     if (option?.summary) return [`Registro: ${option.summary}`];
     return ["Registro: aparece no resumo da ficha e na seção de características do PDF."];
@@ -6911,6 +6961,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     renderFeatureChoices();
     renderArtificerInfusions();
     renderCompanionChoices();
+    renderLanguageChoices();
     renderMagicSection();
   }
 
@@ -6922,6 +6973,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     renderFeatureChoices();
     renderArtificerInfusions();
     renderCompanionChoices();
+    renderLanguageChoices();
     renderMagicSection();
     atualizarPreview();
   }
@@ -10659,6 +10711,31 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     return grants;
   }
 
+  function collectClassLanguageChoiceSources(classEntries = []) {
+    const grants = [];
+    const allLanguages = LANGUAGE_OPTIONS.map((language) => language.id);
+
+    (Array.isArray(classEntries) ? classEntries : []).forEach((entry) => {
+      if (entry?.classId !== "patrulheiro" || !entry.level) return;
+      const picks = RANGER_FAVORED_ENEMY_BY_LEVEL_5E[clampInt(entry.level, 0, 20)] || 0;
+      if (!picks) return;
+
+      const grant = createLanguageGrantEntry({
+        sourceType: "classe",
+        sourceId: entry.uid || entry.classId,
+        sourceLabel: entry.sourceLabel || entry.classData?.nome || "Patrulheiro",
+        featureId: "inimigo-favorito-idiomas",
+        featureName: "Inimigo Favorito",
+        picks,
+        from: allLanguages,
+        summaryText: "Escolha um idioma associado a cada Inimigo Favorito configurado.",
+      });
+      if (grant) grants.push(grant);
+    });
+
+    return grants;
+  }
+
   function collectLanguageChoiceSources({ race = null, subrace = null, background = null, classEntries = [], selectedFeats = [] } = {}) {
     const grants = [];
     const pushTraitGrant = (trait, sourceType, sourceId, sourceLabel, index) => {
@@ -10692,6 +10769,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     }
 
     grants.push(...collectFeatLanguageChoiceSources(selectedFeats));
+    grants.push(...collectClassLanguageChoiceSources(classEntries));
     grants.push(...collectSubclassLanguageChoiceSources(classEntries));
 
     return grants;
@@ -11160,10 +11238,13 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
         const slotKey = buildFightingStyleSlotKey(grant, slotIndex);
         const styleId = selections.get(slotKey) || "";
         if (!styleId) continue;
+        const style = FIGHTING_STYLE_DEFINITIONS[styleId] || null;
         selectedStyles.push({
           slotKey,
           styleId,
-          label: FIGHTING_STYLE_DEFINITIONS[styleId]?.label || labelFromSlug(styleId),
+          label: style?.label || labelFromSlug(styleId),
+          description: style?.description || "",
+          application: style?.application || "",
           sourceLabel: grant.sourceLabel,
         });
       }
@@ -11238,6 +11319,121 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     return dedupeStringList(labels.map((label) => lowercaseFirst(label)));
   }
 
+  function renderFightingStyleOptionElements(options = [], selectedId = "", usedValues = new Set()) {
+    const optionHtml = (options || [])
+      .map((option) => {
+        const disabled = usedValues.has(option.id) && selectedId !== option.id;
+        return `<option value="${escapeHtml(option.id)}"${selectedId === option.id ? " selected" : ""}${disabled ? " disabled" : ""}>${escapeHtml(option.label)}</option>`;
+      })
+      .join("");
+    return `
+      <option value=""${selectedId ? "" : " selected"} disabled>Selecione um estilo...</option>
+      ${optionHtml}
+    `;
+  }
+
+  function getFightingStyleImpactLines(style = null) {
+    if (!style) return ["Registro: aparece no resumo da ficha e no PDF."];
+    return [
+      style.application || "",
+      style.id === "arquearia" ? "Ataques: bônus somado automaticamente a armas à distância." : "",
+      style.id === "defesa" ? "CA: bônus somado automaticamente quando houver armadura equipada." : "",
+      !["arquearia", "defesa"].includes(style.id) ? "Registro: aparece no resumo da ficha e no PDF." : "",
+    ].filter(Boolean);
+  }
+
+  function describeFightingStyleOption(select, value, label) {
+    const style = FIGHTING_STYLE_DEFINITIONS[value] || null;
+    if (!style) return { summary: "", lines: [], body: "", search: String(label || value || "") };
+    const sourceLabel = select?.getAttribute("data-style-source-label") || "";
+
+    return {
+      group: style.group || "Estilo de Luta",
+      summary: style.summary || style.description || "",
+      lines: [
+        sourceLabel ? `Origem: ${sourceLabel}` : "",
+        style.group ? `Categoria: ${style.group}` : "",
+        ...getFightingStyleImpactLines(style),
+      ].filter(Boolean),
+      body: style.description || "",
+      search: [style.label, style.summary, style.description, style.group, style.application, sourceLabel].filter(Boolean).join(" "),
+    };
+  }
+
+  function getFightingStyleCascadeMarkup(grants = [], selections = new Map()) {
+    const totalChoices = grants.reduce((sum, grant) => sum + grant.picks, 0);
+    const selectedEntries = [];
+    const sourceLabels = grants.map((grant) => `${grant.sourceLabel}: ${grant.picks}`);
+    const optionLabels = new Set();
+
+    grants.forEach((grant) => {
+      grant.options.forEach((option) => optionLabels.add(option.label));
+      for (let slotIndex = 0; slotIndex < grant.picks; slotIndex += 1) {
+        const selectedId = selections.get(buildFightingStyleSlotKey(grant, slotIndex)) || "";
+        const style = FIGHTING_STYLE_DEFINITIONS[selectedId] || null;
+        if (style) selectedEntries.push(style);
+      }
+    });
+
+    const pendingCount = Math.max(0, totalChoices - selectedEntries.length);
+    const automaticLabels = selectedEntries
+      .filter((style) => ["arquearia", "defesa"].includes(style.id))
+      .map((style) => style.label);
+    const selectedLabels = selectedEntries.map((style) => style.label);
+    const steps = [
+      { label: "Fontes", value: `${grants.length} origem(ns)`, body: sourceLabels.length ? `Ativas agora: ${formatList(sourceLabels)}.` : "Classes, subclasses e talentos liberam Estilo de Luta conforme os níveis." },
+      { label: "Escolhas", value: pendingCount ? `${selectedEntries.length}/${totalChoices}` : "resolvida", body: pendingCount ? `${pendingCount} estilo(s) ainda precisam ser definidos.` : "Todos os estilos visíveis estão configurados." },
+      { label: "Opções", value: optionLabels.size ? `${optionLabels.size} estilo(s)` : "aguardando", body: optionLabels.size ? `Disponíveis nesta combinação: ${formatList(Array.from(optionLabels))}.` : "Selecione classe, nível ou talento para liberar opções." },
+      { label: "Aplicação", value: automaticLabels.length ? formatList(automaticLabels) : "registro", body: automaticLabels.length ? "Arquearia e Defesa alteram ataques ou CA automaticamente; os demais estilos ficam descritos para uso em mesa." : "Sem estilo automático selecionado ainda; a escolha entra no resumo quando configurada." },
+      { label: "Resumo/PDF", value: selectedLabels.length ? `${selectedLabels.length} linha(s)` : "aguardando", body: selectedLabels.length ? `Registrados: ${formatList(selectedLabels)}.` : "Os estilos escolhidos alimentam o preview e a exportação." },
+    ];
+
+    return `
+      <div class="feature-choice-cascade fighting-style-cascade" aria-label="Cascata dos estilos de luta">
+        ${steps.map((step, index) => `
+          <span class="feature-choice-cascade-step fighting-style-cascade-step${pendingCount && step.label === "Escolhas" ? " is-warning" : ""}" tabindex="0">
+            <small>${escapeHtml(String(index + 1))}</small>
+            <strong>${escapeHtml(step.label)}</strong>
+            <span>${escapeHtml(step.value)}</span>
+            <span class="feature-choice-hover-card fighting-style-hover-card" role="tooltip">
+              <strong>${escapeHtml(step.label)}</strong>
+              <p>${escapeHtml(step.body)}</p>
+            </span>
+          </span>
+        `).join("")}
+      </div>
+    `;
+  }
+
+  function initializeFightingStyleChoiceFields() {
+    cleanupFightingStyleChoiceFields();
+    if (!el.fightingStyleContainer) return;
+
+    el.fightingStyleContainer.querySelectorAll("select[data-style-slot-key]").forEach((select) => {
+      const slotKey = select.getAttribute("data-style-slot-key") || "";
+      const fieldRoot = select.closest("[data-fighting-style-field-key]");
+      const input = fieldRoot?.querySelector("[data-fighting-style-input]");
+      const suggestions = fieldRoot?.querySelector("[data-fighting-style-suggestions]");
+      const hoverCard = fieldRoot?.querySelector("[data-fighting-style-hover-card]");
+      if (!slotKey || !fieldRoot || !input || !suggestions || !hoverCard) return;
+
+      const fieldKey = `${FIGHTING_STYLE_CUSTOM_SELECT_PREFIX}${slotKey}`;
+      fightingStyleCustomSelectKeys.push(fieldKey);
+      CUSTOM_SELECT_FIELDS[fieldKey] = createCustomSelectField({
+        key: fieldKey,
+        input,
+        select,
+        suggestions,
+        hoverCard,
+        placeholder: fieldRoot.getAttribute("data-fighting-style-placeholder") || "Selecione um estilo...",
+        describeOption: (value, label) => describeFightingStyleOption(select, value, label),
+        onCommit: () => onFightingStyleChoiceChanged({ target: select }),
+        showSuggestionSummary: true,
+      });
+      syncCustomSelectField(fieldKey);
+    });
+  }
+
   function renderFightingStyleChoices() {
     if (!el.fightingStylePanel || !el.fightingStyleContainer) return;
 
@@ -11253,6 +11449,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     const selectedFeats = collectSelectedFeatChoices(featGrants);
     const grants = collectFightingStyleChoiceSources({ classEntries, selectedFeats });
     const selections = getCurrentFightingStyleSelectionMap();
+    cleanupFightingStyleChoiceFields();
 
     if (!grants.length) {
       el.fightingStylePanel.hidden = true;
@@ -11268,27 +11465,32 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       ? "1 escolha de estilo de luta disponível."
       : `${totalChoices} escolhas de estilos de luta disponíveis.`;
     if (el.fightingStyleInfo) {
-      el.fightingStyleInfo.textContent = "A ficha aplica automaticamente os bônus estáticos de Arquearia e Defesa; os demais estilos ficam registrados e resumidos para uso em jogo.";
+      el.fightingStyleInfo.innerHTML = getFightingStyleCascadeMarkup(grants, selections);
     }
 
     el.fightingStyleContainer.innerHTML = grants.map((grant) => {
       const fields = Array.from({ length: grant.picks }, (_, slotIndex) => {
         const slotKey = buildFightingStyleSlotKey(grant, slotIndex);
         const selectedId = selections.get(slotKey) || "";
-        const options = grant.options.map((option) => `
-          <option value="${escapeHtml(option.id)}"${selectedId === option.id ? " selected" : ""}>${escapeHtml(option.label)}</option>
-        `).join("");
-        const selectedDescription = FIGHTING_STYLE_DEFINITIONS[selectedId]?.description || "Selecione um estilo para aplicar os bônus automáticos e registrar o efeito na ficha.";
+        const selectedStyle = FIGHTING_STYLE_DEFINITIONS[selectedId] || null;
+        const usedValues = new Set(
+          Array.from(selections.values())
+            .filter((value) => value && value !== selectedId)
+        );
+        const fieldLabel = grant.picks === 1 ? "Estilo" : `Estilo ${slotIndex + 1}`;
+        const selectedDescription = selectedStyle?.description || "Selecione um estilo para aplicar os bônus automáticos e registrar o efeito na ficha.";
 
         return `
-          <label class="row feat-choice-field">
-            <span>${escapeHtml(grant.picks === 1 ? "Estilo" : `Estilo ${slotIndex + 1}`)}</span>
-            <select data-style-slot-key="${escapeHtml(slotKey)}">
-              <option value="" selected disabled>Selecione um estilo...</option>
-              ${options}
+          <label class="row generic-dropdown-field feat-choice-field" data-fighting-style-field-key="${escapeHtml(slotKey)}" data-fighting-style-placeholder="${escapeHtml(fieldLabel)}">
+            <span>${escapeHtml(fieldLabel)}</span>
+            <input data-fighting-style-input type="text" autocomplete="off" placeholder="Selecione um estilo..." />
+            <div data-fighting-style-suggestions class="dropdown-suggestions" hidden></div>
+            <div data-fighting-style-hover-card class="dropdown-hover-card" hidden></div>
+            <select class="native-select-hidden" tabindex="-1" aria-hidden="true" data-style-slot-key="${escapeHtml(slotKey)}" data-style-source-label="${escapeHtml(grant.sourceLabel)}">
+              ${renderFightingStyleOptionElements(grant.options, selectedId, usedValues)}
             </select>
-            <p class="feat-choice-description${selectedId ? "" : " is-empty"}">${escapeHtml(selectedDescription)}</p>
           </label>
+          <p class="feat-choice-description${selectedStyle ? "" : " is-empty"}">${escapeHtml(selectedDescription)}</p>
         `;
       }).join("");
 
@@ -11300,6 +11502,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
         </article>
       `;
     }).join("");
+    initializeFightingStyleChoiceFields();
   }
 
   function onFightingStyleChoiceChanged(event) {
@@ -18424,7 +18627,10 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
       })
       .filter(Boolean));
     const selectedFightingStyleLines = dedupeStringList((state.selectedFightingStyles || [])
-      .map((entry) => entry?.label || "")
+      .map((entry) => {
+        const label = entry?.label || "";
+        return label && entry?.description ? `${label}: ${entry.description}` : label;
+      })
       .filter(Boolean));
     const selectedWarlockChoiceLines = buildSelectedWarlockChoiceLines({
       pactBoons: state.selectedWarlockPactBoons,
