@@ -19,6 +19,14 @@ import {
   getWarlockInvocationOptions,
   getWarlockPactBoonById,
 } from "./data/warlock-invocations.js";
+import {
+  ARCANE_SHOT_OPTIONS_5E,
+  ARCANE_SHOT_OPTIONS_BY_LEVEL_5E,
+  BATTLE_MASTER_MANEUVERS_5E,
+  BATTLE_MASTER_MANEUVERS_BY_LEVEL_5E,
+  FOUR_ELEMENTS_DISCIPLINES_5E,
+  FOUR_ELEMENTS_DISCIPLINES_BY_LEVEL_5E,
+} from "./data/subclass-learned-options.js";
 import { buildRandomCharacterNameForRace } from "./data/character-name-randomizer.js";
 import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggleButtons } from "./user-area.js";
 
@@ -297,6 +305,45 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       ],
     },
     subclasses: {
+      "guerreiro-mestre-de-batalha": [
+        {
+          id: "battle-master-maneuvers",
+          minLevel: 3,
+          featureLabel: "Manobras do Mestre de Batalha",
+          selectionLabel: "Manobra",
+          help: "Escolha as manobras conhecidas pelo Mestre de Batalha. O total começa em 3 no nível 3 e aumenta nos níveis 7, 10 e 15; trocar uma manobra ao subir de nível pode ser registrado alterando o slot.",
+          required: true,
+          disallowDuplicates: true,
+          picksByLevel: BATTLE_MASTER_MANEUVERS_BY_LEVEL_5E,
+          options: BATTLE_MASTER_MANEUVERS_5E,
+        },
+      ],
+      "guerreiro-arqueiro-arcano": [
+        {
+          id: "arcane-shot-options",
+          minLevel: 3,
+          featureLabel: "Opções de Tiro Arcano",
+          selectionLabel: "Tiro Arcano",
+          help: "Escolha os tiros arcanos conhecidos. O Arqueiro Arcano aprende 2 opções no nível 3 e mais uma nos níveis 7, 10, 15 e 18.",
+          required: true,
+          disallowDuplicates: true,
+          picksByLevel: ARCANE_SHOT_OPTIONS_BY_LEVEL_5E,
+          options: ARCANE_SHOT_OPTIONS_5E,
+        },
+      ],
+      "monge-quatro-elementos": [
+        {
+          id: "elemental-disciplines",
+          minLevel: 3,
+          featureLabel: "Disciplinas Elementais",
+          selectionLabel: "Disciplina",
+          help: "Sintonia Elemental é fixa; escolha as disciplinas adicionais aprendidas pelo Caminho dos Quatro Elementos. Algumas opções só aparecem nos níveis 6, 11 ou 17.",
+          required: true,
+          disallowDuplicates: true,
+          picksByLevel: FOUR_ELEMENTS_DISCIPLINES_BY_LEVEL_5E,
+          options: FOUR_ELEMENTS_DISCIPLINES_5E,
+        },
+      ],
       "patrulheiro-cacador": [
         {
           id: "hunter-prey",
@@ -5258,9 +5305,10 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
 
   function getFeatureChoiceOptions(source) {
     if (!source) return [];
-    if (Array.isArray(source.options)) return source.options;
-    if (source.optionSet === "wizard-spells") return getWizardFeatureSpellOptions(source.spellLevel);
-    return [];
+    const options = Array.isArray(source.options)
+      ? source.options
+      : (source.optionSet === "wizard-spells" ? getWizardFeatureSpellOptions(source.spellLevel) : []);
+    return options.filter((option) => !option.minClassLevel || Number(source.entry?.level || 0) >= Number(option.minClassLevel));
   }
 
   function getFeatureChoiceImpactLines(source, option = null) {
@@ -5286,6 +5334,8 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       lines: [
         source?.ownerLabel ? `Origem: ${source.ownerLabel}` : "",
         source?.minLevel ? `Libera no nível ${source.minLevel}` : "",
+        option.group ? `Lista: ${option.group}` : "",
+        option.minClassLevel ? `Pré-requisito: nível ${option.minClassLevel}` : "",
         ...getFeatureChoiceImpactLines(source, option),
       ].filter(Boolean),
       body: source?.help || "",
@@ -5378,6 +5428,9 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     const totalChoices = sources.reduce((total, source) => total + source.picks, 0);
     let selectedCount = 0;
     const effectLabels = new Set();
+    const sourceLabels = sources.map((source) => `${source.ownerLabel}: ${source.title} (${source.picks})`);
+    const uniqueSourceCount = sources.filter((source) => source.disallowDuplicates).length;
+    const gatedSourceCount = sources.filter((source) => (source.options || []).some((option) => option.minClassLevel)).length;
 
     sources.forEach((source) => {
       const options = getFeatureChoiceOptions(source);
@@ -5393,11 +5446,16 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
 
     const pendingCount = Math.max(0, totalChoices - selectedCount);
     const selectedLines = buildSelectedFeatureChoiceLines().length;
+    const filterLabels = [
+      uniqueSourceCount ? "sem repetição" : "",
+      gatedSourceCount ? "pré-requisito de nível" : "",
+      sources.some((source) => source.grantsSelectedSpell) ? "magias concedidas" : "",
+    ].filter(Boolean);
     const steps = [
-      { label: "Fontes", value: `${sources.length} recurso(s)`, body: "Classes, multiclasse e subclasse liberam fontes de escolha conforme a distribuição de níveis." },
-      { label: "Pendência", value: pendingCount ? `${pendingCount} aberta(s)` : "resolvida", body: "Cada escolha obrigatória permanece pendente até receber uma opção válida." },
-      { label: "Sorteio", value: "aleatório", body: "O sorteio preenche opções válidas e evita repetição quando o recurso pede escolhas únicas." },
-      { label: "Efeitos", value: effectLabels.size ? formatList(Array.from(effectLabels)) : "resumo", body: "As escolhas entram como registro de recurso ou como magias concedidas quando a regra permite." },
+      { label: "Fontes", value: `${sources.length} recurso(s)`, body: sourceLabels.length ? `Ativas agora: ${formatList(sourceLabels)}.` : "Classes, multiclasse e subclasse liberam fontes de escolha conforme a distribuição de níveis." },
+      { label: "Pendência", value: pendingCount ? `${selectedCount}/${totalChoices}` : "resolvida", body: pendingCount ? `${pendingCount} escolha(s) obrigatória(s) ainda precisam de uma opção válida.` : "Todas as escolhas obrigatórias visíveis estão configuradas." },
+      { label: "Filtros", value: filterLabels.length ? formatList(filterLabels) : "opções válidas", body: "A lista remove opções repetidas quando necessário e oculta escolhas que ainda não cumprem pré-requisito de nível." },
+      { label: "Efeitos", value: effectLabels.size ? formatList(Array.from(effectLabels)) : "resumo", body: "As escolhas entram como registro de recurso, lista aprendida ou magia concedida quando a regra permite." },
       { label: "Resumo/PDF", value: selectedLines ? `${selectedLines} linha(s)` : "aguardando", body: "As escolhas selecionadas alimentam o preview, os campos automáticos e o PDF." },
     ];
 

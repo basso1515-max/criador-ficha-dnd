@@ -20,6 +20,10 @@ import {
   getWarlockInvocationCountByLevel,
   getWarlockInvocationOptions,
 } from "./data/warlock-invocations.js";
+import {
+  BATTLE_MASTER_MANEUVERS_2024,
+  BATTLE_MASTER_MANEUVERS_BY_LEVEL_2024,
+} from "./data/subclass-learned-options.js";
 import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggleButtons } from "./user-area.js";
 
 (() => {
@@ -639,6 +643,19 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
       ],
     },
     subclasses: {
+      "guerreiro-mestre-de-batalha": [
+        {
+          id: "battle-master-maneuvers",
+          minLevel: 3,
+          featureLabel: "Manobras do Mestre da Batalha",
+          selectionLabel: "Manobra",
+          help: "Escolha as manobras conhecidas pelo Mestre da Batalha de 2024. O total começa em 3 no nível 3 e aumenta em dois nos níveis 7, 10 e 15.",
+          required: true,
+          disallowDuplicates: true,
+          picksByLevel: BATTLE_MASTER_MANEUVERS_BY_LEVEL_2024,
+          options: BATTLE_MASTER_MANEUVERS_2024,
+        },
+      ],
       "patrulheiro-cacador": [
         {
           id: "hunter-prey",
@@ -4044,11 +4061,16 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
 
   function getFeatureChoiceOptions2024(source) {
     if (!source) return [];
-    if (Array.isArray(source.options)) return source.options;
-    if (source.optionSet === "wizard-scholar-skills") return getWizardScholarSkillOptions2024(source);
-    if (source.optionSet === "wizard-spells") return getWizardFeatureSpellOptions2024(source.spellLevel);
-    if (source.optionSet === "weapon-mastery") return getWeaponMasteryChoiceOptions2024(source);
-    return [];
+    const options = Array.isArray(source.options)
+      ? source.options
+      : source.optionSet === "wizard-scholar-skills"
+        ? getWizardScholarSkillOptions2024(source)
+        : source.optionSet === "wizard-spells"
+          ? getWizardFeatureSpellOptions2024(source.spellLevel)
+          : source.optionSet === "weapon-mastery"
+            ? getWeaponMasteryChoiceOptions2024(source)
+            : [];
+    return options.filter((option) => !option.minClassLevel || Number(source.entry?.level || 0) >= Number(option.minClassLevel));
   }
 
   function getFeatureChoiceImpactLines2024(source, option = null) {
@@ -4102,6 +4124,8 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
       lines: [
         source?.ownerLabel ? `Origem: ${source.ownerLabel}` : "",
         source?.minLevel ? `Libera no nível ${source.minLevel}` : "",
+        option.group ? `Lista: ${option.group}` : "",
+        option.minClassLevel ? `Pré-requisito: nível ${option.minClassLevel}` : "",
         ...getFeatureChoiceImpactLines2024(source, option),
       ].filter(Boolean),
       body: source?.help || "",
@@ -4225,6 +4249,9 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     const totalChoices = sources.reduce((total, source) => total + source.picks, 0);
     let selectedCount = 0;
     const effectLabels = new Set();
+    const sourceLabels = sources.map((source) => `${source.ownerLabel}: ${source.title} (${source.picks})`);
+    const uniqueSourceCount = sources.filter((source) => source.disallowDuplicates).length;
+    const gatedSourceCount = sources.filter((source) => (source.options || []).some((option) => option.minClassLevel)).length;
 
     sources.forEach((source) => {
       const options = getFeatureChoiceOptions2024(source);
@@ -4245,26 +4272,33 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
 
     const pendingCount = Math.max(0, totalChoices - selectedCount);
     const selectedLines = buildSelectedFeatureChoiceLines2024().length;
+    const filterLabels = [
+      uniqueSourceCount ? "sem repetição" : "",
+      gatedSourceCount ? "pré-requisito de nível" : "",
+      sources.some((source) => source.grantsSelectedExpertise) ? "expertise" : "",
+      sources.some((source) => source.grantsSelectedSpell) ? "magias concedidas" : "",
+      sources.some((source) => source.grantsSelectedWeaponMastery) ? "maestria" : "",
+    ].filter(Boolean);
     const steps = [
       {
         label: "Fontes",
         value: `${sources.length} recurso(s)`,
-        body: "Classe, multiclasse e subclasse liberam fontes conforme o nível atual.",
+        body: sourceLabels.length ? `Ativas agora: ${formatList(sourceLabels)}.` : "Classe, multiclasse e subclasse liberam fontes conforme o nível atual.",
       },
       {
         label: "Pendência",
-        value: pendingCount ? `${pendingCount} aberta(s)` : "resolvida",
-        body: "Cada escolha obrigatória entra nas pendências até ter uma opção válida.",
+        value: pendingCount ? `${selectedCount}/${totalChoices}` : "resolvida",
+        body: pendingCount ? `${pendingCount} escolha(s) obrigatória(s) ainda precisam de uma opção válida.` : "Todas as escolhas obrigatórias visíveis estão configuradas.",
       },
       {
-        label: "Sorteio",
-        value: "aleatório",
-        body: "Os botões de sorteio escolhem apenas opções válidas e evitam repetição quando o recurso exige escolhas únicas.",
+        label: "Filtros",
+        value: filterLabels.length ? formatList(filterLabels) : "opções válidas",
+        body: "A lista remove opções repetidas quando necessário e oculta escolhas que ainda não cumprem pré-requisito de nível.",
       },
       {
         label: "Efeitos",
         value: effectLabels.size ? formatList(Array.from(effectLabels)) : "resumo",
-        body: "As opções escolhidas podem alterar treinamentos, truques, bônus de perícia, expertise, magias concedidas ou notas de Maestria em ataques.",
+        body: "As opções escolhidas podem alterar treinamentos, truques, bônus de perícia, expertise, magias concedidas, listas aprendidas ou notas de Maestria em ataques.",
       },
       {
         label: "Resumo/PDF",

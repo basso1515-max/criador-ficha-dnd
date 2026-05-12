@@ -182,6 +182,33 @@ const smokePages = [
         const hunterPreviewText = document.querySelector("#preview")?.textContent || "";
         assert(hunterPreviewText.includes("Presa do Caçador") && hunterPreviewText.includes("Táticas Defensivas"), "Resumo/PDF automatico 5e nao recebeu escolhas do Caçador.");
 
+        setClassLevel("Guerreiro", 15);
+        setValue("#arquetipo", "guerreiro-mestre-de-batalha", ["change"]);
+        assert(selectsForFeatureKind("subclass", "battle-master-maneuvers").length === 9, "Mestre de Batalha 5e nao abriu 9 manobras no nivel 15.");
+        chooseFeatureKind("subclass", "battle-master-maneuvers", "precision-attack", 0);
+        const battleManeuverDuplicate = Array.from(selectsForFeatureKind("subclass", "battle-master-maneuvers")[1].options)
+          .find((option) => option.value === "precision-attack");
+        assert(battleManeuverDuplicate?.disabled, "Manobra repetida nao ficou bloqueada para Mestre de Batalha 5e.");
+        for (let index = 1; index < 9; index += 1) {
+          chooseFeatureKind("subclass", "battle-master-maneuvers", "", index);
+        }
+        assert((document.querySelector("#preview")?.textContent || "").includes("Manobras do Mestre de Batalha"), "Preview 5e nao registrou manobras do Mestre de Batalha.");
+
+        setClassLevel("Guerreiro", 18);
+        setValue("#arquetipo", "guerreiro-arqueiro-arcano", ["change"]);
+        assert(selectsForFeatureKind("subclass", "arcane-shot-options").length === 6, "Arqueiro Arcano 5e nao abriu 6 tiros arcanos no nivel 18.");
+        chooseFeatureKind("subclass", "arcane-shot-options", "banishing-arrow");
+        assert((document.querySelector("#preview")?.textContent || "").includes("Opções de Tiro Arcano"), "Preview 5e nao registrou tiros arcanos.");
+
+        setClassLevel("Monge", 11);
+        setValue("#arquetipo", "monge-quatro-elementos", ["change"]);
+        assert(selectsForFeatureKind("subclass", "elemental-disciplines").length === 3, "Monge Quatro Elementos 5e nao abriu 3 disciplinas no nivel 11.");
+        const winterDiscipline = Array.from(selectsForFeatureKind("subclass", "elemental-disciplines")[0].options)
+          .find((option) => option.value === "breath-of-winter");
+        assert(!winterDiscipline, "Disciplina de nivel 17 apareceu cedo demais para Monge Quatro Elementos 5e.");
+        chooseFeatureKind("subclass", "elemental-disciplines", "flames-of-the-phoenix");
+        assert((document.querySelector("#preview")?.textContent || "").includes("Disciplinas Elementais"), "Preview 5e nao registrou disciplinas elementais.");
+
         setClassLevel("Patrulheiro", 3);
         setValue("#arquetipo", "patrulheiro-mestre-feras", ["change"]);
         assert(!document.querySelector("#companionChoicesPanel")?.hidden, "Painel de companheiro 5e nao abriu para Mestre das Feras.");
@@ -252,6 +279,17 @@ const smokePages = [
         const chooseFeature = (featureId, value = "", slotIndex = 0) => {
           const select = selectsForFeature(featureId)[slotIndex];
           assert(select, "Escolha ausente: " + featureId + " slot " + slotIndex);
+          const option = value
+            ? Array.from(select.options).find((item) => item.value === value && !item.disabled)
+            : Array.from(select.options).find((item) => item.value && !item.disabled);
+          assert(option, "Opcao indisponivel para " + featureId + ": " + (value || "primeira valida"));
+          select.value = option.value;
+          dispatch(select, "change");
+          return option.value;
+        };
+        const chooseFeatureKind = (kind, featureId, value = "", slotIndex = 0) => {
+          const select = selectsForFeatureKind(kind, featureId)[slotIndex];
+          assert(select, "Escolha ausente: " + kind + " " + featureId + " slot " + slotIndex);
           const option = value
             ? Array.from(select.options).find((item) => item.value === value && !item.disabled)
             : Array.from(select.options).find((item) => item.value && !item.disabled);
@@ -391,6 +429,19 @@ const smokePages = [
         dispatch(hunterDefenseSelects2024[0], "change");
         const hunterPreviewText2024 = document.querySelector("#preview2024")?.textContent || "";
         assert(hunterPreviewText2024.includes("Presa do Caçador") && hunterPreviewText2024.includes("Táticas Defensivas"), "Resumo/PDF automatico 2024 nao recebeu escolhas do Caçador.");
+
+        setClassLevel("guerreiro", 15);
+        setValue("#subclasse2024", "guerreiro-mestre-de-batalha", ["change"]);
+        assert(selectsForFeatureKind("subclass", "battle-master-maneuvers").length === 9, "Mestre da Batalha 2024 nao abriu 9 manobras no nivel 15.");
+        const braceManeuver2024 = Array.from(selectsForFeatureKind("subclass", "battle-master-maneuvers")[0].options)
+          .find((option) => option.value === "brace");
+        assert(!braceManeuver2024, "Manobra de Tasha apareceu na lista 2024 do Mestre da Batalha.");
+        chooseFeatureKind("subclass", "battle-master-maneuvers", "precision-attack", 0);
+        const duplicateManeuver2024 = Array.from(selectsForFeatureKind("subclass", "battle-master-maneuvers")[1].options)
+          .find((option) => option.value === "precision-attack");
+        assert(duplicateManeuver2024?.disabled, "Manobra repetida nao ficou bloqueada para Mestre da Batalha 2024.");
+        assert(document.querySelector("#featureChoicesInfo2024 .feature-choice-hover-card"), "Hovercard da cascata de escolhas 2024 ausente para Mestre da Batalha.");
+        assert((document.querySelector("#preview2024")?.textContent || "").includes("Manobras do Mestre da Batalha"), "Preview 2024 nao registrou manobras do Mestre da Batalha.");
 
         setClassLevel("druida", 2);
         assert(!document.querySelector("#companionChoicesPanel2024")?.hidden, "Painel de companheiro 2024 nao abriu para Druida.");
