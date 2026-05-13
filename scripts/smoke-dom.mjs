@@ -106,6 +106,45 @@ const smokePages = [
           dispatch(select, "change");
           return option.value;
         };
+        const normalizeSmokeText = (value) => String(value || "")
+          .normalize("NFD")
+          .replace(/[\\u0300-\\u036f]/g, "")
+          .toLowerCase();
+        const textIncludes = (value, expected) => normalizeSmokeText(value).includes(normalizeSmokeText(expected));
+        const subclassProficiencySelects = () => Array.from(document.querySelectorAll("#subclassProficiencyChoicesContainer select[data-subclass-proficiency-slot-key]"));
+        const selectsForSubclassProficiency = (definitionId) => subclassProficiencySelects()
+          .filter((select) => (select.getAttribute("data-subclass-proficiency-slot-key") || "").includes(":" + definitionId + ":slot-"));
+        const assertSubclassProficiencyPanel = (definitionId, expectedCount, context) => {
+          assert(!document.querySelector("#subclassProficiencyChoicesPanel")?.hidden, "Painel de Proficiências de Subclasse nao abriu para " + context + ".");
+          assert(document.querySelector("#subclassProficiencyChoicesInfo .subclass-proficiency-cascade"), "Cascata de Proficiências de Subclasse ausente para " + context + ".");
+          assert(document.querySelector("#subclassProficiencyChoicesInfo .subclass-proficiency-hover-card"), "Hovercard da cascata de Proficiências de Subclasse ausente para " + context + ".");
+          assert(document.querySelector("#subclassProficiencyChoicesContainer [data-subclass-proficiency-hover-card]"), "Hovercard do seletor de Proficiências de Subclasse ausente para " + context + ".");
+          const count = selectsForSubclassProficiency(definitionId).length;
+          assert(count === expectedCount, "Slots incorretos de Proficiências de Subclasse para " + context + ": esperado " + expectedCount + ", obtido " + count);
+        };
+        const chooseSubclassProficiency = (definitionId, value = "", slotIndex = 0) => {
+          const select = selectsForSubclassProficiency(definitionId)[slotIndex];
+          assert(select, "Escolha de Proficiências de Subclasse ausente: " + definitionId + " slot " + slotIndex);
+          const option = value
+            ? Array.from(select.options).find((item) => item.value === value && !item.disabled)
+            : Array.from(select.options).find((item) => item.value && !item.disabled);
+          assert(option, "Opcao de Proficiências de Subclasse indisponivel para " + definitionId + ": " + (value || "primeira valida"));
+          select.value = option.value;
+          dispatch(select, "change");
+          return option.value;
+        };
+        const assertSubclassProficiencyResolved = (expectedSummary, expectedLabels = [], pendingLabel = "") => {
+          const summary = document.querySelector("#subclassProficiencyChoicesSummary")?.textContent || "";
+          assert(summary.includes(expectedSummary), "Resumo de Proficiências de Subclasse nao fechou " + expectedSummary + ": " + summary);
+          const cascadeText = document.querySelector("#subclassProficiencyChoicesInfo")?.textContent || "";
+          expectedLabels.forEach((label) => {
+            assert(textIncludes(cascadeText, label), "Cascata de Proficiências de Subclasse nao registrou " + label + ".");
+          });
+          const previewText = document.querySelector("#preview")?.textContent || "";
+          if (pendingLabel) {
+            assert(!textIncludes(previewText, "Configure " + pendingLabel), "Preview ainda acusa pendencia de Proficiências de Subclasse: " + previewText);
+          }
+        };
         const warlockInvocationSelects = () => Array.from(document.querySelectorAll("#warlockInvocationsContainer select[data-warlock-invocation-slot-key]"));
         const warlockInvocationOptions = () => warlockInvocationSelects()
           .flatMap((select) => Array.from(select.options).map((option) => option.value).filter(Boolean));
@@ -252,6 +291,35 @@ const smokePages = [
         chooseFeatureKind("subclass", "arcane-shot-options", "banishing-arrow");
         assert((document.querySelector("#preview")?.textContent || "").includes("Opções de Tiro Arcano"), "Preview 5e nao registrou tiros arcanos.");
 
+        setClassLevel("Guerreiro", 3);
+        setValue("#arquetipo", "guerreiro-mestre-de-batalha", ["change"]);
+        assertSubclassProficiencyPanel("student-of-war-artisan-tool", 1, "Mestre de Batalha");
+        chooseSubclassProficiency("student-of-war-artisan-tool", "ferramentas-de-ferreiro");
+        assertSubclassProficiencyResolved("1/1", ["Mestre de Batalha", "Ferramentas de ferreiro"], "Estudante da Guerra");
+
+        setClassLevel("Ladino", 3);
+        setValue("#arquetipo", "ladino-mentor", ["change"]);
+        assertSubclassProficiencyPanel("master-of-intrigue-gaming-set", 1, "Mentor");
+        chooseSubclassProficiency("master-of-intrigue-gaming-set", "dragonchess");
+        assertSubclassProficiencyResolved("1/1", ["Mestre das Intrigas", "Conjunto de Xadrez de Dragão"], "Mestre da Intriga");
+
+        setClassLevel("Mago", 2);
+        setValue("#arquetipo", "mago-lamina-cantante", ["change"]);
+        assertSubclassProficiencyPanel("bladesinger-one-handed-weapon", 1, "Lâmina Cantante");
+        chooseSubclassProficiency("bladesinger-one-handed-weapon", "espada-longa");
+        assertSubclassProficiencyResolved("1/1", ["Lâmina Cantante", "Espada Longa"], "Treinamento em Guerra e Canção");
+
+        setClassLevel("Monge", 6);
+        setValue("#arquetipo", "monge-kensei", ["change"]);
+        assertSubclassProficiencyPanel("kensei-weapons", 3, "Kensei nivel 6");
+        chooseSubclassProficiency("kensei-weapons", "adaga", 0);
+        chooseSubclassProficiency("kensei-weapons", "arco-longo", 1);
+        const duplicateKenseiWeapon = Array.from(selectsForSubclassProficiency("kensei-weapons")[2].options)
+          .find((option) => option.value === "adaga");
+        assert(duplicateKenseiWeapon?.disabled, "Arma do Kensei repetida nao ficou bloqueada.");
+        chooseSubclassProficiency("kensei-weapons", "espada-curta", 2);
+        assertSubclassProficiencyResolved("3/3", ["Kensei", "Adaga", "Arco Longo", "Espada Curta"], "Armas do Kensei");
+
         setClassLevel("Monge", 11);
         setValue("#arquetipo", "monge-quatro-elementos", ["change"]);
         assert(selectsForFeatureKind("subclass", "elemental-disciplines").length === 3, "Monge Quatro Elementos 5e nao abriu 3 disciplinas no nivel 11.");
@@ -289,8 +357,9 @@ const smokePages = [
         assert(warlockInvocationOptions().includes("agonizing-blast"), "Rajada Agonizante nao apareceu apos selecionar Rajada Mística.");
         assert(warlockInvocationOptions().includes("eldritch-spear"), "Lança Mística nao apareceu apos selecionar Rajada Mística.");
 
-        setClassLevel("Patrulheiro", 15);
-        setValue("#arquetipo", "patrulheiro-cacador", ["change"]);
+        setClassLevel("Guerreiro", 15);
+        setValue("#arquetipo", "guerreiro-mestre-de-batalha", ["change"]);
+        chooseSubclassProficiency("student-of-war-artisan-tool", "ferramentas-de-ferreiro");
       })();
     `,
     afterSetupSelectors: [
@@ -298,6 +367,10 @@ const smokePages = [
       "select[data-feature-choice-slot-key]",
       ".feature-choice-cascade",
       "[data-feature-choice-hover-card]",
+      "#subclassProficiencyChoicesPanel:not([hidden])",
+      "select[data-subclass-proficiency-slot-key]",
+      ".subclass-proficiency-cascade",
+      "[data-subclass-proficiency-hover-card]",
     ],
   },
   {
