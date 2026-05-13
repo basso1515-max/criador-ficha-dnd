@@ -2425,9 +2425,9 @@ button:hover { border-color: #5a3e24; }
   justify-content: space-between;
   padding: 24px 26px 18px;
   background:
-    radial-gradient(circle at 16% 0%, rgba(255, 231, 167, 0.55), transparent 34%),
-    linear-gradient(135deg, rgba(90, 35, 28, 0.98), rgba(40, 29, 22, 0.96));
-  color: #fff7dc;
+    radial-gradient(circle at 12% 0%, rgba(255, 229, 155, 0.5), transparent 32%),
+    linear-gradient(135deg, rgba(255, 250, 232, 0.98), rgba(232, 205, 155, 0.94));
+  color: #352315;
 }
 
 .level-up-kicker,
@@ -2436,21 +2436,21 @@ button:hover { border-color: #5a3e24; }
 }
 
 .level-up-kicker {
-  color: rgba(255, 232, 184, 0.82);
+  color: #8f2f24;
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
-.level-up-header h2 {
+.level-up-dialog .level-up-header h2 {
   margin: 5px 0 6px;
-  color: #fff7dc;
+  color: #352315;
 }
 
 .level-up-subtitle {
   max-width: 620px;
-  color: rgba(255, 247, 220, 0.82);
+  color: #6f5538;
 }
 
 .level-up-close {
@@ -2458,10 +2458,10 @@ button:hover { border-color: #5a3e24; }
   min-width: 40px;
   height: 40px;
   padding: 0;
-  border-color: rgba(255, 247, 220, 0.24);
+  border-color: rgba(93, 57, 36, 0.2);
   border-radius: 50%;
-  background: rgba(255, 247, 220, 0.1);
-  color: #fff7dc;
+  background: rgba(255, 255, 255, 0.48);
+  color: #5d3924;
   font-size: 24px;
   line-height: 1;
 }
@@ -2550,6 +2550,7 @@ button:hover { border-color: #5a3e24; }
 .level-up-info-card,
 .level-up-empty-state,
 .level-up-review-card {
+  position: relative;
   border: 1px solid rgba(95, 50, 25, 0.14);
   border-radius: 18px;
   background:
@@ -2642,7 +2643,7 @@ button:hover { border-color: #5a3e24; }
 .level-up-method-card {
   display: grid;
   gap: 5px;
-  padding: 14px;
+  padding: 14px 46px 14px 14px;
   text-align: left;
 }
 
@@ -2656,13 +2657,40 @@ button:hover { border-color: #5a3e24; }
   gap: 8px;
 }
 
+.level-up-portal-card {
+  gap: 12px;
+}
+
 .level-up-review-card p {
   margin: 0;
 }
 
-.level-up-reveal-button {
-  width: max-content;
-  max-width: 100%;
+.level-up-portaled-panel {
+  display: grid;
+  gap: 12px;
+}
+
+.level-up-portaled-panel > .is-level-up-portaled {
+  margin: 0;
+}
+
+.level-up-panel-hint {
+  margin-top: 0;
+}
+
+.level-up-option-detail {
+  position: relative;
+  display: grid;
+  gap: 5px;
+  padding: 12px 44px 12px 12px;
+  border: 1px solid rgba(95, 50, 25, 0.12);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.58);
+}
+
+.level-up-option-detail p {
+  margin: 0;
+  color: #6f5538;
 }
 
 .level-up-footer {
@@ -2675,6 +2703,18 @@ button:hover { border-color: #5a3e24; }
   background: rgba(255, 250, 235, 0.82);
 }
 
+.level-up-footer-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.level-up-footer-actions button {
+  width: auto;
+}
+
 .level-up-status {
   margin: 0;
   color: #5d3924;
@@ -2685,20 +2725,65 @@ button:hover { border-color: #5a3e24; }
   width: auto;
 }
 
-.level-up-target-pulse {
-  animation: level-up-target-pulse 1.6s ease;
+.level-up-has-hover {
+  position: relative;
 }
 
-@keyframes level-up-target-pulse {
-  0% {
-    box-shadow: 0 0 0 0 rgba(155, 62, 45, 0.34);
-  }
-  42% {
-    box-shadow: 0 0 0 8px rgba(155, 62, 45, 0.16);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(155, 62, 45, 0);
-  }
+.level-up-hover-trigger {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: inline-grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  border: 1px solid rgba(95, 50, 25, 0.18);
+  border-radius: 50%;
+  background: rgba(255, 250, 235, 0.96);
+  color: #8f2f24;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1;
+  box-shadow: 0 8px 18px rgba(67, 39, 22, 0.12);
+  cursor: help;
+}
+
+.level-up-hover-card {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 8;
+  display: none;
+  width: min(330px, calc(100vw - 52px));
+  padding: 12px;
+  border: 1px solid rgba(95, 50, 25, 0.18);
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, rgba(255, 253, 246, 0.98), rgba(246, 235, 208, 0.98));
+  color: #3f2b1c;
+  box-shadow: 0 18px 42px rgba(44, 27, 17, 0.24);
+  text-align: left;
+}
+
+.level-up-hover-card strong {
+  display: block;
+  margin-bottom: 5px;
+  color: #8f2f24;
+}
+
+.level-up-hover-card p {
+  margin: 0;
+  color: #5f4930;
+  font-size: 13px;
+  line-height: 1.42;
+}
+
+.level-up-hover-trigger:hover .level-up-hover-card,
+.level-up-hover-trigger:focus .level-up-hover-card,
+.level-up-hover-trigger:focus-within .level-up-hover-card,
+.level-up-has-hover:hover > .level-up-hover-trigger .level-up-hover-card,
+.level-up-has-hover:focus-within > .level-up-hover-trigger .level-up-hover-card {
+  display: block;
 }
 
 .warning-note {
@@ -5405,6 +5490,34 @@ body[data-active-screen="5e-2024"] button:not(.secondary-button):not(.ghost-butt
   color: #fff;
 }
 
+body[data-active-screen="5e-2024"] .level-up-dialog .level-up-close,
+body[data-active-screen="5e-2024"] .level-up-dialog .level-up-tab,
+body[data-active-screen="5e-2024"] .level-up-dialog .level-up-method-card {
+  border-color: rgba(95, 50, 25, 0.16) !important;
+  background: rgba(255, 255, 255, 0.62) !important;
+  color: #5d3924 !important;
+}
+
+body[data-active-screen="5e-2024"] .level-up-dialog .level-up-tab.is-active {
+  border-color: rgba(142, 47, 34, 0.42) !important;
+  background: linear-gradient(180deg, #9b3e2d, #5a231d) !important;
+  color: #fff7dc !important;
+}
+
+body[data-active-screen="5e-2024"] .level-up-dialog .level-up-method-card {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.76), rgba(255, 248, 226, 0.72)) !important;
+}
+
+body[data-active-screen="5e-2024"] .level-up-dialog .level-up-method-card.is-active {
+  border-color: rgba(142, 47, 34, 0.44);
+  box-shadow: 0 0 0 3px rgba(142, 47, 34, 0.1), 0 16px 34px rgba(67, 39, 22, 0.12);
+}
+
+body[data-active-screen="5e-2024"] .level-up-dialog .level-up-method-card span {
+  color: #6f5538;
+}
+
 .native-select-hidden {
   width: 1px !important;
   min-width: 1px !important;
@@ -5994,9 +6107,14 @@ body[data-active-screen="5e-2024"] button:not(.secondary-button):not(.ghost-butt
     flex-direction: column;
   }
 
+  .level-up-footer-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
   .level-up-done,
-  .level-up-actions .primary,
-  .level-up-reveal-button {
+  .level-up-footer-actions button,
+  .level-up-actions .primary {
     width: 100%;
   }
 }

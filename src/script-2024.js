@@ -2704,6 +2704,7 @@ import { createLevelUpAssistant } from "./level-up-assistant.js";
       getCurrentLevel: getSelectedLevel,
       hasMainClass: () => Boolean(getSelectedClass()),
       getMainClassLabel: () => getSelectedClass()?.nome || "Classe principal",
+      getMainClassDescription: () => getSelectedClass()?.descricao || "",
       getMulticlassOptions: getLevelUpMulticlassOptions2024,
       applyMainClassLevel: applyMainClassLevelUp2024,
       applyMulticlassLevel: applyMulticlassLevelUp2024,
@@ -2728,6 +2729,7 @@ import { createLevelUpAssistant } from "./level-up-assistant.js";
       .map((cls) => ({
         value: cls.id,
         label: existingClassIds.has(cls.id) ? `${cls.nome} (já iniciada)` : cls.nome,
+        description: cls.descricao || buildClassInfoSummary2024(cls, 1),
       }));
   }
 
@@ -2792,6 +2794,7 @@ import { createLevelUpAssistant } from "./level-up-assistant.js";
         selectLabel: "Subclasse",
         helperText: "Se esta multiclasse liberou subclasse neste nível, escolha a opção aqui.",
         select: context.row.querySelector("[data-multiclass-subclass]"),
+        getOptionDescription: (value) => SUBCLASS_BY_ID.get(value)?.descricao || "",
         target: context.row,
       };
     }
@@ -2801,6 +2804,7 @@ import { createLevelUpAssistant } from "./level-up-assistant.js";
       selectLabel: "Subclasse",
       helperText: "Se a classe principal liberou subclasse neste nível, escolha a opção aqui.",
       select: el.subclasse,
+      getOptionDescription: (value) => SUBCLASS_BY_ID.get(value)?.descricao || "",
       target: el.subclasse?.closest(".row") || el.subclasse,
     };
   }

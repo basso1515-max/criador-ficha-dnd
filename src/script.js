@@ -4152,6 +4152,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       getCurrentLevel: getTotalCharacterLevel,
       hasMainClass: () => Boolean(getSelectedClassData()),
       getMainClassLabel: () => getSelectedClassData()?.nome || "Classe principal",
+      getMainClassDescription: () => getSelectedClassData()?.descricao || "",
       getMulticlassOptions: getLevelUpMulticlassOptions,
       applyMainClassLevel: applyMainClassLevelUp,
       applyMulticlassLevel: applyMulticlassLevelUp,
@@ -4176,6 +4177,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       .map((cls) => ({
         value: cls.nome,
         label: existingClassNames.has(cls.nome) ? `${cls.nome} (já iniciada)` : cls.nome,
+        description: cls.descricao || buildClassInfoSummary(cls, 1),
       }));
   }
 
@@ -4260,6 +4262,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
         selectLabel: "Subclasse / Arquétipo",
         helperText: "Se esta multiclasse liberou arquétipo neste nível, escolha a opção aqui.",
         select: context.row.querySelector("[data-multiclass-subclass]"),
+        getOptionDescription: (value) => SUBCLASS_BY_ID.get(value)?.descricao || "",
         target: context.row,
       };
     }
@@ -4269,6 +4272,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       selectLabel: "Subclasse / Arquétipo",
       helperText: "Se a classe principal liberou arquétipo neste nível, escolha a opção aqui.",
       select: el.arquetipo,
+      getOptionDescription: (value) => SUBCLASS_BY_ID.get(value)?.descricao || "",
       target: el.arquetipo?.closest(".row") || el.arquetipo,
     };
   }

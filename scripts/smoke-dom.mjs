@@ -451,9 +451,14 @@ const smokePages = [
         click(".level-up-open-button");
         assert(modalText().includes("Seguir com a classe principal"), "Popup de nível 5e não abriu na aba Caminho.");
         assert(modalText().includes("Abrir ou avançar multiclasse"), "Popup de nível 5e não mostrou opção de multiclasse.");
+        assert(document.querySelector(".level-up-hover-trigger"), "Popup de nível 5e não exibiu hovercards de descrição.");
         click(".level-up-actions .primary");
         assert(document.querySelector("#nivel")?.value === "2", "Assistente 5e não aumentou o nível principal para 2.");
         assert(!Array.from(document.querySelectorAll(".level-up-tab")).some((tab) => tab.disabled), "Abas 5e não foram liberadas depois de aplicar avanço.");
+        assert(!modalText().includes("Abrir subclasse na ficha"), "Assistente 5e ainda mostra botão de abrir subclasse na ficha.");
+        click(".level-up-next");
+        assert(modalText().includes("Pontos de vida do novo nível"), "Botão de avançar etapa 5e não levou para PV.");
+        assert(document.querySelector(".level-up-content .level-up-hover-trigger"), "Aba de PV 5e não exibiu hovercards de descrição.");
 
         click(".level-up-close");
         click(".level-up-open-button");
@@ -462,6 +467,7 @@ const smokePages = [
         multiclassRadio.checked = true;
         dispatch(multiclassRadio, "change");
         setValue(".level-up-multiclass-picker select", "Guerreiro", ["change"]);
+        assert(modalText().includes("Especialista marcial"), "Assistente 5e não mostrou descrição da classe selecionada no popup.");
         click(".level-up-actions .primary");
 
         const row = document.querySelector("#multiclassRows [data-multiclass-row]");
@@ -823,9 +829,14 @@ const smokePages = [
         click(".level-up-open-button");
         assert(modalText().includes("Seguir com a classe principal"), "Popup de nível 5.5e não abriu na aba Caminho.");
         assert(modalText().includes("Abrir ou avançar multiclasse"), "Popup de nível 5.5e não mostrou opção de multiclasse.");
+        assert(document.querySelector(".level-up-hover-trigger"), "Popup de nível 5.5e não exibiu hovercards de descrição.");
         click(".level-up-actions .primary");
         assert(document.querySelector("#nivel2024")?.value === "2", "Assistente 5.5e não aumentou o nível principal para 2.");
         assert(!Array.from(document.querySelectorAll(".level-up-tab")).some((tab) => tab.disabled), "Abas 5.5e não foram liberadas depois de aplicar avanço.");
+        assert(!modalText().includes("Abrir subclasse na ficha"), "Assistente 5.5e ainda mostra botão de abrir subclasse na ficha.");
+        click(".level-up-next");
+        assert(modalText().includes("Pontos de vida do novo nível"), "Botão de avançar etapa 5.5e não levou para PV.");
+        assert(document.querySelector(".level-up-content .level-up-hover-trigger"), "Aba de PV 5.5e não exibiu hovercards de descrição.");
 
         click(".level-up-close");
         click(".level-up-open-button");
@@ -834,6 +845,7 @@ const smokePages = [
         multiclassRadio.checked = true;
         dispatch(multiclassRadio, "change");
         setValue(".level-up-multiclass-picker select", "guerreiro", ["change"]);
+        assert(modalText().includes("Especialista marcial"), "Assistente 5.5e não mostrou descrição da classe selecionada no popup.");
         click(".level-up-actions .primary");
 
         const row = document.querySelector("#multiclassRows2024 [data-multiclass-row]");
