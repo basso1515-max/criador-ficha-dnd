@@ -111,6 +111,17 @@ const smokePages = [
           .replace(/[\\u0300-\\u036f]/g, "")
           .toLowerCase();
         const textIncludes = (value, expected) => normalizeSmokeText(value).includes(normalizeSmokeText(expected));
+        const assertFeatureChoiceResolved = (expectedSummary, expectedLabels = [], pendingLabel = "") => {
+          const summary = document.querySelector("#featureChoicesSummary")?.textContent || "";
+          assert(summary.includes(expectedSummary), "Resumo de escolhas de recursos nao fechou " + expectedSummary + ": " + summary);
+          const previewText = document.querySelector("#preview")?.textContent || "";
+          expectedLabels.forEach((label) => {
+            assert(textIncludes(previewText, label), "Preview 5e nao registrou escolha de recurso: " + label + ".");
+          });
+          if (pendingLabel) {
+            assert(!textIncludes(previewText, "Configure " + pendingLabel), "Preview ainda acusa pendencia de escolha de recurso: " + previewText);
+          }
+        };
         const subclassProficiencySelects = () => Array.from(document.querySelectorAll("#subclassProficiencyChoicesContainer select[data-subclass-proficiency-slot-key]"));
         const selectsForSubclassProficiency = (definitionId) => subclassProficiencySelects()
           .filter((select) => (select.getAttribute("data-subclass-proficiency-slot-key") || "").includes(":" + definitionId + ":slot-"));
@@ -219,6 +230,40 @@ const smokePages = [
         assert(infusionSummary.includes("Conhecidas 4/4") && infusionSummary.includes("Ativas 2/2"), "Resumo de infusoes nao fechou 4/4 e 2/2: " + infusionSummary);
         const infusionPreview = document.querySelector("#preview")?.textContent || "";
         assert(infusionPreview.includes("Artífice - Infusões") && infusionPreview.includes("Defesa Aprimorada") && infusionPreview.includes("Cota de escamas"), "Preview/PDF automatico 5e nao recebeu infusoes ativas com alvo.");
+
+        setClassLevel("Artífice", 3);
+        setValue("#arquetipo", "artifice-armeiro", ["change"]);
+        assert(selectsForFeatureKind("subclass", "armor-model").length === 1, "Armeiro 5e nao abriu Modelo de Armadura.");
+        chooseFeatureKind("subclass", "armor-model", "guardiao");
+        assertFeatureChoiceResolved("1/1", ["Modelo de Armadura", "Guardião"], "Modelo de Armadura");
+
+        setClassLevel("Bárbaro", 14);
+        setValue("#arquetipo", "barbaro-coracao-selvagem", ["change"]);
+        assert(selectsForFeatureKind("subclass", "totem-spirit").length === 1, "Guerreiro Totêmico 5e nao abriu Espírito Totêmico.");
+        assert(selectsForFeatureKind("subclass", "beast-aspect").length === 1, "Guerreiro Totêmico 5e nao abriu Aspecto da Fera.");
+        assert(selectsForFeatureKind("subclass", "totemic-attunement").length === 1, "Guerreiro Totêmico 5e nao abriu Sintonia Totêmica.");
+        chooseFeatureKind("subclass", "totem-spirit", "urso");
+        chooseFeatureKind("subclass", "beast-aspect", "aguia");
+        chooseFeatureKind("subclass", "totemic-attunement", "lobo");
+        assertFeatureChoiceResolved("3/3", ["Espírito Totêmico", "Urso", "Aspecto da Fera", "Águia", "Sintonia Totêmica", "Lobo"], "Espírito Totêmico");
+
+        setClassLevel("Bárbaro", 14);
+        setValue("#arquetipo", "barbaro-magia-selvagem", ["change"]);
+        assert(selectsForFeatureKind("subclass", "wild-magic-surge").length === 1, "Magia Selvagem 5e nao abriu Surto de Magia Selvagem.");
+        chooseFeatureKind("subclass", "wild-magic-surge", "teleporte-instavel");
+        assertFeatureChoiceResolved("1/1", ["Surto de Magia Selvagem", "Teleporte instável"]);
+
+        setClassLevel("Bruxo", 6);
+        setValue("#arquetipo", "bruxo-genio", ["change"]);
+        assert(selectsForFeatureKind("subclass", "genie-patron").length === 1, "Bruxo Gênio 5e nao abriu Patrono Gênio.");
+        chooseFeatureKind("subclass", "genie-patron", "efreeti");
+        assertFeatureChoiceResolved("1/1", ["Patrono Gênio", "Efreeti"], "Patrono Gênio");
+
+        setClassLevel("Bruxo", 10);
+        setValue("#arquetipo", "bruxo-infernal", ["change"]);
+        assert(selectsForFeatureKind("subclass", "fiendish-resilience").length === 1, "Bruxo Infernal 5e nao abriu Resiliência Infernal.");
+        chooseFeatureKind("subclass", "fiendish-resilience", "frio");
+        assertFeatureChoiceResolved("1/1", ["Resiliência Infernal", "Frio"], "Resiliência Infernal");
 
         assertFeatureSlots("Feiticeiro", 17, [["metamagic", 4]]);
         const metamagic = new Set();

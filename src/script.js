@@ -255,6 +255,64 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     { value: "magia-buscadora", label: "Magia Buscadora", summary: "Ajuda a converter um ataque mágico errado em acerto." },
     { value: "magia-transmutada", label: "Magia Transmutada", summary: "Troca o tipo de dano elemental de uma magia compatível." },
   ];
+  const FEATURE_CHOICE_DAMAGE_TYPE_OPTIONS_5E = [
+    { value: "acido", label: "Ácido", summary: "Registra resistência a dano ácido." },
+    { value: "concussao", label: "Concussão", summary: "Registra resistência a dano de concussão." },
+    { value: "cortante", label: "Cortante", summary: "Registra resistência a dano cortante." },
+    { value: "eletrico", label: "Elétrico", summary: "Registra resistência a dano elétrico." },
+    { value: "fogo", label: "Fogo", summary: "Registra resistência a dano de fogo." },
+    { value: "frio", label: "Frio", summary: "Registra resistência a dano de frio." },
+    { value: "forca", label: "Força", summary: "Registra resistência a dano de força." },
+    { value: "necrotico", label: "Necrótico", summary: "Registra resistência a dano necrótico." },
+    { value: "perfurante", label: "Perfurante", summary: "Registra resistência a dano perfurante." },
+    { value: "psiquico", label: "Psíquico", summary: "Registra resistência a dano psíquico." },
+    { value: "radiante", label: "Radiante", summary: "Registra resistência a dano radiante." },
+    { value: "trovejante", label: "Trovejante", summary: "Registra resistência a dano trovejante." },
+    { value: "veneno", label: "Veneno", summary: "Registra resistência a dano venenoso." },
+  ];
+  const ARMORER_ARMOR_MODEL_OPTIONS_5E = [
+    {
+      value: "guardiao",
+      label: "Guardião",
+      summary: "Foco defensivo: Manoplas Trovejantes, Campo Defensivo e presença de linha de frente.",
+    },
+    {
+      value: "infiltrador",
+      label: "Infiltrador",
+      summary: "Foco móvel: Lançador Relampejante, deslocamento aumentado e vantagem em Furtividade da armadura.",
+    },
+  ];
+  const GENIE_PATRON_OPTIONS_5E = [
+    { value: "dao", label: "Dao", summary: "Patrono da terra: Ira do Gênio causa concussão e a Dádiva Elemental concede resistência a concussão." },
+    { value: "djinni", label: "Djinni", summary: "Patrono do ar: Ira do Gênio causa trovejante e a Dádiva Elemental concede resistência a trovejante." },
+    { value: "efreeti", label: "Efreeti", summary: "Patrono do fogo: Ira do Gênio causa fogo e a Dádiva Elemental concede resistência a fogo." },
+    { value: "marid", label: "Marid", summary: "Patrono da água: Ira do Gênio causa frio e a Dádiva Elemental concede resistência a frio." },
+  ];
+  const TOTEM_SPIRIT_OPTIONS_5E = [
+    { value: "urso", label: "Urso", summary: "Em Fúria, ganha resistência a todos os danos exceto psíquico." },
+    { value: "aguia", label: "Águia", summary: "Em Fúria, corre como ação bônus e dificulta ataques de oportunidade contra você." },
+    { value: "lobo", label: "Lobo", summary: "Em Fúria, aliados têm vantagem em ataques corpo a corpo contra inimigos próximos a você." },
+  ];
+  const TOTEM_BEAST_ASPECT_OPTIONS_5E = [
+    { value: "urso", label: "Urso", summary: "Dobra a capacidade de carga e recebe vantagem para empurrar, puxar, erguer ou quebrar objetos." },
+    { value: "aguia", label: "Águia", summary: "Enxerga detalhes a até 1 milha e não sofre desvantagem por penumbra em Percepção visual." },
+    { value: "lobo", label: "Lobo", summary: "Rastreia em ritmo rápido e pode se mover furtivamente em ritmo normal durante viagens." },
+  ];
+  const TOTEMIC_ATTUNEMENT_OPTIONS_5E = [
+    { value: "urso", label: "Urso", summary: "Em Fúria, inimigos próximos têm desvantagem ao atacar alvos que não sejam você." },
+    { value: "aguia", label: "Águia", summary: "Em Fúria, ganha deslocamento de voo temporário igual ao deslocamento atual." },
+    { value: "lobo", label: "Lobo", summary: "Em Fúria, pode derrubar uma criatura Grande ou menor após acertá-la com ataque corpo a corpo." },
+  ];
+  const WILD_MAGIC_SURGE_OPTIONS_5E = [
+    { value: "sombras-necroticas", label: "Sombras necróticas", summary: "Criaturas escolhidas próximas fazem CON; em falha sofrem dano necrótico e você recebe PV temporários." },
+    { value: "teleporte-instavel", label: "Teleporte instável", summary: "Até a Fúria acabar, teleporta-se como ação bônus para um espaço visível próximo." },
+    { value: "espirito-explosivo", label: "Espírito explosivo", summary: "Um espírito intangível aparece perto de uma criatura e explode em dano de força." },
+    { value: "arma-retornante", label: "Arma retornante", summary: "Uma arma empunhada fica mágica, ganha arremesso e retorna à mão após o ataque." },
+    { value: "retaliacao-de-forca", label: "Retaliação de força", summary: "Criaturas que acertam você sofrem dano de força até o fim da Fúria." },
+    { value: "luzes-protetoras", label: "Luzes protetoras", summary: "Você e aliados próximos recebem bônus de CA enquanto luzes multicoloridas os envolvem." },
+    { value: "vinhas-caoticas", label: "Vinhas caóticas", summary: "Flores e vinhas criam terreno difícil ao seu redor durante a Fúria." },
+    { value: "raio-radiante", label: "Raio radiante", summary: "Dispara luz radiante pelo peito, causando dano e podendo cegar o alvo." },
+  ];
   const FEATURE_CHOICE_DEFINITIONS_5E = {
     classes: {
       patrulheiro: [
@@ -333,6 +391,79 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       ],
     },
     subclasses: {
+      "artifice-armeiro": [
+        {
+          id: "armor-model",
+          minLevel: 3,
+          featureLabel: "Modelo de Armadura",
+          selectionLabel: "Modelo",
+          help: "Escolha o modelo ativo da Armadura Arcana. O Armeiro pode trocar entre Guardião e Infiltrador ao final de um descanso curto ou longo.",
+          required: true,
+          options: ARMORER_ARMOR_MODEL_OPTIONS_5E,
+        },
+      ],
+      "barbaro-magia-selvagem": [
+        {
+          id: "wild-magic-surge",
+          minLevel: 3,
+          featureLabel: "Surto de Magia Selvagem",
+          selectionLabel: "Surto ativo",
+          help: "Registre o resultado atual do Surto de Magia Selvagem. No nível 14, use este campo para fixar o resultado escolhido entre as rolagens.",
+          required: false,
+          options: WILD_MAGIC_SURGE_OPTIONS_5E,
+        },
+      ],
+      "barbaro-coracao-selvagem": [
+        {
+          id: "totem-spirit",
+          minLevel: 3,
+          featureLabel: "Espírito Totêmico",
+          selectionLabel: "Totem",
+          help: "Escolha o espírito que fortalece sua Fúria no nível 3. As escolhas de níveis 6 e 14 podem repetir ou trocar o animal.",
+          required: true,
+          options: TOTEM_SPIRIT_OPTIONS_5E,
+        },
+        {
+          id: "beast-aspect",
+          minLevel: 6,
+          featureLabel: "Aspecto da Fera",
+          selectionLabel: "Aspecto",
+          help: "Escolha o benefício utilitário permanente concedido pelo totem no nível 6.",
+          required: true,
+          options: TOTEM_BEAST_ASPECT_OPTIONS_5E,
+        },
+        {
+          id: "totemic-attunement",
+          minLevel: 14,
+          featureLabel: "Sintonia Totêmica",
+          selectionLabel: "Sintonia",
+          help: "Escolha o poder de combate final concedido pelo totem no nível 14.",
+          required: true,
+          options: TOTEMIC_ATTUNEMENT_OPTIONS_5E,
+        },
+      ],
+      "bruxo-genio": [
+        {
+          id: "genie-patron",
+          minLevel: 1,
+          featureLabel: "Patrono Gênio",
+          selectionLabel: "Tipo de gênio",
+          help: "Escolha o tipo de gênio patrono. Essa escolha define o tipo de dano de Ira do Gênio e a resistência concedida por Dádiva Elemental no nível 6.",
+          required: true,
+          options: GENIE_PATRON_OPTIONS_5E,
+        },
+      ],
+      "bruxo-infernal": [
+        {
+          id: "fiendish-resilience",
+          minLevel: 10,
+          featureLabel: "Resiliência Infernal",
+          selectionLabel: "Tipo de dano",
+          help: "Escolha o tipo de dano resistido após o descanso. A escolha pode ser trocada em um descanso posterior; dano de armas mágicas ou prateadas pode ignorar a resistência quando aplicável.",
+          required: true,
+          options: FEATURE_CHOICE_DAMAGE_TYPE_OPTIONS_5E,
+        },
+      ],
       "guerreiro-mestre-de-batalha": [
         {
           id: "battle-master-maneuvers",
@@ -5529,6 +5660,21 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
         "Progressão: 1 terreno no nível 1, outro no nível 6 e outro no nível 10.",
       ];
     }
+    if (source?.id === "armor-model") {
+      return ["Armadura: registra o modelo ativo e seus benefícios no resumo da ficha e no PDF."];
+    }
+    if (source?.id === "genie-patron") {
+      return ["Patrono: define o tipo de dano de Ira do Gênio e a resistência de Dádiva Elemental."];
+    }
+    if (source?.id === "fiendish-resilience") {
+      return ["Resistência: registra o tipo escolhido após descanso e pode ser atualizado quando a escolha mudar."];
+    }
+    if (["totem-spirit", "beast-aspect", "totemic-attunement"].includes(source?.id)) {
+      return ["Totem: registra a escolha animal desse patamar do Guerreiro Totêmico."];
+    }
+    if (source?.id === "wild-magic-surge") {
+      return ["Surto: registra o efeito atual ou controlado da Magia Selvagem sem criar pendência obrigatória."];
+    }
     if (option?.summary) return [`Registro: ${option.summary}`];
     return ["Registro: aparece no resumo da ficha e na seção de características do PDF."];
   }
@@ -5638,6 +5784,8 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
   function getFeatureChoiceCascadeMarkup(sources, selections) {
     const totalChoices = sources.reduce((total, source) => total + source.picks, 0);
     let selectedCount = 0;
+    let requiredTotal = 0;
+    let requiredSelectedCount = 0;
     const effectLabels = new Set();
     const sourceLabels = sources.map((source) => `${source.ownerLabel}: ${source.title} (${source.picks})`);
     const uniqueSourceCount = sources.filter((source) => source.disallowDuplicates).length;
@@ -5645,17 +5793,19 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
 
     sources.forEach((source) => {
       const options = getFeatureChoiceOptions(source);
+      if (source.required) requiredTotal += source.picks;
       for (let slotIndex = 0; slotIndex < source.picks; slotIndex += 1) {
         const value = String(selections.get(buildFeatureChoiceSlotKey(source, slotIndex)) || "").trim();
         const option = options.find((item) => item.value === value);
         if (!option) continue;
         selectedCount += 1;
+        if (source.required) requiredSelectedCount += 1;
         getFeatureChoiceImpactLines(source, option).forEach((line) => effectLabels.add(line.split(":")[0] || "Registro"));
       }
       if (source.grantsSelectedSpell) effectLabels.add("Magia");
     });
 
-    const pendingCount = Math.max(0, totalChoices - selectedCount);
+    const pendingCount = Math.max(0, requiredTotal - requiredSelectedCount);
     const selectedLines = buildSelectedFeatureChoiceLines().length;
     const filterLabels = [
       uniqueSourceCount ? "sem repetição" : "",
@@ -5664,7 +5814,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     ].filter(Boolean);
     const steps = [
       { label: "Fontes", value: `${sources.length} recurso(s)`, body: sourceLabels.length ? `Ativas agora: ${formatList(sourceLabels)}.` : "Classes, multiclasse e subclasse liberam fontes de escolha conforme a distribuição de níveis." },
-      { label: "Pendência", value: pendingCount ? `${selectedCount}/${totalChoices}` : "resolvida", body: pendingCount ? `${pendingCount} escolha(s) obrigatória(s) ainda precisam de uma opção válida.` : "Todas as escolhas obrigatórias visíveis estão configuradas." },
+      { label: "Pendência", value: pendingCount ? `${requiredSelectedCount}/${requiredTotal}` : (requiredTotal ? "resolvida" : "opcional"), body: pendingCount ? `${pendingCount} escolha(s) obrigatória(s) ainda precisam de uma opção válida.` : "Todas as escolhas obrigatórias visíveis estão configuradas; escolhas opcionais podem ficar em branco." },
       { label: "Filtros", value: filterLabels.length ? formatList(filterLabels) : "opções válidas", body: "A lista remove opções repetidas quando necessário e oculta escolhas que ainda não cumprem pré-requisito de nível." },
       { label: "Efeitos", value: effectLabels.size ? formatList(Array.from(effectLabels)) : "resumo", body: "As escolhas entram como registro de recurso, lista aprendida ou magia concedida quando a regra permite." },
       { label: "Resumo/PDF", value: selectedLines ? `${selectedLines} linha(s)` : "aguardando", body: "As escolhas selecionadas alimentam o preview, os campos automáticos e o PDF." },
