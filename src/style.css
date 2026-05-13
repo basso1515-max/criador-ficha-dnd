@@ -2408,6 +2408,7 @@ button:hover { border-color: #5a3e24; }
   grid-template-rows: auto auto minmax(0, 1fr) auto;
   width: min(860px, 100%);
   max-height: min(88vh, 820px);
+  min-height: min(640px, 88vh);
   overflow: hidden;
   border: 1px solid rgba(255, 230, 178, 0.48);
   border-radius: 24px;
@@ -2498,8 +2499,9 @@ button:hover { border-color: #5a3e24; }
 }
 
 .level-up-content {
-  min-height: 300px;
+  min-height: 0;
   overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 22px 26px 26px;
 }
 
@@ -2715,14 +2717,34 @@ button:hover { border-color: #5a3e24; }
   width: auto;
 }
 
+.level-up-next {
+  min-width: 118px;
+  border-color: rgba(95, 50, 25, 0.2);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(232, 218, 188, 0.9));
+  color: #6b5138;
+  box-shadow: none;
+}
+
+.level-up-next.is-ready:not(:disabled) {
+  border-color: #8b2d21;
+  background:
+    radial-gradient(circle at 18% 10%, rgba(255, 235, 169, 0.32), transparent 30%),
+    linear-gradient(180deg, #b84431, #6f281f);
+  color: #fff8dc;
+  box-shadow: 0 12px 24px rgba(111, 40, 31, 0.22);
+}
+
+.level-up-next:disabled {
+  cursor: not-allowed;
+  opacity: 1;
+  filter: saturate(0.62);
+  transform: none;
+}
+
 .level-up-status {
   margin: 0;
   color: #5d3924;
   font-size: 13px;
-}
-
-.level-up-done {
-  width: auto;
 }
 
 .level-up-has-hover {
@@ -4175,7 +4197,7 @@ select[multiple] option {
 
 .magic-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+  grid-template-columns: 1fr;
   gap: 16px;
   align-items: start;
 }
@@ -5490,6 +5512,40 @@ body[data-active-screen="5e-2024"] button:not(.secondary-button):not(.ghost-butt
   color: #fff;
 }
 
+body[data-active-screen="5e-2024"] .level-up-dialog {
+  border-color: rgba(159, 38, 51, 0.44);
+  border-radius: 18px;
+  background:
+    linear-gradient(150deg, rgba(255, 251, 242, 0.98), rgba(244, 228, 196, 0.96)),
+    radial-gradient(circle at 100% 0%, rgba(199, 52, 66, 0.2), transparent 42%);
+  box-shadow: 0 34px 92px rgba(55, 12, 18, 0.48);
+}
+
+body[data-active-screen="5e-2024"] .level-up-header {
+  background:
+    radial-gradient(circle at 12% 4%, rgba(255, 222, 142, 0.42), transparent 30%),
+    linear-gradient(135deg, #721722, #b72d3a 54%, #e0a541);
+  color: #fff8e8;
+}
+
+body[data-active-screen="5e-2024"] .level-up-dialog .level-up-header h2 {
+  color: #fff8e8;
+}
+
+body[data-active-screen="5e-2024"] .level-up-kicker {
+  color: #ffe3a3;
+}
+
+body[data-active-screen="5e-2024"] .level-up-subtitle {
+  color: rgba(255, 248, 232, 0.9);
+}
+
+body[data-active-screen="5e-2024"] .level-up-tabs,
+body[data-active-screen="5e-2024"] .level-up-footer {
+  background:
+    linear-gradient(90deg, rgba(255, 246, 224, 0.92), rgba(246, 225, 184, 0.9));
+}
+
 body[data-active-screen="5e-2024"] .level-up-dialog .level-up-close,
 body[data-active-screen="5e-2024"] .level-up-dialog .level-up-tab,
 body[data-active-screen="5e-2024"] .level-up-dialog .level-up-method-card {
@@ -5516,6 +5572,20 @@ body[data-active-screen="5e-2024"] .level-up-dialog .level-up-method-card.is-act
 
 body[data-active-screen="5e-2024"] .level-up-dialog .level-up-method-card span {
   color: #6f5538;
+}
+
+body[data-active-screen="5e-2024"] .level-up-dialog .level-up-next {
+  border-color: rgba(95, 50, 25, 0.2) !important;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(232, 218, 188, 0.9)) !important;
+  color: #6b5138 !important;
+}
+
+body[data-active-screen="5e-2024"] .level-up-dialog .level-up-next.is-ready:not(:disabled) {
+  border-color: #8b2d21 !important;
+  background:
+    radial-gradient(circle at 18% 10%, rgba(255, 235, 169, 0.32), transparent 30%),
+    linear-gradient(180deg, #b84431, #6f281f) !important;
+  color: #fff8dc !important;
 }
 
 .native-select-hidden {
@@ -6079,21 +6149,60 @@ body[data-active-screen="5e-2024"] .level-up-dialog .level-up-method-card span {
 @media (max-width: 720px) {
   .level-up-modal-shell {
     align-items: stretch;
-    padding: 10px;
+    padding: 0;
   }
 
   .level-up-dialog {
     width: 100%;
-    max-height: calc(100svh - 20px);
-    border-radius: 18px;
+    height: 100svh;
+    max-height: 100svh;
+    min-height: 0;
+    border-radius: 0;
   }
 
   .level-up-header {
-    padding: 18px;
+    gap: 10px;
+    padding: 14px;
+  }
+
+  .level-up-kicker {
+    font-size: 10px;
+    letter-spacing: 0.09em;
+  }
+
+  .level-up-dialog .level-up-header h2 {
+    margin: 3px 0 4px;
+    font-size: 20px;
+    line-height: 1.2;
+  }
+
+  .level-up-subtitle {
+    font-size: 13px;
+    line-height: 1.35;
+  }
+
+  .level-up-close {
+    width: 34px;
+    min-width: 34px;
+    height: 34px;
+    font-size: 21px;
+  }
+
+  .level-up-tabs {
+    gap: 6px;
+    padding: 10px 12px;
+    scroll-padding-inline: 12px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .level-up-tab {
+    flex: 0 0 auto;
+    padding: 8px 12px;
+    font-size: 12px;
   }
 
   .level-up-content {
-    padding: 18px;
+    padding: 14px;
   }
 
   .level-up-current-summary,
@@ -6102,20 +6211,68 @@ body[data-active-screen="5e-2024"] .level-up-dialog .level-up-method-card span {
     grid-template-columns: 1fr;
   }
 
+  .level-up-badge,
+  .level-up-choice-card,
+  .level-up-editor-card,
+  .level-up-info-card,
+  .level-up-empty-state,
+  .level-up-review-card,
+  .level-up-multiclass-picker {
+    border-radius: 14px;
+  }
+
+  .level-up-choice-card {
+    padding: 14px 42px 14px 14px;
+  }
+
+  .level-up-option-detail,
+  .level-up-method-card {
+    padding-right: 42px;
+  }
+
+  .level-up-portaled-panel {
+    min-width: 0;
+  }
+
+  .level-up-dialog label.row,
+  .level-up-portaled-panel label.row {
+    min-width: 0;
+  }
+
+  .level-up-dialog input,
+  .level-up-dialog select,
+  .level-up-dialog textarea {
+    max-width: 100%;
+  }
+
   .level-up-footer {
     align-items: stretch;
     flex-direction: column;
+    gap: 8px;
+    padding: 10px;
   }
 
   .level-up-footer-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
     align-items: stretch;
-    flex-direction: column;
+    gap: 8px;
   }
 
-  .level-up-done,
-  .level-up-footer-actions button,
-  .level-up-actions .primary {
+  .level-up-footer-actions button {
     width: 100%;
+    min-height: 42px;
+    padding: 10px;
+  }
+
+  .level-up-status {
+    font-size: 12px;
+    line-height: 1.3;
+  }
+
+  .level-up-hover-card {
+    right: 0;
+    width: min(300px, calc(100vw - 44px));
   }
 }
 

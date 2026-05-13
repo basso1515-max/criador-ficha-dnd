@@ -18,11 +18,12 @@ export function createLevelUpAssistant(config = {}) {
     open: false,
     applied: false,
     activeTab: "path",
-    selectedPath: "main",
+    selectedPath: "",
     selectedMulticlass: "",
     fromLevel: 1,
     toLevel: 2,
     appliedContext: null,
+    baselineSnapshot: null,
     message: "",
   };
   const portaledElements = [];
@@ -47,8 +48,7 @@ export function createLevelUpAssistant(config = {}) {
         <p class="level-up-status" aria-live="polite"></p>
         <div class="level-up-footer-actions">
           <button type="button" class="secondary-button level-up-prev">Voltar etapa</button>
-          <button type="button" class="primary level-up-next">Avançar para próxima etapa</button>
-          <button type="button" class="secondary-button level-up-done" data-level-up-close>Fechar assistente</button>
+          <button type="button" class="primary level-up-next">Avançar</button>
         </div>
       </footer>
     </section>
@@ -102,9 +102,10 @@ export function createLevelUpAssistant(config = {}) {
     state.toLevel = Math.min(maxLevel, state.fromLevel + 1);
     state.applied = false;
     state.activeTab = "path";
-    state.selectedPath = "main";
+    state.selectedPath = "";
     state.selectedMulticlass = getMulticlassOptions()[0]?.value || "";
     state.appliedContext = null;
+    state.baselineSnapshot = captureLevelUpSnapshot();
     state.message = "";
 
     shell.hidden = false;
@@ -125,6 +126,7 @@ export function createLevelUpAssistant(config = {}) {
 
   function render() {
     restorePortaledElements();
+    ensureActiveTabVisible();
     updateOpenButton();
     titleEl.textContent = state.fromLevel >= maxLevel
       ? "Nível máximo alcançado"
@@ -147,20 +149,16 @@ export function createLevelUpAssistant(config = {}) {
 
   function renderTabs() {
     tabsEl.replaceChildren();
-    tabs.forEach((tab) => {
+    getVisibleTabs().forEach((tab) => {
       const button = document.createElement("button");
       button.type = "button";
       button.className = "level-up-tab";
       button.textContent = tab.label;
-      button.disabled = tab.id !== "path" && !state.applied;
       button.setAttribute("role", "tab");
       button.setAttribute("aria-selected", String(state.activeTab === tab.id));
       button.classList.toggle("is-active", state.activeTab === tab.id);
-      button.classList.toggle("is-locked", button.disabled);
       button.addEventListener("click", () => {
-        if (button.disabled) return;
-        state.activeTab = tab.id;
-        render();
+        navigateToTab(tab.id);
       });
       tabsEl.appendChild(button);
     });
@@ -212,30 +210,10 @@ export function createLevelUpAssistant(config = {}) {
       wrapper.appendChild(renderMulticlassPicker());
     }
 
-    const actions = document.createElement("div");
-    actions.className = "level-up-actions";
-    const applyButton = document.createElement("button");
-    applyButton.type = "button";
-    applyButton.className = "primary";
-    applyButton.textContent = state.applied ? "Avanço aplicado" : "Aplicar avanço";
-    applyButton.disabled = state.applied || !canApplyPath();
-    applyButton.addEventListener("click", applySelectedPath);
-    actions.appendChild(applyButton);
-
     const helper = document.createElement("p");
-    helper.className = "note subtle";
-    helper.textContent = "Depois de aplicar, as abas de subclasse, PV, recursos e magias ficam liberadas para revisão.";
-    actions.appendChild(helper);
-    wrapper.appendChild(actions);
-
-    if (state.appliedContext) {
-      const applied = createInfoCard(
-        "Avanço aplicado",
-        state.appliedContext.summary || "O nível foi aplicado e a ficha foi recalculada."
-      );
-      applied.classList.add("is-success");
-      wrapper.appendChild(applied);
-    }
+    helper.className = "note subtle level-up-path-helper";
+    helper.textContent = "Selecione classe principal ou multiclasse. O botão Avançar acende quando o caminho estiver pronto.";
+    wrapper.appendChild(helper);
 
     contentEl.appendChild(wrapper);
   }
@@ -332,7 +310,7 @@ export function createLevelUpAssistant(config = {}) {
     };
     state.fromLevel = Math.max(state.fromLevel, getCurrentLevel() - 1);
     state.toLevel = getCurrentLevel();
-    state.activeTab = getNextUnlockedTab();
+    state.activeTab = getFirstFollowUpTab();
     state.message = "Avanço aplicado. Complete as escolhas novas nas abas liberadas.";
     config.setStatus?.(state.message, "success");
     render();
@@ -452,7 +430,7 @@ export function createLevelUpAssistant(config = {}) {
   }
 
   function renderFeatureTab() {
-    const panels = (config.getFeaturePanels?.(state.appliedContext) || []).filter((panel) => panel?.element && !isHidden(panel.element));
+    const panels = getVisibleFeaturePanels();
     renderPanelList({
       title: "Escolhas liberadas por recursos",
       emptyTitle: "Sem escolhas obrigatórias neste nível",
@@ -462,7 +440,7 @@ export function createLevelUpAssistant(config = {}) {
   }
 
   function renderMagicTab() {
-    const panels = (config.getMagicPanels?.(state.appliedContext) || []).filter((panel) => panel?.element && !isHidden(panel.element));
+    const panels = getVisibleMagicPanels();
     renderPanelList({
       title: "Magias e espaços",
       emptyTitle: "Sem nova etapa de magia aparente",
@@ -547,57 +525,144 @@ export function createLevelUpAssistant(config = {}) {
     }
   }
 
-  function getNextUnlockedTab() {
-    if (config.getSubclassControl?.(state.appliedContext)?.select) return "subclass";
-    return "hp";
+  function getFirstFollowUpTab() {
+    return getVisibleTabs().find((tab) => tab.id !== "path")?.id || "path";
   }
 
-  function getUnlockedTabs() {
-    return tabs.filter((tab) => tab.id === "path" || state.applied);
+  function getVisibleTabs() {
+    if (!state.applied) return tabs.filter((tab) => tab.id === "path");
+
+    return tabs.filter((tab) => {
+      if (tab.id === "path") return true;
+      if (tab.id === "subclass") return shouldShowSubclassTab();
+      if (tab.id === "hp") return shouldShowHpTab();
+      if (tab.id === "features") return getVisibleFeaturePanels().length > 0;
+      if (tab.id === "magic") return getVisibleMagicPanels().length > 0;
+      return false;
+    });
+  }
+
+  function ensureActiveTabVisible() {
+    const visibleTabs = getVisibleTabs();
+    if (visibleTabs.some((tab) => tab.id === state.activeTab)) return;
+    state.activeTab = visibleTabs.at(-1)?.id || "path";
   }
 
   function getActiveTabIndex() {
-    return getUnlockedTabs().findIndex((tab) => tab.id === state.activeTab);
+    return getVisibleTabs().findIndex((tab) => tab.id === state.activeTab);
   }
 
   function updateFooterControls() {
-    const unlockedTabs = getUnlockedTabs();
     const activeIndex = getActiveTabIndex();
-    const isLast = activeIndex === unlockedTabs.length - 1;
+    const isReady = canAdvance();
     if (prevButton) {
       prevButton.disabled = activeIndex <= 0;
     }
     if (nextButton) {
-      nextButton.disabled = state.activeTab === "path" && !state.applied;
-      nextButton.textContent = isLast ? "Concluir avanço" : "Avançar para próxima etapa";
+      nextButton.disabled = !isReady;
+      nextButton.textContent = "Avançar";
+      nextButton.classList.toggle("is-ready", isReady);
+      nextButton.setAttribute(
+        "aria-label",
+        state.activeTab === "path" ? "Confirmar caminho e ir para a próxima etapa" : "Avançar para a próxima etapa"
+      );
     }
   }
 
   function goToPreviousTab() {
-    const unlockedTabs = getUnlockedTabs();
+    const visibleTabs = getVisibleTabs();
     const activeIndex = getActiveTabIndex();
     if (activeIndex <= 0) return;
-    state.activeTab = unlockedTabs[activeIndex - 1].id;
-    render();
+    navigateToTab(visibleTabs[activeIndex - 1].id);
   }
 
   function goToNextTab() {
-    const unlockedTabs = getUnlockedTabs();
+    if (state.activeTab === "path" && !state.applied) {
+      applySelectedPath();
+      return;
+    }
+
+    const visibleTabs = getVisibleTabs();
     const activeIndex = getActiveTabIndex();
-    if (state.activeTab === "path" && !state.applied) return;
-    if (activeIndex >= unlockedTabs.length - 1) {
+    if (activeIndex >= visibleTabs.length - 1) {
       close();
       return;
     }
-    state.activeTab = unlockedTabs[activeIndex + 1].id;
+    state.activeTab = visibleTabs[activeIndex + 1].id;
+    render();
+  }
+
+  function navigateToTab(tabId) {
+    if (tabId === "path" && state.applied) {
+      resetAppliedLevelUp("Avanço desfeito para você poder alterar o caminho antes de aplicar novamente.");
+      return;
+    }
+
+    state.activeTab = tabId;
+    render();
+  }
+
+  function canAdvance() {
+    if (state.activeTab === "path" && !state.applied) return canApplyPath();
+    return state.applied && getActiveTabIndex() >= 0;
+  }
+
+  function shouldShowSubclassTab() {
+    const control = config.getSubclassControl?.(state.appliedContext);
+    return Boolean(control?.select && hasRealOptions(control.select));
+  }
+
+  function shouldShowHpTab() {
+    const hp = config.getHpControls?.() || {};
+    return Boolean(hp.fixed || hp.rolled || (hp.rollsPanel && !isHidden(hp.rollsPanel)) || hp.summary);
+  }
+
+  function getVisibleFeaturePanels() {
+    return (config.getFeaturePanels?.(state.appliedContext) || [])
+      .filter(isVisibleMeaningfulPanel);
+  }
+
+  function getVisibleMagicPanels() {
+    return (config.getMagicPanels?.(state.appliedContext) || [])
+      .filter(isVisibleMeaningfulPanel);
+  }
+
+  function captureLevelUpSnapshot() {
+    if (typeof config.captureLevelUpSnapshot !== "function") return null;
+    try {
+      return config.captureLevelUpSnapshot();
+    } catch (error) {
+      console.warn("Não foi possível capturar o estado antes do avanço.", error);
+      return null;
+    }
+  }
+
+  function resetAppliedLevelUp(message) {
+    restorePortaledElements();
+    if (state.baselineSnapshot && typeof config.restoreLevelUpSnapshot === "function") {
+      config.restoreLevelUpSnapshot(state.baselineSnapshot);
+    } else {
+      levelInput.value = String(state.fromLevel);
+      dispatchChange(levelInput);
+    }
+
+    state.fromLevel = getCurrentLevel();
+    state.toLevel = Math.min(maxLevel, state.fromLevel + 1);
+    state.applied = false;
+    state.appliedContext = null;
+    state.selectedPath = "";
+    state.activeTab = "path";
+    state.message = message || "Escolha o caminho do avanço novamente.";
+    config.setStatus?.(state.message, "warning");
     render();
   }
 
   function canApplyPath() {
     if (state.fromLevel >= maxLevel) return false;
     if (!config.hasMainClass?.()) return false;
+    if (!state.selectedPath) return false;
     if (state.selectedPath === "multiclass") return Boolean(state.selectedMulticlass);
-    return true;
+    return state.selectedPath === "main";
   }
 
   function getMulticlassOptions() {
@@ -744,8 +809,25 @@ function compactText(text, limit) {
 function isHidden(element) {
   if (!element) return true;
   if (element.hidden) return true;
-  const style = window.getComputedStyle(element);
-  return style.display === "none" || style.visibility === "hidden";
+  let node = element;
+  while (node && node.nodeType === 1) {
+    if (node.hidden) return true;
+    const style = window.getComputedStyle(node);
+    if (style.display === "none" || style.visibility === "hidden") return true;
+    node = node.parentElement;
+  }
+  return false;
+}
+
+function isVisibleMeaningfulPanel(panel) {
+  const element = resolveElement(panel?.element);
+  if (!element || isHidden(element)) return false;
+
+  const summary = resolveElement(panel.summaryElement || panel.summarySelector);
+  const summaryText = summary && !isHidden(summary) ? summary.textContent : "";
+  const elementText = element.textContent || "";
+  const hasInteractiveControl = Boolean(element.querySelector?.("input:not([type='hidden']), select, textarea, button"));
+  return Boolean(String(`${summaryText} ${elementText}`).replace(/\s+/g, " ").trim() || hasInteractiveControl);
 }
 
 function resolveElement(target) {

@@ -4156,6 +4156,8 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       getMulticlassOptions: getLevelUpMulticlassOptions,
       applyMainClassLevel: applyMainClassLevelUp,
       applyMulticlassLevel: applyMulticlassLevelUp,
+      captureLevelUpSnapshot: captureSavedCharacterPreset,
+      restoreLevelUpSnapshot: restoreSavedCharacterPreset,
       getSubclassControl: getLevelUpSubclassControl,
       getHpControls: getLevelUpHpControls,
       getFeaturePanels: getLevelUpFeaturePanels,
@@ -4305,10 +4307,9 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
 
   function getLevelUpMagicPanels() {
     return [
-      { label: "Seleção de magias", element: el.magicSection, summaryElement: el.magicSummary },
-      { label: "Espaços de magia", element: el.magicSlotsPanel, summaryElement: el.magicSlotsGrid },
-      { label: "Grimório selecionado", element: el.selectedSpellBook },
       { label: "Magias disponíveis", element: el.availableSpellPanel },
+      { label: "Grimório selecionado", element: el.selectedSpellBook },
+      { label: "Espaços de magia", element: el.magicSlotsPanel, summaryElement: el.magicSlotsGrid },
     ];
   }
 

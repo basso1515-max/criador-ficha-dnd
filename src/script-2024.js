@@ -1726,6 +1726,7 @@ import { createLevelUpAssistant } from "./level-up-assistant.js";
     magicSection: document.getElementById("magicSection2024"),
     magicSummary: document.getElementById("magicSummary2024"),
     selectedSpellBook: document.getElementById("selectedSpellBook2024"),
+    availableSpellPanel: document.getElementById("availableSpellPanel2024"),
     magicSlotsPanel: document.getElementById("magicSlotsPanel2024"),
     magicSlotsGrid: document.getElementById("magicSlotsGrid2024"),
     spellPickerHelp: document.getElementById("spellPickerHelp2024"),
@@ -1958,10 +1959,10 @@ import { createLevelUpAssistant } from "./level-up-assistant.js";
     el.languageChoices?.addEventListener("change", onLanguageChoiceChanged2024);
     el.skillsExtra?.addEventListener("change", onSkillSelectionChanged2024);
     el.expertiseChoices?.addEventListener("change", onExpertiseChoiceChanged2024);
-    el.magicSourcesList?.addEventListener("change", onMagicSpellChecklistChanged2024);
-    el.magicSourcesList?.addEventListener("mouseover", onMagicSpellHoverStart2024);
-    el.magicSourcesList?.addEventListener("mousemove", onMagicSpellHoverMove2024);
-    el.magicSourcesList?.addEventListener("mouseout", onMagicSpellHoverEnd2024);
+    el.availableSpellPanel?.addEventListener("change", onMagicSpellChecklistChanged2024);
+    el.availableSpellPanel?.addEventListener("mouseover", onMagicSpellHoverStart2024);
+    el.availableSpellPanel?.addEventListener("mousemove", onMagicSpellHoverMove2024);
+    el.availableSpellPanel?.addEventListener("mouseout", onMagicSpellHoverEnd2024);
     el.selectedSpellBook?.addEventListener("mouseover", onMagicSpellHoverStart2024);
     el.selectedSpellBook?.addEventListener("mousemove", onMagicSpellHoverMove2024);
     el.selectedSpellBook?.addEventListener("mouseout", onMagicSpellHoverEnd2024);
@@ -2708,6 +2709,8 @@ import { createLevelUpAssistant } from "./level-up-assistant.js";
       getMulticlassOptions: getLevelUpMulticlassOptions2024,
       applyMainClassLevel: applyMainClassLevelUp2024,
       applyMulticlassLevel: applyMulticlassLevelUp2024,
+      captureLevelUpSnapshot: captureSavedCharacterPreset2024,
+      restoreLevelUpSnapshot: restoreSavedCharacterPreset2024,
       getSubclassControl: getLevelUpSubclassControl2024,
       getHpControls: getLevelUpHpControls2024,
       getFeaturePanels: getLevelUpFeaturePanels2024,
@@ -2834,10 +2837,9 @@ import { createLevelUpAssistant } from "./level-up-assistant.js";
 
   function getLevelUpMagicPanels2024() {
     return [
-      { label: "Seleção de magias", element: el.magicSection, summaryElement: el.magicSummary },
-      { label: "Espaços de magia", element: el.magicSlotsPanel, summaryElement: el.magicSlotsGrid },
+      { label: "Magias disponíveis", element: el.availableSpellPanel },
       { label: "Magias selecionadas", element: el.selectedSpellBook },
-      { label: "Fontes de magia", element: el.magicSourcesList },
+      { label: "Espaços de magia", element: el.magicSlotsPanel, summaryElement: el.magicSlotsGrid },
     ];
   }
 
