@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Gerador de ficha preenchivel de D&D 5e em HTML/JS com exportacao para PDF.",
+  "description": "Gerador de ficha preenchível de D&D 5e em HTML/JS com exportação para PDF.",
   "scripts": {
     "check": "node scripts/check.mjs",
     "smoke:dom": "node scripts/smoke-dom.mjs",
