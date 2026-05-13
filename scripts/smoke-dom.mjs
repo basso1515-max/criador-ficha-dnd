@@ -419,6 +419,64 @@ const smokePages = [
     ],
   },
   {
+    name: "5e-level-up",
+    path: "/5e.html",
+    selectors: [
+      ".level-up-open-button",
+      "#classe",
+      "#nivel",
+    ],
+    setup: `
+      (() => {
+        const assert = (condition, message) => {
+          if (!condition) throw new Error(message);
+        };
+        const dispatch = (node, type) => node.dispatchEvent(new Event(type, { bubbles: true }));
+        const setValue = (selector, value, events = ["change"]) => {
+          const node = document.querySelector(selector);
+          assert(node, "Campo ausente: " + selector);
+          node.value = String(value);
+          events.forEach((eventName) => dispatch(node, eventName));
+          return node;
+        };
+        const click = (selector) => {
+          const node = document.querySelector(selector);
+          assert(node, "Botão ausente: " + selector);
+          node.click();
+          return node;
+        };
+        const modalText = () => document.querySelector(".level-up-dialog")?.textContent || "";
+
+        setValue("#classe", "Bardo", ["change"]);
+        click(".level-up-open-button");
+        assert(modalText().includes("Seguir com a classe principal"), "Popup de nível 5e não abriu na aba Caminho.");
+        assert(modalText().includes("Abrir ou avançar multiclasse"), "Popup de nível 5e não mostrou opção de multiclasse.");
+        click(".level-up-actions .primary");
+        assert(document.querySelector("#nivel")?.value === "2", "Assistente 5e não aumentou o nível principal para 2.");
+        assert(!Array.from(document.querySelectorAll(".level-up-tab")).some((tab) => tab.disabled), "Abas 5e não foram liberadas depois de aplicar avanço.");
+
+        click(".level-up-close");
+        click(".level-up-open-button");
+        const multiclassRadio = document.querySelector('.level-up-choice-card input[value="multiclass"]');
+        assert(multiclassRadio, "Rádio de multiclasse 5e ausente.");
+        multiclassRadio.checked = true;
+        dispatch(multiclassRadio, "change");
+        setValue(".level-up-multiclass-picker select", "Guerreiro", ["change"]);
+        click(".level-up-actions .primary");
+
+        const row = document.querySelector("#multiclassRows [data-multiclass-row]");
+        assert(document.querySelector("#nivel")?.value === "3", "Assistente 5e não aumentou o nível total para 3 na multiclasse.");
+        assert(row, "Assistente 5e não criou linha de multiclasse.");
+        assert(row.querySelector("[data-multiclass-class]")?.value === "Guerreiro", "Assistente 5e não registrou Guerreiro como multiclasse.");
+        assert(row.querySelector("[data-multiclass-level]")?.value === "1", "Assistente 5e não iniciou a multiclasse no nível 1.");
+      })();
+    `,
+    afterSetupSelectors: [
+      ".level-up-modal-shell.is-open",
+      "#multiclassRows [data-multiclass-row]",
+    ],
+  },
+  {
     name: "5.5e-2024",
     path: "/5.5e-2024.html",
     selectors: [
@@ -730,6 +788,64 @@ const smokePages = [
       ".magic-source-cascade",
       ".magic-source-hover-card",
       "#magicSpellHoverCard2024",
+    ],
+  },
+  {
+    name: "5.5e-level-up",
+    path: "/5.5e-2024.html",
+    selectors: [
+      ".level-up-open-button",
+      "#classe2024",
+      "#nivel2024",
+    ],
+    setup: `
+      (() => {
+        const assert = (condition, message) => {
+          if (!condition) throw new Error(message);
+        };
+        const dispatch = (node, type) => node.dispatchEvent(new Event(type, { bubbles: true }));
+        const setValue = (selector, value, events = ["change"]) => {
+          const node = document.querySelector(selector);
+          assert(node, "Campo ausente: " + selector);
+          node.value = String(value);
+          events.forEach((eventName) => dispatch(node, eventName));
+          return node;
+        };
+        const click = (selector) => {
+          const node = document.querySelector(selector);
+          assert(node, "Botão ausente: " + selector);
+          node.click();
+          return node;
+        };
+        const modalText = () => document.querySelector(".level-up-dialog")?.textContent || "";
+
+        setValue("#classe2024", "bardo", ["change"]);
+        click(".level-up-open-button");
+        assert(modalText().includes("Seguir com a classe principal"), "Popup de nível 5.5e não abriu na aba Caminho.");
+        assert(modalText().includes("Abrir ou avançar multiclasse"), "Popup de nível 5.5e não mostrou opção de multiclasse.");
+        click(".level-up-actions .primary");
+        assert(document.querySelector("#nivel2024")?.value === "2", "Assistente 5.5e não aumentou o nível principal para 2.");
+        assert(!Array.from(document.querySelectorAll(".level-up-tab")).some((tab) => tab.disabled), "Abas 5.5e não foram liberadas depois de aplicar avanço.");
+
+        click(".level-up-close");
+        click(".level-up-open-button");
+        const multiclassRadio = document.querySelector('.level-up-choice-card input[value="multiclass"]');
+        assert(multiclassRadio, "Rádio de multiclasse 5.5e ausente.");
+        multiclassRadio.checked = true;
+        dispatch(multiclassRadio, "change");
+        setValue(".level-up-multiclass-picker select", "guerreiro", ["change"]);
+        click(".level-up-actions .primary");
+
+        const row = document.querySelector("#multiclassRows2024 [data-multiclass-row]");
+        assert(document.querySelector("#nivel2024")?.value === "3", "Assistente 5.5e não aumentou o nível total para 3 na multiclasse.");
+        assert(row, "Assistente 5.5e não criou linha de multiclasse.");
+        assert(row.querySelector("[data-multiclass-class]")?.value === "guerreiro", "Assistente 5.5e não registrou Guerreiro como multiclasse.");
+        assert(row.querySelector("[data-multiclass-level]")?.value === "1", "Assistente 5.5e não iniciou a multiclasse no nível 1.");
+      })();
+    `,
+    afterSetupSelectors: [
+      ".level-up-modal-shell.is-open",
+      "#multiclassRows2024 [data-multiclass-row]",
     ],
   },
 ];

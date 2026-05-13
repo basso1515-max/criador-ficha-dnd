@@ -25,6 +25,7 @@ import {
   BATTLE_MASTER_MANEUVERS_BY_LEVEL_2024,
 } from "./data/subclass-learned-options.js";
 import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggleButtons } from "./user-area.js";
+import { createLevelUpAssistant } from "./level-up-assistant.js";
 
 (() => {
   "use strict";
@@ -1907,6 +1908,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     el.subclasse.disabled = true;
     initializeCustomSelectFields2024();
     initializeMulticlassUi2024();
+    initializeLevelUpAssistant2024();
 
     [
       el.classe,
@@ -2692,6 +2694,147 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     spellSelectionState2024.delete(row.getAttribute("data-row-id") || "");
     row.remove();
     renderAll();
+  }
+
+  function initializeLevelUpAssistant2024() {
+    createLevelUpAssistant({
+      idPrefix: "5e2024",
+      editionLabel: "D&D 5.5e 2024",
+      levelInput: el.nivel,
+      getCurrentLevel: getSelectedLevel,
+      hasMainClass: () => Boolean(getSelectedClass()),
+      getMainClassLabel: () => getSelectedClass()?.nome || "Classe principal",
+      getMulticlassOptions: getLevelUpMulticlassOptions2024,
+      applyMainClassLevel: applyMainClassLevelUp2024,
+      applyMulticlassLevel: applyMulticlassLevelUp2024,
+      getSubclassControl: getLevelUpSubclassControl2024,
+      getHpControls: getLevelUpHpControls2024,
+      getFeaturePanels: getLevelUpFeaturePanels2024,
+      getMagicPanels: getLevelUpMagicPanels2024,
+      setStatus: setStatus2024,
+    });
+  }
+
+  function getLevelUpMulticlassOptions2024() {
+    const primaryClass = getSelectedClass();
+    const existingClassIds = new Set(
+      getAdditionalMulticlassRows2024()
+        .map((row) => row.querySelector("[data-multiclass-class]")?.value || "")
+        .filter(Boolean)
+    );
+
+    return CLASS_LIST
+      .filter((cls) => cls.id !== primaryClass?.id)
+      .map((cls) => ({
+        value: cls.id,
+        label: existingClassIds.has(cls.id) ? `${cls.nome} (já iniciada)` : cls.nome,
+      }));
+  }
+
+  function applyMainClassLevelUp2024({ toLevel }) {
+    if (!getSelectedClass()) {
+      return { ok: false, message: "Escolha a classe principal antes de subir de nível." };
+    }
+
+    el.nivel.value = String(toLevel);
+    renderAll();
+    const classLabel = getSelectedClass()?.nome || "classe principal";
+    return {
+      ok: true,
+      label: classLabel,
+      summary: `Nível ${toLevel} aplicado em ${classLabel}. Nível atual nessa classe: ${getPrimaryAssignedLevel2024()}.`,
+    };
+  }
+
+  function applyMulticlassLevelUp2024({ toLevel, classValue }) {
+    const cls = CLASS_BY_ID.get(classValue);
+    if (!getSelectedClass()) {
+      return { ok: false, message: "Escolha a classe principal antes de adicionar multiclasse." };
+    }
+    if (!cls) {
+      return { ok: false, message: "Escolha uma classe válida para a multiclasse." };
+    }
+
+    el.nivel.value = String(toLevel);
+    let row = getAdditionalMulticlassRows2024().find((item) => item.querySelector("[data-multiclass-class]")?.value === cls.id);
+
+    if (row) {
+      const levelInput = row.querySelector("[data-multiclass-level]");
+      levelInput.value = String(clampInt(levelInput.value, 1, toLevel) + 1);
+      clampChangedMulticlassLevel2024(row);
+    } else {
+      row = createMulticlassRow2024();
+      if (!row || !el.multiclassRows) return { ok: false, message: "Não foi possível criar a linha de multiclasse." };
+      el.multiclassRows.appendChild(row);
+      const classSelect = row.querySelector("[data-multiclass-class]");
+      const levelInput = row.querySelector("[data-multiclass-level]");
+      if (classSelect) classSelect.value = cls.id;
+      if (levelInput) levelInput.value = "1";
+      clampChangedMulticlassLevel2024(row);
+    }
+
+    updateMulticlassRow2024(row);
+    renderAll();
+    return {
+      ok: true,
+      row,
+      label: cls.nome,
+      summary: `Nível ${toLevel} aplicado como avanço de ${cls.nome}.`,
+    };
+  }
+
+  function getLevelUpSubclassControl2024(context = {}) {
+    if (context.mode === "multiclass" && context.row) {
+      const classId = context.row.querySelector("[data-multiclass-class]")?.value || "";
+      const className = CLASS_BY_ID.get(classId)?.nome || context.label || "multiclasse";
+      return {
+        label: `Subclasse de ${className}`,
+        selectLabel: "Subclasse",
+        helperText: "Se esta multiclasse liberou subclasse neste nível, escolha a opção aqui.",
+        select: context.row.querySelector("[data-multiclass-subclass]"),
+        target: context.row,
+      };
+    }
+
+    return {
+      label: `Subclasse de ${getSelectedClass()?.nome || "classe principal"}`,
+      selectLabel: "Subclasse",
+      helperText: "Se a classe principal liberou subclasse neste nível, escolha a opção aqui.",
+      select: el.subclasse,
+      target: el.subclasse?.closest(".row") || el.subclasse,
+    };
+  }
+
+  function getLevelUpHpControls2024() {
+    return {
+      fixed: el.hpMethodFixed,
+      rolled: el.hpMethodRolled,
+      rollsPanel: el.hpRollsPanel,
+      summary: el.hpRuleHint?.textContent || "A ficha recalcula o HP máximo com base na classe, Constituição e método de progressão.",
+    };
+  }
+
+  function getLevelUpFeaturePanels2024() {
+    return [
+      { label: "Talentos", element: el.featChoices, summaryElement: el.featInfo },
+      { label: "Escolhas de recursos", element: el.featureChoicesPanel, summaryElement: el.featureChoicesSummary },
+      { label: "Invocações Místicas", element: el.warlockInvocationsPanel, summaryElement: el.warlockInvocationsSummary },
+      { label: "Detalhes de subclasse", element: el.subclassDetailChoicesPanel, summaryElement: el.subclassDetailChoicesSummary },
+      { label: "Companheiros e formas especiais", element: el.companionChoicesPanel, summaryElement: el.companionChoicesSummary },
+      { label: "Escolhas de espécie", element: el.speciesPanel, summaryElement: el.speciesInfo },
+      { label: "Idiomas", element: el.languageChoices, summaryElement: el.languagesRuleHint },
+      { label: "Perícias", element: el.skillsExtra, summaryElement: el.skillsRuleHint },
+      { label: "Especialização", element: el.expertisePanel, summaryElement: el.expertiseSummary },
+    ];
+  }
+
+  function getLevelUpMagicPanels2024() {
+    return [
+      { label: "Seleção de magias", element: el.magicSection, summaryElement: el.magicSummary },
+      { label: "Espaços de magia", element: el.magicSlotsPanel, summaryElement: el.magicSlotsGrid },
+      { label: "Magias selecionadas", element: el.selectedSpellBook },
+      { label: "Fontes de magia", element: el.magicSourcesList },
+    ];
   }
 
   function updateSubclassOptions() {

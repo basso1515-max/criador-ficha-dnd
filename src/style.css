@@ -2334,6 +2334,373 @@ button:hover { border-color: #5a3e24; }
   padding: 8px 10px;
 }
 
+.level-up-inline-field {
+  position: relative;
+}
+
+.level-up-open-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: auto;
+  margin-top: 8px;
+  padding: 10px 12px;
+  border: 1px solid rgba(95, 50, 25, 0.3);
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 18% 12%, rgba(255, 238, 176, 0.85), transparent 34%),
+    linear-gradient(135deg, #8e2f22, #4b1f18 58%, #2f2119);
+  color: #fff8dc;
+  box-shadow: 0 10px 24px rgba(75, 31, 24, 0.18);
+  font-family: var(--ui-font);
+  font-size: 13px;
+  letter-spacing: 0.01em;
+}
+
+.level-up-open-button span {
+  display: inline-grid;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(255, 248, 220, 0.16);
+  font-size: 18px;
+  line-height: 1;
+}
+
+.level-up-open-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.56;
+  filter: saturate(0.68);
+}
+
+.level-up-modal-open {
+  overflow: hidden;
+}
+
+.level-up-modal-shell {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.level-up-modal-shell[hidden] {
+  display: none;
+}
+
+.level-up-backdrop {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 18% 10%, rgba(181, 87, 42, 0.32), transparent 34%),
+    rgba(18, 13, 10, 0.68);
+  backdrop-filter: blur(6px);
+}
+
+.level-up-dialog {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  width: min(860px, 100%);
+  max-height: min(88vh, 820px);
+  overflow: hidden;
+  border: 1px solid rgba(255, 230, 178, 0.48);
+  border-radius: 24px;
+  background:
+    linear-gradient(145deg, rgba(255, 249, 230, 0.96), rgba(238, 217, 175, 0.95)),
+    radial-gradient(circle at top right, rgba(142, 47, 34, 0.14), transparent 42%);
+  box-shadow: 0 32px 90px rgba(18, 13, 10, 0.42);
+  color: #332417;
+}
+
+.level-up-header {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 24px 26px 18px;
+  background:
+    radial-gradient(circle at 16% 0%, rgba(255, 231, 167, 0.55), transparent 34%),
+    linear-gradient(135deg, rgba(90, 35, 28, 0.98), rgba(40, 29, 22, 0.96));
+  color: #fff7dc;
+}
+
+.level-up-kicker,
+.level-up-subtitle {
+  margin: 0;
+}
+
+.level-up-kicker {
+  color: rgba(255, 232, 184, 0.82);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.level-up-header h2 {
+  margin: 5px 0 6px;
+  color: #fff7dc;
+}
+
+.level-up-subtitle {
+  max-width: 620px;
+  color: rgba(255, 247, 220, 0.82);
+}
+
+.level-up-close {
+  width: 40px;
+  min-width: 40px;
+  height: 40px;
+  padding: 0;
+  border-color: rgba(255, 247, 220, 0.24);
+  border-radius: 50%;
+  background: rgba(255, 247, 220, 0.1);
+  color: #fff7dc;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.level-up-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px;
+  overflow-x: auto;
+  border-bottom: 1px solid rgba(95, 50, 25, 0.14);
+  background: rgba(255, 250, 235, 0.76);
+}
+
+.level-up-tab {
+  width: auto;
+  min-width: max-content;
+  padding: 9px 14px;
+  border: 1px solid rgba(95, 50, 25, 0.16);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.58);
+  color: #5d3924;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.level-up-tab.is-active {
+  border-color: rgba(142, 47, 34, 0.42);
+  background: linear-gradient(180deg, #9b3e2d, #5a231d);
+  color: #fff7dc;
+}
+
+.level-up-tab.is-locked {
+  opacity: 0.42;
+}
+
+.level-up-content {
+  min-height: 300px;
+  overflow-y: auto;
+  padding: 22px 26px 26px;
+}
+
+.level-up-path-grid,
+.level-up-tab-panel {
+  display: grid;
+  gap: 16px;
+}
+
+.level-up-current-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.level-up-badge {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  border: 1px solid rgba(95, 50, 25, 0.14);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.62);
+}
+
+.level-up-badge small {
+  color: #7b6145;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.level-up-badge strong {
+  color: #3f2b1c;
+  font-size: 16px;
+}
+
+.level-up-choice-grid,
+.level-up-method-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.level-up-choice-card,
+.level-up-method-card,
+.level-up-editor-card,
+.level-up-info-card,
+.level-up-empty-state,
+.level-up-review-card {
+  border: 1px solid rgba(95, 50, 25, 0.14);
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.76), rgba(255, 248, 226, 0.72));
+  box-shadow: 0 14px 34px rgba(67, 39, 22, 0.08);
+}
+
+.level-up-choice-card {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px 10px;
+  align-items: start;
+  padding: 16px;
+  cursor: pointer;
+}
+
+.level-up-choice-card input {
+  width: auto;
+  margin-top: 3px;
+}
+
+.level-up-choice-card strong,
+.level-up-choice-card span {
+  grid-column: 2;
+}
+
+.level-up-choice-card span,
+.level-up-method-card span,
+.level-up-review-card p,
+.level-up-info-card p,
+.level-up-empty-state p {
+  color: #6f5538;
+}
+
+.level-up-choice-card.is-active,
+.level-up-method-card.is-active {
+  border-color: rgba(142, 47, 34, 0.44);
+  box-shadow: 0 0 0 3px rgba(142, 47, 34, 0.1), 0 16px 34px rgba(67, 39, 22, 0.12);
+}
+
+.level-up-choice-card.is-disabled {
+  cursor: not-allowed;
+  opacity: 0.56;
+}
+
+.level-up-multiclass-picker {
+  padding: 14px;
+  border: 1px dashed rgba(142, 47, 34, 0.28);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.54);
+}
+
+.level-up-multiclass-picker small {
+  color: #7b6145;
+}
+
+.level-up-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.level-up-actions .primary {
+  width: auto;
+}
+
+.level-up-editor-card,
+.level-up-info-card,
+.level-up-empty-state,
+.level-up-review-card {
+  padding: 16px;
+}
+
+.level-up-editor-card h3,
+.level-up-info-card h3,
+.level-up-empty-state h3,
+.level-up-review-card h4,
+.level-up-tab-panel h3 {
+  margin: 0 0 8px;
+}
+
+.level-up-info-card.is-success {
+  border-color: rgba(58, 123, 83, 0.3);
+  background:
+    radial-gradient(circle at top left, rgba(128, 199, 146, 0.22), transparent 38%),
+    rgba(255, 255, 255, 0.78);
+}
+
+.level-up-method-card {
+  display: grid;
+  gap: 5px;
+  padding: 14px;
+  text-align: left;
+}
+
+.level-up-review-list {
+  display: grid;
+  gap: 12px;
+}
+
+.level-up-review-card {
+  display: grid;
+  gap: 8px;
+}
+
+.level-up-review-card p {
+  margin: 0;
+}
+
+.level-up-reveal-button {
+  width: max-content;
+  max-width: 100%;
+}
+
+.level-up-footer {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-top: 1px solid rgba(95, 50, 25, 0.14);
+  background: rgba(255, 250, 235, 0.82);
+}
+
+.level-up-status {
+  margin: 0;
+  color: #5d3924;
+  font-size: 13px;
+}
+
+.level-up-done {
+  width: auto;
+}
+
+.level-up-target-pulse {
+  animation: level-up-target-pulse 1.6s ease;
+}
+
+@keyframes level-up-target-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(155, 62, 45, 0.34);
+  }
+  42% {
+    box-shadow: 0 0 0 8px rgba(155, 62, 45, 0.16);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(155, 62, 45, 0);
+  }
+}
+
 .warning-note {
   color: #a93421;
   font-weight: 600;
@@ -5593,6 +5960,44 @@ body[data-active-screen="5e-2024"] button:not(.secondary-button):not(.ghost-butt
   body[data-standalone-route="5e"] .floating-submit-actions,
   body[data-active-screen="5e-2024"] .floating-submit-actions {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .level-up-modal-shell {
+    align-items: stretch;
+    padding: 10px;
+  }
+
+  .level-up-dialog {
+    width: 100%;
+    max-height: calc(100svh - 20px);
+    border-radius: 18px;
+  }
+
+  .level-up-header {
+    padding: 18px;
+  }
+
+  .level-up-content {
+    padding: 18px;
+  }
+
+  .level-up-current-summary,
+  .level-up-choice-grid,
+  .level-up-method-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .level-up-footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .level-up-done,
+  .level-up-actions .primary,
+  .level-up-reveal-button {
+    width: 100%;
   }
 }
 
