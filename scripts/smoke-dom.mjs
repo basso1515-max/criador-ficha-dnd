@@ -76,7 +76,7 @@ const smokePages = [
           const option = value
             ? Array.from(select.options).find((item) => item.value === value && !item.disabled)
             : Array.from(select.options).find((item) => item.value && !item.disabled);
-          assert(option, "Opcao indisponivel para " + featureId + ": " + (value || "primeira valida"));
+          assert(option, "Opção indisponível para " + featureId + ": " + (value || "primeira valida"));
           select.value = option.value;
           dispatch(select, "change");
           return option.value;
@@ -87,7 +87,7 @@ const smokePages = [
           const option = value
             ? Array.from(select.options).find((item) => item.value === value && !item.disabled)
             : Array.from(select.options).find((item) => item.value && !item.disabled);
-          assert(option, "Opcao indisponivel para " + featureId + ": " + (value || "primeira valida"));
+          assert(option, "Opção indisponível para " + featureId + ": " + (value || "primeira valida"));
           select.value = option.value;
           dispatch(select, "change");
           return option.value;
@@ -101,7 +101,7 @@ const smokePages = [
           const option = value
             ? Array.from(select.options).find((item) => item.value === value && !item.disabled)
             : Array.from(select.options).find((item) => item.value && !item.disabled);
-          assert(option, "Opcao de companheiro indisponivel para " + companionId + ": " + (value || "primeira valida"));
+          assert(option, "Opção de companheiro indisponível para " + companionId + ": " + (value || "primeira valida"));
           select.value = option.value;
           dispatch(select, "change");
           return option.value;
@@ -113,20 +113,20 @@ const smokePages = [
         const textIncludes = (value, expected) => normalizeSmokeText(value).includes(normalizeSmokeText(expected));
         const assertFeatureChoiceResolved = (expectedSummary, expectedLabels = [], pendingLabel = "") => {
           const summary = document.querySelector("#featureChoicesSummary")?.textContent || "";
-          assert(summary.includes(expectedSummary), "Resumo de escolhas de recursos nao fechou " + expectedSummary + ": " + summary);
+          assert(summary.includes(expectedSummary), "Resumo de escolhas de recursos não fechou " + expectedSummary + ": " + summary);
           const previewText = document.querySelector("#preview")?.textContent || "";
           expectedLabels.forEach((label) => {
-            assert(textIncludes(previewText, label), "Preview 5e nao registrou escolha de recurso: " + label + ".");
+            assert(textIncludes(previewText, label), "Preview 5e não registrou escolha de recurso: " + label + ".");
           });
           if (pendingLabel) {
-            assert(!textIncludes(previewText, "Configure " + pendingLabel), "Preview ainda acusa pendencia de escolha de recurso: " + previewText);
+            assert(!textIncludes(previewText, "Configure " + pendingLabel), "Preview ainda acusa pendência de escolha de recurso: " + previewText);
           }
         };
         const subclassProficiencySelects = () => Array.from(document.querySelectorAll("#subclassProficiencyChoicesContainer select[data-subclass-proficiency-slot-key]"));
         const selectsForSubclassProficiency = (definitionId) => subclassProficiencySelects()
           .filter((select) => (select.getAttribute("data-subclass-proficiency-slot-key") || "").includes(":" + definitionId + ":slot-"));
         const assertSubclassProficiencyPanel = (definitionId, expectedCount, context) => {
-          assert(!document.querySelector("#subclassProficiencyChoicesPanel")?.hidden, "Painel de Proficiências de Subclasse nao abriu para " + context + ".");
+          assert(!document.querySelector("#subclassProficiencyChoicesPanel")?.hidden, "Painel de Proficiências de Subclasse não abriu para " + context + ".");
           assert(document.querySelector("#subclassProficiencyChoicesInfo .subclass-proficiency-cascade"), "Cascata de Proficiências de Subclasse ausente para " + context + ".");
           assert(document.querySelector("#subclassProficiencyChoicesInfo .subclass-proficiency-hover-card"), "Hovercard da cascata de Proficiências de Subclasse ausente para " + context + ".");
           assert(document.querySelector("#subclassProficiencyChoicesContainer [data-subclass-proficiency-hover-card]"), "Hovercard do seletor de Proficiências de Subclasse ausente para " + context + ".");
@@ -139,21 +139,21 @@ const smokePages = [
           const option = value
             ? Array.from(select.options).find((item) => item.value === value && !item.disabled)
             : Array.from(select.options).find((item) => item.value && !item.disabled);
-          assert(option, "Opcao de Proficiências de Subclasse indisponivel para " + definitionId + ": " + (value || "primeira valida"));
+          assert(option, "Opção de Proficiências de Subclasse indisponível para " + definitionId + ": " + (value || "primeira válida"));
           select.value = option.value;
           dispatch(select, "change");
           return option.value;
         };
         const assertSubclassProficiencyResolved = (expectedSummary, expectedLabels = [], pendingLabel = "") => {
           const summary = document.querySelector("#subclassProficiencyChoicesSummary")?.textContent || "";
-          assert(summary.includes(expectedSummary), "Resumo de Proficiências de Subclasse nao fechou " + expectedSummary + ": " + summary);
+          assert(summary.includes(expectedSummary), "Resumo de Proficiências de Subclasse não fechou " + expectedSummary + ": " + summary);
           const cascadeText = document.querySelector("#subclassProficiencyChoicesInfo")?.textContent || "";
           expectedLabels.forEach((label) => {
-            assert(textIncludes(cascadeText, label), "Cascata de Proficiências de Subclasse nao registrou " + label + ".");
+            assert(textIncludes(cascadeText, label), "Cascata de Proficiências de Subclasse não registrou " + label + ".");
           });
           const previewText = document.querySelector("#preview")?.textContent || "";
           if (pendingLabel) {
-            assert(!textIncludes(previewText, "Configure " + pendingLabel), "Preview ainda acusa pendencia de Proficiências de Subclasse: " + previewText);
+            assert(!textIncludes(previewText, "Configure " + pendingLabel), "Preview ainda acusa pendência de Proficiências de Subclasse: " + previewText);
           }
         };
         const warlockInvocationSelects = () => Array.from(document.querySelectorAll("#warlockInvocationsContainer select[data-warlock-invocation-slot-key]"));
@@ -183,7 +183,7 @@ const smokePages = [
           const option = value
             ? Array.from(select.options).find((item) => item.value === value && !item.disabled)
             : Array.from(select.options).find((item) => item.value && !item.disabled);
-          assert(option, "Estilo indisponivel: " + (value || "primeiro valido"));
+          assert(option, "Estilo indisponível: " + (value || "primeiro válido"));
           select.value = option.value;
           dispatch(select, "change");
           return option.value;
@@ -193,33 +193,33 @@ const smokePages = [
         const infusionTargetSelects = () => Array.from(document.querySelectorAll("#artificerInfusionsContainer select[data-artificer-infusion-target-slot-key]"));
         const chooseKnownInfusion = (slotIndex, value) => {
           const select = infusionKnownSelects()[slotIndex];
-          assert(select, "Slot de infusao conhecida ausente: " + slotIndex);
+          assert(select, "Slot de infusão conhecida ausente: " + slotIndex);
           const option = Array.from(select.options).find((item) => item.value === value && !item.disabled);
-          assert(option, "Infusao conhecida indisponivel: " + value);
+          assert(option, "Infusão conhecida indisponível: " + value);
           select.value = value;
           dispatch(select, "change");
         };
         const chooseActiveInfusion = (slotIndex, infusionValue, targetValue) => {
           const select = infusionActiveSelects()[slotIndex];
-          assert(select, "Slot de infusao ativa ausente: " + slotIndex);
+          assert(select, "Slot de infusão ativa ausente: " + slotIndex);
           const option = Array.from(select.options).find((item) => item.value === infusionValue && !item.disabled);
-          assert(option, "Infusao ativa indisponivel: " + infusionValue);
+          assert(option, "Infusão ativa indisponível: " + infusionValue);
           select.value = infusionValue;
           dispatch(select, "change");
           const target = infusionTargetSelects()[slotIndex];
           assert(target, "Slot de item alvo ausente: " + slotIndex);
           const targetOption = Array.from(target.options).find((item) => item.value === targetValue && !item.disabled);
-          assert(targetOption, "Item alvo indisponivel: " + targetValue);
+          assert(targetOption, "Item alvo indisponível: " + targetValue);
           target.value = targetValue;
           dispatch(target, "change");
         };
 
         setClassLevel("Artífice", 2);
-        assert(!document.querySelector("#artificerInfusionsPanel")?.hidden, "Painel de infusoes de Artifice nao abriu no nivel 2.");
-        assert(infusionKnownSelects().length === 4, "Artifice nivel 2 nao exibiu 4 infusoes conhecidas.");
-        assert(infusionActiveSelects().length === 2, "Artifice nivel 2 nao exibiu 2 infusoes ativas.");
-        assert(document.querySelector("#artificerInfusionsInfo .artificer-infusion-cascade"), "Cascata de infusoes de Artifice ausente.");
-        assert(document.querySelector("#artificerInfusionsContainer [data-artificer-infusion-hover-card]"), "Hovercard de infusoes de Artifice ausente.");
+        assert(!document.querySelector("#artificerInfusionsPanel")?.hidden, "Painel de infusões de Artifice nao abriu no nível 2.");
+        assert(infusionKnownSelects().length === 4, "Artífice nível 2 não exibiu 4 infusões conhecidas.");
+        assert(infusionActiveSelects().length === 2, "Artífice nível 2 não exibiu 2 infusões ativas.");
+        assert(document.querySelector("#artificerInfusionsInfo .artificer-infusion-cascade"), "Cascata de infusões de Artífice ausente.");
+        assert(document.querySelector("#artificerInfusionsContainer [data-artificer-infusion-hover-card]"), "Hovercard de infusões de Artífice ausente.");
         chooseKnownInfusion(0, "enhanced-defense");
         chooseKnownInfusion(1, "repeating-shot");
         chooseKnownInfusion(2, "enhanced-weapon");
@@ -227,21 +227,21 @@ const smokePages = [
         chooseActiveInfusion(0, "enhanced-defense", "cota-de-escamas");
         chooseActiveInfusion(1, "repeating-shot", "besta");
         const infusionSummary = document.querySelector("#artificerInfusionsSummary")?.textContent || "";
-        assert(infusionSummary.includes("Conhecidas 4/4") && infusionSummary.includes("Ativas 2/2"), "Resumo de infusoes nao fechou 4/4 e 2/2: " + infusionSummary);
+        assert(infusionSummary.includes("Conhecidas 4/4") && infusionSummary.includes("Ativas 2/2"), "Resumo de infusões não fechou 4/4 e 2/2: " + infusionSummary);
         const infusionPreview = document.querySelector("#preview")?.textContent || "";
-        assert(infusionPreview.includes("Artífice - Infusões") && infusionPreview.includes("Defesa Aprimorada") && infusionPreview.includes("Cota de escamas"), "Preview/PDF automatico 5e nao recebeu infusoes ativas com alvo.");
+        assert(infusionPreview.includes("Artífice - Infusões") && infusionPreview.includes("Defesa Aprimorada") && infusionPreview.includes("Cota de escamas"), "Preview/PDF automático 5e não recebeu infusões ativas com alvo.");
 
         setClassLevel("Artífice", 3);
         setValue("#arquetipo", "artifice-armeiro", ["change"]);
-        assert(selectsForFeatureKind("subclass", "armor-model").length === 1, "Armeiro 5e nao abriu Modelo de Armadura.");
+        assert(selectsForFeatureKind("subclass", "armor-model").length === 1, "Armeiro 5e não abriu Modelo de Armadura.");
         chooseFeatureKind("subclass", "armor-model", "guardiao");
         assertFeatureChoiceResolved("1/1", ["Modelo de Armadura", "Guardião"], "Modelo de Armadura");
 
         setClassLevel("Bárbaro", 14);
         setValue("#arquetipo", "barbaro-coracao-selvagem", ["change"]);
-        assert(selectsForFeatureKind("subclass", "totem-spirit").length === 1, "Guerreiro Totêmico 5e nao abriu Espírito Totêmico.");
-        assert(selectsForFeatureKind("subclass", "beast-aspect").length === 1, "Guerreiro Totêmico 5e nao abriu Aspecto da Fera.");
-        assert(selectsForFeatureKind("subclass", "totemic-attunement").length === 1, "Guerreiro Totêmico 5e nao abriu Sintonia Totêmica.");
+        assert(selectsForFeatureKind("subclass", "totem-spirit").length === 1, "Guerreiro Totêmico 5e não abriu Espírito Totêmico.");
+        assert(selectsForFeatureKind("subclass", "beast-aspect").length === 1, "Guerreiro Totêmico 5e não abriu Aspecto da Fera.");
+        assert(selectsForFeatureKind("subclass", "totemic-attunement").length === 1, "Guerreiro Totêmico 5e não abriu Sintonia Totêmica.");
         chooseFeatureKind("subclass", "totem-spirit", "urso");
         chooseFeatureKind("subclass", "beast-aspect", "aguia");
         chooseFeatureKind("subclass", "totemic-attunement", "lobo");
@@ -249,19 +249,19 @@ const smokePages = [
 
         setClassLevel("Bárbaro", 14);
         setValue("#arquetipo", "barbaro-magia-selvagem", ["change"]);
-        assert(selectsForFeatureKind("subclass", "wild-magic-surge").length === 1, "Magia Selvagem 5e nao abriu Surto de Magia Selvagem.");
+        assert(selectsForFeatureKind("subclass", "wild-magic-surge").length === 1, "Magia Selvagem 5e não abriu Surto de Magia Selvagem.");
         chooseFeatureKind("subclass", "wild-magic-surge", "teleporte-instavel");
         assertFeatureChoiceResolved("1/1", ["Surto de Magia Selvagem", "Teleporte instável"]);
 
         setClassLevel("Bruxo", 6);
         setValue("#arquetipo", "bruxo-genio", ["change"]);
-        assert(selectsForFeatureKind("subclass", "genie-patron").length === 1, "Bruxo Gênio 5e nao abriu Patrono Gênio.");
+        assert(selectsForFeatureKind("subclass", "genie-patron").length === 1, "Bruxo Gênio 5e não abriu Patrono Gênio.");
         chooseFeatureKind("subclass", "genie-patron", "efreeti");
         assertFeatureChoiceResolved("1/1", ["Patrono Gênio", "Efreeti"], "Patrono Gênio");
 
         setClassLevel("Bruxo", 10);
         setValue("#arquetipo", "bruxo-infernal", ["change"]);
-        assert(selectsForFeatureKind("subclass", "fiendish-resilience").length === 1, "Bruxo Infernal 5e nao abriu Resiliência Infernal.");
+        assert(selectsForFeatureKind("subclass", "fiendish-resilience").length === 1, "Bruxo Infernal 5e não abriu Resiliência Infernal.");
         chooseFeatureKind("subclass", "fiendish-resilience", "frio");
         assertFeatureChoiceResolved("1/1", ["Resiliência Infernal", "Frio"], "Resiliência Infernal");
 
@@ -278,27 +278,27 @@ const smokePages = [
         chooseFeature("signature-spells", "", 0);
         chooseFeature("signature-spells", "", 1);
         const previewText = document.querySelector("#preview")?.textContent || "";
-        assert(previewText.includes("Escolhas de recursos") && previewText.includes("Magias Assinatura"), "Resumo/PDF automatico 5e nao recebeu escolhas de recursos.");
+        assert(previewText.includes("Escolhas de recursos") && previewText.includes("Magias Assinatura"), "Resumo/PDF automático 5e não recebeu escolhas de recursos.");
 
         setClassLevel("Patrulheiro", 2);
-        assert(!document.querySelector("#fightingStylePanel")?.hidden, "Painel de Estilo de Luta 5e nao abriu para Patrulheiro nivel 2.");
-        assert(fightingStyleSelects().length === 1, "Patrulheiro nivel 2 nao exibiu 1 estilo de luta.");
+        assert(!document.querySelector("#fightingStylePanel")?.hidden, "Painel de Estilo de Luta 5e não abriu para Patrulheiro nível 2.");
+        assert(fightingStyleSelects().length === 1, "Patrulheiro nível 2 não exibiu 1 estilo de luta.");
         assert(document.querySelector("#fightingStyleInfo .fighting-style-cascade"), "Cascata de Estilo de Luta 5e ausente.");
         assert(document.querySelector("#fightingStyleContainer [data-fighting-style-hover-card]"), "Hovercard de Estilo de Luta 5e ausente.");
         chooseFightingStyle("arquearia");
-        assert((document.querySelector("#preview")?.textContent || "").includes("Arquearia"), "Preview 5e nao registrou Estilo de Luta do Patrulheiro.");
+        assert((document.querySelector("#preview")?.textContent || "").includes("Arquearia"), "Preview 5e não registrou Estilo de Luta do Patrulheiro.");
 
         setClassLevel("Patrulheiro", 14);
-        assert(selectsForFeature("favored-enemy").length === 3, "Inimigo Favorito 5e nao abriu 3 escolhas no nivel 14.");
-        assert(!document.querySelector("#languageChoicesPanel")?.hidden, "Idiomas associados de Inimigo Favorito nao abriram no Patrulheiro.");
+        assert(selectsForFeature("favored-enemy").length === 3, "Inimigo Favorito 5e não abriu 3 escolhas no nível 14.");
+        assert(!document.querySelector("#languageChoicesPanel")?.hidden, "Idiomas associados de Inimigo Favorito não abriram no Patrulheiro.");
         chooseFeature("favored-enemy", "bestas", 0);
         const duplicateFavoredEnemy = Array.from(selectsForFeature("favored-enemy")[1].options)
           .find((option) => option.value === "bestas");
-        assert(duplicateFavoredEnemy?.disabled, "Inimigo Favorito repetido nao ficou bloqueado.");
+        assert(duplicateFavoredEnemy?.disabled, "Inimigo Favorito repetido não ficou bloqueado.");
         chooseFeature("favored-enemy", "mortos-vivos", 1);
         chooseFeature("favored-enemy", "humanoides-duas-racas", 2);
         const favoredEnemyPreviewText = document.querySelector("#preview")?.textContent || "";
-        assert(favoredEnemyPreviewText.includes("Inimigo Favorito") && favoredEnemyPreviewText.includes("Bestas"), "Preview/PDF automatico 5e nao recebeu Inimigo Favorito configurado.");
+        assert(favoredEnemyPreviewText.includes("Inimigo Favorito") && favoredEnemyPreviewText.includes("Bestas"), "Preview/PDF automático 5e não recebeu Inimigo Favorito configurado.");
 
         setClassLevel("Patrulheiro", 15);
         setValue("#arquetipo", "patrulheiro-cacador", ["change"]);
@@ -316,25 +316,25 @@ const smokePages = [
         chooseFeatureKind("subclass", "multiattack", "saraivada");
         chooseFeatureKind("subclass", "superior-hunters-defense", "evasao");
         const hunterPreviewText = document.querySelector("#preview")?.textContent || "";
-        assert(hunterPreviewText.includes("Presa do Caçador") && hunterPreviewText.includes("Táticas Defensivas"), "Resumo/PDF automatico 5e nao recebeu escolhas do Caçador.");
+        assert(hunterPreviewText.includes("Presa do Caçador") && hunterPreviewText.includes("Táticas Defensivas"), "Resumo/PDF automático 5e não recebeu escolhas do Caçador.");
 
         setClassLevel("Guerreiro", 15);
         setValue("#arquetipo", "guerreiro-mestre-de-batalha", ["change"]);
-        assert(selectsForFeatureKind("subclass", "battle-master-maneuvers").length === 9, "Mestre de Batalha 5e nao abriu 9 manobras no nivel 15.");
+        assert(selectsForFeatureKind("subclass", "battle-master-maneuvers").length === 9, "Mestre de Batalha 5e não abriu 9 manobras no nível 15.");
         chooseFeatureKind("subclass", "battle-master-maneuvers", "precision-attack", 0);
         const battleManeuverDuplicate = Array.from(selectsForFeatureKind("subclass", "battle-master-maneuvers")[1].options)
           .find((option) => option.value === "precision-attack");
-        assert(battleManeuverDuplicate?.disabled, "Manobra repetida nao ficou bloqueada para Mestre de Batalha 5e.");
+        assert(battleManeuverDuplicate?.disabled, "Manobra repetida não ficou bloqueada para Mestre de Batalha 5e.");
         for (let index = 1; index < 9; index += 1) {
           chooseFeatureKind("subclass", "battle-master-maneuvers", "", index);
         }
-        assert((document.querySelector("#preview")?.textContent || "").includes("Manobras do Mestre de Batalha"), "Preview 5e nao registrou manobras do Mestre de Batalha.");
+        assert((document.querySelector("#preview")?.textContent || "").includes("Manobras do Mestre de Batalha"), "Preview 5e não registrou manobras do Mestre de Batalha.");
 
         setClassLevel("Guerreiro", 18);
         setValue("#arquetipo", "guerreiro-arqueiro-arcano", ["change"]);
-        assert(selectsForFeatureKind("subclass", "arcane-shot-options").length === 6, "Arqueiro Arcano 5e nao abriu 6 tiros arcanos no nivel 18.");
+        assert(selectsForFeatureKind("subclass", "arcane-shot-options").length === 6, "Arqueiro Arcano 5e não abriu 6 tiros arcanos no nível 18.");
         chooseFeatureKind("subclass", "arcane-shot-options", "banishing-arrow");
-        assert((document.querySelector("#preview")?.textContent || "").includes("Opções de Tiro Arcano"), "Preview 5e nao registrou tiros arcanos.");
+        assert((document.querySelector("#preview")?.textContent || "").includes("Opções de Tiro Arcano"), "Preview 5e não registrou tiros arcanos.");
 
         setClassLevel("Guerreiro", 3);
         setValue("#arquetipo", "guerreiro-mestre-de-batalha", ["change"]);
@@ -356,51 +356,51 @@ const smokePages = [
 
         setClassLevel("Monge", 6);
         setValue("#arquetipo", "monge-kensei", ["change"]);
-        assertSubclassProficiencyPanel("kensei-weapons", 3, "Kensei nivel 6");
+        assertSubclassProficiencyPanel("kensei-weapons", 3, "Kensei nível 6");
         chooseSubclassProficiency("kensei-weapons", "adaga", 0);
         chooseSubclassProficiency("kensei-weapons", "arco-longo", 1);
         const duplicateKenseiWeapon = Array.from(selectsForSubclassProficiency("kensei-weapons")[2].options)
           .find((option) => option.value === "adaga");
-        assert(duplicateKenseiWeapon?.disabled, "Arma do Kensei repetida nao ficou bloqueada.");
+        assert(duplicateKenseiWeapon?.disabled, "Arma do Kensei repetida não ficou bloqueada.");
         chooseSubclassProficiency("kensei-weapons", "espada-curta", 2);
         assertSubclassProficiencyResolved("3/3", ["Kensei", "Adaga", "Arco Longo", "Espada Curta"], "Armas do Kensei");
 
         setClassLevel("Monge", 11);
         setValue("#arquetipo", "monge-quatro-elementos", ["change"]);
-        assert(selectsForFeatureKind("subclass", "elemental-disciplines").length === 3, "Monge Quatro Elementos 5e nao abriu 3 disciplinas no nivel 11.");
+        assert(selectsForFeatureKind("subclass", "elemental-disciplines").length === 3, "Monge Quatro Elementos 5e não abriu 3 disciplinas no nível 11.");
         const winterDiscipline = Array.from(selectsForFeatureKind("subclass", "elemental-disciplines")[0].options)
           .find((option) => option.value === "breath-of-winter");
-        assert(!winterDiscipline, "Disciplina de nivel 17 apareceu cedo demais para Monge Quatro Elementos 5e.");
+        assert(!winterDiscipline, "Disciplina de nível 17 apareceu cedo demais para Monge Quatro Elementos 5e.");
         chooseFeatureKind("subclass", "elemental-disciplines", "flames-of-the-phoenix");
-        assert((document.querySelector("#preview")?.textContent || "").includes("Disciplinas Elementais"), "Preview 5e nao registrou disciplinas elementais.");
+        assert((document.querySelector("#preview")?.textContent || "").includes("Disciplinas Elementais"), "Preview 5e não registrou disciplinas elementais.");
 
         setClassLevel("Patrulheiro", 3);
         setValue("#arquetipo", "patrulheiro-mestre-feras", ["change"]);
-        assert(!document.querySelector("#companionChoicesPanel")?.hidden, "Painel de companheiro 5e nao abriu para Mestre das Feras.");
+        assert(!document.querySelector("#companionChoicesPanel")?.hidden, "Painel de companheiro 5e não abriu para Mestre das Feras.");
         assert(document.querySelector("#companionChoicesInfo .companion-choice-cascade"), "Cascata de companheiro 5e ausente.");
         assert(document.querySelector("#companionChoicesContainer [data-companion-choice-hover-card]"), "Hovercard do seletor de companheiro 5e ausente.");
         chooseCompanion("beast-master-companion", "animal-terrestre");
-        assert((document.querySelector("#preview")?.textContent || "").includes("Companheiro Animal"), "Preview 5e nao recebeu Companheiro Animal.");
+        assert((document.querySelector("#preview")?.textContent || "").includes("Companheiro Animal"), "Preview 5e não recebeu Companheiro Animal.");
 
         setValue("#arquetipo", "patrulheiro-dracos", ["change"]);
         chooseCompanion("drake-companion", "fogo");
-        assert((document.querySelector("#preview")?.textContent || "").includes("Companheiro Dracônico"), "Preview 5e nao recebeu Companheiro Dracônico do Drakewarden.");
+        assert((document.querySelector("#preview")?.textContent || "").includes("Companheiro Dracônico"), "Preview 5e não recebeu Companheiro Dracônico do Drakewarden.");
 
         setClassLevel("Druida", 2);
         setValue("#arquetipo", "druida-fogo-selvagem", ["change"]);
         chooseCompanion("wildfire-spirit", "chama-ofensiva");
-        assert((document.querySelector("#preview")?.textContent || "").includes("Espírito Selvagem"), "Preview 5e nao recebeu Espírito Selvagem.");
+        assert((document.querySelector("#preview")?.textContent || "").includes("Espírito Selvagem"), "Preview 5e não recebeu Espírito Selvagem.");
 
         setClassLevel("Bruxo", 3);
-        assert(!document.querySelector("#warlockInvocationsPanel")?.hidden, "Painel de invocacoes do Bruxo 5e nao abriu no nivel 3.");
-        assert(document.querySelector("#warlockInvocationsContainer [data-warlock-invocation-hover-card]"), "Hovercard de invocacoes do Bruxo 5e ausente.");
+        assert(!document.querySelector("#warlockInvocationsPanel")?.hidden, "Painel de invocações do Bruxo 5e não abriu no nível 3.");
+        assert(document.querySelector("#warlockInvocationsContainer [data-warlock-invocation-hover-card]"), "Hovercard de invocações do Bruxo 5e ausente.");
         clearCantripsExcept("rajada-mistica");
         setCantripChecked("rajada-mistica", false);
         assert(!warlockInvocationOptions().includes("agonizing-blast"), "Rajada Agonizante apareceu sem Rajada Mística selecionada.");
         assert(!warlockInvocationOptions().includes("eldritch-spear"), "Lança Mística apareceu sem Rajada Mística selecionada.");
         setCantripChecked("rajada-mistica", true);
-        assert(warlockInvocationOptions().includes("agonizing-blast"), "Rajada Agonizante nao apareceu apos selecionar Rajada Mística.");
-        assert(warlockInvocationOptions().includes("eldritch-spear"), "Lança Mística nao apareceu apos selecionar Rajada Mística.");
+        assert(warlockInvocationOptions().includes("agonizing-blast"), "Rajada Agonizante não apareceu apos selecionar Rajada Mística.");
+        assert(warlockInvocationOptions().includes("eldritch-spear"), "Lança Mística não apareceu após selecionar Rajada Mística.");
 
         setClassLevel("Guerreiro", 15);
         setValue("#arquetipo", "guerreiro-mestre-de-batalha", ["change"]);
@@ -463,7 +463,7 @@ const smokePages = [
           const option = value
             ? Array.from(select.options).find((item) => item.value === value && !item.disabled)
             : Array.from(select.options).find((item) => item.value && !item.disabled);
-          assert(option, "Opcao indisponivel para " + featureId + ": " + (value || "primeira valida"));
+          assert(option, "Opção indisponível para " + featureId + ": " + (value || "primeira válida"));
           select.value = option.value;
           dispatch(select, "change");
           return option.value;
@@ -474,14 +474,14 @@ const smokePages = [
           const option = value
             ? Array.from(select.options).find((item) => item.value === value && !item.disabled)
             : Array.from(select.options).find((item) => item.value && !item.disabled);
-          assert(option, "Opcao indisponivel para " + featureId + ": " + (value || "primeira valida"));
+          assert(option, "Opção indisponível para " + featureId + ": " + (value || "primeira válida"));
           select.value = option.value;
           dispatch(select, "change");
           return option.value;
         };
         const markSkill = (skillId) => {
           const input = document.querySelector('#skillsExtra2024 input[data-skill="' + skillId + '"]');
-          assert(input, "Pericia ausente: " + skillId);
+          assert(input, "Perícia ausente: " + skillId);
           if (!input.checked) {
             input.checked = true;
             dispatch(input, "change");
@@ -489,7 +489,7 @@ const smokePages = [
         };
         const assertFeatureSummary = (expectedText) => {
           const text = document.querySelector("#featureChoicesSummary2024")?.textContent || "";
-          assert(text.includes(expectedText), "Resumo de escolhas nao contem " + expectedText + ": " + text);
+          assert(text.includes(expectedText), "Resumo de escolhas não contém " + expectedText + ": " + text);
         };
         const chooseFeat = (featId) => {
           const select = Array.from(document.querySelectorAll("#featChoices2024 select[data-feat-choice-id]"))
@@ -507,7 +507,7 @@ const smokePages = [
           const option = value
             ? Array.from(select.options).find((item) => item.value === value && !item.disabled)
             : Array.from(select.options).find((item) => item.value && !item.disabled);
-          assert(option, "Opcao de companheiro indisponivel para " + companionId + ": " + (value || "primeira valida"));
+          assert(option, "Opção de companheiro indisponível para " + companionId + ": " + (value || "primeira válida"));
           select.value = option.value;
           dispatch(select, "change");
           return option.value;
@@ -523,27 +523,27 @@ const smokePages = [
         assertFeatureSlots("clerigo", 7, [["divine-order", 1], ["blessed-strikes", 1]]);
         chooseFeature("divine-order", "taumaturgo");
         chooseFeature("blessed-strikes", "conjuracao-potente");
-        assert((document.querySelector("#preview2024")?.textContent || "").includes("Sabedoria"), "Resumo nao registrou o bonus de Sabedoria do clerigo taumaturgo.");
+        assert((document.querySelector("#preview2024")?.textContent || "").includes("Sabedoria"), "Resumo não registrou o bonus de Sabedoria do clerigo taumaturgo.");
         chooseFeature("divine-order", "protetor");
         const clericTraining = document.querySelector("#proficiencySummary2024")?.textContent || "";
-        assert(clericTraining.includes("Armaduras pesadas") && clericTraining.includes("Armas marciais"), "Protetor nao atualizou treinamentos do clerigo.");
+        assert(clericTraining.includes("Armaduras pesadas") && clericTraining.includes("Armas marciais"), "Protetor não atualizou treinamentos do clerigo.");
 
         assertFeatureSlots("druida", 7, [["primal-order", 1], ["elemental-fury", 1]]);
         chooseFeature("primal-order", "guardiao");
         chooseFeature("elemental-fury", "golpe-primal");
         const druidTraining = document.querySelector("#proficiencySummary2024")?.textContent || "";
-        assert(druidTraining.includes("Armaduras médias") && druidTraining.includes("Armas marciais"), "Guardiao nao atualizou treinamentos do druida.");
+        assert(druidTraining.includes("Armaduras médias") && druidTraining.includes("Armas marciais"), "Guardião não atualizou treinamentos do druida.");
 
         setValue("#subclasse2024", "druida-terra", []);
         setValue("#nivel2024", 5, ["input", "change"]);
         const landPanel = document.querySelector("#subclassDetailChoicesPanel2024");
-        assert(landPanel && !landPanel.hidden, "Painel de detalhes de subclasse nao abriu para Círculo da Terra.");
+        assert(landPanel && !landPanel.hidden, "Painel de detalhes de subclasse não abriu para Círculo da Terra.");
         assert(document.querySelector("#subclassDetailChoicesInfo2024 .subclass-detail-cascade"), "Cascata de detalhes de subclasse ausente para Círculo da Terra.");
         assert(document.querySelector("#subclassDetailChoicesInfo2024 .subclass-detail-hover-card"), "Hovercard da cascata de detalhes de subclasse ausente.");
         assert(document.querySelector("#subclassDetailChoicesContainer2024 [data-subclass-detail-hover-card]"), "Hovercard do seletor de terreno ausente.");
         const terrainSelect = document.querySelector('#subclassDetailChoicesContainer2024 select[data-subclass-detail-slot-key]');
         assert(terrainSelect, "Seletor de terreno do Círculo da Terra ausente.");
-        terrainSelect.value = "arido";
+        terrainSelect.value = "árido";
         dispatch(terrainSelect, "change");
         const landMagicText = document.querySelector("#magicSourcesList2024")?.textContent || "";
         assert(
@@ -551,20 +551,20 @@ const smokePages = [
             && landMagicText.includes("Mãos Flamejantes")
             && landMagicText.includes("Raio de Fogo")
             && landMagicText.includes("Bola de Fogo"),
-          "Círculo da Terra arido 2024 nao exibiu as magias fixas esperadas."
+          "Círculo da Terra árido 2024 não exibiu as magias fixas esperadas."
         );
         const fireballGranted = document.querySelector('#magicSourcesList2024 .spell-check-item[data-spell-id="bola-de-fogo"] input[type="checkbox"]');
-        assert(fireballGranted?.checked && fireballGranted?.disabled, "Bola de Fogo nao ficou marcada e travada como magia do Círculo da Terra.");
-        assert((document.querySelector("#preview2024")?.textContent || "").includes("Árido"), "Preview nao registrou o terreno do Círculo da Terra.");
+        assert(fireballGranted?.checked && fireballGranted?.disabled, "Bola de Fogo não ficou marcada e travada como magia do Círculo da Terra.");
+        assert((document.querySelector("#preview2024")?.textContent || "").includes("Árido"), "Preview não registrou o terreno do Círculo da Terra.");
 
         assertFeatureSlots("barbaro", 4, [["weapon-mastery", 3]]);
         const barbarianMasteries = new Set();
         for (let index = 0; index < 3; index += 1) {
           barbarianMasteries.add(chooseFeature("weapon-mastery", "", index));
         }
-        assert(barbarianMasteries.size === 3, "Maestria em Arma do barbaro permitiu duplicidade.");
+        assert(barbarianMasteries.size === 3, "Maestria em Arma do bárbaro permitiu duplicidade.");
         assertFeatureSummary("3/3");
-        assert((document.querySelector("#preview2024")?.textContent || "").includes("Maestria em Arma"), "Resumo/PDF automatico 2024 nao recebeu Maestria em Arma.");
+        assert((document.querySelector("#preview2024")?.textContent || "").includes("Maestria em Arma"), "Resumo/PDF automático 2024 não recebeu Maestria em Arma.");
 
         assertFeatureSlots("feiticeiro", 17, [["metamagic", 6]]);
         const metamagic = new Set();
@@ -590,62 +590,62 @@ const smokePages = [
         }
         chooseFeat("mestre-de-armas");
         const featMasterySelects = selectsForFeatureKind("feat", "weapon-mastery");
-        assert(featMasterySelects.length === 1, "Mestre das Armas nao abriu escolha explicita de maestria.");
+        assert(featMasterySelects.length === 1, "Mestre das Armas não abriu escolha explicita de maestria.");
         const featOption = Array.from(featMasterySelects[0].options)
           .find((option) => option.value && !option.disabled && !masteryValuesForFeat.has(option.value));
-        assert(featOption, "Mestre das Armas nao tem arma valida para escolher.");
+        assert(featOption, "Mestre das Armas não tem arma valida para escolher.");
         featMasterySelects[0].value = featOption.value;
         dispatch(featMasterySelects[0], "change");
-        assert((document.querySelector("#featureChoicesSummary2024")?.textContent || "").includes("4/4"), "Mestre das Armas nao entrou no resumo de escolhas.");
+        assert((document.querySelector("#featureChoicesSummary2024")?.textContent || "").includes("4/4"), "Mestre das Armas não entrou no resumo de escolhas.");
 
         setClassLevel("patrulheiro", 2);
         const rangerStyleFeatSlots = Array.from(document.querySelectorAll('#featChoices2024 article[data-feat-slot-type="style"] select[data-feat-choice-id]'));
-        assert(rangerStyleFeatSlots.length === 1, "Guardiao 2024 nao abriu 1 slot de talento de Estilo de Luta no nivel 2.");
-        assert(Array.from(rangerStyleFeatSlots[0].options).some((option) => option.value === "arquearia"), "Arquearia nao apareceu como talento de Estilo de Luta 2024.");
-        assert(selectsForFeature("favored-enemy").length === 0, "Guardiao 2024 abriu seletor legacy de Inimigo Favorito indevidamente.");
+        assert(rangerStyleFeatSlots.length === 1, "Guardião 2024 não abriu 1 slot de talento de Estilo de Luta no nível 2.");
+        assert(Array.from(rangerStyleFeatSlots[0].options).some((option) => option.value === "arquearia"), "Arquearia não apareceu como talento de Estilo de Luta 2024.");
+        assert(selectsForFeature("favored-enemy").length === 0, "Guardião 2024 abriu seletor legacy de Inimigo Favorito indevidamente.");
 
         setClassLevel("patrulheiro", 7);
         setValue("#subclasse2024", "patrulheiro-cacador", ["change"]);
         const hunterPreySelects2024 = selectsForFeatureKind("subclass", "hunter-prey");
         const hunterDefenseSelects2024 = selectsForFeatureKind("subclass", "defensive-tactics");
-        assert(hunterPreySelects2024.length === 1, "Presa do Caçador 2024 nao abriu seletor.");
-        assert(hunterDefenseSelects2024.length === 1, "Táticas Defensivas 2024 nao abriu seletor.");
+        assert(hunterPreySelects2024.length === 1, "Presa do Caçador 2024 não abriu seletor.");
+        assert(hunterDefenseSelects2024.length === 1, "Táticas Defensivas 2024 não abriu seletor.");
         hunterPreySelects2024[0].value = "colosso";
         dispatch(hunterPreySelects2024[0], "change");
         hunterDefenseSelects2024[0].value = "escapar-da-horda";
         dispatch(hunterDefenseSelects2024[0], "change");
         const hunterPreviewText2024 = document.querySelector("#preview2024")?.textContent || "";
-        assert(hunterPreviewText2024.includes("Presa do Caçador") && hunterPreviewText2024.includes("Táticas Defensivas"), "Resumo/PDF automatico 2024 nao recebeu escolhas do Caçador.");
+        assert(hunterPreviewText2024.includes("Presa do Caçador") && hunterPreviewText2024.includes("Táticas Defensivas"), "Resumo/PDF automático 2024 não recebeu escolhas do Caçador.");
 
         setClassLevel("guerreiro", 15);
         setValue("#subclasse2024", "guerreiro-mestre-de-batalha", ["change"]);
-        assert(selectsForFeatureKind("subclass", "battle-master-maneuvers").length === 9, "Mestre da Batalha 2024 nao abriu 9 manobras no nivel 15.");
+        assert(selectsForFeatureKind("subclass", "battle-master-maneuvers").length === 9, "Mestre da Batalha 2024 não abriu 9 manobras no nível 15.");
         const braceManeuver2024 = Array.from(selectsForFeatureKind("subclass", "battle-master-maneuvers")[0].options)
           .find((option) => option.value === "brace");
         assert(!braceManeuver2024, "Manobra de Tasha apareceu na lista 2024 do Mestre da Batalha.");
         chooseFeatureKind("subclass", "battle-master-maneuvers", "precision-attack", 0);
         const duplicateManeuver2024 = Array.from(selectsForFeatureKind("subclass", "battle-master-maneuvers")[1].options)
           .find((option) => option.value === "precision-attack");
-        assert(duplicateManeuver2024?.disabled, "Manobra repetida nao ficou bloqueada para Mestre da Batalha 2024.");
+        assert(duplicateManeuver2024?.disabled, "Manobra repetida não ficou bloqueada para Mestre da Batalha 2024.");
         assert(document.querySelector("#featureChoicesInfo2024 .feature-choice-hover-card"), "Hovercard da cascata de escolhas 2024 ausente para Mestre da Batalha.");
-        assert((document.querySelector("#preview2024")?.textContent || "").includes("Manobras do Mestre da Batalha"), "Preview 2024 nao registrou manobras do Mestre da Batalha.");
+        assert((document.querySelector("#preview2024")?.textContent || "").includes("Manobras do Mestre da Batalha"), "Preview 2024 não registrou manobras do Mestre da Batalha.");
 
         setClassLevel("druida", 2);
-        assert(!document.querySelector("#companionChoicesPanel2024")?.hidden, "Painel de companheiro 2024 nao abriu para Druida.");
+        assert(!document.querySelector("#companionChoicesPanel2024")?.hidden, "Painel de companheiro 2024 não abriu para Druida.");
         assert(document.querySelector("#companionChoicesInfo2024 .companion-choice-cascade"), "Cascata de companheiro 2024 ausente.");
         assert(document.querySelector("#companionChoicesContainer2024 [data-companion-choice-hover-card]"), "Hovercard do seletor de companheiro 2024 ausente.");
         chooseCompanion("wild-companion", "batedor-aereo");
-        assert((document.querySelector("#preview2024")?.textContent || "").includes("Companheiro Selvagem"), "Preview 2024 nao recebeu Companheiro Selvagem.");
+        assert((document.querySelector("#preview2024")?.textContent || "").includes("Companheiro Selvagem"), "Preview 2024 não recebeu Companheiro Selvagem.");
 
         setClassLevel("patrulheiro", 3);
         setValue("#subclasse2024", "patrulheiro-mestre-feras", ["change"]);
         chooseCompanion("primal-companion", "fera-da-terra");
-        assert((document.querySelector("#preview2024")?.textContent || "").includes("Companheiro Primal"), "Preview 2024 nao recebeu Companheiro Primal.");
+        assert((document.querySelector("#preview2024")?.textContent || "").includes("Companheiro Primal"), "Preview 2024 não recebeu Companheiro Primal.");
 
         setClassLevel("feiticeiro", 18);
         setValue("#subclasse2024", "feiticeiro-draconico", ["change"]);
         chooseCompanion("draconic-companion", "cromatico");
-        assert((document.querySelector("#preview2024")?.textContent || "").includes("Companheiro Dracônico"), "Preview 2024 nao recebeu Companheiro Dracônico.");
+        assert((document.querySelector("#preview2024")?.textContent || "").includes("Companheiro Dracônico"), "Preview 2024 não recebeu Companheiro Dracônico.");
 
         setClassLevel("bruxo", 17);
         setValue("#subclasse2024", "bruxo-infernal", ["change"]);
@@ -658,19 +658,19 @@ const smokePages = [
         }
         const agonizingInvocationSelect = Array.from(document.querySelectorAll('#warlockInvocationsContainer2024 select[data-warlock-invocation-slot-key]'))
           .find((select) => Array.from(select.options).some((option) => option.value === "agonizing-blast" && !option.disabled));
-        assert(agonizingInvocationSelect, "Rajada Agonizante 2024 nao apareceu nas Invocações Místicas.");
+        assert(agonizingInvocationSelect, "Rajada Agonizante 2024 não apareceu nas Invocações Místicas.");
         agonizingInvocationSelect.value = "agonizing-blast";
         dispatch(agonizingInvocationSelect, "change");
         let agonizingDetailSelect = Array.from(document.querySelectorAll('#warlockInvocationsContainer2024 select[data-warlock-invocation-detail-name][data-warlock-invocation-detail-type="spell"]'))[0];
-        assert(agonizingDetailSelect, "Detalhe de truque da Rajada Agonizante nao apareceu.");
+        assert(agonizingDetailSelect, "Detalhe de truque da Rajada Agonizante não apareceu.");
         assert(!Array.from(agonizingDetailSelect.options).some((option) => option.value === "rajada-mistica"), "Rajada Mística apareceu como detalhe antes de ser conhecida pelo Bruxo.");
         const eldritchBlastInput = warlockClassSpellCard2024()?.querySelector('.spell-check-item[data-spell-id="rajada-mistica"] input[type="checkbox"]');
-        assert(eldritchBlastInput && !eldritchBlastInput.disabled, "Rajada Mística nao ficou disponivel como truque conhecido do Bruxo.");
+        assert(eldritchBlastInput && !eldritchBlastInput.disabled, "Rajada Mística não ficou disponível como truque conhecido do Bruxo.");
         eldritchBlastInput.checked = true;
         dispatch(eldritchBlastInput, "change");
         agonizingDetailSelect = Array.from(document.querySelectorAll('#warlockInvocationsContainer2024 select[data-warlock-invocation-detail-name][data-warlock-invocation-detail-type="spell"]'))
           .find((select) => Array.from(select.options).some((option) => option.value === "rajada-mistica" && !option.disabled));
-        assert(agonizingDetailSelect, "Detalhe de truque da Rajada Agonizante nao reconheceu Rajada Mística conhecida.");
+        assert(agonizingDetailSelect, "Detalhe de truque da Rajada Agonizante não reconheceu Rajada Mística conhecida.");
         agonizingDetailSelect.value = "rajada-mistica";
         dispatch(agonizingDetailSelect, "change");
         const warlockClassCardAfterInvocationDetail = Array.from(document.querySelectorAll("#magicSourcesList2024 .edition-summary-card"))
@@ -683,14 +683,14 @@ const smokePages = [
         assert(!invocationWarningText.includes("Invocação Mística"), "Detalhe de truque da invocação ainda gerou aviso de bloqueio como se concedesse o truque.");
         const tomeInvocationSelect = Array.from(document.querySelectorAll('#warlockInvocationsContainer2024 select[data-warlock-invocation-slot-key]'))
           .find((select) => select.value !== "agonizing-blast" && Array.from(select.options).some((option) => option.value === "pact-of-the-tome" && !option.disabled));
-        assert(tomeInvocationSelect, "Pacto do Tomo 2024 nao apareceu nas Invocações Místicas.");
+        assert(tomeInvocationSelect, "Pacto do Tomo 2024 não apareceu nas Invocações Místicas.");
         tomeInvocationSelect.value = "pact-of-the-tome";
         dispatch(tomeInvocationSelect, "change");
         const tomeCard = Array.from(document.querySelectorAll("#magicSourcesList2024 .edition-summary-card"))
           .find((card) => card.textContent.includes("Pacto do Tomo"));
-        assert(tomeCard, "Fonte de magias do Pacto do Tomo nao apareceu.");
+        assert(tomeCard, "Fonte de magias do Pacto do Tomo não apareceu.");
         const tomeCantripInput = tomeCard.querySelector('.spell-check-item[data-spell-id="ataque-certeiro"] input[type="checkbox"]');
-        assert(tomeCantripInput && !tomeCantripInput.disabled, "Ataque Certeiro nao ficou disponivel no Pacto do Tomo.");
+        assert(tomeCantripInput && !tomeCantripInput.disabled, "Ataque Certeiro não ficou disponível no Pacto do Tomo.");
         tomeCantripInput.checked = true;
         dispatch(tomeCantripInput, "change");
         const warlockSpellCard = Array.from(document.querySelectorAll("#magicSourcesList2024 .edition-summary-card"))
@@ -698,16 +698,16 @@ const smokePages = [
         const blockedCantripItem = warlockSpellCard?.querySelector('.spell-check-item[data-spell-id="ataque-certeiro"]');
         const blockedCantripInput = blockedCantripItem?.querySelector('input[type="checkbox"]');
         const warningText = blockedCantripItem?.getAttribute("data-spell-warning-label") || "";
-        assert(blockedCantripInput?.disabled, "Truque escolhido por Invocação Mística nao ficou bloqueado na seleção de Bruxo.");
-        assert(warningText.includes("Invocação Mística"), "Hover de bloqueio nao explica que o truque veio da Invocação Mística.");
+        assert(blockedCantripInput?.disabled, "Truque escolhido por Invocação Mística não ficou bloqueado na seleção de Bruxo.");
+        assert(warningText.includes("Invocação Mística"), "Hover de bloqueio não explica que o truque veio da Invocação Mística.");
 
         setClassLevel("paladino", 3);
         setValue("#subclasse2024", "paladino-vinganca", []);
         setValue("#nivel2024", 3, ["input", "change"]);
         const paladinMagicText = document.querySelector("#magicSourcesList2024")?.textContent || "";
-        assert(paladinMagicText.includes("Perdição") && paladinMagicText.includes("Marca do Predador"), "Juramento da Vingança 2024 nao exibiu magias fixas.");
+        assert(paladinMagicText.includes("Perdição") && paladinMagicText.includes("Marca do Predador"), "Juramento da Vingança 2024 não exibiu magias fixas.");
         const vengeanceGranted = document.querySelector('#magicSourcesList2024 .spell-check-item[data-spell-id="perdicao"] input[type="checkbox"]');
-        assert(vengeanceGranted?.checked && vengeanceGranted?.disabled, "Perdição nao ficou marcada e travada como magia de juramento.");
+        assert(vengeanceGranted?.checked && vengeanceGranted?.disabled, "Perdição não ficou marcada e travada como magia de juramento.");
         assert(document.querySelector("#magicSourcesList2024 .magic-source-cascade"), "Cascata de magia 2024 ausente para Paladino.");
         assert((document.querySelector("#magicSpellHoverCard2024")?.outerHTML || "").includes("magic-spell-hover-card"), "Hovercard de magia 2024 ausente para juramento.");
 
@@ -878,7 +878,7 @@ async function createPageTarget(port) {
   });
 
   if (!response.webSocketDebuggerUrl) {
-    throw new Error("Chrome DevTools nao retornou uma pagina controlavel.");
+    throw new Error("Chrome DevTools não retornou uma pagina controlável.");
   }
 
   return response;
@@ -1038,7 +1038,7 @@ function findChromeExecutable() {
 
   const executable = candidates.find((candidate) => candidate.includes(path.sep) ? existsSync(candidate) : true);
   if (!executable) {
-    throw new Error("Chrome/Edge nao encontrado. Defina CHROME_PATH para executar o smoke DOM.");
+    throw new Error("Chrome/Edge não encontrado. Defina CHROME_PATH para executar o smoke DOM.");
   }
   return executable;
 }
@@ -1108,6 +1108,7 @@ async function removeTempProfile(profilePath) {
       await rm(profilePath, { recursive: true, force: true, maxRetries: 2, retryDelay: 100 });
       return;
     } catch (error) {
+      console.warn(`Aviso: não foi possível remover o perfil temporário do Chrome agora (${error.message}).`);
       if (attempt === 19) throw error;
       await delay(500);
     }
@@ -1118,7 +1119,7 @@ function formatException(details = {}) {
   return details.exception?.description
     || details.exception?.value
     || details.text
-    || "Excecao JavaScript sem mensagem.";
+    || "Exceção JavaScript sem mensagem.";
 }
 
 function formatConsoleArgs(args = []) {
@@ -1156,7 +1157,7 @@ try {
     try {
       await removeTempProfile(tempProfile);
     } catch (error) {
-      console.warn(`Aviso: nao foi possivel remover o perfil temporario do Chrome agora (${error.message}).`);
+      console.warn(`Aviso: não foi possível remover o perfil temporário do Chrome agora (${error.message}).`);
     }
   }
 }
