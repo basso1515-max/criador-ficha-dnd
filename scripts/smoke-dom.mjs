@@ -1103,16 +1103,28 @@ function waitForExit(child, timeoutMs) {
 }
 
 async function removeTempProfile(profilePath) {
+  let lastError = null;
   for (let attempt = 0; attempt < 20; attempt += 1) {
     try {
       await rm(profilePath, { recursive: true, force: true, maxRetries: 2, retryDelay: 100 });
-      return;
+      return true;
     } catch (error) {
-      console.warn(`Aviso: não foi possível remover o perfil temporário do Chrome agora (${error.message}).`);
-      if (attempt === 19) throw error;
+      lastError = error;
       await delay(500);
     }
   }
+
+  if (isWindowsTempProfileLock(lastError)) {
+    return false;
+  }
+
+  throw lastError;
+}
+
+function isWindowsTempProfileLock(error) {
+  if (process.platform !== "win32") return false;
+  const text = `${error?.code || ""} ${error?.message || ""}`;
+  return /\b(EBUSY|EPERM|ENOTEMPTY)\b/i.test(text);
 }
 
 function formatException(details = {}) {
@@ -1155,9 +1167,14 @@ try {
   children.forEach(terminateChild);
   if (tempProfile) {
     try {
-      await removeTempProfile(tempProfile);
+      const removed = await removeTempProfile(tempProfile);
+      if (!removed && process.env.DND_SMOKE_VERBOSE_CLEANUP === "1") {
+        console.warn(`Aviso: perfil temporário do Chrome ainda bloqueado pelo Windows: ${tempProfile}`);
+      }
     } catch (error) {
-      console.warn(`Aviso: não foi possível remover o perfil temporário do Chrome agora (${error.message}).`);
+      if (process.env.DND_SMOKE_VERBOSE_CLEANUP === "1") {
+        console.warn(`Aviso: não foi possível remover o perfil temporário do Chrome agora (${error.message}).`);
+      }
     }
   }
 }
