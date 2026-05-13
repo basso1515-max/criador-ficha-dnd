@@ -17,6 +17,24 @@ const SESSION_TTL_SECONDS = 60 * 60 * 24 * 30;
 const SESSION_TTL_MS = SESSION_TTL_SECONDS * 1000;
 const PASSWORD_ALGO = "scrypt-v1";
 const SCRYPT_OPTIONS = { N: 16384, r: 8, p: 1, maxmem: 64 * 1024 * 1024 };
+const MAX_BODY_BYTES = 2 * 1024 * 1024;
+const MAX_DISPLAY_NAME_LENGTH = 80;
+const MAX_EMAIL_LENGTH = 254;
+const MIN_NEW_PASSWORD_LENGTH = 8;
+const MAX_PASSWORD_LENGTH = 256;
+const MAX_CHARACTER_NAME_LENGTH = 80;
+const MAX_CHARACTER_SUMMARY_LENGTH = 260;
+const MAX_SNAPSHOT_BYTES = 500_000;
+const MAX_LEGACY_MIGRATION_ACCOUNTS = 20;
+const PASSWORD_IMPORT_ALGOS = new Set(["sha256", "legacy-fallback", PASSWORD_ALGO]);
+const SAFE_ID_RE = /^[a-z]+_[a-zA-Z0-9_-]{8,128}$/;
+const RATE_LIMITS = {
+  loginIp: { limit: 30, windowMs: 15 * 60 * 1000 },
+  loginEmail: { limit: 8, windowMs: 15 * 60 * 1000 },
+  registerIp: { limit: 10, windowMs: 60 * 60 * 1000 },
+  migrationIp: { limit: 2, windowMs: 60 * 60 * 1000 },
+};
+const rateLimitBuckets = new Map();
 
 const MIME_TYPES = {
   ".css": "text/css; charset=utf-8",
@@ -79,36 +97,41 @@ function writeStore(store) {
 function normalizeCharacters(characters) {
   const source = characters && typeof characters === "object" ? characters : {};
   return {
-    "5e": Array.isArray(source["5e"]) ? source["5e"].map(normalizeCharacterRecord).filter(Boolean) : [],
-    "5.5e-2024": Array.isArray(source["5.5e-2024"])
-      ? source["5.5e-2024"].map(normalizeCharacterRecord).filter(Boolean)
-      : [],
+    "5e": normalizeCharacterList(source["5e"]),
+    "5.5e-2024": normalizeCharacterList(source["5.5e-2024"]),
   };
+}
+
+function normalizeCharacterList(characters) {
+  return Array.isArray(characters)
+    ? characters.slice(0, ACCOUNT_LIMIT_PER_EDITION).map(normalizeCharacterRecord).filter(Boolean)
+    : [];
 }
 
 function normalizeCharacterRecord(character) {
   if (!character || typeof character !== "object") return null;
+  const now = new Date().toISOString();
   return {
-    id: String(character.id || makeId("character")),
+    id: sanitizeRecordId(character.id, "character"),
     edition: EDITIONS.includes(character.edition) ? character.edition : "",
     name: sanitizeCharacterName(character.name),
     summary: sanitizeCharacterSummary(character.summary),
-    snapshot: character.snapshot && typeof character.snapshot === "object" ? character.snapshot : {},
-    createdAt: String(character.createdAt || new Date().toISOString()),
-    updatedAt: String(character.updatedAt || new Date().toISOString()),
+    snapshot: sanitizeSnapshot(character.snapshot),
+    createdAt: sanitizeDateString(character.createdAt, now),
+    updatedAt: sanitizeDateString(character.updatedAt, now),
   };
 }
 
 function normalizeAccountRecord(account) {
   if (!account || typeof account !== "object") return null;
   return {
-    id: String(account.id || makeId("account")),
-    displayName: String(account.displayName || "").trim(),
+    id: sanitizeRecordId(account.id, "account"),
+    displayName: sanitizeDisplayName(account.displayName),
     email: normalizeEmail(account.email || ""),
-    passwordAlgo: String(account.passwordAlgo || "sha256").trim() || "sha256",
-    passwordSalt: String(account.passwordSalt || ""),
-    passwordHash: String(account.passwordHash || ""),
-    createdAt: String(account.createdAt || new Date().toISOString()),
+    passwordAlgo: sanitizePasswordAlgo(account.passwordAlgo),
+    passwordSalt: sanitizePasswordSecret(account.passwordSalt),
+    passwordHash: sanitizePasswordSecret(account.passwordHash),
+    createdAt: sanitizeDateString(account.createdAt, new Date().toISOString()),
     characters: normalizeCharacters(account.characters),
   };
 }
@@ -134,6 +157,60 @@ function normalizeSessionRecord(session) {
 
 function normalizeEmail(email) {
   return String(email || "").trim().toLowerCase();
+}
+
+function sanitizeDisplayName(displayName) {
+  return String(displayName || "").trim().slice(0, MAX_DISPLAY_NAME_LENGTH);
+}
+
+function sanitizePasswordAlgo(algorithm) {
+  const value = String(algorithm || "sha256").trim();
+  return PASSWORD_IMPORT_ALGOS.has(value) ? value : "sha256";
+}
+
+function sanitizePasswordSecret(value) {
+  return String(value || "").trim().slice(0, 256);
+}
+
+function sanitizeDateString(value, fallback) {
+  const date = new Date(String(value || ""));
+  return Number.isNaN(date.getTime()) ? fallback : date.toISOString();
+}
+
+function isSafeRecordId(value, prefix) {
+  const text = String(value || "").trim();
+  return text.startsWith(`${prefix}_`) && SAFE_ID_RE.test(text);
+}
+
+function sanitizeRecordId(value, prefix) {
+  const text = String(value || "").trim();
+  return isSafeRecordId(text, prefix) ? text : makeId(prefix);
+}
+
+function readOptionalRecordId(value, prefix, label) {
+  const text = String(value || "").trim();
+  if (!text) return "";
+  if (!isSafeRecordId(text, prefix)) {
+    throw new HttpError(400, `${label} inválido.`);
+  }
+  return text;
+}
+
+function sanitizeSnapshot(snapshot, { strict = false } = {}) {
+  if (!snapshot || typeof snapshot !== "object" || Array.isArray(snapshot)) return {};
+
+  try {
+    const json = JSON.stringify(snapshot);
+    if (json.length > MAX_SNAPSHOT_BYTES) {
+      if (strict) throw new HttpError(413, "Dados do personagem grandes demais.");
+      return {};
+    }
+    return JSON.parse(json);
+  } catch (error) {
+    if (error instanceof HttpError) throw error;
+    if (strict) throw new HttpError(400, "Dados do personagem inválidos.");
+    return {};
+  }
 }
 
 function makeId(prefix) {
@@ -209,32 +286,100 @@ function toClientAccount(account) {
   };
 }
 
-function assertAccountInput({ displayName, email, password }, { creating = false, passwordRequired = true } = {}) {
-  if (creating && !String(displayName || "").trim()) {
+function assertDisplayNameInput(displayName) {
+  const name = String(displayName || "").trim();
+  if (!name) {
     throw new HttpError(400, "Informe um nome para a conta.");
   }
-  if (!normalizeEmail(email) || !normalizeEmail(email).includes("@")) {
+  if (name.length > MAX_DISPLAY_NAME_LENGTH) {
+    throw new HttpError(400, `Use um nome com até ${MAX_DISPLAY_NAME_LENGTH} caracteres.`);
+  }
+  return name;
+}
+
+function assertEmailInput(email) {
+  const normalized = normalizeEmail(email);
+  if (
+    !normalized
+    || normalized.length > MAX_EMAIL_LENGTH
+    || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized)
+  ) {
     throw new HttpError(400, "Informe um e-mail válido.");
   }
-  if (passwordRequired && String(password || "").length < 4) {
-    throw new HttpError(400, "Use uma senha com pelo menos 4 caracteres.");
+  return normalized;
+}
+
+function assertAccountInput({ displayName, email, password }, { creating = false, passwordRequired = true, newPassword = false } = {}) {
+  if (creating) {
+    assertDisplayNameInput(displayName);
+  }
+  assertEmailInput(email);
+  if (passwordRequired) {
+    if (newPassword) {
+      assertNewPasswordInput(password);
+    } else {
+      assertPasswordCredentialInput(password);
+    }
   }
 }
 
-function assertPasswordInput(password) {
-  if (String(password || "").length < 4) {
-    throw new HttpError(400, "Use uma senha com pelo menos 4 caracteres.");
+function assertPasswordCredentialInput(password) {
+  const value = String(password || "");
+  if (!value) {
+    throw new HttpError(400, "Informe a senha.");
+  }
+  if (value.length > MAX_PASSWORD_LENGTH) {
+    throw new HttpError(400, `Use uma senha com até ${MAX_PASSWORD_LENGTH} caracteres.`);
+  }
+}
+
+function assertNewPasswordInput(password) {
+  assertPasswordCredentialInput(password);
+  if (String(password || "").length < MIN_NEW_PASSWORD_LENGTH) {
+    throw new HttpError(400, `Use uma senha com pelo menos ${MIN_NEW_PASSWORD_LENGTH} caracteres.`);
   }
 }
 
 function assertPassword(account, password) {
-  assertPasswordInput(password);
+  assertPasswordCredentialInput(password);
   const algorithm = String(account.passwordHash || "").startsWith("fallback-")
     ? "legacy-fallback"
     : account.passwordAlgo || "sha256";
   const passwordHash = hashPassword(password, account.passwordSalt, algorithm);
   if (!safeHexEquals(passwordHash, account.passwordHash)) {
     throw new HttpError(401, "Senha incorreta.");
+  }
+}
+
+function assertImportedPasswordRecord(account) {
+  if (!PASSWORD_IMPORT_ALGOS.has(account.passwordAlgo)) {
+    throw new HttpError(400, "Registro de senha legado inválido.");
+  }
+  if (!account.passwordSalt || account.passwordSalt.length > 256) {
+    throw new HttpError(400, "Registro de senha legado inválido.");
+  }
+  if (account.passwordAlgo === "legacy-fallback") {
+    if (!String(account.passwordHash || "").startsWith("fallback-")) {
+      throw new HttpError(400, "Registro de senha legado inválido.");
+    }
+    return;
+  }
+  if (!/^[a-f0-9]{32,256}$/i.test(String(account.passwordHash || ""))) {
+    throw new HttpError(400, "Registro de senha legado inválido.");
+  }
+}
+
+function normalizeImportedAccountRecord(account) {
+  const normalized = normalizeAccountRecord(account);
+  if (!normalized) return null;
+
+  try {
+    assertDisplayNameInput(normalized.displayName);
+    normalized.email = assertEmailInput(normalized.email);
+    assertImportedPasswordRecord(normalized);
+    return normalized;
+  } catch {
+    return null;
   }
 }
 
@@ -257,15 +402,16 @@ function getEditionBucket(account, edition) {
 }
 
 function sanitizeCharacterName(name) {
-  const text = String(name || "").trim();
+  const text = String(name || "").trim().slice(0, MAX_CHARACTER_NAME_LENGTH);
   return text || "Personagem sem nome";
 }
 
 function sanitizeCharacterSummary(summary) {
-  return String(summary || "").trim().slice(0, 260);
+  return String(summary || "").trim().slice(0, MAX_CHARACTER_SUMMARY_LENGTH);
 }
 
 function getAccountById(store, accountId) {
+  if (!isSafeRecordId(accountId, "account")) return null;
   return store.accounts.find((account) => account.id === String(accountId || "")) || null;
 }
 
@@ -367,6 +513,11 @@ function assertSameOrigin(req) {
   const method = req.method || "GET";
   if (["GET", "HEAD", "OPTIONS"].includes(method)) return;
 
+  const fetchSite = String(req.headers["sec-fetch-site"] || "").toLowerCase();
+  if (fetchSite === "cross-site") {
+    throw new HttpError(403, "Origem da requisição não autorizada.");
+  }
+
   const origin = req.headers.origin;
   if (!origin) return;
 
@@ -381,6 +532,31 @@ function assertSameOrigin(req) {
   }
 }
 
+function getClientIp(req) {
+  const forwardedFor = String(req.headers["x-forwarded-for"] || "").split(",")[0].trim();
+  return forwardedFor || String(req.socket?.remoteAddress || "unknown");
+}
+
+function getRateLimitKey(scope, identifier) {
+  const hash = createHash("sha256").update(String(identifier || "unknown")).digest("hex").slice(0, 32);
+  return `${scope}:${hash}`;
+}
+
+function assertRateLimit(scope, identifier, { limit, windowMs }) {
+  const now = Date.now();
+  const key = getRateLimitKey(scope, identifier);
+  const current = rateLimitBuckets.get(key);
+  const bucket = current && current.resetAt > now
+    ? current
+    : { count: 0, resetAt: now + windowMs };
+
+  bucket.count += 1;
+  rateLimitBuckets.set(key, bucket);
+  if (bucket.count > limit) {
+    throw new HttpError(429, "Muitas tentativas. Aguarde um pouco e tente novamente.");
+  }
+}
+
 class HttpError extends Error {
   constructor(statusCode, message) {
     super(message);
@@ -392,6 +568,9 @@ function sendJson(res, statusCode, payload = {}) {
   res.writeHead(statusCode, {
     "Content-Type": "application/json; charset=utf-8",
     "Cache-Control": "no-store",
+    "X-Content-Type-Options": "nosniff",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "X-Frame-Options": "DENY",
   });
   res.end(JSON.stringify(payload));
 }
@@ -405,12 +584,23 @@ function sendText(res, statusCode, message, headers = {}) {
 }
 
 function readJsonBody(req) {
+  const contentLength = Number(req.headers["content-length"] || 0);
+  const hasDeclaredBody = contentLength > 0 || Boolean(req.headers["transfer-encoding"]);
+  const contentType = String(req.headers["content-type"] || "").toLowerCase();
+
+  if (contentLength > MAX_BODY_BYTES) {
+    throw new HttpError(413, "Requisição grande demais.");
+  }
+  if (hasDeclaredBody && !contentType.includes("application/json")) {
+    throw new HttpError(415, "Envie os dados como JSON.");
+  }
+
   return new Promise((resolve, reject) => {
     let body = "";
     req.setEncoding("utf8");
     req.on("data", (chunk) => {
       body += chunk;
-      if (body.length > 12_000_000) {
+      if (Buffer.byteLength(body, "utf8") > MAX_BODY_BYTES) {
         reject(new HttpError(413, "Requisição grande demais."));
         req.destroy();
       }
@@ -437,25 +627,29 @@ async function handleApi(req, res, url) {
   const body = ["POST", "PATCH", "DELETE"].includes(method) ? await readJsonBody(req) : {};
 
   if (method === "POST" && pathname === "/api/accounts/migrate") {
+    assertRateLimit("migration-ip", getClientIp(req), RATE_LIMITS.migrationIp);
     const incoming = Array.isArray(body?.store?.accounts)
-      ? body.store.accounts.map(normalizeAccountRecord).filter(Boolean)
+      ? body.store.accounts.slice(0, MAX_LEGACY_MIGRATION_ACCOUNTS).map(normalizeImportedAccountRecord).filter(Boolean)
       : [];
     if (!incoming.length) {
-      sendJson(res, 200, { ok: true });
+      sendJson(res, 200, { ok: true, imported: 0, skipped: 0 });
       return;
     }
 
     const store = readStore();
+    let imported = 0;
+    let skipped = 0;
     incoming.forEach((account) => {
-      const existingIndex = store.accounts.findIndex((item) => item.id === account.id || item.email === account.email);
-      if (existingIndex >= 0) {
-        store.accounts[existingIndex] = mergeAccounts(store.accounts[existingIndex], account);
-      } else {
-        store.accounts.push(account);
+      const exists = store.accounts.some((item) => item.id === account.id || item.email === account.email);
+      if (exists) {
+        skipped += 1;
+        return;
       }
+      store.accounts.push(account);
+      imported += 1;
     });
     writeStore(store);
-    sendJson(res, 200, { ok: true });
+    sendJson(res, 200, { ok: true, imported, skipped });
     return;
   }
 
@@ -470,16 +664,17 @@ async function handleApi(req, res, url) {
   }
 
   if (method === "POST" && pathname === "/api/accounts/register") {
-    assertAccountInput(body, { creating: true });
+    assertRateLimit("register-ip", getClientIp(req), RATE_LIMITS.registerIp);
+    assertAccountInput(body, { creating: true, newPassword: true });
     const store = readStore();
-    const email = normalizeEmail(body.email);
+    const email = assertEmailInput(body.email);
     if (store.accounts.some((account) => account.email === email)) {
       throw new HttpError(409, "Já existe uma conta com este e-mail.");
     }
 
     const account = {
       id: makeId("account"),
-      displayName: String(body.displayName || "").trim(),
+      displayName: assertDisplayNameInput(body.displayName),
       email,
       ...makePasswordRecord(body.password),
       createdAt: new Date().toISOString(),
@@ -494,11 +689,13 @@ async function handleApi(req, res, url) {
   }
 
   if (method === "POST" && pathname === "/api/accounts/login") {
+    assertRateLimit("login-ip", getClientIp(req), RATE_LIMITS.loginIp);
+    assertRateLimit("login-email", normalizeEmail(body.email), RATE_LIMITS.loginEmail);
     assertAccountInput(body);
     const store = readStore();
     const account = store.accounts.find((item) => item.email === normalizeEmail(body.email));
     if (!account) {
-      throw new HttpError(404, "Conta não encontrada.");
+      throw new HttpError(401, "E-mail ou senha incorretos.");
     }
 
     assertPassword(account, body.password);
@@ -522,16 +719,15 @@ async function handleApi(req, res, url) {
     const { account, session } = requireAuthenticatedAccount(store, req);
 
     const nextName = String(body.displayName ?? account.displayName).trim();
-    const nextEmail = normalizeEmail(body.email ?? account.email);
-    if (!nextName) throw new HttpError(400, "Informe um nome para a conta.");
-    if (!nextEmail || !nextEmail.includes("@")) throw new HttpError(400, "Informe um e-mail válido.");
+    const nextEmail = assertEmailInput(body.email ?? account.email);
+    assertDisplayNameInput(nextName);
 
     const wantsEmailChange = nextEmail !== account.email;
     const wantsPasswordChange = Boolean(body.newPassword);
     if (wantsEmailChange || wantsPasswordChange) {
       assertPassword(account, body.currentPassword);
     }
-    if (wantsPasswordChange) assertPasswordInput(body.newPassword);
+    if (wantsPasswordChange) assertNewPasswordInput(body.newPassword);
     if (wantsEmailChange && store.accounts.some((item) => item.id !== account.id && item.email === nextEmail)) {
       throw new HttpError(409, "Já existe uma conta com este e-mail.");
     }
@@ -567,11 +763,11 @@ async function handleApi(req, res, url) {
     const bucket = getEditionBucket(account, body.edition);
     const now = new Date().toISOString();
     const payload = body.payload || {};
-    const overwriteId = String(body.overwriteId || "");
+    const overwriteId = readOptionalRecordId(body.overwriteId, "character", "Personagem");
     const characterPayload = {
       name: sanitizeCharacterName(payload.name),
       summary: sanitizeCharacterSummary(payload.summary),
-      snapshot: payload.snapshot && typeof payload.snapshot === "object" ? payload.snapshot : {},
+      snapshot: sanitizeSnapshot(payload.snapshot, { strict: true }),
     };
 
     let character;
@@ -608,7 +804,9 @@ async function handleApi(req, res, url) {
     const { account } = requireAuthenticatedAccount(store, req);
 
     const bucket = getEditionBucket(account, body.edition);
-    const nextBucket = bucket.filter((character) => character.id !== body.characterId);
+    const characterId = readOptionalRecordId(body.characterId, "character", "Personagem");
+    if (!characterId) throw new HttpError(400, "Personagem inválido.");
+    const nextBucket = bucket.filter((character) => character.id !== characterId);
     if (nextBucket.length === bucket.length) {
       throw new HttpError(404, "Personagem salvo não encontrado.");
     }
@@ -620,28 +818,6 @@ async function handleApi(req, res, url) {
   }
 
   throw new HttpError(404, "Endpoint não encontrado.");
-}
-
-function mergeAccounts(current, incoming) {
-  const next = normalizeAccountRecord(current);
-  if (!next) return incoming;
-
-  next.displayName = next.displayName || incoming.displayName;
-  next.email = next.email || incoming.email;
-  next.passwordSalt = next.passwordSalt || incoming.passwordSalt;
-  next.passwordHash = next.passwordHash || incoming.passwordHash;
-  next.passwordAlgo = next.passwordAlgo || incoming.passwordAlgo;
-  next.createdAt = next.createdAt || incoming.createdAt;
-
-  EDITIONS.forEach((edition) => {
-    const byId = new Map(getEditionBucket(next, edition).map((character) => [character.id, character]));
-    getEditionBucket(incoming, edition).forEach((character) => {
-      byId.set(character.id, character);
-    });
-    next.characters[edition] = [...byId.values()];
-  });
-
-  return next;
 }
 
 function resolveRequestPath(urlPath) {
@@ -698,6 +874,9 @@ const server = createServer(async (req, res) => {
     res.writeHead(200, {
       "Content-Type": contentType,
       "X-Content-Type-Options": "nosniff",
+      "Referrer-Policy": "strict-origin-when-cross-origin",
+      "X-Frame-Options": "DENY",
+      "Permissions-Policy": "camera=(), microphone=(), geolocation=(), payment=()",
     });
     createReadStream(filePath).pipe(res);
   } catch (error) {

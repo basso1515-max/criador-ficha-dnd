@@ -77,17 +77,17 @@
 
             <label class="row">
               <span>Nome</span>
-              <input name="displayName" type="text" autocomplete="name" required />
+              <input name="displayName" type="text" autocomplete="name" maxlength="80" required />
             </label>
 
             <label class="row">
               <span>E-mail</span>
-              <input name="email" type="email" autocomplete="email" required />
+              <input name="email" type="email" autocomplete="email" maxlength="254" required />
             </label>
 
             <label class="row">
               <span>Senha atual para trocar e-mail</span>
-              <input name="currentPassword" type="password" autocomplete="current-password" />
+              <input name="currentPassword" type="password" autocomplete="current-password" maxlength="256" />
             </label>
 
             <button type="submit" class="primary account-submit-button">Salvar alterações</button>
@@ -102,17 +102,17 @@
 
             <label class="row">
               <span>Senha atual</span>
-              <input name="currentPassword" type="password" autocomplete="current-password" required />
+              <input name="currentPassword" type="password" autocomplete="current-password" maxlength="256" required />
             </label>
 
             <label class="row">
               <span>Nova senha</span>
-              <input name="newPassword" type="password" autocomplete="new-password" minlength="4" required />
+              <input name="newPassword" type="password" autocomplete="new-password" minlength="8" maxlength="256" required />
             </label>
 
             <label class="row">
               <span>Confirmar nova senha</span>
-              <input name="confirmPassword" type="password" autocomplete="new-password" minlength="4" required />
+              <input name="confirmPassword" type="password" autocomplete="new-password" minlength="8" maxlength="256" required />
             </label>
 
             <button type="submit" class="primary account-submit-button">Alterar senha</button>
@@ -127,7 +127,7 @@
 
             <label class="row">
               <span>Senha atual</span>
-              <input name="password" type="password" autocomplete="current-password" required />
+              <input name="password" type="password" autocomplete="current-password" maxlength="256" required />
             </label>
 
             <label class="checkbox-row danger-confirm-row">

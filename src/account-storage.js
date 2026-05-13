@@ -2,8 +2,15 @@ export const ACCOUNT_LIMIT_PER_EDITION = 10;
 
 const LEGACY_STORE_KEY = "dnd_sheet_accounts_v1";
 const LEGACY_SESSION_KEY = "dnd_sheet_current_account_v1";
+const LEGACY_MIGRATION_DISABLED_KEY = "dnd_sheet_legacy_migration_disabled_v1";
 const STORE_VERSION = 1;
 const EDITIONS = ["5e", "5.5e-2024"];
+const MAX_DISPLAY_NAME_LENGTH = 80;
+const MAX_EMAIL_LENGTH = 254;
+const MIN_NEW_PASSWORD_LENGTH = 8;
+const MAX_PASSWORD_LENGTH = 256;
+const MAX_CHARACTER_NAME_LENGTH = 80;
+const MAX_CHARACTER_SUMMARY_LENGTH = 260;
 
 let currentAccount = null;
 let storageMode = "pending";
@@ -52,6 +59,16 @@ function clearLegacyStore() {
   if (!canUseLocalStorage()) return;
   localStorage.removeItem(LEGACY_STORE_KEY);
   localStorage.removeItem(LEGACY_SESSION_KEY);
+}
+
+function isLegacyMigrationDisabled() {
+  if (!canUseLocalStorage()) return false;
+  return localStorage.getItem(LEGACY_MIGRATION_DISABLED_KEY) === "1";
+}
+
+function disableLegacyMigrationRetry() {
+  if (!canUseLocalStorage()) return;
+  localStorage.setItem(LEGACY_MIGRATION_DISABLED_KEY, "1");
 }
 
 function normalizeCharacters(characters) {
@@ -116,21 +133,57 @@ function toPublicUser(account) {
   };
 }
 
-function assertAccountInput({ displayName, email, password }, { creating = false, passwordRequired = true } = {}) {
-  if (creating && !String(displayName || "").trim()) {
+function assertDisplayNameInput(displayName) {
+  const name = String(displayName || "").trim();
+  if (!name) {
     throw new Error("Informe um nome para a conta.");
   }
-  if (!normalizeEmail(email) || !normalizeEmail(email).includes("@")) {
+  if (name.length > MAX_DISPLAY_NAME_LENGTH) {
+    throw new Error(`Use um nome com até ${MAX_DISPLAY_NAME_LENGTH} caracteres.`);
+  }
+  return name;
+}
+
+function assertEmailInput(email) {
+  const normalized = normalizeEmail(email);
+  if (
+    !normalized
+    || normalized.length > MAX_EMAIL_LENGTH
+    || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized)
+  ) {
     throw new Error("Informe um e-mail válido.");
   }
-  if (passwordRequired && String(password || "").length < 4) {
-    throw new Error("Use uma senha com pelo menos 4 caracteres.");
+  return normalized;
+}
+
+function assertAccountInput({ displayName, email, password }, { creating = false, passwordRequired = true, newPassword = false } = {}) {
+  if (creating) {
+    assertDisplayNameInput(displayName);
+  }
+  assertEmailInput(email);
+  if (passwordRequired) {
+    if (newPassword) {
+      assertNewPasswordInput(password);
+    } else {
+      assertPasswordCredentialInput(password);
+    }
   }
 }
 
-function assertPasswordInput(password) {
-  if (String(password || "").length < 4) {
-    throw new Error("Use uma senha com pelo menos 4 caracteres.");
+function assertPasswordCredentialInput(password) {
+  const value = String(password || "");
+  if (!value) {
+    throw new Error("Informe a senha.");
+  }
+  if (value.length > MAX_PASSWORD_LENGTH) {
+    throw new Error(`Use uma senha com até ${MAX_PASSWORD_LENGTH} caracteres.`);
+  }
+}
+
+function assertNewPasswordInput(password) {
+  assertPasswordCredentialInput(password);
+  if (String(password || "").length < MIN_NEW_PASSWORD_LENGTH) {
+    throw new Error(`Use uma senha com pelo menos ${MIN_NEW_PASSWORD_LENGTH} caracteres.`);
   }
 }
 
@@ -145,12 +198,12 @@ function getEditionBucket(account, edition) {
 }
 
 function sanitizeCharacterName(name) {
-  const text = String(name || "").trim();
+  const text = String(name || "").trim().slice(0, MAX_CHARACTER_NAME_LENGTH);
   return text || "Personagem sem nome";
 }
 
 function sanitizeCharacterSummary(summary) {
-  return String(summary || "").trim().slice(0, 260);
+  return String(summary || "").trim().slice(0, MAX_CHARACTER_SUMMARY_LENGTH);
 }
 
 function sortCharacters(characters) {
@@ -183,24 +236,41 @@ async function requestApi(path, { method = "GET", body } = {}) {
   }
 
   if (!response.ok) {
-    throw new Error(payload?.message || "Não foi possível falar com o servidor.");
+    const error = new Error(payload?.message || "Não foi possível falar com o servidor.");
+    error.statusCode = response.status;
+    throw error;
   }
 
   return payload;
 }
 
 async function migrateLegacyStoreToServer() {
+  if (isLegacyMigrationDisabled()) return;
+
   const legacyStore = readLegacyStore();
   if (!legacyStore.accounts.length) {
     clearLegacyStore();
     return;
   }
 
-  await requestApi("/api/accounts/migrate", {
-    method: "POST",
-    body: { store: legacyStore },
-  });
-  clearLegacyStore();
+  try {
+    const result = await requestApi("/api/accounts/migrate", {
+      method: "POST",
+      body: { store: legacyStore },
+    });
+    if (Number(result?.skipped || 0) > 0) {
+      disableLegacyMigrationRetry();
+      return;
+    }
+    clearLegacyStore();
+  } catch (error) {
+    if ([403, 410, 413, 415].includes(Number(error?.statusCode))) {
+      disableLegacyMigrationRetry();
+      console.warn("Migração local antiga não foi aceita pelo servidor.", error);
+      return;
+    }
+    throw error;
+  }
 }
 
 async function ensureServerReady() {
@@ -262,7 +332,7 @@ export function getAccountCounts() {
 }
 
 export async function registerAccount({ displayName, email, password }) {
-  assertAccountInput({ displayName, email, password }, { creating: true });
+  assertAccountInput({ displayName, email, password }, { creating: true, newPassword: true });
   await ensureServerReady();
 
   const data = await requestApi("/api/accounts/register", {
@@ -359,10 +429,9 @@ export async function updateCurrentAccount({ displayName, email, currentPassword
   }
 
   const nextName = String(displayName ?? currentAccount.displayName).trim();
-  const nextEmail = normalizeEmail(email ?? currentAccount.email);
-  if (!nextName) throw new Error("Informe um nome para a conta.");
-  if (!nextEmail || !nextEmail.includes("@")) throw new Error("Informe um e-mail válido.");
-  if (newPassword) assertPasswordInput(newPassword);
+  const nextEmail = assertEmailInput(email ?? currentAccount.email);
+  assertDisplayNameInput(nextName);
+  if (newPassword) assertNewPasswordInput(newPassword);
 
   const data = await requestApi("/api/account/current", {
     method: "PATCH",

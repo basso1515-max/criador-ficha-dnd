@@ -8,6 +8,23 @@ const COOKIE_NAME = "dnd_sheet_session";
 const SESSION_TTL_SECONDS = 60 * 60 * 24 * 30;
 const PASSWORD_ALGO = "scrypt-v1";
 const SCRYPT_OPTIONS = { N: 16384, r: 8, p: 1, maxmem: 64 * 1024 * 1024 };
+const MAX_BODY_BYTES = 2 * 1024 * 1024;
+const MAX_DISPLAY_NAME_LENGTH = 80;
+const MAX_EMAIL_LENGTH = 254;
+const MIN_NEW_PASSWORD_LENGTH = 8;
+const MAX_PASSWORD_LENGTH = 256;
+const MAX_CHARACTER_NAME_LENGTH = 80;
+const MAX_CHARACTER_SUMMARY_LENGTH = 260;
+const MAX_SNAPSHOT_BYTES = 500_000;
+const MAX_LEGACY_MIGRATION_ACCOUNTS = 20;
+const PASSWORD_IMPORT_ALGOS = new Set(["sha256", "legacy-fallback", PASSWORD_ALGO]);
+const RATE_LIMITS = {
+  loginIp: { limit: 30, windowSeconds: 15 * 60 },
+  loginEmail: { limit: 8, windowSeconds: 15 * 60 },
+  registerIp: { limit: 10, windowSeconds: 60 * 60 },
+  migrationIp: { limit: 2, windowSeconds: 60 * 60 },
+};
+const SAFE_ID_RE = /^[a-z]+_[a-zA-Z0-9_-]{8,128}$/;
 
 let redisClient = null;
 
@@ -44,42 +61,101 @@ function keyAccountSessions(accountId) {
 function normalizeCharacters(characters) {
   const source = characters && typeof characters === "object" ? characters : {};
   return {
-    "5e": Array.isArray(source["5e"]) ? source["5e"].map(normalizeCharacterRecord).filter(Boolean) : [],
-    "5.5e-2024": Array.isArray(source["5.5e-2024"])
-      ? source["5.5e-2024"].map(normalizeCharacterRecord).filter(Boolean)
-      : [],
+    "5e": normalizeCharacterList(source["5e"]),
+    "5.5e-2024": normalizeCharacterList(source["5.5e-2024"]),
   };
+}
+
+function normalizeCharacterList(characters) {
+  return Array.isArray(characters)
+    ? characters.slice(0, ACCOUNT_LIMIT_PER_EDITION).map(normalizeCharacterRecord).filter(Boolean)
+    : [];
 }
 
 function normalizeCharacterRecord(character) {
   if (!character || typeof character !== "object") return null;
+  const now = new Date().toISOString();
   return {
-    id: String(character.id || makeId("character")),
+    id: sanitizeRecordId(character.id, "character"),
     edition: EDITIONS.includes(character.edition) ? character.edition : "",
     name: sanitizeCharacterName(character.name),
     summary: sanitizeCharacterSummary(character.summary),
-    snapshot: character.snapshot && typeof character.snapshot === "object" ? character.snapshot : {},
-    createdAt: String(character.createdAt || new Date().toISOString()),
-    updatedAt: String(character.updatedAt || new Date().toISOString()),
+    snapshot: sanitizeSnapshot(character.snapshot),
+    createdAt: sanitizeDateString(character.createdAt, now),
+    updatedAt: sanitizeDateString(character.updatedAt, now),
   };
 }
 
 function normalizeAccountRecord(account) {
   if (!account || typeof account !== "object") return null;
   return {
-    id: String(account.id || makeId("account")),
-    displayName: String(account.displayName || "").trim(),
+    id: sanitizeRecordId(account.id, "account"),
+    displayName: sanitizeDisplayName(account.displayName),
     email: normalizeEmail(account.email || ""),
-    passwordAlgo: String(account.passwordAlgo || "sha256").trim() || "sha256",
-    passwordSalt: String(account.passwordSalt || ""),
-    passwordHash: String(account.passwordHash || ""),
-    createdAt: String(account.createdAt || new Date().toISOString()),
+    passwordAlgo: sanitizePasswordAlgo(account.passwordAlgo),
+    passwordSalt: sanitizePasswordSecret(account.passwordSalt),
+    passwordHash: sanitizePasswordSecret(account.passwordHash),
+    createdAt: sanitizeDateString(account.createdAt, new Date().toISOString()),
     characters: normalizeCharacters(account.characters),
   };
 }
 
 function normalizeEmail(email) {
   return String(email || "").trim().toLowerCase();
+}
+
+function sanitizeDisplayName(displayName) {
+  return String(displayName || "").trim().slice(0, MAX_DISPLAY_NAME_LENGTH);
+}
+
+function sanitizePasswordAlgo(algorithm) {
+  const value = String(algorithm || "sha256").trim();
+  return PASSWORD_IMPORT_ALGOS.has(value) ? value : "sha256";
+}
+
+function sanitizePasswordSecret(value) {
+  return String(value || "").trim().slice(0, 256);
+}
+
+function sanitizeDateString(value, fallback) {
+  const date = new Date(String(value || ""));
+  return Number.isNaN(date.getTime()) ? fallback : date.toISOString();
+}
+
+function isSafeRecordId(value, prefix) {
+  const text = String(value || "").trim();
+  return text.startsWith(`${prefix}_`) && SAFE_ID_RE.test(text);
+}
+
+function sanitizeRecordId(value, prefix) {
+  const text = String(value || "").trim();
+  return isSafeRecordId(text, prefix) ? text : makeId(prefix);
+}
+
+function readOptionalRecordId(value, prefix, label) {
+  const text = String(value || "").trim();
+  if (!text) return "";
+  if (!isSafeRecordId(text, prefix)) {
+    throw new HttpError(400, `${label} invalido.`);
+  }
+  return text;
+}
+
+function sanitizeSnapshot(snapshot, { strict = false } = {}) {
+  if (!snapshot || typeof snapshot !== "object" || Array.isArray(snapshot)) return {};
+
+  try {
+    const json = JSON.stringify(snapshot);
+    if (json.length > MAX_SNAPSHOT_BYTES) {
+      if (strict) throw new HttpError(413, "Dados do personagem grandes demais.");
+      return {};
+    }
+    return JSON.parse(json);
+  } catch (error) {
+    if (error instanceof HttpError) throw error;
+    if (strict) throw new HttpError(400, "Dados do personagem invalidos.");
+    return {};
+  }
 }
 
 function makeId(prefix) {
@@ -153,32 +229,100 @@ function toClientAccount(account) {
   };
 }
 
-function assertAccountInput({ displayName, email, password }, { creating = false, passwordRequired = true } = {}) {
-  if (creating && !String(displayName || "").trim()) {
+function assertDisplayNameInput(displayName) {
+  const name = String(displayName || "").trim();
+  if (!name) {
     throw new HttpError(400, "Informe um nome para a conta.");
   }
-  if (!normalizeEmail(email) || !normalizeEmail(email).includes("@")) {
+  if (name.length > MAX_DISPLAY_NAME_LENGTH) {
+    throw new HttpError(400, `Use um nome com ate ${MAX_DISPLAY_NAME_LENGTH} caracteres.`);
+  }
+  return name;
+}
+
+function assertEmailInput(email) {
+  const normalized = normalizeEmail(email);
+  if (
+    !normalized
+    || normalized.length > MAX_EMAIL_LENGTH
+    || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized)
+  ) {
     throw new HttpError(400, "Informe um e-mail valido.");
   }
-  if (passwordRequired && String(password || "").length < 4) {
-    throw new HttpError(400, "Use uma senha com pelo menos 4 caracteres.");
+  return normalized;
+}
+
+function assertAccountInput({ displayName, email, password }, { creating = false, passwordRequired = true, newPassword = false } = {}) {
+  if (creating) {
+    assertDisplayNameInput(displayName);
+  }
+  assertEmailInput(email);
+  if (passwordRequired) {
+    if (newPassword) {
+      assertNewPasswordInput(password);
+    } else {
+      assertPasswordCredentialInput(password);
+    }
   }
 }
 
-function assertPasswordInput(password) {
-  if (String(password || "").length < 4) {
-    throw new HttpError(400, "Use uma senha com pelo menos 4 caracteres.");
+function assertPasswordCredentialInput(password) {
+  const value = String(password || "");
+  if (!value) {
+    throw new HttpError(400, "Informe a senha.");
+  }
+  if (value.length > MAX_PASSWORD_LENGTH) {
+    throw new HttpError(400, `Use uma senha com ate ${MAX_PASSWORD_LENGTH} caracteres.`);
+  }
+}
+
+function assertNewPasswordInput(password) {
+  assertPasswordCredentialInput(password);
+  if (String(password || "").length < MIN_NEW_PASSWORD_LENGTH) {
+    throw new HttpError(400, `Use uma senha com pelo menos ${MIN_NEW_PASSWORD_LENGTH} caracteres.`);
   }
 }
 
 function assertPassword(account, password) {
-  assertPasswordInput(password);
+  assertPasswordCredentialInput(password);
   const algorithm = String(account.passwordHash || "").startsWith("fallback-")
     ? "legacy-fallback"
     : account.passwordAlgo || "sha256";
   const passwordHash = hashPassword(password, account.passwordSalt, algorithm);
   if (!safeHashEquals(passwordHash, account.passwordHash)) {
     throw new HttpError(401, "Senha incorreta.");
+  }
+}
+
+function assertImportedPasswordRecord(account) {
+  if (!PASSWORD_IMPORT_ALGOS.has(account.passwordAlgo)) {
+    throw new HttpError(400, "Registro de senha legado invalido.");
+  }
+  if (!account.passwordSalt || account.passwordSalt.length > 256) {
+    throw new HttpError(400, "Registro de senha legado invalido.");
+  }
+  if (account.passwordAlgo === "legacy-fallback") {
+    if (!String(account.passwordHash || "").startsWith("fallback-")) {
+      throw new HttpError(400, "Registro de senha legado invalido.");
+    }
+    return;
+  }
+  if (!/^[a-f0-9]{32,256}$/i.test(String(account.passwordHash || ""))) {
+    throw new HttpError(400, "Registro de senha legado invalido.");
+  }
+}
+
+function normalizeImportedAccountRecord(account) {
+  const normalized = normalizeAccountRecord(account);
+  if (!normalized) return null;
+
+  try {
+    assertDisplayNameInput(normalized.displayName);
+    normalized.email = assertEmailInput(normalized.email);
+    assertImportedPasswordRecord(normalized);
+    return normalized;
+  } catch {
+    return null;
   }
 }
 
@@ -202,15 +346,16 @@ function getEditionBucket(account, edition) {
 }
 
 function sanitizeCharacterName(name) {
-  const text = String(name || "").trim();
+  const text = String(name || "").trim().slice(0, MAX_CHARACTER_NAME_LENGTH);
   return text || "Personagem sem nome";
 }
 
 function sanitizeCharacterSummary(summary) {
-  return String(summary || "").trim().slice(0, 260);
+  return String(summary || "").trim().slice(0, MAX_CHARACTER_SUMMARY_LENGTH);
 }
 
 async function getAccountById(redis, accountId) {
+  if (!isSafeRecordId(accountId, "account")) return null;
   const account = await redis.get(keyAccount(accountId));
   return normalizeAccountRecord(account);
 }
@@ -222,6 +367,8 @@ async function getAccountByEmail(redis, email) {
 
 async function saveAccount(redis, account, { previousEmail = "" } = {}) {
   const normalized = normalizeAccountRecord(account);
+  assertDisplayNameInput(normalized.displayName);
+  assertEmailInput(normalized.email);
   await redis.set(keyAccount(normalized.id), normalized);
   await redis.set(keyEmail(normalized.email), normalized.id);
   if (previousEmail && normalizeEmail(previousEmail) !== normalized.email) {
@@ -231,7 +378,11 @@ async function saveAccount(redis, account, { previousEmail = "" } = {}) {
 }
 
 async function reserveEmail(redis, email, accountId) {
-  const result = await redis.set(keyEmail(email), accountId, { nx: true });
+  const normalizedEmail = assertEmailInput(email);
+  if (!isSafeRecordId(accountId, "account")) {
+    throw new HttpError(400, "Identificador da conta invalido.");
+  }
+  const result = await redis.set(keyEmail(normalizedEmail), accountId, { nx: true });
   return result !== null;
 }
 
@@ -343,6 +494,11 @@ function assertSameOrigin(req) {
   const method = req.method || "GET";
   if (["GET", "HEAD", "OPTIONS"].includes(method)) return;
 
+  const fetchSite = String(req.headers["sec-fetch-site"] || "").toLowerCase();
+  if (fetchSite === "cross-site") {
+    throw new HttpError(403, "Origem da requisicao nao autorizada.");
+  }
+
   const origin = req.headers.origin;
   if (!origin) return;
 
@@ -357,6 +513,30 @@ function assertSameOrigin(req) {
   }
 }
 
+function getClientIp(req) {
+  const forwardedFor = String(req.headers["x-forwarded-for"] || "").split(",")[0].trim();
+  return forwardedFor || String(req.socket?.remoteAddress || "unknown");
+}
+
+function hashRateLimitIdentifier(identifier) {
+  return createHash("sha256").update(String(identifier || "unknown")).digest("hex").slice(0, 32);
+}
+
+function keyRateLimit(scope, identifier) {
+  return `${STORE_PREFIX}:rate:${scope}:${hashRateLimitIdentifier(identifier)}`;
+}
+
+async function assertRateLimit(redis, scope, identifier, { limit, windowSeconds }) {
+  const key = keyRateLimit(scope, identifier);
+  const count = Number(await redis.incr(key));
+  if (count === 1) {
+    await redis.expire(key, windowSeconds);
+  }
+  if (count > limit) {
+    throw new HttpError(429, "Muitas tentativas. Aguarde um pouco e tente novamente.");
+  }
+}
+
 class HttpError extends Error {
   constructor(statusCode, message) {
     super(message);
@@ -368,13 +548,30 @@ function sendJson(res, statusCode, payload = {}) {
   res.statusCode = statusCode;
   res.setHeader("Content-Type", "application/json; charset=utf-8");
   res.setHeader("Cache-Control", "no-store");
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+  res.setHeader("X-Frame-Options", "DENY");
   res.end(JSON.stringify(payload));
 }
 
 async function readJsonBody(req) {
+  const contentLength = Number(req.headers["content-length"] || 0);
+  const hasDeclaredBody = contentLength > 0 || Boolean(req.headers["transfer-encoding"]);
+  const contentType = String(req.headers["content-type"] || "").toLowerCase();
+
+  if (contentLength > MAX_BODY_BYTES) {
+    throw new HttpError(413, "Requisicao grande demais.");
+  }
+  if (hasDeclaredBody && !contentType.includes("application/json")) {
+    throw new HttpError(415, "Envie os dados como JSON.");
+  }
+
   if (req.body !== undefined) {
     if (!req.body) return {};
     if (typeof req.body === "string") {
+      if (Buffer.byteLength(req.body, "utf8") > MAX_BODY_BYTES) {
+        throw new HttpError(413, "Requisicao grande demais.");
+      }
       try {
         return JSON.parse(req.body);
       } catch {
@@ -389,7 +586,7 @@ async function readJsonBody(req) {
     req.setEncoding?.("utf8");
     req.on("data", (chunk) => {
       body += chunk;
-      if (body.length > 12_000_000) {
+      if (Buffer.byteLength(body, "utf8") > MAX_BODY_BYTES) {
         reject(new HttpError(413, "Requisicao grande demais."));
         req.destroy();
       }
@@ -409,28 +606,6 @@ async function readJsonBody(req) {
   });
 }
 
-function mergeAccounts(current, incoming) {
-  const next = normalizeAccountRecord(current);
-  if (!next) return incoming;
-
-  next.displayName = next.displayName || incoming.displayName;
-  next.email = next.email || incoming.email;
-  next.passwordAlgo = next.passwordAlgo || incoming.passwordAlgo;
-  next.passwordSalt = next.passwordSalt || incoming.passwordSalt;
-  next.passwordHash = next.passwordHash || incoming.passwordHash;
-  next.createdAt = next.createdAt || incoming.createdAt;
-
-  EDITIONS.forEach((edition) => {
-    const byId = new Map(getEditionBucket(next, edition).map((character) => [character.id, character]));
-    getEditionBucket(incoming, edition).forEach((character) => {
-      byId.set(character.id, character);
-    });
-    next.characters[edition] = [...byId.values()];
-  });
-
-  return next;
-}
-
 async function handleAccountApiInternal(req, res, pathname) {
   const redis = getRedis();
   const method = req.method || "GET";
@@ -438,25 +613,34 @@ async function handleAccountApiInternal(req, res, pathname) {
   const body = ["POST", "PATCH", "DELETE"].includes(method) ? await readJsonBody(req) : {};
 
   if (method === "POST" && pathname === "/api/accounts/migrate") {
+    await assertRateLimit(redis, "migration-ip", getClientIp(req), RATE_LIMITS.migrationIp);
     const incoming = Array.isArray(body?.store?.accounts)
-      ? body.store.accounts.map(normalizeAccountRecord).filter(Boolean)
+      ? body.store.accounts.slice(0, MAX_LEGACY_MIGRATION_ACCOUNTS).map(normalizeImportedAccountRecord).filter(Boolean)
       : [];
+    let imported = 0;
+    let skipped = 0;
 
     for (const account of incoming) {
-      if (!account.email) continue;
+      if (!account.email) {
+        skipped += 1;
+        continue;
+      }
       const existing = await getAccountByEmail(redis, account.email);
       if (existing) {
-        await saveAccount(redis, mergeAccounts(existing, account));
+        skipped += 1;
         continue;
       }
 
       const reserved = await reserveEmail(redis, account.email, account.id);
       if (reserved) {
         await saveAccount(redis, account);
+        imported += 1;
+      } else {
+        skipped += 1;
       }
     }
 
-    sendJson(res, 200, { ok: true });
+    sendJson(res, 200, { ok: true, imported, skipped });
     return;
   }
 
@@ -470,11 +654,12 @@ async function handleAccountApiInternal(req, res, pathname) {
   }
 
   if (method === "POST" && pathname === "/api/accounts/register") {
-    assertAccountInput(body, { creating: true });
-    const email = normalizeEmail(body.email);
+    await assertRateLimit(redis, "register-ip", getClientIp(req), RATE_LIMITS.registerIp);
+    assertAccountInput(body, { creating: true, newPassword: true });
+    const email = assertEmailInput(body.email);
     const account = {
       id: makeId("account"),
-      displayName: String(body.displayName || "").trim(),
+      displayName: assertDisplayNameInput(body.displayName),
       email,
       ...makePasswordRecord(body.password),
       createdAt: new Date().toISOString(),
@@ -493,10 +678,12 @@ async function handleAccountApiInternal(req, res, pathname) {
   }
 
   if (method === "POST" && pathname === "/api/accounts/login") {
+    await assertRateLimit(redis, "login-ip", getClientIp(req), RATE_LIMITS.loginIp);
+    await assertRateLimit(redis, "login-email", normalizeEmail(body.email), RATE_LIMITS.loginEmail);
     assertAccountInput(body);
     const account = await getAccountByEmail(redis, body.email);
     if (!account) {
-      throw new HttpError(404, "Conta nao encontrada.");
+      throw new HttpError(401, "E-mail ou senha incorretos.");
     }
 
     assertPassword(account, body.password);
@@ -518,16 +705,15 @@ async function handleAccountApiInternal(req, res, pathname) {
     const { account, tokenHash } = await requireAuthenticatedAccount(redis, req);
     const currentEmail = account.email;
     const nextName = String(body.displayName ?? account.displayName).trim();
-    const nextEmail = normalizeEmail(body.email ?? account.email);
-    if (!nextName) throw new HttpError(400, "Informe um nome para a conta.");
-    if (!nextEmail || !nextEmail.includes("@")) throw new HttpError(400, "Informe um e-mail valido.");
+    const nextEmail = assertEmailInput(body.email ?? account.email);
+    assertDisplayNameInput(nextName);
 
     const wantsEmailChange = nextEmail !== account.email;
     const wantsPasswordChange = Boolean(body.newPassword);
     if (wantsEmailChange || wantsPasswordChange) {
       assertPassword(account, body.currentPassword);
     }
-    if (wantsPasswordChange) assertPasswordInput(body.newPassword);
+    if (wantsPasswordChange) assertNewPasswordInput(body.newPassword);
 
     if (wantsEmailChange) {
       const reserved = await reserveEmail(redis, nextEmail, account.id);
@@ -566,11 +752,11 @@ async function handleAccountApiInternal(req, res, pathname) {
     const bucket = getEditionBucket(account, body.edition);
     const now = new Date().toISOString();
     const payload = body.payload || {};
-    const overwriteId = String(body.overwriteId || "");
+    const overwriteId = readOptionalRecordId(body.overwriteId, "character", "Personagem");
     const characterPayload = {
       name: sanitizeCharacterName(payload.name),
       summary: sanitizeCharacterSummary(payload.summary),
-      snapshot: payload.snapshot && typeof payload.snapshot === "object" ? payload.snapshot : {},
+      snapshot: sanitizeSnapshot(payload.snapshot, { strict: true }),
     };
 
     let character;
@@ -605,7 +791,9 @@ async function handleAccountApiInternal(req, res, pathname) {
   if (method === "DELETE" && pathname === "/api/characters") {
     const { account } = await requireAuthenticatedAccount(redis, req);
     const bucket = getEditionBucket(account, body.edition);
-    const nextBucket = bucket.filter((character) => character.id !== body.characterId);
+    const characterId = readOptionalRecordId(body.characterId, "character", "Personagem");
+    if (!characterId) throw new HttpError(400, "Personagem invalido.");
+    const nextBucket = bucket.filter((character) => character.id !== characterId);
     if (nextBucket.length === bucket.length) {
       throw new HttpError(404, "Personagem salvo nao encontrado.");
     }

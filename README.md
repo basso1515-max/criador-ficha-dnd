@@ -29,7 +29,7 @@ Gerador de ficha preenchível de D&D com entradas separadas para `5e` e `5.5e (2
 
 ## Contas no servidor
 
-O cadastro, login, sessão e personagens salvos ficam no servidor. A sessão usa cookie `HttpOnly`; o navegador não guarda `accountId`, senha, personagens ou banco de contas no `localStorage`. Se houver contas antigas no navegador, elas são migradas uma vez para o servidor e removidas do armazenamento local.
+O cadastro, login, sessão e personagens salvos ficam no servidor. A sessão usa cookie `HttpOnly`; o navegador não guarda `accountId`, senha, personagens ou banco de contas no `localStorage`. Se houver contas antigas no navegador, elas são migradas uma vez quando o e-mail ainda não existe no servidor; registros conflitantes são ignorados para evitar que um cliente não autenticado altere dados de outra conta.
 
 Os dados ficam em `server-data/accounts.json`, que está no `.gitignore`. Para acesso por outros equipamentos, execute em uma máquina pública ou VPS com disco persistente e defina o host:
 
@@ -38,6 +38,10 @@ $env:HOST="0.0.0.0"
 $env:PORT="8000"
 npm run serve
 ```
+
+### Segurança da API
+
+O projeto não monta SQL; a API persiste contas por chaves em Redis na Vercel e em JSON no servidor local. Mesmo assim, as rotas de conta validam origem, aceitam corpo apenas em JSON, limitam tamanho de payload, aplicam limites básicos de tentativa para login/cadastro/migração e não mesclam migrações legadas em contas já existentes.
 
 Para publicar na internet, use HTTPS e um ambiente com armazenamento persistente. Deploy estático sem backend persistente não mantém cadastros entre execuções.
 
