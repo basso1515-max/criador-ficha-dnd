@@ -87,7 +87,19 @@
 
         <label class="row">
           <span>Senha</span>
-          <input name="password" type="password" autocomplete="new-password" minlength="8" maxlength="256" required />
+          <input id="accountRegisterPassword" name="password" type="password" autocomplete="new-password" minlength="8" maxlength="256" required />
+        </label>
+
+        <div class="account-password-feedback" aria-live="polite">
+          <div class="account-password-meter" aria-hidden="true">
+            <span id="accountRegisterPasswordStrengthBar" class="account-password-meter-fill is-empty"></span>
+          </div>
+          <p id="accountRegisterPasswordStrengthText" class="account-password-strength-text">Força da senha: ainda não informada.</p>
+        </div>
+
+        <label class="row">
+          <span>Confirmar senha</span>
+          <input name="confirmPassword" type="password" autocomplete="new-password" minlength="8" maxlength="256" required />
         </label>
 
         <button type="submit" class="primary account-submit-button">Criar conta</button>

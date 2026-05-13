@@ -19,12 +19,16 @@ const el = {
   authSection: document.getElementById("accountAuthSection"),
   loginForm: document.getElementById("accountLoginForm"),
   registerForm: document.getElementById("accountRegisterForm"),
+  registerPassword: document.getElementById("accountRegisterPassword"),
+  registerPasswordStrengthBar: document.getElementById("accountRegisterPasswordStrengthBar"),
+  registerPasswordStrengthText: document.getElementById("accountRegisterPasswordStrengthText"),
   status: document.getElementById("accountPageStatus"),
 };
 
 const returnTo = getSafeReturnTo();
 const LOGIN_SUCCESS_PAGE = "./minha-conta.html";
 const REGISTER_SUCCESS_PAGE = "./index.html";
+const PASSWORD_STRENGTH_CLASSES = ["is-empty", "is-weak", "is-medium", "is-strong", "is-very-strong"];
 
 function setStatus(message, tone = "info") {
   if (!el.status) return;
@@ -79,6 +83,42 @@ function completeAuth(message, redirectTo) {
   }
 }
 
+function getPasswordStrength(password) {
+  const value = String(password || "");
+  if (!value) {
+    return { width: 0, className: "is-empty", label: "Força da senha: ainda não informada." };
+  }
+
+  let score = 0;
+  if (value.length >= 8) score += 1;
+  if (value.length >= 12) score += 1;
+  if (/[a-z]/.test(value)) score += 1;
+  if (/[A-Z]/.test(value)) score += 1;
+  if (/\d/.test(value)) score += 1;
+  if (/[^A-Za-z0-9]/.test(value)) score += 1;
+
+  if (score <= 2) {
+    return { width: 34, className: "is-weak", label: "Força da senha: fraca." };
+  }
+  if (score <= 4) {
+    return { width: 62, className: "is-medium", label: "Força da senha: média." };
+  }
+  if (score === 5) {
+    return { width: 82, className: "is-strong", label: "Força da senha: forte." };
+  }
+  return { width: 100, className: "is-very-strong", label: "Força da senha: muito forte." };
+}
+
+function updateRegisterPasswordStrength() {
+  if (!el.registerPasswordStrengthBar || !el.registerPasswordStrengthText) return;
+
+  const state = getPasswordStrength(el.registerPassword?.value || "");
+  el.registerPasswordStrengthBar.style.width = `${state.width}%`;
+  el.registerPasswordStrengthBar.classList.remove(...PASSWORD_STRENGTH_CLASSES);
+  el.registerPasswordStrengthBar.classList.add(state.className);
+  el.registerPasswordStrengthText.textContent = state.label;
+}
+
 el.loginForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
   const formData = new FormData(el.loginForm);
@@ -98,19 +138,30 @@ el.loginForm?.addEventListener("submit", async (event) => {
 el.registerForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
   const formData = new FormData(el.registerForm);
+  const password = String(formData.get("password") || "");
+  const confirmPassword = String(formData.get("confirmPassword") || "");
+
+  if (password !== confirmPassword) {
+    setStatus("A confirmação da senha não confere.", "warning");
+    el.registerForm.elements.confirmPassword?.focus();
+    return;
+  }
 
   try {
     await registerAccount({
       displayName: formData.get("displayName"),
       email: formData.get("email"),
-      password: formData.get("password"),
+      password,
     });
     el.registerForm.reset();
+    updateRegisterPasswordStrength();
     completeAuth("Conta criada. Redirecionando para a página inicial.", REGISTER_SUCCESS_PAGE);
   } catch (error) {
     setStatus(error?.message || "Não foi possível criar a conta.", "warning");
   }
 });
+
+el.registerPassword?.addEventListener("input", updateRegisterPasswordStrength);
 
 el.logoutButton?.addEventListener("click", async () => {
   await logoutAccount();
@@ -120,3 +171,4 @@ el.logoutButton?.addEventListener("click", async () => {
 
 await hydrateAccountStorage();
 renderAccountPage();
+updateRegisterPasswordStrength();
