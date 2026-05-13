@@ -3473,14 +3473,33 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     return `warlock-invocation:${slotKey}:${configuration?.id || "detail"}`;
   }
 
-  function getWarlockDamagingCantripOptions2024() {
-    return SPELL_LIST_2024
-      .filter((spell) => Number(spell?.nivel || 0) === 0)
-      .filter((spell) => (spell?.classes || []).includes("bruxo"))
-      .filter((spell) => !WARLOCK_NON_DAMAGE_CANTRIP_IDS_2024.has(spell.id))
-      .filter((spell) => normalizePt(spell?.descricao || "").includes("dano")
+  function isWarlockDamagingCantrip2024(spell, { requireWarlockList = true } = {}) {
+    return Number(spell?.nivel || 0) === 0
+      && (!requireWarlockList || (spell?.classes || []).includes("bruxo"))
+      && !WARLOCK_NON_DAMAGE_CANTRIP_IDS_2024.has(spell.id)
+      && (normalizePt(spell?.descricao || "").includes("dano")
         || (spell?.tags || []).some((tag) => normalizePt(tag) === "dano")
-        || spell.id === "ataque-certeiro")
+        || spell.id === "ataque-certeiro");
+  }
+
+  function getKnownWarlockCantripIdsForInvocationDetails2024() {
+    const context = buildSpellcastingContext2024();
+    const cantripIds = new Set();
+    (context.sources || []).forEach((source) => {
+      if (source?.limits?.sourceClassId !== "bruxo") return;
+      const selection = getSpellSelectionForSource2024(source.sourceKey);
+      const granted = getGrantedSpellBucketsForSource2024(source);
+      selection?.cantrips?.forEach((spellId) => cantripIds.add(spellId));
+      granted?.cantrips?.forEach((spellId) => cantripIds.add(spellId));
+    });
+    return cantripIds;
+  }
+
+  function getWarlockDamagingCantripOptions2024({ knownOnly = false } = {}) {
+    const knownCantripIds = knownOnly ? getKnownWarlockCantripIdsForInvocationDetails2024() : null;
+    return SPELL_LIST_2024
+      .filter((spell) => isWarlockDamagingCantrip2024(spell, { requireWarlockList: !knownOnly }))
+      .filter((spell) => !knownOnly || knownCantripIds.has(spell.id))
       .sort((a, b) => String(a.nome || "").localeCompare(String(b.nome || ""), "pt-BR"))
       .map((spell) => ({ value: spell.id, label: spell.nome || labelFromSlug(spell.id) }));
   }
@@ -3489,7 +3508,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     if (!configuration?.optionSet) return [];
 
     if (configuration.optionSet === "warlock-damaging-cantrip-2024") {
-      return getWarlockDamagingCantripOptions2024();
+      return getWarlockDamagingCantripOptions2024({ knownOnly: Boolean(configuration.requiresKnownSpell) });
     }
 
     if (configuration.optionSet === "origin-feat-2024") {
@@ -3529,6 +3548,10 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     };
   }
 
+  function shouldWarlockInvocationDetailClaimSpell2024(configuration) {
+    return configuration?.type === "spell" && !configuration?.requiresKnownSpell;
+  }
+
   function renderWarlockInvocationConfigurationField2024(invocation, slotKey, detailValues, entry) {
     const configuration = getWarlockInvocationConfiguration2024(invocation);
     if (!configuration) return "";
@@ -3552,6 +3575,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
         </select>
       </label>
       ${configuration.description ? `<p class="feat-choice-meta">${escapeHtml(configuration.description)}</p>` : ""}
+      ${configuration.requiresKnownSpell && !options.length ? '<p class="feat-choice-meta">Selecione primeiro um truque de bruxo que cause dano na seção de magias.</p>' : ""}
     `;
   }
 
@@ -3652,7 +3676,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
       ? "1 invocação mística precisa ser definida."
       : `${totalInvocations} invocações místicas precisam ser definidas.`;
     if (el.warlockInvocationsInfo) {
-      el.warlockInvocationsInfo.textContent = "Passe o mouse sobre uma invocação para ver pré-requisitos e resumo. No 2024, Pacto da Lâmina, Pacto da Corrente e Pacto do Tomo entram como invocações.";
+      el.warlockInvocationsInfo.textContent = "Passe o mouse sobre uma invocação para ver pré-requisitos e resumo. No 2024, Pacto da Lâmina, Pacto da Corrente e Pacto do Tomo entram como invocações; detalhes de truque usam truques já conhecidos.";
     }
 
     el.warlockInvocationsContainer.innerHTML = activeEntries.map(({ entry, invocationCount }) => {
@@ -3793,7 +3817,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
   function collectWarlockInvocationSpellDetailClaims2024(classEntries = null) {
     return collectSelectedWarlockInvocations2024(classEntries)
       .map(({ entry, invocation, slotKey, configuration, configurationDetail }) => {
-        if (configuration?.type !== "spell" || !configurationDetail?.value) return null;
+        if (!shouldWarlockInvocationDetailClaimSpell2024(configuration) || !configurationDetail?.value) return null;
         const spell = SPELL_BY_ID_2024.get(configurationDetail.value);
         if (!spell) return null;
         const detailLabel = configurationDetail.summaryLabel || configuration.summaryLabel || configuration.label || "Magia";
@@ -9676,6 +9700,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
     });
     dedupeSpellSelectionsAcrossSources2024(sources);
 
+    renderWarlockInvocationChoices2024();
     renderMagicSection2024();
     updatePreview();
   }
@@ -9698,6 +9723,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
         applyRandomCompanionChoices2024({ overwrite });
         applyRandomEquipmentChoices2024({ overwrite });
         applyRandomSpellSelections2024({ overwrite });
+        applyRandomWarlockInvocationDetailChoices2024({ overwrite: false });
         updatePreview();
         setStatus2024(
           overwrite
@@ -13963,6 +13989,7 @@ import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggl
 
     enforceSpellSelectionLimitsForSource2024(source);
     dedupeSpellSelectionsAcrossSources2024(context.sources);
+    renderWarlockInvocationChoices2024();
     renderMagicSection2024();
     updatePreview();
   }

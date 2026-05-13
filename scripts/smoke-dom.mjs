@@ -531,23 +531,38 @@ const smokePages = [
 
         setClassLevel("bruxo", 17);
         setValue("#subclasse2024", "bruxo-infernal", ["change"]);
+        const warlockClassSpellCard2024 = () => Array.from(document.querySelectorAll("#magicSourcesList2024 .edition-summary-card"))
+          .find((card) => (card.querySelector("h3")?.textContent || "").startsWith("Bruxo"));
+        const initialEldritchBlastInput = warlockClassSpellCard2024()?.querySelector('.spell-check-item[data-spell-id="rajada-mistica"] input[type="checkbox"]');
+        if (initialEldritchBlastInput?.checked) {
+          initialEldritchBlastInput.checked = false;
+          dispatch(initialEldritchBlastInput, "change");
+        }
         const agonizingInvocationSelect = Array.from(document.querySelectorAll('#warlockInvocationsContainer2024 select[data-warlock-invocation-slot-key]'))
           .find((select) => Array.from(select.options).some((option) => option.value === "agonizing-blast" && !option.disabled));
         assert(agonizingInvocationSelect, "Rajada Agonizante 2024 nao apareceu nas Invocações Místicas.");
         agonizingInvocationSelect.value = "agonizing-blast";
         dispatch(agonizingInvocationSelect, "change");
-        const agonizingDetailSelect = Array.from(document.querySelectorAll('#warlockInvocationsContainer2024 select[data-warlock-invocation-detail-name][data-warlock-invocation-detail-type="spell"]'))
-          .find((select) => Array.from(select.options).some((option) => option.value === "rajada-mistica" && !option.disabled));
+        let agonizingDetailSelect = Array.from(document.querySelectorAll('#warlockInvocationsContainer2024 select[data-warlock-invocation-detail-name][data-warlock-invocation-detail-type="spell"]'))[0];
         assert(agonizingDetailSelect, "Detalhe de truque da Rajada Agonizante nao apareceu.");
+        assert(!Array.from(agonizingDetailSelect.options).some((option) => option.value === "rajada-mistica"), "Rajada Mística apareceu como detalhe antes de ser conhecida pelo Bruxo.");
+        const eldritchBlastInput = warlockClassSpellCard2024()?.querySelector('.spell-check-item[data-spell-id="rajada-mistica"] input[type="checkbox"]');
+        assert(eldritchBlastInput && !eldritchBlastInput.disabled, "Rajada Mística nao ficou disponivel como truque conhecido do Bruxo.");
+        eldritchBlastInput.checked = true;
+        dispatch(eldritchBlastInput, "change");
+        agonizingDetailSelect = Array.from(document.querySelectorAll('#warlockInvocationsContainer2024 select[data-warlock-invocation-detail-name][data-warlock-invocation-detail-type="spell"]'))
+          .find((select) => Array.from(select.options).some((option) => option.value === "rajada-mistica" && !option.disabled));
+        assert(agonizingDetailSelect, "Detalhe de truque da Rajada Agonizante nao reconheceu Rajada Mística conhecida.");
         agonizingDetailSelect.value = "rajada-mistica";
         dispatch(agonizingDetailSelect, "change");
         const warlockClassCardAfterInvocationDetail = Array.from(document.querySelectorAll("#magicSourcesList2024 .edition-summary-card"))
           .find((card) => (card.querySelector("h3")?.textContent || "").startsWith("Bruxo"));
-        const invocationBlockedCantripItem = warlockClassCardAfterInvocationDetail?.querySelector('.spell-check-item[data-spell-id="rajada-mistica"]');
-        const invocationBlockedCantripInput = invocationBlockedCantripItem?.querySelector('input[type="checkbox"]');
-        const invocationWarningText = invocationBlockedCantripItem?.getAttribute("data-spell-warning-label") || "";
-        assert(invocationBlockedCantripInput?.disabled, "Truque escolhido no detalhe da Invocação Mística nao ficou bloqueado na seleção de Bruxo.");
-        assert(invocationWarningText.includes("Invocação Mística") && invocationWarningText.includes("Rajada Agonizante"), "Hover de detalhe da invocação nao explica a origem do bloqueio.");
+        const invocationAffectedCantripItem = warlockClassCardAfterInvocationDetail?.querySelector('.spell-check-item[data-spell-id="rajada-mistica"]');
+        const invocationAffectedCantripInput = invocationAffectedCantripItem?.querySelector('input[type="checkbox"]');
+        const invocationWarningText = invocationAffectedCantripItem?.getAttribute("data-spell-warning-label") || "";
+        assert(invocationAffectedCantripInput?.checked, "Truque afetado por Invocação Mística deixou de contar como conhecido pelo Bruxo.");
+        assert(!invocationAffectedCantripInput?.disabled, "Truque afetado por Invocação Mística foi bloqueado na lista normal de truques conhecidos.");
+        assert(!invocationWarningText.includes("Invocação Mística"), "Detalhe de truque da invocação ainda gerou aviso de bloqueio como se concedesse o truque.");
         const tomeInvocationSelect = Array.from(document.querySelectorAll('#warlockInvocationsContainer2024 select[data-warlock-invocation-slot-key]'))
           .find((select) => select.value !== "agonizing-blast" && Array.from(select.options).some((option) => option.value === "pact-of-the-tome" && !option.disabled));
         assert(tomeInvocationSelect, "Pacto do Tomo 2024 nao apareceu nas Invocações Místicas.");

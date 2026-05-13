@@ -524,8 +524,9 @@ export const WARLOCK_INVOCATIONS_2024 = [
       optionSet: "warlock-damaging-cantrip-2024",
       label: "Truque afetado",
       summaryLabel: "Truque",
-      description: "Escolha qual truque de bruxo que causa dano recebe o benefício desta invocação.",
+      description: "Escolha qual truque de bruxo que causa dano e o personagem já conhece recebe o benefício desta invocação.",
       required: true,
+      requiresKnownSpell: true,
     },
   },
   {
@@ -584,8 +585,9 @@ export const WARLOCK_INVOCATIONS_2024 = [
       optionSet: "warlock-damaging-cantrip-2024",
       label: "Truque afetado",
       summaryLabel: "Truque",
-      description: "Escolha qual truque de bruxo que causa dano recebe o benefício desta invocação.",
+      description: "Escolha qual truque de bruxo que causa dano e o personagem já conhece recebe o benefício desta invocação.",
       required: true,
+      requiresKnownSpell: true,
     },
   },
   {
@@ -658,8 +660,9 @@ export const WARLOCK_INVOCATIONS_2024 = [
       optionSet: "warlock-damaging-cantrip-2024",
       label: "Truque afetado",
       summaryLabel: "Truque",
-      description: "Escolha qual truque de bruxo que causa dano recebe o benefício desta invocação.",
+      description: "Escolha qual truque de bruxo que causa dano e o personagem já conhece recebe o benefício desta invocação.",
       required: true,
+      requiresKnownSpell: true,
     },
   },
   {

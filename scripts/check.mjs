@@ -198,6 +198,9 @@ function validateWarlockCatalog(edition, invocations, pactBoons, errors) {
       if (!allowedConfigurationOptionSets.has(configuration.optionSet)) {
         errors.push(`${edition}: optionSet de configuracao desconhecido em ${invocation.id} (${configuration.optionSet}).`);
       }
+      if (edition === "2024" && configuration.optionSet === "warlock-damaging-cantrip-2024" && !configuration.requiresKnownSpell) {
+        errors.push(`${edition}: ${invocation.id} deve aplicar o truque afetado a um truque conhecido, sem conceder truque novo.`);
+      }
     }
   });
 }
@@ -358,6 +361,13 @@ function validateWarlockData() {
   if (script2024.includes("const WARLOCK_ELDRITCH_INVOCATIONS_BY_LEVEL_2024")) {
     errors.push("2024: src/script-2024.js voltou a duplicar a tabela de invocacoes de Bruxo.");
   }
+  [
+    "getKnownWarlockCantripIdsForInvocationDetails2024",
+    "shouldWarlockInvocationDetailClaimSpell2024",
+    "requiresKnownSpell",
+  ].forEach((marker) => {
+    if (!script2024.includes(marker)) errors.push(`2024: sem marcador de truque conhecido em invocacoes de Bruxo (${marker}).`);
+  });
 
   [
     "describeWarlockInvocationOption5e",
