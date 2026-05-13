@@ -543,7 +543,7 @@ const smokePages = [
         assert(document.querySelector("#subclassDetailChoicesContainer2024 [data-subclass-detail-hover-card]"), "Hovercard do seletor de terreno ausente.");
         const terrainSelect = document.querySelector('#subclassDetailChoicesContainer2024 select[data-subclass-detail-slot-key]');
         assert(terrainSelect, "Seletor de terreno do Círculo da Terra ausente.");
-        terrainSelect.value = "árido";
+        terrainSelect.value = "arido";
         dispatch(terrainSelect, "change");
         const landMagicText = document.querySelector("#magicSourcesList2024")?.textContent || "";
         assert(
