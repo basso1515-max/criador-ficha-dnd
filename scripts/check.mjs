@@ -347,9 +347,12 @@ function validateWarlockData() {
 
   [
     "describeWarlockInvocationOption5e",
+    "describeWarlockPactBoonOption5e",
     "data-warlock-invocation-hover-card",
+    "data-warlock-pact-boon-hover-card",
+    "WARLOCK_PACT_BOON_CUSTOM_SELECT_PREFIX",
     "WARLOCK_INVOCATION_CUSTOM_SELECT_PREFIX",
-    "Passe o mouse sobre uma invocação",
+    "Passe o mouse sobre uma dádiva ou invocação",
     "formatWarlockInvocationPrerequisites(invocation)",
   ].forEach((marker) => {
     if (!script5e.includes(marker)) errors.push(`5e: hover de invocacoes de Bruxo sem marcador ${marker}.`);

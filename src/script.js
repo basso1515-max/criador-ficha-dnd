@@ -2869,6 +2869,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
   const SUBCLASS_PROFICIENCY_CHOICE_CUSTOM_SELECT_PREFIX = "subclass-proficiency-choice:";
   const ARTIFICER_INFUSION_CUSTOM_SELECT_PREFIX = "artificer-infusion:";
   const COMPANION_CHOICE_CUSTOM_SELECT_PREFIX = "companion-choice:";
+  const WARLOCK_PACT_BOON_CUSTOM_SELECT_PREFIX = "warlock-pact-boon:";
   const WARLOCK_INVOCATION_CUSTOM_SELECT_PREFIX = "warlock-invocation:";
   const FIGHTING_STYLE_CUSTOM_SELECT_PREFIX = "fighting-style:";
   const LANGUAGE_CUSTOM_SELECT_PREFIX = "language-slot:";
@@ -2878,6 +2879,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
   let subclassProficiencyChoiceCustomSelectKeys = [];
   let artificerInfusionCustomSelectKeys = [];
   let companionChoiceCustomSelectKeys = [];
+  let warlockPactBoonCustomSelectKeys = [];
   let warlockInvocationCustomSelectKeys = [];
   let fightingStyleCustomSelectKeys = [];
   let languageCustomSelectKeys = [];
@@ -5069,6 +5071,10 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
   }
 
   function cleanupWarlockInvocationChoiceFields() {
+    warlockPactBoonCustomSelectKeys.forEach((key) => {
+      delete CUSTOM_SELECT_FIELDS[key];
+    });
+    warlockPactBoonCustomSelectKeys = [];
     warlockInvocationCustomSelectKeys.forEach((key) => {
       delete CUSTOM_SELECT_FIELDS[key];
     });
@@ -5133,6 +5139,27 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     };
   }
 
+  function describeWarlockPactBoonOption5e(value) {
+    const boon = getWarlockPactBoonById(value);
+    if (!boon) return { summary: "", lines: [], body: "", search: String(value || "") };
+
+    return {
+      group: "Dádiva do Pacto",
+      summary: boon.summary || "",
+      lines: [
+        "Pré-requisito: Bruxo nível 3",
+        "Impacto: filtra invocações que dependem de Corrente, Lâmina, Tomo ou Talismã",
+      ],
+      body: boon.description || "",
+      search: [
+        boon.label,
+        boon.summary,
+        boon.description,
+        "Dádiva do Pacto",
+      ].filter(Boolean).join(" "),
+    };
+  }
+
   function renderWarlockInvocationOptionElements(options = [], selectedValue = "", usedValues = new Set()) {
     const optionHtml = (options || [])
       .filter((option) => option.value === selectedValue || !usedValues.has(option.value))
@@ -5148,6 +5175,30 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
   function initializeWarlockInvocationChoiceFields() {
     cleanupWarlockInvocationChoiceFields();
     if (!el.warlockInvocationsContainer) return;
+
+    el.warlockInvocationsContainer.querySelectorAll("select[data-warlock-pact-boon-key]").forEach((select) => {
+      const slotKey = select.getAttribute("data-warlock-pact-boon-key");
+      const fieldRoot = select.closest("[data-warlock-pact-boon-field-key]");
+      const input = fieldRoot?.querySelector("[data-warlock-pact-boon-input]");
+      const suggestions = fieldRoot?.querySelector("[data-warlock-pact-boon-suggestions]");
+      const hoverCard = fieldRoot?.querySelector("[data-warlock-pact-boon-hover-card]");
+      if (!slotKey || !fieldRoot || !input || !suggestions || !hoverCard) return;
+
+      const fieldKey = `${WARLOCK_PACT_BOON_CUSTOM_SELECT_PREFIX}${slotKey}`;
+      warlockPactBoonCustomSelectKeys.push(fieldKey);
+      CUSTOM_SELECT_FIELDS[fieldKey] = createCustomSelectField({
+        key: fieldKey,
+        input,
+        select,
+        suggestions,
+        hoverCard,
+        placeholder: fieldRoot.getAttribute("data-warlock-pact-boon-placeholder") || "Selecione uma dádiva...",
+        describeOption: describeWarlockPactBoonOption5e,
+        onCommit: () => handleWarlockPactBoonSelection(select),
+        showSuggestionSummary: false,
+      });
+      syncCustomSelectField(fieldKey);
+    });
 
     el.warlockInvocationsContainer.querySelectorAll("select[data-warlock-invocation-slot-key]").forEach((select) => {
       const slotKey = select.getAttribute("data-warlock-invocation-slot-key");
@@ -5206,7 +5257,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       ? "1 invocação mística precisa ser definida."
       : `${totalInvocations} invocações místicas precisam ser definidas.`;
     if (el.warlockInvocationsInfo) {
-      el.warlockInvocationsInfo.textContent = "Passe o mouse sobre uma invocação para ver pré-requisitos e resumo. O pacto do nível 3 filtra invocações dependentes de Corrente, Lâmina, Tomo ou Talismã.";
+      el.warlockInvocationsInfo.textContent = "Passe o mouse sobre uma dádiva ou invocação para ver pré-requisitos, resumo e descrição. O pacto do nível 3 filtra invocações dependentes de Corrente, Lâmina, Tomo ou Talismã.";
     }
 
     el.warlockInvocationsContainer.innerHTML = activeEntries.map(({ entry, invocationCount, hasPactBoon }) => {
@@ -5221,9 +5272,12 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       const usedValues = new Set(selectedValues);
 
       const pactField = hasPactBoon ? `
-        <label class="row feat-choice-field">
+        <label class="row generic-dropdown-field feat-choice-field" data-warlock-pact-boon-field-key="${escapeHtml(pactSlotKey)}" data-warlock-pact-boon-placeholder="Selecione uma dádiva...">
           <span>Dádiva do Pacto</span>
-          <select data-warlock-pact-boon-key="${escapeHtml(pactSlotKey)}" data-warlock-pact-source-key="${escapeHtml(sourceKey)}">
+          <input data-warlock-pact-boon-input type="text" autocomplete="off" placeholder="Selecione uma dádiva..." />
+          <div data-warlock-pact-boon-suggestions class="dropdown-suggestions" hidden></div>
+          <div data-warlock-pact-boon-hover-card class="dropdown-hover-card" hidden></div>
+          <select class="native-select-hidden" tabindex="-1" aria-hidden="true" data-warlock-pact-boon-key="${escapeHtml(pactSlotKey)}" data-warlock-pact-source-key="${escapeHtml(sourceKey)}">
             <option value=""${selectedPactBoon ? "" : " selected"} disabled>Selecione...</option>
             ${WARLOCK_PACT_BOONS_5E.map((boon) => `
               <option value="${escapeHtml(boon.id)}"${selectedPactBoon === boon.id ? " selected" : ""}>${escapeHtml(boon.label)}</option>
@@ -5285,13 +5339,18 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     atualizarPreview();
   }
 
+  function handleWarlockPactBoonSelection(select) {
+    if (!select) return;
+    setStatus("");
+    renderWarlockInvocationChoices();
+    atualizarPreview();
+  }
+
   function onWarlockInvocationChoiceChanged(event) {
     const target = event?.target;
     const pactSelect = target?.closest?.("select[data-warlock-pact-boon-key]");
     if (pactSelect) {
-      setStatus("");
-      renderWarlockInvocationChoices();
-      atualizarPreview();
+      handleWarlockPactBoonSelection(pactSelect);
       return;
     }
 
