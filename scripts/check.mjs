@@ -214,6 +214,7 @@ function validateWarlockData() {
   const warlockSubclasses2024 = subclasses2024.filter((item) => item.classeBase === "bruxo");
   const spellIds5e = collectSpellIds(MAGIAS_5E);
   const spellIds2024 = collectSpellIds(MAGIAS_2024);
+  const spellRecords5eById = new Map(collectSpellRecords(MAGIAS_5E).map((spell) => [spell.id, spell]));
   const script5e = readFileSync(path.join(root, "src/script.js"), "utf8");
   const script2024 = readFileSync(path.join(root, "src/script-2024.js"), "utf8");
 
@@ -305,6 +306,19 @@ function validateWarlockData() {
     errors,
   );
 
+  WARLOCK_INVOCATIONS_5E
+    .filter((invocation) => invocation.cantripPrerequisiteLabel)
+    .forEach((invocation) => {
+      if (!invocation.cantripPrerequisite) {
+        errors.push(`5e: ${invocation.id} exibe pré-requisito de truque mas não codifica cantripPrerequisite.`);
+        return;
+      }
+      const spell = spellRecords5eById.get(invocation.cantripPrerequisite);
+      if (!spell || Number(spell.nivel || 0) !== 0) {
+        errors.push(`5e: ${invocation.id} referencia truque ausente ou inválido (${invocation.cantripPrerequisite}).`);
+      }
+    });
+
   const subclassSpellAugments = extractConstObjectBlock(script5e, "SUBCLASS_SPELL_LIST_AUGMENTS");
   const augmentMaps = new Map(
     [...subclassSpellAugments.matchAll(/"(bruxo-[^"]+)"\s*:\s*\{\s*bonusSpellIds:\s*\[([^\]]*)\]/g)]
@@ -354,6 +368,8 @@ function validateWarlockData() {
     "WARLOCK_INVOCATION_CUSTOM_SELECT_PREFIX",
     "Passe o mouse sobre uma dádiva ou invocação",
     "formatWarlockInvocationPrerequisites(invocation)",
+    "getSelectedCantripIdsForWarlockInvocationPrerequisites",
+    "cantripIds",
   ].forEach((marker) => {
     if (!script5e.includes(marker)) errors.push(`5e: hover de invocacoes de Bruxo sem marcador ${marker}.`);
   });

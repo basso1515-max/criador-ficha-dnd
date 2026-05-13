@@ -106,6 +106,26 @@ const smokePages = [
           dispatch(select, "change");
           return option.value;
         };
+        const warlockInvocationSelects = () => Array.from(document.querySelectorAll("#warlockInvocationsContainer select[data-warlock-invocation-slot-key]"));
+        const warlockInvocationOptions = () => warlockInvocationSelects()
+          .flatMap((select) => Array.from(select.options).map((option) => option.value).filter(Boolean));
+        const setCantripChecked = (spellId, checked) => {
+          const input = document.querySelector('#magicSourcesList input[type="checkbox"][data-kind="cantrip"][value="' + spellId + '"]');
+          assert(input, "Truque ausente na lista de magias: " + spellId);
+          if (input.checked !== checked) {
+            input.checked = checked;
+            dispatch(input, "change");
+          }
+        };
+        const clearCantripsExcept = (spellId) => {
+          Array.from(document.querySelectorAll('#magicSourcesList input[type="checkbox"][data-kind="cantrip"]'))
+            .forEach((input) => {
+              if (input.value !== spellId && input.checked) {
+                input.checked = false;
+                dispatch(input, "change");
+              }
+            });
+        };
         const fightingStyleSelects = () => Array.from(document.querySelectorAll("#fightingStyleContainer select[data-style-slot-key]"));
         const chooseFightingStyle = (value = "", slotIndex = 0) => {
           const select = fightingStyleSelects()[slotIndex];
@@ -257,6 +277,17 @@ const smokePages = [
         setValue("#arquetipo", "druida-fogo-selvagem", ["change"]);
         chooseCompanion("wildfire-spirit", "chama-ofensiva");
         assert((document.querySelector("#preview")?.textContent || "").includes("Espírito Selvagem"), "Preview 5e nao recebeu Espírito Selvagem.");
+
+        setClassLevel("Bruxo", 3);
+        assert(!document.querySelector("#warlockInvocationsPanel")?.hidden, "Painel de invocacoes do Bruxo 5e nao abriu no nivel 3.");
+        assert(document.querySelector("#warlockInvocationsContainer [data-warlock-invocation-hover-card]"), "Hovercard de invocacoes do Bruxo 5e ausente.");
+        clearCantripsExcept("rajada-mistica");
+        setCantripChecked("rajada-mistica", false);
+        assert(!warlockInvocationOptions().includes("agonizing-blast"), "Rajada Agonizante apareceu sem Rajada Mística selecionada.");
+        assert(!warlockInvocationOptions().includes("eldritch-spear"), "Lança Mística apareceu sem Rajada Mística selecionada.");
+        setCantripChecked("rajada-mistica", true);
+        assert(warlockInvocationOptions().includes("agonizing-blast"), "Rajada Agonizante nao apareceu apos selecionar Rajada Mística.");
+        assert(warlockInvocationOptions().includes("eldritch-spear"), "Lança Mística nao apareceu apos selecionar Rajada Mística.");
 
         setClassLevel("Patrulheiro", 15);
         setValue("#arquetipo", "patrulheiro-cacador", ["change"]);

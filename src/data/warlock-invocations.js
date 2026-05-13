@@ -49,6 +49,7 @@ export const WARLOCK_INVOCATIONS_5E = [
     label: "Rajada Agonizante",
     minLevel: 2,
     group: "Rajada Mística",
+    cantripPrerequisite: "rajada-mistica",
     cantripPrerequisiteLabel: "Rajada Mística",
     summary: "Aumenta o dano de Rajada Mística.",
     description: "Adiciona seu modificador de Carisma ao dano de cada raio de Rajada Mística.",
@@ -106,6 +107,7 @@ export const WARLOCK_INVOCATIONS_5E = [
     label: "Lança Mística",
     minLevel: 2,
     group: "Rajada Mística",
+    cantripPrerequisite: "rajada-mistica",
     cantripPrerequisiteLabel: "Rajada Mística",
     summary: "Rajada Mística alcança alvos mais distantes.",
     description: "Aumenta bastante o alcance de Rajada Mística.",
@@ -139,6 +141,7 @@ export const WARLOCK_INVOCATIONS_5E = [
     label: "Garra de Hadar",
     minLevel: 2,
     group: "Rajada Mística",
+    cantripPrerequisite: "rajada-mistica",
     cantripPrerequisiteLabel: "Rajada Mística",
     summary: "Puxa um alvo atingido por Rajada Mística.",
     description: "Uma vez por turno, um raio de Rajada Mística pode aproximar a criatura atingida.",
@@ -148,6 +151,7 @@ export const WARLOCK_INVOCATIONS_5E = [
     label: "Lança da Letargia",
     minLevel: 2,
     group: "Rajada Mística",
+    cantripPrerequisite: "rajada-mistica",
     cantripPrerequisiteLabel: "Rajada Mística",
     summary: "Reduz o deslocamento de um alvo.",
     description: "Uma vez por turno, Rajada Mística pode diminuir temporariamente o deslocamento da criatura atingida.",
@@ -182,6 +186,7 @@ export const WARLOCK_INVOCATIONS_5E = [
     label: "Rajada Repulsiva",
     minLevel: 2,
     group: "Rajada Mística",
+    cantripPrerequisite: "rajada-mistica",
     cantripPrerequisiteLabel: "Rajada Mística",
     summary: "Empurra alvos com Rajada Mística.",
     description: "Ao atingir uma criatura com Rajada Mística, pode empurrá-la para longe de você.",
@@ -777,15 +782,17 @@ export function getWarlockPactBoonById(id = "") {
   return WARLOCK_PACT_BOONS_5E.find((boon) => boon.id === id) || null;
 }
 
-export function getWarlockInvocationOptions(invocations = [], level = 0, { pactBoonIds = [], invocationIds = [] } = {}) {
+export function getWarlockInvocationOptions(invocations = [], level = 0, { pactBoonIds = [], invocationIds = [], cantripIds = [] } = {}) {
   const safeLevel = clampWarlockLevel(level);
   const pactSet = new Set((pactBoonIds || []).filter(Boolean));
   const invocationSet = new Set((invocationIds || []).filter(Boolean));
+  const cantripSet = new Set((cantripIds || []).filter(Boolean));
 
   return (invocations || [])
     .filter((invocation) => safeLevel >= Number(invocation?.minLevel || 1))
     .filter((invocation) => !invocation?.pactPrerequisite || pactSet.has(invocation.pactPrerequisite))
     .filter((invocation) => !invocation?.invocationPrerequisite || invocationSet.has(invocation.invocationPrerequisite))
+    .filter((invocation) => !invocation?.cantripPrerequisite || cantripSet.has(invocation.cantripPrerequisite))
     .map((invocation) => ({
       ...invocation,
       value: invocation.id,

@@ -5116,6 +5116,14 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     return selections;
   }
 
+  function getSelectedCantripIdsForWarlockInvocationPrerequisites() {
+    const cantripIds = new Set();
+    spellSelectionState.forEach((selection) => {
+      selection?.cantrips?.forEach((spellId) => cantripIds.add(spellId));
+    });
+    return Array.from(cantripIds);
+  }
+
   function describeWarlockInvocationOption5e(value) {
     const invocation = getWarlockInvocationById(WARLOCK_INVOCATIONS_5E, value);
     if (!invocation) return { summary: "", lines: [], body: "", search: String(value || "") };
@@ -5232,6 +5240,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     const warlockEntries = getWarlockClassEntriesForChoices(classEntries);
     const invocationSelections = getCurrentWarlockInvocationSelectionMap();
     const pactSelections = getCurrentWarlockPactBoonSelectionMap();
+    const cantripIds = getSelectedCantripIdsForWarlockInvocationPrerequisites();
 
     cleanupWarlockInvocationChoiceFields();
 
@@ -5257,7 +5266,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       ? "1 invocação mística precisa ser definida."
       : `${totalInvocations} invocações místicas precisam ser definidas.`;
     if (el.warlockInvocationsInfo) {
-      el.warlockInvocationsInfo.textContent = "Passe o mouse sobre uma dádiva ou invocação para ver pré-requisitos, resumo e descrição. O pacto do nível 3 filtra invocações dependentes de Corrente, Lâmina, Tomo ou Talismã.";
+      el.warlockInvocationsInfo.textContent = "Passe o mouse sobre uma dádiva ou invocação para ver pré-requisitos, resumo e descrição. O pacto do nível 3 e os truques selecionados filtram invocações dependentes.";
     }
 
     el.warlockInvocationsContainer.innerHTML = activeEntries.map(({ entry, invocationCount, hasPactBoon }) => {
@@ -5265,7 +5274,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       const pactSlotKey = buildWarlockPactBoonSlotKey(entry);
       const selectedPactBoon = pactSelections.get(pactSlotKey) || "";
       const pactBoonIds = selectedPactBoon ? [selectedPactBoon] : [];
-      const invocationOptions = getWarlockInvocationOptions(WARLOCK_INVOCATIONS_5E, entry.level, { pactBoonIds });
+      const invocationOptions = getWarlockInvocationOptions(WARLOCK_INVOCATIONS_5E, entry.level, { pactBoonIds, cantripIds });
       const selectedValues = Array.from({ length: invocationCount }, (_, slotIndex) => (
         invocationSelections.get(buildWarlockInvocationSlotKey(entry, slotIndex)) || ""
       )).filter(Boolean);
@@ -13633,6 +13642,8 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     }
 
     renderMagicSection();
+    renderWarlockInvocationChoices();
+    atualizarPreview();
   }
 
   function applyRandomFlavorFields({ overwrite = false } = {}) {
@@ -18488,6 +18499,8 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
 
     setStatus("");
     renderMagicSection();
+    renderWarlockInvocationChoices();
+    atualizarPreview();
   }
 
   function onMagicSlotUsageInput(event) {
