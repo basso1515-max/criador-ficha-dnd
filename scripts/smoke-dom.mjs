@@ -448,6 +448,39 @@ const smokePages = [
         const modalText = () => document.querySelector(".level-up-dialog")?.textContent || "";
         const hasLevelUpTab = (label) => Array.from(document.querySelectorAll(".level-up-tab"))
           .some((tab) => tab.textContent.trim() === label);
+        const clickLevelUpTab = (label) => {
+          const tab = Array.from(document.querySelectorAll(".level-up-tab"))
+            .find((item) => item.textContent.trim() === label);
+          assert(tab, "Guia ausente no assistente 5e: " + label);
+          tab.click();
+          return tab;
+        };
+        const assertHpMethodTitles = () => {
+          const titles = Array.from(document.querySelectorAll(".level-up-method-card strong"))
+            .map((item) => item.textContent.trim());
+          assert(titles.includes("Valor Fixo"), "Botão de PV 5e não mostra o título Valor Fixo.");
+          assert(titles.includes("Rolado"), "Botão de PV 5e não mostra o título Rolado.");
+        };
+        const assertSpellHoverInAssistant = () => {
+          clickLevelUpTab("Magias");
+          const availableSpell = Array.from(document.querySelectorAll(".level-up-portaled-panel [id^='availableSpellPanel'] [data-spell-id]"))
+            .find((item) => !item.querySelector("input[type='checkbox']")?.disabled);
+          assert(availableSpell, "Assistente 5e não tem magia disponível para testar hovercard.");
+          availableSpell.dispatchEvent(new MouseEvent("mouseover", { bubbles: true, clientX: 160, clientY: 160 }));
+          const hover = document.querySelector("#magicSpellHoverCard");
+          assert(hover && !hover.hidden && /Tempo|Alcance|Duração/.test(hover.textContent || ""), "Hovercard de magia disponível 5e não abriu no assistente.");
+
+          const input = availableSpell.querySelector("input[type='checkbox']");
+          if (input && !input.disabled && !input.checked) {
+            input.checked = true;
+            dispatch(input, "change");
+          }
+          const selectedSpell = document.querySelector(".level-up-portaled-panel [id^='selectedSpellBook'] [data-spell-id]");
+          assert(selectedSpell, "Assistente 5e não tem magia selecionada para testar hovercard.");
+          selectedSpell.dispatchEvent(new MouseEvent("mouseover", { bubbles: true, clientX: 180, clientY: 180 }));
+          assert(hover && !hover.hidden && /Tempo|Alcance|Duração/.test(hover.textContent || ""), "Hovercard de magia escolhida 5e não abriu no assistente.");
+          hover.hidden = true;
+        };
 
         setValue("#classe", "Guerreiro", ["change"]);
         click(".level-up-open-button");
@@ -472,6 +505,23 @@ const smokePages = [
         assert(hasLevelUpTab("Subclasse"), "Guia de subclasse 5e não apareceu quando Guerreiro chegou ao nível 3.");
         click(".level-up-close");
 
+        setValue("#classe", "Bruxo", ["change"]);
+        setValue("#nivel", "1", ["input", "change"]);
+        setValue("#arquetipo", "", ["change"]);
+        click(".level-up-open-button");
+        document.querySelector('.level-up-choice-card input[value="main"]').click();
+        click(".level-up-next");
+        assert(hasLevelUpTab("Subclasse"), "Guia de subclasse 5e não apareceu para Bruxo sem patrono.");
+        const warlockSubclassSelect = document.querySelector(".level-up-content .level-up-select");
+        assert(warlockSubclassSelect, "Select de subclasse do Bruxo 5e ausente no assistente.");
+        warlockSubclassSelect.value = "bruxo-infernal";
+        dispatch(warlockSubclassSelect, "change");
+        assert(hasLevelUpTab("Subclasse"), "Guia de subclasse 5e sumiu depois de selecionar O Infernal.");
+        assert(document.querySelector(".level-up-tab.is-active")?.textContent.trim() === "Subclasse", "Assistente 5e saiu da guia Subclasse depois de escolher o patrono.");
+        assert(modalText().includes("Planos Inferiores"), "Hover/descrição da subclasse O Infernal 5e não apareceu no assistente.");
+        assert(document.querySelector(".level-up-editor-card .level-up-hover-trigger"), "Subclasse 5e selecionada não recebeu hovercard no assistente.");
+        click(".level-up-close");
+
         setValue("#classe", "Guerreiro", ["change"]);
         setValue("#nivel", "3", ["input", "change"]);
         setValue("#arquetipo", "guerreiro-campeao", ["change"]);
@@ -491,6 +541,9 @@ const smokePages = [
         assert(!modalText().includes("Abrir subclasse na ficha"), "Assistente 5e ainda mostra botão de abrir subclasse na ficha.");
         assert(modalText().includes("Pontos de vida do novo nível"), "Botão de avançar etapa 5e não levou para PV.");
         assert(document.querySelector(".level-up-content .level-up-hover-trigger"), "Aba de PV 5e não exibiu hovercards de descrição.");
+        assertHpMethodTitles();
+        assertSpellHoverInAssistant();
+        clickLevelUpTab("PV");
 
         click(".level-up-prev");
         assert(document.querySelector("#nivel")?.value === "1", "Voltar etapa 5e não desfez o avanço para permitir alteração.");
@@ -502,6 +555,8 @@ const smokePages = [
         dispatch(multiclassRadio, "change");
         setValue(".level-up-multiclass-picker select", "Guerreiro", ["change"]);
         assert(modalText().includes("Especialista marcial"), "Assistente 5e não mostrou descrição da classe selecionada no popup.");
+        assert(document.querySelector(".level-up-multiclass-picker .level-up-hover-trigger"), "Multiclasse 5e selecionada não recebeu hovercard no assistente.");
+        assert(!document.querySelector(".level-up-multiclass-picker .level-up-option-detail"), "Multiclasse 5e ainda duplica o card de descrição com o hovercard.");
         click(".level-up-next");
 
         const row = document.querySelector("#multiclassRows [data-multiclass-row]");
@@ -875,6 +930,39 @@ const smokePages = [
         const modalText = () => document.querySelector(".level-up-dialog")?.textContent || "";
         const hasLevelUpTab = (label) => Array.from(document.querySelectorAll(".level-up-tab"))
           .some((tab) => tab.textContent.trim() === label);
+        const clickLevelUpTab = (label) => {
+          const tab = Array.from(document.querySelectorAll(".level-up-tab"))
+            .find((item) => item.textContent.trim() === label);
+          assert(tab, "Guia ausente no assistente 5.5e: " + label);
+          tab.click();
+          return tab;
+        };
+        const assertHpMethodTitles = () => {
+          const titles = Array.from(document.querySelectorAll(".level-up-method-card strong"))
+            .map((item) => item.textContent.trim());
+          assert(titles.includes("Valor Fixo"), "Botão de PV 5.5e não mostra o título Valor Fixo.");
+          assert(titles.includes("Rolado"), "Botão de PV 5.5e não mostra o título Rolado.");
+        };
+        const assertSpellHoverInAssistant = () => {
+          clickLevelUpTab("Magias");
+          const availableSpell = Array.from(document.querySelectorAll(".level-up-portaled-panel [id^='availableSpellPanel'] [data-spell-id]"))
+            .find((item) => !item.querySelector("input[type='checkbox']")?.disabled);
+          assert(availableSpell, "Assistente 5.5e não tem magia disponível para testar hovercard.");
+          availableSpell.dispatchEvent(new MouseEvent("mouseover", { bubbles: true, clientX: 160, clientY: 160 }));
+          const hover = document.querySelector("#magicSpellHoverCard2024");
+          assert(hover && !hover.hidden && /Tempo|Alcance|Duração/.test(hover.textContent || ""), "Hovercard de magia disponível 5.5e não abriu no assistente.");
+
+          const input = availableSpell.querySelector("input[type='checkbox']");
+          if (input && !input.disabled && !input.checked) {
+            input.checked = true;
+            dispatch(input, "change");
+          }
+          const selectedSpell = document.querySelector(".level-up-portaled-panel [id^='selectedSpellBook'] [data-spell-id]");
+          assert(selectedSpell, "Assistente 5.5e não tem magia selecionada para testar hovercard.");
+          selectedSpell.dispatchEvent(new MouseEvent("mouseover", { bubbles: true, clientX: 180, clientY: 180 }));
+          assert(hover && !hover.hidden && /Tempo|Alcance|Duração/.test(hover.textContent || ""), "Hovercard de magia escolhida 5.5e não abriu no assistente.");
+          hover.hidden = true;
+        };
 
         setValue("#classe2024", "guerreiro", ["change"]);
         click(".level-up-open-button");
@@ -899,6 +987,23 @@ const smokePages = [
         assert(hasLevelUpTab("Subclasse"), "Guia de subclasse 5.5e não apareceu quando Guerreiro chegou ao nível 3.");
         click(".level-up-close");
 
+        setValue("#classe2024", "bruxo", ["change"]);
+        setValue("#nivel2024", "2", ["input", "change"]);
+        setValue("#subclasse2024", "", ["change"]);
+        click(".level-up-open-button");
+        document.querySelector('.level-up-choice-card input[value="main"]').click();
+        click(".level-up-next");
+        assert(hasLevelUpTab("Subclasse"), "Guia de subclasse 5.5e não apareceu para Bruxo sem patrono no nível 3.");
+        const warlockSubclassSelect = document.querySelector(".level-up-content .level-up-select");
+        assert(warlockSubclassSelect, "Select de subclasse do Bruxo 5.5e ausente no assistente.");
+        warlockSubclassSelect.value = "bruxo-infernal";
+        dispatch(warlockSubclassSelect, "change");
+        assert(hasLevelUpTab("Subclasse"), "Guia de subclasse 5.5e sumiu depois de selecionar Patrono Ínfero.");
+        assert(document.querySelector(".level-up-tab.is-active")?.textContent.trim() === "Subclasse", "Assistente 5.5e saiu da guia Subclasse depois de escolher o patrono.");
+        assert(modalText().includes("pacto com poderes infernais"), "Hover/descrição da subclasse Patrono Ínfero 5.5e não apareceu no assistente.");
+        assert(document.querySelector(".level-up-editor-card .level-up-hover-trigger"), "Subclasse 5.5e selecionada não recebeu hovercard no assistente.");
+        click(".level-up-close");
+
         setValue("#classe2024", "guerreiro", ["change"]);
         setValue("#nivel2024", "3", ["input", "change"]);
         setValue("#subclasse2024", "guerreiro-campeao", ["change"]);
@@ -918,6 +1023,9 @@ const smokePages = [
         assert(!modalText().includes("Abrir subclasse na ficha"), "Assistente 5.5e ainda mostra botão de abrir subclasse na ficha.");
         assert(modalText().includes("Pontos de vida do novo nível"), "Botão de avançar etapa 5.5e não levou para PV.");
         assert(document.querySelector(".level-up-content .level-up-hover-trigger"), "Aba de PV 5.5e não exibiu hovercards de descrição.");
+        assertHpMethodTitles();
+        assertSpellHoverInAssistant();
+        clickLevelUpTab("PV");
 
         click(".level-up-prev");
         assert(document.querySelector("#nivel2024")?.value === "1", "Voltar etapa 5.5e não desfez o avanço para permitir alteração.");
@@ -929,6 +1037,8 @@ const smokePages = [
         dispatch(multiclassRadio, "change");
         setValue(".level-up-multiclass-picker select", "guerreiro", ["change"]);
         assert(modalText().includes("Especialista marcial"), "Assistente 5.5e não mostrou descrição da classe selecionada no popup.");
+        assert(document.querySelector(".level-up-multiclass-picker .level-up-hover-trigger"), "Multiclasse 5.5e selecionada não recebeu hovercard no assistente.");
+        assert(!document.querySelector(".level-up-multiclass-picker .level-up-option-detail"), "Multiclasse 5.5e ainda duplica o card de descrição com o hovercard.");
         click(".level-up-next");
 
         const row = document.querySelector("#multiclassRows2024 [data-multiclass-row]");

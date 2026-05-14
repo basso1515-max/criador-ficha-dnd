@@ -2747,11 +2747,17 @@ import { createLevelUpAssistant } from "./level-up-assistant.js";
     renderAll();
     const classLevelAfter = getPrimaryAssignedLevel2024();
     const classLabel = getSelectedClass()?.nome || "classe principal";
+    const subclassChoicePending = shouldShowLevelUpSubclassChoice2024(
+      getSelectedClass(),
+      { classLevelBefore, classLevelAfter },
+      el.subclasse
+    );
     return {
       ok: true,
       label: classLabel,
       classLevelBefore,
       classLevelAfter,
+      subclassChoicePending,
       summary: `Nível ${toLevel} aplicado em ${classLabel}. Nível atual nessa classe: ${getPrimaryAssignedLevel2024()}.`,
     };
   }
@@ -2791,12 +2797,19 @@ import { createLevelUpAssistant } from "./level-up-assistant.js";
     const classLevelAfter = row
       ? clampInt(row.querySelector("[data-multiclass-level]")?.value, 1, toLevel)
       : classLevelBefore + 1;
+    const subclassSelect = row?.querySelector("[data-multiclass-subclass]");
+    const subclassChoicePending = shouldShowLevelUpSubclassChoice2024(
+      cls,
+      { classLevelBefore, classLevelAfter },
+      subclassSelect
+    );
     return {
       ok: true,
       row,
       label: cls.nome,
       classLevelBefore,
       classLevelAfter,
+      subclassChoicePending,
       summary: `Nível ${toLevel} aplicado como avanço de ${cls.nome}.`,
     };
   }
@@ -2807,7 +2820,7 @@ import { createLevelUpAssistant } from "./level-up-assistant.js";
     const classLevelAfter = clampInt(context.classLevelAfter, 0, 20);
     const unlockLevel = getSubclassUnlockLevel2024(classData);
     const unlockedThisAdvance = Boolean(unlockLevel && classLevelBefore < unlockLevel && classLevelAfter >= unlockLevel);
-    return unlockedThisAdvance || !select.value;
+    return Boolean(context.subclassChoicePending || context.subclassWasPending || unlockedThisAdvance || !select.value);
   }
 
   function getLevelUpSubclassControl2024(context = {}) {

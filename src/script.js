@@ -4215,11 +4215,17 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     refreshAfterLevelUpChange();
     const classLevelAfter = getPrimaryAssignedLevel();
     const classLabel = getSelectedClassData()?.nome || "classe principal";
+    const subclassChoicePending = shouldShowLevelUpSubclassChoice(
+      getSelectedClassData(),
+      { classLevelBefore, classLevelAfter },
+      el.arquetipo
+    );
     return {
       ok: true,
       label: classLabel,
       classLevelBefore,
       classLevelAfter,
+      subclassChoicePending,
       summary: `Nível ${toLevel} aplicado em ${classLabel}. Nível atual nessa classe: ${getPrimaryAssignedLevel()}.`,
     };
   }
@@ -4259,12 +4265,19 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     const classLevelAfter = row
       ? clampInt(row.querySelector("[data-multiclass-level]")?.value, 1, toLevel)
       : classLevelBefore + 1;
+    const subclassSelect = row?.querySelector("[data-multiclass-subclass]");
+    const subclassChoicePending = shouldShowLevelUpSubclassChoice(
+      cls,
+      { classLevelBefore, classLevelAfter },
+      subclassSelect
+    );
     return {
       ok: true,
       row,
       label: cls.nome,
       classLevelBefore,
       classLevelAfter,
+      subclassChoicePending,
       summary: `Nível ${toLevel} aplicado como avanço de ${cls.nome}.`,
     };
   }
@@ -4275,7 +4288,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     const classLevelAfter = clampInt(context.classLevelAfter, 0, 20);
     const unlockLevel = getSubclassUnlockLevel(classData);
     const unlockedThisAdvance = Boolean(unlockLevel && classLevelBefore < unlockLevel && classLevelAfter >= unlockLevel);
-    return unlockedThisAdvance || !select.value;
+    return Boolean(context.subclassChoicePending || context.subclassWasPending || unlockedThisAdvance || !select.value);
   }
 
   function getLevelUpSubclassControl(context = {}) {

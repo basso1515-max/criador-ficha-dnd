@@ -258,6 +258,8 @@ export function createLevelUpAssistant(config = {}) {
       const item = document.createElement("option");
       item.value = option.value;
       item.textContent = option.label;
+      item.title = option.description;
+      item.dataset.description = option.description;
       select.appendChild(item);
     });
     select.value = options.some((option) => option.value === state.selectedMulticlass)
@@ -269,13 +271,15 @@ export function createLevelUpAssistant(config = {}) {
       render();
     });
 
+    const selectedOption = options.find((option) => option.value === state.selectedMulticlass);
     const helper = document.createElement("small");
-    helper.textContent = "Se essa multiclasse já existir, este avanço aumenta o nível dela em vez de criar uma duplicata.";
+    helper.textContent = selectedOption
+      ? `${selectedOption.label}: este avanço aumenta essa classe neste nível.`
+      : "Se essa multiclasse já existir, este avanço aumenta o nível dela em vez de criar uma duplicata.";
     picker.append(span, select, helper);
 
-    const selectedOption = options.find((option) => option.value === state.selectedMulticlass);
     if (selectedOption?.description) {
-      picker.appendChild(createOptionDetail(selectedOption.label, selectedOption.description));
+      appendHoverCard(picker, selectedOption.label, selectedOption.description);
     }
     return picker;
   }
@@ -311,6 +315,7 @@ export function createLevelUpAssistant(config = {}) {
       summary: result?.summary || `Nível ${state.toLevel} aplicado em ${label}.`,
       classLevelBefore: result?.classLevelBefore,
       classLevelAfter: result?.classLevelAfter,
+      subclassChoicePending: Boolean(result?.subclassChoicePending || result?.subclassWasPending),
     };
     state.fromLevel = Math.max(state.fromLevel, getCurrentLevel() - 1);
     state.toLevel = getCurrentLevel();
@@ -344,6 +349,13 @@ export function createLevelUpAssistant(config = {}) {
     const span = document.createElement("span");
     span.textContent = control.selectLabel || "Opção";
     const mirror = cloneSelect(control.select);
+    Array.from(mirror.options || []).forEach((option) => {
+      const description = getSelectOptionDescription(control, option.value);
+      if (description) {
+        option.title = description;
+        option.dataset.description = description;
+      }
+    });
     mirror.addEventListener("change", () => {
       control.select.value = mirror.value;
       dispatchChange(control.select);
@@ -354,8 +366,10 @@ export function createLevelUpAssistant(config = {}) {
     selectLabel.append(span, mirror);
     card.append(heading, selectLabel);
     const selectedDescription = getSelectOptionDescription(control, mirror.value);
+    const selectedLabel = mirror.options[mirror.selectedIndex]?.textContent || "Subclasse";
     if (selectedDescription) {
-      card.appendChild(createOptionDetail(mirror.options[mirror.selectedIndex]?.textContent || "Subclasse", selectedDescription));
+      appendHoverCard(card, selectedLabel, selectedDescription);
+      card.appendChild(createOptionDetail(selectedLabel, selectedDescription, { includeHover: false }));
     }
     panel.appendChild(card);
     contentEl.appendChild(panel);
@@ -380,7 +394,7 @@ export function createLevelUpAssistant(config = {}) {
       methods.className = "level-up-method-grid";
       if (hp.fixed) {
         methods.appendChild(createHpMethodButton(
-          "Valor fixo",
+          "Valor Fixo",
           "Usa a média recomendada da classe.",
           "Aplica o valor médio do dado de vida da classe para este avanço, somando o modificador de Constituição.",
           hp.fixed
@@ -719,7 +733,7 @@ function createEmptyState(title, text) {
   return empty;
 }
 
-function createOptionDetail(title, text) {
+function createOptionDetail(title, text, options = {}) {
   const detail = document.createElement("section");
   detail.className = "level-up-option-detail";
   const heading = document.createElement("strong");
@@ -727,7 +741,9 @@ function createOptionDetail(title, text) {
   const copy = document.createElement("p");
   copy.textContent = text;
   detail.append(heading, copy);
-  appendHoverCard(detail, title, text);
+  if (options.includeHover !== false) {
+    appendHoverCard(detail, title, text);
+  }
   return detail;
 }
 
@@ -782,6 +798,8 @@ function cloneSelect(select) {
     item.textContent = option.textContent;
     item.disabled = option.disabled;
     item.hidden = option.hidden;
+    item.title = option.title || option.getAttribute("data-description") || "";
+    if (option.dataset?.description) item.dataset.description = option.dataset.description;
     clone.appendChild(item);
   });
   clone.value = select.value;

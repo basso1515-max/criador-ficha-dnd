@@ -2605,6 +2605,10 @@ button:hover { border-color: #5a3e24; }
   background: rgba(255, 255, 255, 0.54);
 }
 
+.level-up-multiclass-picker.level-up-has-hover {
+  padding-right: 46px;
+}
+
 .level-up-multiclass-picker small {
   color: #7b6145;
 }
@@ -2647,6 +2651,19 @@ button:hover { border-color: #5a3e24; }
   gap: 5px;
   padding: 14px 46px 14px 14px;
   text-align: left;
+}
+
+.level-up-method-card strong {
+  display: block;
+  color: #4b2c1d;
+  font-size: 15px;
+  line-height: 1.2;
+}
+
+.level-up-method-card span {
+  display: block;
+  font-size: 13px;
+  line-height: 1.35;
 }
 
 .level-up-review-list {
@@ -4749,6 +4766,10 @@ select[multiple] option {
   box-shadow: 0 18px 36px rgba(59, 47, 27, 0.22);
 }
 
+body.level-up-modal-open .magic-spell-hover-card:not([hidden]) {
+  z-index: 1105;
+}
+
 .magic-spell-hover-card strong {
   margin-bottom: 2px;
   font-size: 20px;
@@ -5579,6 +5600,10 @@ body[data-active-screen="5e-2024"] .level-up-dialog .level-up-method-card span {
   color: #6f5538;
 }
 
+body[data-active-screen="5e-2024"] .level-up-dialog .level-up-method-card strong {
+  color: #4b2c1d;
+}
+
 body[data-active-screen="5e-2024"] .level-up-dialog .level-up-next {
   border-color: rgba(95, 50, 25, 0.2) !important;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(232, 218, 188, 0.9)) !important;
@@ -5795,6 +5820,11 @@ body[data-active-screen="5e-2024"] .level-up-dialog .level-up-next.is-ready:not(
 
   .magic-spell-hover-card {
     display: none !important;
+  }
+
+  body.level-up-modal-open .magic-spell-hover-card:not([hidden]) {
+    display: block !important;
+    max-height: min(58svh, 420px);
   }
 
   .floating-submit-bar,
