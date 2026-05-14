@@ -2802,9 +2802,7 @@ button:hover { border-color: #5a3e24; }
 
 .level-up-hover-trigger:hover .level-up-hover-card,
 .level-up-hover-trigger:focus .level-up-hover-card,
-.level-up-hover-trigger:focus-within .level-up-hover-card,
-.level-up-has-hover:hover > .level-up-hover-trigger .level-up-hover-card,
-.level-up-has-hover:focus-within > .level-up-hover-trigger .level-up-hover-card {
+.level-up-hover-trigger:focus-within .level-up-hover-card {
   display: block;
 }
 
@@ -4903,6 +4901,13 @@ select[multiple] option {
   font-size: 13px;
 }
 
+.level-up-portaled-panel .feature-choice-cascade,
+.level-up-portaled-panel .feat-choice-meta,
+.level-up-portaled-panel .feature-choice-hover-card,
+.level-up-portaled-panel .note.subtle {
+  display: none !important;
+}
+
 .feat-choice-card > .note {
   margin-top: 0;
 }
@@ -6189,14 +6194,17 @@ body[data-active-screen="5e-2024"] .level-up-dialog .level-up-next.is-ready:not(
   }
 
   .level-up-tabs {
+    flex-wrap: wrap;
     gap: 6px;
+    overflow-x: visible;
     padding: 10px 12px;
     scroll-padding-inline: 12px;
     -webkit-overflow-scrolling: touch;
   }
 
   .level-up-tab {
-    flex: 0 0 auto;
+    flex: 0 1 auto;
+    min-width: 0;
     padding: 8px 12px;
     font-size: 12px;
   }

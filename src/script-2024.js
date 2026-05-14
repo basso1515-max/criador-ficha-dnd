@@ -2795,7 +2795,6 @@ import { createLevelUpAssistant } from "./level-up-assistant.js";
       return {
         label: `Subclasse de ${className}`,
         selectLabel: "Subclasse",
-        helperText: "Se esta multiclasse liberou subclasse neste nível, escolha a opção aqui.",
         select: context.row.querySelector("[data-multiclass-subclass]"),
         getOptionDescription: (value) => SUBCLASS_BY_ID.get(value)?.descricao || "",
         target: context.row,
@@ -2805,7 +2804,6 @@ import { createLevelUpAssistant } from "./level-up-assistant.js";
     return {
       label: `Subclasse de ${getSelectedClass()?.nome || "classe principal"}`,
       selectLabel: "Subclasse",
-      helperText: "Se a classe principal liberou subclasse neste nível, escolha a opção aqui.",
       select: el.subclasse,
       getOptionDescription: (value) => SUBCLASS_BY_ID.get(value)?.descricao || "",
       target: el.subclasse?.closest(".row") || el.subclasse,

@@ -4262,7 +4262,6 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       return {
         label: `Subclasse de ${className}`,
         selectLabel: "Subclasse / Arquétipo",
-        helperText: "Se esta multiclasse liberou arquétipo neste nível, escolha a opção aqui.",
         select: context.row.querySelector("[data-multiclass-subclass]"),
         getOptionDescription: (value) => SUBCLASS_BY_ID.get(value)?.descricao || "",
         target: context.row,
@@ -4272,7 +4271,6 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     return {
       label: `Subclasse de ${getSelectedClassData()?.nome || "classe principal"}`,
       selectLabel: "Subclasse / Arquétipo",
-      helperText: "Se a classe principal liberou arquétipo neste nível, escolha a opção aqui.",
       select: el.arquetipo,
       getOptionDescription: (value) => SUBCLASS_BY_ID.get(value)?.descricao || "",
       target: el.arquetipo?.closest(".row") || el.arquetipo,

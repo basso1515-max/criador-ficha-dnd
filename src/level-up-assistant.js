@@ -334,9 +334,6 @@ export function createLevelUpAssistant(config = {}) {
     card.className = "level-up-editor-card";
     const heading = document.createElement("h3");
     heading.textContent = control.label || "Subclasse";
-    const copy = document.createElement("p");
-    copy.className = "note subtle";
-    copy.textContent = control.helperText || "Escolha ou ajuste a subclasse liberada por este avanço.";
 
     const selectLabel = document.createElement("label");
     selectLabel.className = "row";
@@ -351,7 +348,7 @@ export function createLevelUpAssistant(config = {}) {
       render();
     });
     selectLabel.append(span, mirror);
-    card.append(heading, copy, selectLabel);
+    card.append(heading, selectLabel);
     const selectedDescription = getSelectOptionDescription(control, mirror.value);
     if (selectedDescription) {
       card.appendChild(createOptionDetail(mirror.options[mirror.selectedIndex]?.textContent || "Subclasse", selectedDescription));
@@ -476,7 +473,7 @@ export function createLevelUpAssistant(config = {}) {
     card.className = "level-up-review-card level-up-portal-card";
     const cardTitle = document.createElement("h4");
     cardTitle.textContent = item.label || "Painel da ficha";
-    const summaryText = compactText(readPanelText(item), 420) || "Painel liberado para revisão.";
+    const summaryText = getPanelHoverText(item);
     appendHoverCard(card, item.label || "Painel da ficha", summaryText);
 
     const mount = document.createElement("div");
@@ -488,10 +485,7 @@ export function createLevelUpAssistant(config = {}) {
       return card;
     }
 
-    const hint = document.createElement("p");
-    hint.className = "note subtle level-up-panel-hint";
-    hint.textContent = "Você pode ajustar esta etapa aqui mesmo; é o mesmo painel da ficha, só trazido para dentro do avanço.";
-    card.append(cardTitle, hint, mount);
+    card.append(cardTitle, mount);
     return card;
   }
 
@@ -794,10 +788,35 @@ function dispatchChange(element) {
   element.dispatchEvent(new Event("change", { bubbles: true }));
 }
 
-function readPanelText(panel) {
-  const summary = resolveElement(panel.summaryElement || panel.summarySelector);
-  const source = summary || panel.element;
-  return String(source?.textContent || "").trim();
+function getPanelHoverText(panel) {
+  const explicitText = String(panel?.hoverText || panel?.description || panel?.summary || "").trim();
+  if (explicitText) return compactText(explicitText, 420);
+
+  const summary = resolveElement(panel?.summaryElement || panel?.summarySelector);
+  if (summary && !isHidden(summary)) {
+    const summaryText = readCleanElementText(summary);
+    if (summaryText) return compactText(summaryText, 420);
+  }
+
+  const element = resolveElement(panel?.element);
+  const panelText = readCleanElementText(element);
+  return compactText(panelText, 420) || "Painel liberado para revisão.";
+}
+
+function readCleanElementText(element) {
+  if (!element) return "";
+  const clone = element.cloneNode(true);
+  clone.querySelectorAll?.([
+    ".feature-choice-cascade",
+    ".feat-choice-meta",
+    ".feature-choice-hover-card",
+    ".dropdown-hover-card",
+    ".magic-spell-hover-card",
+    ".level-up-hover-trigger",
+    ".level-up-panel-hint",
+    "[aria-hidden='true']",
+  ].join(", ")).forEach((node) => node.remove());
+  return String(clone.textContent || "").replace(/\s+/g, " ").trim();
 }
 
 function compactText(text, limit) {
@@ -824,10 +843,30 @@ function isVisibleMeaningfulPanel(panel) {
   if (!element || isHidden(element)) return false;
 
   const summary = resolveElement(panel.summaryElement || panel.summarySelector);
-  const summaryText = summary && !isHidden(summary) ? summary.textContent : "";
-  const elementText = element.textContent || "";
-  const hasInteractiveControl = Boolean(element.querySelector?.("input:not([type='hidden']), select, textarea, button"));
-  return Boolean(String(`${summaryText} ${elementText}`).replace(/\s+/g, " ").trim() || hasInteractiveControl);
+  const summaryText = summary && !isHidden(summary) ? readCleanElementText(summary) : "";
+  const elementText = readCleanElementText(element);
+  const cleanText = String(`${summaryText} ${elementText}`).replace(/\s+/g, " ").trim();
+  const hasInteractiveControl = hasVisibleInteractiveControl(element);
+  if (!hasInteractiveControl && isInactivePanelText(cleanText)) return false;
+  return Boolean(cleanText || hasInteractiveControl);
+}
+
+function hasVisibleInteractiveControl(element) {
+  return Array.from(element.querySelectorAll?.("input:not([type='hidden']), select, textarea, button") || [])
+    .some((control) => !control.disabled && !isHidden(control));
+}
+
+function isInactivePanelText(text) {
+  const clean = String(text || "").toLowerCase();
+  return [
+    "nenhuma escolha adicional de talento está ativa",
+    "nenhuma escolha adicional ativa neste nível",
+    "nenhuma escolha estrutural ativa ou configurada",
+    "nenhuma escolha oficial de subclasse ativa",
+    "nenhuma escolha adicional registrada",
+    "nenhuma escolha manual é necessária",
+    "sem escolha adicional de perícias cadastrada",
+  ].some((pattern) => clean.includes(pattern));
 }
 
 function resolveElement(target) {
