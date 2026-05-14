@@ -864,14 +864,16 @@ function appendHoverCard(target, title, text) {
   target.classList.add("level-up-has-hover");
   const trigger = document.createElement("span");
   trigger.className = "level-up-hover-trigger";
-  if (!target.matches?.("button")) {
-    trigger.tabIndex = 0;
-  }
   trigger.setAttribute("aria-label", `Ver descrição de ${title}`);
   trigger.textContent = "?";
+  trigger.addEventListener("pointerdown", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+  });
   trigger.addEventListener("click", (event) => {
     event.preventDefault();
     event.stopPropagation();
+    trigger.blur?.();
   });
 
   const card = document.createElement("span");

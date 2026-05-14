@@ -2655,9 +2655,9 @@ button:hover { border-color: #5a3e24; }
 }
 
 .level-up-method-card .level-up-hover-trigger {
-  top: 50%;
-  right: 12px;
-  transform: translateY(-50%);
+  top: 14px;
+  right: 14px;
+  transform: none;
 }
 
 .level-up-method-card strong {
@@ -2918,17 +2918,15 @@ button:hover { border-color: #5a3e24; }
   line-height: 1.42;
 }
 
-.level-up-hover-trigger:hover > .level-up-hover-card,
-.level-up-hover-trigger:focus > .level-up-hover-card {
+.level-up-hover-trigger:hover > .level-up-hover-card {
   display: block;
 }
 
-.level-up-method-card .level-up-hover-trigger:not(:hover):not(:focus) > .level-up-hover-card {
+.level-up-method-card .level-up-hover-trigger:not(:hover) > .level-up-hover-card {
   display: none !important;
 }
 
-.level-up-method-card .level-up-hover-trigger:hover > .level-up-hover-card,
-.level-up-method-card .level-up-hover-trigger:focus > .level-up-hover-card {
+.level-up-method-card .level-up-hover-trigger:hover > .level-up-hover-card {
   display: block !important;
 }
 

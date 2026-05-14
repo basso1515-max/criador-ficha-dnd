@@ -455,6 +455,15 @@ const smokePages = [
           tab.click();
           return tab;
         };
+        const assertLevelUpHelpersAreHoverOnly = () => {
+          const triggers = Array.from(document.querySelectorAll(".level-up-hover-trigger"));
+          assert(triggers.length, "Assistente 5e não exibiu helpers de descrição.");
+          assert(triggers.every((trigger) => !trigger.hasAttribute("tabindex")), "Helpers ? do assistente 5e não devem ser focáveis por clique/teclado.");
+          const firstTrigger = triggers[0];
+          const firstCard = firstTrigger.querySelector(".level-up-hover-card");
+          firstTrigger.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+          assert(!firstCard || getComputedStyle(firstCard).display === "none", "Helper ? do assistente 5e ficou aberto após clique.");
+        };
         const assertHpMethodTitles = () => {
           const titles = Array.from(document.querySelectorAll(".level-up-method-card strong"))
             .map((item) => item.textContent.trim());
@@ -465,7 +474,7 @@ const smokePages = [
           assert(hpHoverCards.every((card) => getComputedStyle(card).display === "none"), "Hovercards de PV 5e aparecem sem hover/foco no ?.");
           assert(hpHoverCards.every((card) => getComputedStyle(card).pointerEvents === "none"), "Hovercards de PV 5e estão capturando o mouse e prendendo o hover.");
           const hpTriggers = Array.from(document.querySelectorAll(".level-up-method-card .level-up-hover-trigger"));
-          assert(hpTriggers.every((trigger) => getComputedStyle(trigger).transform !== "none"), "Botões ? de PV 5e não estão centralizados verticalmente.");
+          assert(hpTriggers.every((trigger) => getComputedStyle(trigger).transform === "none" && getComputedStyle(trigger).top === "14px"), "Botões ? de PV 5e não estão alinhados ao título.");
         };
         const assertSpellHoverInAssistant = () => {
           clickLevelUpTab("Magias");
@@ -493,6 +502,7 @@ const smokePages = [
         assert(modalText().includes("Seguir com a classe principal"), "Popup de nível 5e não abriu na aba Caminho.");
         assert(modalText().includes("Abrir ou avançar multiclasse"), "Popup de nível 5e não mostrou opção de multiclasse.");
         assert(document.querySelector(".level-up-hover-trigger"), "Popup de nível 5e não exibiu hovercards de descrição.");
+        assertLevelUpHelpersAreHoverOnly();
         assert(!modalText().includes("Aplicar avanço"), "Popup de nível 5e ainda mostra botão Aplicar avanço.");
         assert(!modalText().includes("Fechar assistente"), "Popup de nível 5e ainda mostra botão Fechar assistente.");
         assert(document.querySelector(".level-up-next")?.disabled, "Botão Avançar 5e deveria iniciar bloqueado até escolher caminho.");
@@ -953,6 +963,15 @@ const smokePages = [
           tab.click();
           return tab;
         };
+        const assertLevelUpHelpersAreHoverOnly = () => {
+          const triggers = Array.from(document.querySelectorAll(".level-up-hover-trigger"));
+          assert(triggers.length, "Assistente 5.5e não exibiu helpers de descrição.");
+          assert(triggers.every((trigger) => !trigger.hasAttribute("tabindex")), "Helpers ? do assistente 5.5e não devem ser focáveis por clique/teclado.");
+          const firstTrigger = triggers[0];
+          const firstCard = firstTrigger.querySelector(".level-up-hover-card");
+          firstTrigger.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+          assert(!firstCard || getComputedStyle(firstCard).display === "none", "Helper ? do assistente 5.5e ficou aberto após clique.");
+        };
         const assertHpMethodTitles = () => {
           const titles = Array.from(document.querySelectorAll(".level-up-method-card strong"))
             .map((item) => item.textContent.trim());
@@ -963,7 +982,7 @@ const smokePages = [
           assert(hpHoverCards.every((card) => getComputedStyle(card).display === "none"), "Hovercards de PV 5.5e aparecem sem hover/foco no ?.");
           assert(hpHoverCards.every((card) => getComputedStyle(card).pointerEvents === "none"), "Hovercards de PV 5.5e estão capturando o mouse e prendendo o hover.");
           const hpTriggers = Array.from(document.querySelectorAll(".level-up-method-card .level-up-hover-trigger"));
-          assert(hpTriggers.every((trigger) => getComputedStyle(trigger).transform !== "none"), "Botões ? de PV 5.5e não estão centralizados verticalmente.");
+          assert(hpTriggers.every((trigger) => getComputedStyle(trigger).transform === "none" && getComputedStyle(trigger).top === "14px"), "Botões ? de PV 5.5e não estão alinhados ao título.");
         };
         const assertInsideRect = (node, container, message) => {
           const rect = node?.getBoundingClientRect?.();
@@ -1020,6 +1039,7 @@ const smokePages = [
         assert(modalText().includes("Seguir com a classe principal"), "Popup de nível 5.5e não abriu na aba Caminho.");
         assert(modalText().includes("Abrir ou avançar multiclasse"), "Popup de nível 5.5e não mostrou opção de multiclasse.");
         assert(document.querySelector(".level-up-hover-trigger"), "Popup de nível 5.5e não exibiu hovercards de descrição.");
+        assertLevelUpHelpersAreHoverOnly();
         assert(!modalText().includes("Aplicar avanço"), "Popup de nível 5.5e ainda mostra botão Aplicar avanço.");
         assert(!modalText().includes("Fechar assistente"), "Popup de nível 5.5e ainda mostra botão Fechar assistente.");
         assert(document.querySelector(".level-up-next")?.disabled, "Botão Avançar 5.5e deveria iniciar bloqueado até escolher caminho.");
