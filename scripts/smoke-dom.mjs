@@ -446,6 +446,8 @@ const smokePages = [
           return node;
         };
         const modalText = () => document.querySelector(".level-up-dialog")?.textContent || "";
+        const hasLevelUpTab = (label) => Array.from(document.querySelectorAll(".level-up-tab"))
+          .some((tab) => tab.textContent.trim() === label);
 
         setValue("#classe", "Guerreiro", ["change"]);
         click(".level-up-open-button");
@@ -461,13 +463,31 @@ const smokePages = [
         assert(!Array.from(document.querySelectorAll(".level-up-tab")).some((tab) => tab.textContent.trim() === "Magias"), "Guia de magias 5e apareceu para avanço sem magia.");
         click(".level-up-close");
 
+        setValue("#classe", "Guerreiro", ["change"]);
+        setValue("#nivel", "2", ["input", "change"]);
+        setValue("#arquetipo", "", ["change"]);
+        click(".level-up-open-button");
+        document.querySelector('.level-up-choice-card input[value="main"]').click();
+        click(".level-up-next");
+        assert(hasLevelUpTab("Subclasse"), "Guia de subclasse 5e não apareceu quando Guerreiro chegou ao nível 3.");
+        click(".level-up-close");
+
+        setValue("#classe", "Guerreiro", ["change"]);
+        setValue("#nivel", "3", ["input", "change"]);
+        setValue("#arquetipo", "guerreiro-campeao", ["change"]);
+        click(".level-up-open-button");
+        document.querySelector('.level-up-choice-card input[value="main"]').click();
+        click(".level-up-next");
+        assert(!hasLevelUpTab("Subclasse"), "Guia de subclasse 5e apareceu mesmo com subclasse já escolhida e sem novo desbloqueio.");
+        click(".level-up-close");
+
         setValue("#nivel", "1", ["input", "change"]);
         setValue("#classe", "Bardo", ["change"]);
         click(".level-up-open-button");
         document.querySelector('.level-up-choice-card input[value="main"]').click();
         click(".level-up-next");
         assert(document.querySelector("#nivel")?.value === "2", "Assistente 5e não aumentou o nível principal para 2.");
-        assert(!Array.from(document.querySelectorAll(".level-up-tab")).some((tab) => tab.textContent.trim() === "Subclasse"), "Guia de subclasse 5e apareceu sem subclasse nova.");
+        assert(!hasLevelUpTab("Subclasse"), "Guia de subclasse 5e apareceu sem subclasse nova.");
         assert(!modalText().includes("Abrir subclasse na ficha"), "Assistente 5e ainda mostra botão de abrir subclasse na ficha.");
         assert(modalText().includes("Pontos de vida do novo nível"), "Botão de avançar etapa 5e não levou para PV.");
         assert(document.querySelector(".level-up-content .level-up-hover-trigger"), "Aba de PV 5e não exibiu hovercards de descrição.");
@@ -489,6 +509,21 @@ const smokePages = [
         assert(row, "Assistente 5e não criou linha de multiclasse.");
         assert(row.querySelector("[data-multiclass-class]")?.value === "Guerreiro", "Assistente 5e não registrou Guerreiro como multiclasse.");
         assert(row.querySelector("[data-multiclass-level]")?.value === "1", "Assistente 5e não iniciou a multiclasse no nível 1.");
+        click(".level-up-close");
+
+        setValue("#classe", "Bardo", ["change"]);
+        setValue("#nivel", "3", ["input", "change"]);
+        setValue('#multiclassRows [data-multiclass-class]', "Guerreiro", ["change"]);
+        setValue('#multiclassRows [data-multiclass-level]', "2", ["input", "change"]);
+        click(".level-up-open-button");
+        const existingMulticlassRadio = document.querySelector('.level-up-choice-card input[value="multiclass"]');
+        assert(existingMulticlassRadio, "Rádio de multiclasse existente 5e ausente.");
+        existingMulticlassRadio.checked = true;
+        dispatch(existingMulticlassRadio, "change");
+        setValue(".level-up-multiclass-picker select", "Guerreiro", ["change"]);
+        click(".level-up-next");
+        assert(document.querySelector('#multiclassRows [data-multiclass-level]')?.value === "3", "Assistente 5e não elevou multiclasse existente ao nível 3.");
+        assert(hasLevelUpTab("Subclasse"), "Guia de subclasse 5e não apareceu quando multiclasse Guerreiro chegou ao nível 3.");
       })();
     `,
     afterSetupSelectors: [
@@ -838,6 +873,8 @@ const smokePages = [
           return node;
         };
         const modalText = () => document.querySelector(".level-up-dialog")?.textContent || "";
+        const hasLevelUpTab = (label) => Array.from(document.querySelectorAll(".level-up-tab"))
+          .some((tab) => tab.textContent.trim() === label);
 
         setValue("#classe2024", "guerreiro", ["change"]);
         click(".level-up-open-button");
@@ -853,13 +890,31 @@ const smokePages = [
         assert(!Array.from(document.querySelectorAll(".level-up-tab")).some((tab) => tab.textContent.trim() === "Magias"), "Guia de magias 5.5e apareceu para avanço sem magia.");
         click(".level-up-close");
 
+        setValue("#classe2024", "guerreiro", ["change"]);
+        setValue("#nivel2024", "2", ["input", "change"]);
+        setValue("#subclasse2024", "", ["change"]);
+        click(".level-up-open-button");
+        document.querySelector('.level-up-choice-card input[value="main"]').click();
+        click(".level-up-next");
+        assert(hasLevelUpTab("Subclasse"), "Guia de subclasse 5.5e não apareceu quando Guerreiro chegou ao nível 3.");
+        click(".level-up-close");
+
+        setValue("#classe2024", "guerreiro", ["change"]);
+        setValue("#nivel2024", "3", ["input", "change"]);
+        setValue("#subclasse2024", "guerreiro-campeao", ["change"]);
+        click(".level-up-open-button");
+        document.querySelector('.level-up-choice-card input[value="main"]').click();
+        click(".level-up-next");
+        assert(!hasLevelUpTab("Subclasse"), "Guia de subclasse 5.5e apareceu mesmo com subclasse já escolhida e sem novo desbloqueio.");
+        click(".level-up-close");
+
         setValue("#nivel2024", "1", ["input", "change"]);
         setValue("#classe2024", "bardo", ["change"]);
         click(".level-up-open-button");
         document.querySelector('.level-up-choice-card input[value="main"]').click();
         click(".level-up-next");
         assert(document.querySelector("#nivel2024")?.value === "2", "Assistente 5.5e não aumentou o nível principal para 2.");
-        assert(!Array.from(document.querySelectorAll(".level-up-tab")).some((tab) => tab.textContent.trim() === "Subclasse"), "Guia de subclasse 5.5e apareceu sem subclasse nova.");
+        assert(!hasLevelUpTab("Subclasse"), "Guia de subclasse 5.5e apareceu sem subclasse nova.");
         assert(!modalText().includes("Abrir subclasse na ficha"), "Assistente 5.5e ainda mostra botão de abrir subclasse na ficha.");
         assert(modalText().includes("Pontos de vida do novo nível"), "Botão de avançar etapa 5.5e não levou para PV.");
         assert(document.querySelector(".level-up-content .level-up-hover-trigger"), "Aba de PV 5.5e não exibiu hovercards de descrição.");
@@ -881,6 +936,21 @@ const smokePages = [
         assert(row, "Assistente 5.5e não criou linha de multiclasse.");
         assert(row.querySelector("[data-multiclass-class]")?.value === "guerreiro", "Assistente 5.5e não registrou Guerreiro como multiclasse.");
         assert(row.querySelector("[data-multiclass-level]")?.value === "1", "Assistente 5.5e não iniciou a multiclasse no nível 1.");
+        click(".level-up-close");
+
+        setValue("#classe2024", "bardo", ["change"]);
+        setValue("#nivel2024", "3", ["input", "change"]);
+        setValue('#multiclassRows2024 [data-multiclass-class]', "guerreiro", ["change"]);
+        setValue('#multiclassRows2024 [data-multiclass-level]', "2", ["input", "change"]);
+        click(".level-up-open-button");
+        const existingMulticlassRadio = document.querySelector('.level-up-choice-card input[value="multiclass"]');
+        assert(existingMulticlassRadio, "Rádio de multiclasse existente 5.5e ausente.");
+        existingMulticlassRadio.checked = true;
+        dispatch(existingMulticlassRadio, "change");
+        setValue(".level-up-multiclass-picker select", "guerreiro", ["change"]);
+        click(".level-up-next");
+        assert(document.querySelector('#multiclassRows2024 [data-multiclass-level]')?.value === "3", "Assistente 5.5e não elevou multiclasse existente ao nível 3.");
+        assert(hasLevelUpTab("Subclasse"), "Guia de subclasse 5.5e não apareceu quando multiclasse Guerreiro chegou ao nível 3.");
       })();
     `,
     afterSetupSelectors: [

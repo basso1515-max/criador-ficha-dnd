@@ -303,10 +303,14 @@ export function createLevelUpAssistant(config = {}) {
     state.applied = true;
     state.appliedContext = {
       mode: state.selectedPath,
+      fromLevel: payload.fromLevel,
+      toLevel: payload.toLevel,
       classValue: state.selectedMulticlass,
       row: result?.row || null,
       label,
       summary: result?.summary || `Nível ${state.toLevel} aplicado em ${label}.`,
+      classLevelBefore: result?.classLevelBefore,
+      classLevelAfter: result?.classLevelAfter,
     };
     state.fromLevel = Math.max(state.fromLevel, getCurrentLevel() - 1);
     state.toLevel = getCurrentLevel();
@@ -603,7 +607,12 @@ export function createLevelUpAssistant(config = {}) {
 
   function shouldShowSubclassTab() {
     const control = config.getSubclassControl?.(state.appliedContext);
-    return Boolean(control?.select && hasRealOptions(control.select));
+    if (!control?.select || !hasRealOptions(control.select)) return false;
+    if (typeof control.shouldShow === "function") {
+      return Boolean(control.shouldShow(state.appliedContext));
+    }
+    if (Object.hasOwn(control, "shouldShow")) return Boolean(control.shouldShow);
+    return true;
   }
 
   function shouldShowHpTab() {

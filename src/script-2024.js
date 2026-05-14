@@ -2737,16 +2737,21 @@ import { createLevelUpAssistant } from "./level-up-assistant.js";
   }
 
   function applyMainClassLevelUp2024({ toLevel }) {
-    if (!getSelectedClass()) {
+    const classData = getSelectedClass();
+    if (!classData) {
       return { ok: false, message: "Escolha a classe principal antes de subir de nível." };
     }
 
+    const classLevelBefore = getPrimaryAssignedLevel2024();
     el.nivel.value = String(toLevel);
     renderAll();
+    const classLevelAfter = getPrimaryAssignedLevel2024();
     const classLabel = getSelectedClass()?.nome || "classe principal";
     return {
       ok: true,
       label: classLabel,
+      classLevelBefore,
+      classLevelAfter,
       summary: `Nível ${toLevel} aplicado em ${classLabel}. Nível atual nessa classe: ${getPrimaryAssignedLevel2024()}.`,
     };
   }
@@ -2762,6 +2767,9 @@ import { createLevelUpAssistant } from "./level-up-assistant.js";
 
     el.nivel.value = String(toLevel);
     let row = getAdditionalMulticlassRows2024().find((item) => item.querySelector("[data-multiclass-class]")?.value === cls.id);
+    const classLevelBefore = row
+      ? clampInt(row.querySelector("[data-multiclass-level]")?.value, 1, Math.max(1, toLevel - 1))
+      : 0;
 
     if (row) {
       const levelInput = row.querySelector("[data-multiclass-level]");
@@ -2780,31 +2788,50 @@ import { createLevelUpAssistant } from "./level-up-assistant.js";
 
     updateMulticlassRow2024(row);
     renderAll();
+    const classLevelAfter = row
+      ? clampInt(row.querySelector("[data-multiclass-level]")?.value, 1, toLevel)
+      : classLevelBefore + 1;
     return {
       ok: true,
       row,
       label: cls.nome,
+      classLevelBefore,
+      classLevelAfter,
       summary: `Nível ${toLevel} aplicado como avanço de ${cls.nome}.`,
     };
+  }
+
+  function shouldShowLevelUpSubclassChoice2024(classData, context = {}, select = null) {
+    if (!classData || !select) return false;
+    const classLevelBefore = clampInt(context.classLevelBefore, 0, 20);
+    const classLevelAfter = clampInt(context.classLevelAfter, 0, 20);
+    const unlockLevel = getSubclassUnlockLevel2024(classData);
+    const unlockedThisAdvance = Boolean(unlockLevel && classLevelBefore < unlockLevel && classLevelAfter >= unlockLevel);
+    return unlockedThisAdvance || !select.value;
   }
 
   function getLevelUpSubclassControl2024(context = {}) {
     if (context.mode === "multiclass" && context.row) {
       const classId = context.row.querySelector("[data-multiclass-class]")?.value || "";
-      const className = CLASS_BY_ID.get(classId)?.nome || context.label || "multiclasse";
+      const classData = CLASS_BY_ID.get(classId) || null;
+      const className = classData?.nome || context.label || "multiclasse";
+      const select = context.row.querySelector("[data-multiclass-subclass]");
       return {
         label: `Subclasse de ${className}`,
         selectLabel: "Subclasse",
-        select: context.row.querySelector("[data-multiclass-subclass]"),
+        select,
+        shouldShow: shouldShowLevelUpSubclassChoice2024(classData, context, select),
         getOptionDescription: (value) => SUBCLASS_BY_ID.get(value)?.descricao || "",
         target: context.row,
       };
     }
 
+    const classData = getSelectedClass();
     return {
-      label: `Subclasse de ${getSelectedClass()?.nome || "classe principal"}`,
+      label: `Subclasse de ${classData?.nome || "classe principal"}`,
       selectLabel: "Subclasse",
       select: el.subclasse,
+      shouldShow: shouldShowLevelUpSubclassChoice2024(classData, context, el.subclasse),
       getOptionDescription: (value) => SUBCLASS_BY_ID.get(value)?.descricao || "",
       target: el.subclasse?.closest(".row") || el.subclasse,
     };
