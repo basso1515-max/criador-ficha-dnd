@@ -965,6 +965,35 @@ const smokePages = [
           const hpTriggers = Array.from(document.querySelectorAll(".level-up-method-card .level-up-hover-trigger"));
           assert(hpTriggers.every((trigger) => getComputedStyle(trigger).transform !== "none"), "Botões ? de PV 5.5e não estão centralizados verticalmente.");
         };
+        const assertInsideRect = (node, container, message) => {
+          const rect = node?.getBoundingClientRect?.();
+          const containerRect = container?.getBoundingClientRect?.();
+          assert(rect && containerRect && rect.width > 0 && containerRect.width > 0, message + " sem medidas válidas.");
+          assert(rect.left >= containerRect.left - 2 && rect.right <= containerRect.right + 2, message);
+        };
+        const assertResourceChoicesFitAssistant = () => {
+          clickLevelUpTab("Recursos");
+          const content = document.querySelector(".level-up-content");
+          const field = document.querySelector(".level-up-portaled-panel .generic-dropdown-field");
+          const input = field?.querySelector("input");
+          const suggestions = field?.querySelector(".dropdown-suggestions");
+          assert(content && field && input && suggestions, "Aba Recursos 5.5e não renderizou a cascata de escolhas.");
+          assert(getComputedStyle(content).overflowX === "hidden", "Conteúdo do assistente 5.5e ainda permite arraste horizontal.");
+          assertInsideRect(field, content, "Campo de recurso 5.5e ultrapassou o assistente.");
+
+          input.focus();
+          input.dispatchEvent(new Event("focus"));
+          input.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+          assert(!suggestions.hidden, "Lista de recursos 5.5e não abriu no assistente.");
+          assertInsideRect(suggestions, field, "Lista de recursos 5.5e ultrapassou o campo.");
+
+          const option = suggestions.querySelector(".dropdown-suggestion[data-value]");
+          assert(option, "Lista de recursos 5.5e não trouxe opções para testar hovercard.");
+          option.dispatchEvent(new MouseEvent("mouseenter", { bubbles: true, clientX: 160, clientY: 160 }));
+          const hover = field.querySelector(".dropdown-hover-card");
+          assert(hover && !hover.hidden, "Hovercard de recurso 5.5e não abriu dentro do assistente.");
+          assertInsideRect(hover, content, "Hovercard de recurso 5.5e ultrapassou o assistente.");
+        };
         const assertSpellHoverInAssistant = () => {
           clickLevelUpTab("Magias");
           const availableSpell = Array.from(document.querySelectorAll(".level-up-portaled-panel [id^='availableSpellPanel'] [data-spell-id]"))
@@ -1034,6 +1063,16 @@ const smokePages = [
         assert(document.querySelector(".level-up-tab.is-active")?.textContent.trim() === "Subclasse", "Assistente 5.5e saiu da guia Subclasse depois de escolher o patrono.");
         assert(document.querySelector(".level-up-subclass-cascade input")?.value === "Patrono Ínfero", "Cascata de subclasse 5.5e não manteve Patrono Ínfero selecionado.");
         assert(document.querySelector(".level-up-editor-card .level-up-hover-trigger"), "Guia Subclasse 5.5e não manteve o hovercard de ajuda no assistente.");
+        click(".level-up-close");
+
+        setValue("#classe2024", "bruxo", ["change"]);
+        setValue("#nivel2024", "1", ["input", "change"]);
+        setValue("#subclasse2024", "", ["change"]);
+        click(".level-up-open-button");
+        document.querySelector('.level-up-choice-card input[value="main"]').click();
+        click(".level-up-next");
+        assert(hasLevelUpTab("Recursos"), "Guia Recursos 5.5e não apareceu para Bruxo nível 2.");
+        assertResourceChoicesFitAssistant();
         click(".level-up-close");
 
         setValue("#classe2024", "guerreiro", ["change"]);

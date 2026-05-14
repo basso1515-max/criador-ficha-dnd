@@ -2500,6 +2500,7 @@ button:hover { border-color: #5a3e24; }
 
 .level-up-content {
   min-height: 0;
+  overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
   padding: 22px 26px 26px;
@@ -2684,6 +2685,7 @@ button:hover { border-color: #5a3e24; }
 
 .level-up-portal-card {
   gap: 12px;
+  min-width: 0;
 }
 
 .level-up-review-card p {
@@ -2693,10 +2695,73 @@ button:hover { border-color: #5a3e24; }
 .level-up-portaled-panel {
   display: grid;
   gap: 12px;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .level-up-portaled-panel > .is-level-up-portaled {
   margin: 0;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.level-up-portaled-panel fieldset,
+.level-up-portaled-panel .feat-choice-list,
+.level-up-portaled-panel .feat-choice-layout,
+.level-up-portaled-panel .feat-choice-main,
+.level-up-portaled-panel .feat-choice-side,
+.level-up-portaled-panel .feat-choice-card,
+.level-up-portaled-panel .dropdown-anchor,
+.level-up-portaled-panel .generic-dropdown-field,
+.level-up-portaled-panel label.row {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.level-up-portaled-panel .feat-choice-list {
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.level-up-portaled-panel .feat-choice-layout {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+}
+
+.level-up-portaled-panel input:not([type="checkbox"]):not([type="radio"]),
+.level-up-portaled-panel select,
+.level-up-portaled-panel textarea {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.level-up-portaled-panel .feat-choice-card {
+  padding: 12px;
+}
+
+.level-up-portaled-panel .feat-choice-card > strong {
+  font-size: 16px;
+}
+
+.level-up-portaled-panel .dropdown-suggestions {
+  right: 0;
+  left: 0;
+  width: auto;
+  min-width: 0;
+  max-width: 100%;
+  max-height: min(220px, 40vh);
+}
+
+.level-up-portaled-panel .dropdown-hover-card:not(.magic-spell-hover-card) {
+  top: calc(100% + 8px);
+  right: 0;
+  left: auto;
+  z-index: 42;
+  width: min(320px, 100%);
+  max-width: 100%;
+  max-height: min(260px, 38vh);
+  overflow: auto;
 }
 
 .level-up-panel-hint {
