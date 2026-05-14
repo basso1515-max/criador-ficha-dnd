@@ -2653,6 +2653,12 @@ button:hover { border-color: #5a3e24; }
   text-align: left;
 }
 
+.level-up-method-card .level-up-hover-trigger {
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+}
+
 .level-up-method-card strong {
   display: block;
   color: #4b2c1d;
@@ -2830,6 +2836,7 @@ button:hover { border-color: #5a3e24; }
     linear-gradient(180deg, rgba(255, 253, 246, 0.98), rgba(246, 235, 208, 0.98));
   color: #3f2b1c;
   box-shadow: 0 18px 42px rgba(44, 27, 17, 0.24);
+  pointer-events: none;
   text-align: left;
 }
 
@@ -2846,10 +2853,18 @@ button:hover { border-color: #5a3e24; }
   line-height: 1.42;
 }
 
-.level-up-hover-trigger:hover .level-up-hover-card,
-.level-up-hover-trigger:focus .level-up-hover-card,
-.level-up-hover-trigger:focus-within .level-up-hover-card {
+.level-up-hover-trigger:hover > .level-up-hover-card,
+.level-up-hover-trigger:focus > .level-up-hover-card {
   display: block;
+}
+
+.level-up-method-card .level-up-hover-trigger:not(:hover):not(:focus) > .level-up-hover-card {
+  display: none !important;
+}
+
+.level-up-method-card .level-up-hover-trigger:hover > .level-up-hover-card,
+.level-up-method-card .level-up-hover-trigger:focus > .level-up-hover-card {
+  display: block !important;
 }
 
 .warning-note {

@@ -460,6 +460,12 @@ const smokePages = [
             .map((item) => item.textContent.trim());
           assert(titles.includes("Valor Fixo"), "Botão de PV 5e não mostra o título Valor Fixo.");
           assert(titles.includes("Rolado"), "Botão de PV 5e não mostra o título Rolado.");
+          const hpHoverCards = Array.from(document.querySelectorAll(".level-up-method-card .level-up-hover-card"));
+          assert(hpHoverCards.length >= 2, "Botões de PV 5e não têm hovercards próprios.");
+          assert(hpHoverCards.every((card) => getComputedStyle(card).display === "none"), "Hovercards de PV 5e aparecem sem hover/foco no ?.");
+          assert(hpHoverCards.every((card) => getComputedStyle(card).pointerEvents === "none"), "Hovercards de PV 5e estão capturando o mouse e prendendo o hover.");
+          const hpTriggers = Array.from(document.querySelectorAll(".level-up-method-card .level-up-hover-trigger"));
+          assert(hpTriggers.every((trigger) => getComputedStyle(trigger).transform !== "none"), "Botões ? de PV 5e não estão centralizados verticalmente.");
         };
         const assertSpellHoverInAssistant = () => {
           clickLevelUpTab("Magias");
@@ -952,6 +958,12 @@ const smokePages = [
             .map((item) => item.textContent.trim());
           assert(titles.includes("Valor Fixo"), "Botão de PV 5.5e não mostra o título Valor Fixo.");
           assert(titles.includes("Rolado"), "Botão de PV 5.5e não mostra o título Rolado.");
+          const hpHoverCards = Array.from(document.querySelectorAll(".level-up-method-card .level-up-hover-card"));
+          assert(hpHoverCards.length >= 2, "Botões de PV 5.5e não têm hovercards próprios.");
+          assert(hpHoverCards.every((card) => getComputedStyle(card).display === "none"), "Hovercards de PV 5.5e aparecem sem hover/foco no ?.");
+          assert(hpHoverCards.every((card) => getComputedStyle(card).pointerEvents === "none"), "Hovercards de PV 5.5e estão capturando o mouse e prendendo o hover.");
+          const hpTriggers = Array.from(document.querySelectorAll(".level-up-method-card .level-up-hover-trigger"));
+          assert(hpTriggers.every((trigger) => getComputedStyle(trigger).transform !== "none"), "Botões ? de PV 5.5e não estão centralizados verticalmente.");
         };
         const assertSpellHoverInAssistant = () => {
           clickLevelUpTab("Magias");
