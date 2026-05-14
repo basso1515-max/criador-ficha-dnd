@@ -2712,6 +2712,35 @@ button:hover { border-color: #5a3e24; }
   color: #6f5538;
 }
 
+.level-up-subclass-cascade {
+  position: relative;
+  z-index: 4;
+}
+
+.level-up-subclass-cascade input {
+  cursor: text;
+}
+
+.level-up-subclass-cascade .native-select-hidden {
+  display: none;
+}
+
+.level-up-subclass-cascade .dropdown-suggestions {
+  top: calc(100% + 4px);
+  z-index: 36;
+  max-height: min(260px, 46vh);
+}
+
+.level-up-subclass-cascade .dropdown-hover-card {
+  top: calc(100% + 12px);
+  right: 0;
+  left: auto;
+  z-index: 37;
+  width: min(360px, calc(100vw - 72px));
+  max-height: min(320px, 45vh);
+  overflow: auto;
+}
+
 .level-up-footer {
   display: flex;
   gap: 12px;
@@ -2958,6 +2987,14 @@ select[multiple] option {
     left: 0;
     right: 0;
     top: calc(-250px - 10px);
+    width: auto;
+  }
+
+  .level-up-subclass-cascade .dropdown-hover-card {
+    top: calc(100% + 12px);
+    bottom: auto;
+    left: 0;
+    right: 0;
     width: auto;
   }
 }
@@ -5758,6 +5795,12 @@ body[data-active-screen="5e-2024"] .level-up-dialog .level-up-next.is-ready:not(
     margin: 0;
     overflow: auto;
     transform: none;
+  }
+
+  .level-up-subclass-cascade .dropdown-hover-card:not(.magic-spell-hover-card) {
+    top: calc(100% + 8px);
+    bottom: auto;
+    max-height: min(240px, 36vh);
   }
 
   .attribute-methods,

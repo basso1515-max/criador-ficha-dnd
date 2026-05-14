@@ -343,36 +343,146 @@ export function createLevelUpAssistant(config = {}) {
     card.className = "level-up-editor-card";
     const heading = document.createElement("h3");
     heading.textContent = control.label || "Subclasse";
+    appendHoverCard(card, "Etapa de subclasse", getSubclassGuideText(control));
 
-    const selectLabel = document.createElement("label");
-    selectLabel.className = "row";
-    const span = document.createElement("span");
-    span.textContent = control.selectLabel || "Opção";
-    const mirror = cloneSelect(control.select);
-    Array.from(mirror.options || []).forEach((option) => {
-      const description = getSelectOptionDescription(control, option.value);
-      if (description) {
-        option.title = description;
-        option.dataset.description = description;
-      }
-    });
-    mirror.addEventListener("change", () => {
-      control.select.value = mirror.value;
-      dispatchChange(control.select);
-      state.message = "Subclasse atualizada na ficha.";
-      config.setStatus?.(state.message, "success");
-      render();
-    });
-    selectLabel.append(span, mirror);
-    card.append(heading, selectLabel);
-    const selectedDescription = getSelectOptionDescription(control, mirror.value);
-    const selectedLabel = mirror.options[mirror.selectedIndex]?.textContent || "Subclasse";
-    if (selectedDescription) {
-      appendHoverCard(card, selectedLabel, selectedDescription);
-      card.appendChild(createOptionDetail(selectedLabel, selectedDescription, { includeHover: false }));
-    }
+    card.append(heading, createSubclassCascade(control));
     panel.appendChild(card);
     contentEl.appendChild(panel);
+  }
+
+  function createSubclassCascade(control) {
+    const field = document.createElement("label");
+    field.className = "row generic-dropdown-field level-up-subclass-cascade";
+
+    const label = document.createElement("span");
+    label.textContent = control.selectLabel || "Opção";
+
+    const input = document.createElement("input");
+    input.type = "text";
+    input.autocomplete = "off";
+    input.placeholder = "Selecione a subclasse...";
+    input.setAttribute("aria-label", control.selectLabel || "Subclasse");
+
+    const suggestions = document.createElement("div");
+    suggestions.className = "dropdown-suggestions level-up-subclass-suggestions";
+    suggestions.hidden = true;
+
+    const hoverCard = document.createElement("div");
+    hoverCard.className = "dropdown-hover-card level-up-subclass-hover-card";
+    hoverCard.hidden = true;
+
+    const mirror = cloneSelect(control.select);
+    mirror.classList.add("native-select-hidden");
+    mirror.tabIndex = -1;
+    mirror.setAttribute("aria-hidden", "true");
+
+    const options = getSubclassCascadeOptions(control, mirror);
+    const selectedOption = options.find((option) => option.value === mirror.value);
+    input.value = selectedOption?.label || "";
+
+    const commitValue = (value) => {
+      const option = options.find((item) => item.value === value);
+      if (!option) return;
+      control.select.value = value;
+      mirror.value = value;
+      dispatchChange(control.select);
+      state.message = `Subclasse atualizada para ${option.label}.`;
+      config.setStatus?.(state.message, "success");
+      render();
+    };
+
+    const hideHoverCard = () => {
+      hoverCard.hidden = true;
+      suggestions.querySelectorAll(".dropdown-suggestion").forEach((node) => {
+        node.classList.remove("is-active");
+      });
+    };
+
+    const showHoverCard = (option) => {
+      const description = String(option?.description || "").trim();
+      if (!description) {
+        hideHoverCard();
+        return;
+      }
+      hoverCard.innerHTML = `
+        <strong>${escapeText(option.label)}</strong>
+        <p>${escapeText(description)}</p>
+      `;
+      hoverCard.hidden = false;
+    };
+
+    const renderSuggestions = (query = "") => {
+      const normalizedQuery = normalizeSearchText(query);
+      const matches = options.filter((option) => !normalizedQuery || option.searchText.includes(normalizedQuery));
+      if (!matches.length) {
+        suggestions.innerHTML = '<div class="dropdown-suggestion is-empty">Nenhuma subclasse encontrada.</div>';
+        suggestions.hidden = false;
+        hideHoverCard();
+        return;
+      }
+
+      suggestions.innerHTML = matches.map((option) => `
+        <div class="dropdown-suggestion" data-value="${escapeText(option.value)}" tabindex="0">
+          <strong>${escapeText(option.label)}</strong>
+          ${option.summary ? `<small>${escapeText(option.summary)}</small>` : ""}
+        </div>
+      `).join("");
+      suggestions.hidden = false;
+
+      suggestions.querySelectorAll(".dropdown-suggestion[data-value]").forEach((node) => {
+        const value = node.getAttribute("data-value") || "";
+        const option = options.find((item) => item.value === value);
+        const activate = () => {
+          suggestions.querySelectorAll(".dropdown-suggestion").forEach((item) => item.classList.remove("is-active"));
+          node.classList.add("is-active");
+          showHoverCard(option);
+        };
+        node.addEventListener("mouseenter", activate);
+        node.addEventListener("focus", activate);
+        node.addEventListener("mouseleave", () => {
+          node.classList.remove("is-active");
+          hideHoverCard();
+        });
+        node.addEventListener("mousedown", (event) => event.preventDefault());
+        node.addEventListener("click", (event) => {
+          event.preventDefault();
+          commitValue(value);
+        });
+        node.addEventListener("keydown", (event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            commitValue(value);
+          }
+        });
+      });
+    };
+
+    input.addEventListener("input", () => renderSuggestions(input.value));
+    input.addEventListener("focus", () => renderSuggestions(""));
+    input.addEventListener("click", () => renderSuggestions(""));
+    input.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        suggestions.hidden = true;
+        hideHoverCard();
+        return;
+      }
+      if (event.key !== "Enter") return;
+      const firstValue = suggestions.querySelector(".dropdown-suggestion[data-value]")?.getAttribute("data-value");
+      if (firstValue) {
+        event.preventDefault();
+        commitValue(firstValue);
+      }
+    });
+    input.addEventListener("blur", () => {
+      window.setTimeout(() => {
+        suggestions.hidden = true;
+        hideHoverCard();
+      }, 140);
+    });
+    mirror.addEventListener("change", () => commitValue(mirror.value));
+
+    field.append(label, input, suggestions, hoverCard, mirror);
+    return field;
   }
 
   function renderHpTab() {
@@ -787,6 +897,38 @@ function getSelectOptionDescription(control, value) {
   }
 
   return "";
+}
+
+function getSubclassGuideText(control) {
+  return String(control?.guideText || "").trim()
+    || "Esta etapa define a subclasse deste avanço. Escolha com cuidado: subclasses mudam recursos, magias, proficiências e escolhas futuras do personagem. Use a cascata para comparar as opções antes de avançar.";
+}
+
+function getSubclassCascadeOptions(control, select) {
+  return Array.from(select?.options || [])
+    .filter((option) => option.value && !option.disabled && !option.hidden)
+    .map((option) => {
+      const description = getSelectOptionDescription(control, option.value)
+        || option.dataset?.description
+        || option.title
+        || "";
+      const label = String(option.textContent || option.value).trim();
+      return {
+        value: option.value,
+        label,
+        description,
+        summary: description ? compactText(description, 120) : "Passe o mouse para ver detalhes desta subclasse.",
+        searchText: normalizeSearchText(`${label} ${description}`),
+      };
+    });
+}
+
+function normalizeSearchText(value) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
 }
 
 function cloneSelect(select) {
