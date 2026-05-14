@@ -2581,7 +2581,7 @@ button:hover { border-color: #5a3e24; }
 }
 
 .level-up-choice-card span,
-.level-up-method-card span,
+.level-up-method-card .level-up-method-copy,
 .level-up-review-card p,
 .level-up-info-card p,
 .level-up-empty-state p {
@@ -2650,27 +2650,38 @@ button:hover { border-color: #5a3e24; }
 .level-up-method-card {
   display: grid;
   gap: 5px;
-  padding: 14px 46px 14px 14px;
+  padding: 14px;
   text-align: left;
 }
 
-.level-up-method-card .level-up-hover-trigger {
-  top: 14px;
-  right: 14px;
-  transform: none;
+.level-up-method-card .level-up-method-heading {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
 }
 
 .level-up-method-card strong {
   display: block;
+  min-width: 0;
   color: #4b2c1d;
   font-size: 15px;
   line-height: 1.2;
 }
 
-.level-up-method-card span {
+.level-up-method-card .level-up-method-copy {
   display: block;
   font-size: 13px;
   line-height: 1.35;
+}
+
+.level-up-method-card .level-up-hover-trigger--inline {
+  position: relative;
+  top: auto;
+  right: auto;
+  flex: 0 0 auto;
+  transform: none;
 }
 
 .level-up-review-list {
@@ -5711,7 +5722,7 @@ body[data-active-screen="5e-2024"] .level-up-dialog .level-up-method-card.is-act
   box-shadow: 0 0 0 3px rgba(142, 47, 34, 0.1), 0 16px 34px rgba(67, 39, 22, 0.12);
 }
 
-body[data-active-screen="5e-2024"] .level-up-dialog .level-up-method-card span {
+body[data-active-screen="5e-2024"] .level-up-dialog .level-up-method-card .level-up-method-copy {
   color: #6f5538;
 }
 
@@ -6384,8 +6395,7 @@ body[data-active-screen="5e-2024"] .level-up-dialog .level-up-next.is-ready:not(
     padding: 14px 42px 14px 14px;
   }
 
-  .level-up-option-detail,
-  .level-up-method-card {
+  .level-up-option-detail {
     padding-right: 42px;
   }
 

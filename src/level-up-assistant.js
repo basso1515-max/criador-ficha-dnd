@@ -538,12 +538,17 @@ export function createLevelUpAssistant(config = {}) {
     button.type = "button";
     button.className = "level-up-method-card";
     button.classList.toggle("is-active", Boolean(input.checked));
+    const heading = document.createElement("span");
+    heading.className = "level-up-method-heading";
     const strong = document.createElement("strong");
     strong.textContent = title;
     const span = document.createElement("span");
+    span.className = "level-up-method-copy";
     span.textContent = text;
-    button.append(strong, span);
-    appendHoverCard(button, title, hoverText || text);
+    heading.appendChild(strong);
+    const trigger = appendHoverCard(heading, title, hoverText || text);
+    trigger?.classList.add("level-up-hover-trigger--inline");
+    button.append(heading, span);
     button.addEventListener("click", () => {
       input.checked = true;
       dispatchChange(input);
@@ -887,6 +892,7 @@ function appendHoverCard(target, title, text) {
   card.append(heading, copy);
   trigger.appendChild(card);
   target.appendChild(trigger);
+  return trigger;
 }
 
 function getSelectOptionDescription(control, value) {

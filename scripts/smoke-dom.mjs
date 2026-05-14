@@ -473,8 +473,17 @@ const smokePages = [
           assert(hpHoverCards.length >= 2, "Botões de PV 5e não têm hovercards próprios.");
           assert(hpHoverCards.every((card) => getComputedStyle(card).display === "none"), "Hovercards de PV 5e aparecem sem hover/foco no ?.");
           assert(hpHoverCards.every((card) => getComputedStyle(card).pointerEvents === "none"), "Hovercards de PV 5e estão capturando o mouse e prendendo o hover.");
-          const hpTriggers = Array.from(document.querySelectorAll(".level-up-method-card .level-up-hover-trigger"));
-          assert(hpTriggers.every((trigger) => getComputedStyle(trigger).transform === "none" && getComputedStyle(trigger).top === "14px"), "Botões ? de PV 5e não estão alinhados ao título.");
+          const hpCards = Array.from(document.querySelectorAll(".level-up-method-card"));
+          assert(hpCards.every((card) => {
+            const title = card.querySelector(".level-up-method-heading strong");
+            const trigger = card.querySelector(".level-up-method-heading .level-up-hover-trigger--inline");
+            if (!title || !trigger) return false;
+            const titleRect = title.getBoundingClientRect();
+            const triggerRect = trigger.getBoundingClientRect();
+            const titleCenter = titleRect.top + titleRect.height / 2;
+            const triggerCenter = triggerRect.top + triggerRect.height / 2;
+            return Math.abs(titleCenter - triggerCenter) <= 3;
+          }), "Botões ? de PV 5e não estão alinhados ao título.");
         };
         const assertSpellHoverInAssistant = () => {
           clickLevelUpTab("Magias");
@@ -981,8 +990,17 @@ const smokePages = [
           assert(hpHoverCards.length >= 2, "Botões de PV 5.5e não têm hovercards próprios.");
           assert(hpHoverCards.every((card) => getComputedStyle(card).display === "none"), "Hovercards de PV 5.5e aparecem sem hover/foco no ?.");
           assert(hpHoverCards.every((card) => getComputedStyle(card).pointerEvents === "none"), "Hovercards de PV 5.5e estão capturando o mouse e prendendo o hover.");
-          const hpTriggers = Array.from(document.querySelectorAll(".level-up-method-card .level-up-hover-trigger"));
-          assert(hpTriggers.every((trigger) => getComputedStyle(trigger).transform === "none" && getComputedStyle(trigger).top === "14px"), "Botões ? de PV 5.5e não estão alinhados ao título.");
+          const hpCards = Array.from(document.querySelectorAll(".level-up-method-card"));
+          assert(hpCards.every((card) => {
+            const title = card.querySelector(".level-up-method-heading strong");
+            const trigger = card.querySelector(".level-up-method-heading .level-up-hover-trigger--inline");
+            if (!title || !trigger) return false;
+            const titleRect = title.getBoundingClientRect();
+            const triggerRect = trigger.getBoundingClientRect();
+            const titleCenter = titleRect.top + titleRect.height / 2;
+            const triggerCenter = triggerRect.top + triggerRect.height / 2;
+            return Math.abs(titleCenter - triggerCenter) <= 3;
+          }), "Botões ? de PV 5.5e não estão alinhados ao título.");
         };
         const assertInsideRect = (node, container, message) => {
           const rect = node?.getBoundingClientRect?.();
