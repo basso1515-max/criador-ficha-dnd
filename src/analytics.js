@@ -1,4 +1,5 @@
 const ANALYTICS_SCRIPT_SRC = "/_vercel/insights/script.js";
+const SPEED_INSIGHTS_SCRIPT_SRC = "/_vercel/speed-insights/script.js";
 
 function isLocalEnvironment() {
   return (
@@ -9,40 +10,74 @@ function isLocalEnvironment() {
   );
 }
 
-function initAnalyticsQueue() {
-  if (window.va) {
+function initQueue(name, queueName) {
+  if (window[name]) {
     return;
   }
 
-  window.va = (...params) => {
-    window.vaq = window.vaq || [];
-    window.vaq.push(params);
+  window[name] = (...params) => {
+    window[queueName] = window[queueName] || [];
+    window[queueName].push(params);
   };
 }
 
-function injectAnalytics() {
+function injectScript({ src, queueName, windowName, dataset, label }) {
   if (isLocalEnvironment()) {
     return;
   }
 
-  initAnalyticsQueue();
+  initQueue(windowName, queueName);
 
-  if (document.head.querySelector(`script[src="${ANALYTICS_SCRIPT_SRC}"]`)) {
+  if (document.head.querySelector(`script[src="${src}"]`)) {
     return;
   }
 
   const script = document.createElement("script");
   script.defer = true;
-  script.src = ANALYTICS_SCRIPT_SRC;
-  script.dataset.sdkn = "@vercel/analytics";
-  script.dataset.sdkv = "2.0.1";
+  script.src = src;
+
+  Object.entries(dataset).forEach(([key, value]) => {
+    script.dataset[key] = value;
+  });
+
   script.onerror = () => {
     console.warn(
-      "[Vercel Web Analytics] Failed to load analytics. Enable Web Analytics in Vercel and deploy again.",
+      `[${label}] Failed to load ${src}. Enable it in Vercel and deploy again.`,
     );
   };
 
   document.head.appendChild(script);
 }
 
+function injectAnalytics() {
+  if (window.va) {
+    return;
+  }
+
+  injectScript({
+    src: ANALYTICS_SCRIPT_SRC,
+    windowName: "va",
+    queueName: "vaq",
+    label: "Vercel Web Analytics",
+    dataset: {
+      sdkn: "@vercel/analytics",
+      sdkv: "2.0.1",
+    },
+  });
+}
+
+function injectSpeedInsights() {
+  injectScript({
+    src: SPEED_INSIGHTS_SCRIPT_SRC,
+    windowName: "si",
+    queueName: "siq",
+    label: "Vercel Speed Insights",
+    dataset: {
+      sdkn: "@vercel/speed-insights",
+      sdkv: "2.0.0",
+    },
+  });
+}
+
 injectAnalytics();
+injectSpeedInsights();
