@@ -7310,13 +7310,13 @@ html[data-theme="dark"] body[data-active-screen="5.5e-2024"] .level-up-dialog {
   border-color: rgba(255, 255, 255, 0.08);
   background:
     linear-gradient(180deg, rgba(28, 35, 41, 0.98), rgba(18, 24, 30, 0.96)),
-    radial-gradient(circle at top right, rgba(255, 101, 113, 0.08), transparent 42%);
+    radial-gradient(circle at top right, rgba(72, 198, 174, 0.08), transparent 42%);
   color: var(--text);
 }
 
 html[data-theme="dark"] body[data-active-screen="5.5e-2024"] .level-up-header {
   background:
-    radial-gradient(circle at 12% 4%, rgba(255, 101, 113, 0.12), transparent 28%),
+    radial-gradient(circle at 12% 4%, rgba(72, 198, 174, 0.12), transparent 28%),
     linear-gradient(135deg, rgba(39, 30, 34, 0.96), rgba(27, 22, 26, 0.98));
   color: var(--text);
 }
