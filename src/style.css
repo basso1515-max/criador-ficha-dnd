@@ -7399,6 +7399,45 @@ html[data-theme="dark"] body[data-active-screen="5.5e-2024"] .level-up-next.is-r
   color: #fff;
 }
 
+/* Dark-mode: ensure level-up helper "?" and hovercard are readable */
+html[data-theme="dark"] body[data-active-screen="5.5e-2024"] .level-up-hover-trigger,
+html[data-theme="dark"] body[data-active-screen="5.5e-2024"] .level-up-method-card .level-up-hover-trigger--inline {
+  background: rgba(255, 255, 255, 0.96);
+  color: #4b2c1d;
+  border-color: rgba(95, 50, 25, 0.18);
+  box-shadow: 0 8px 18px rgba(67, 39, 22, 0.12);
+}
+
+html[data-theme="dark"] body[data-active-screen="5.5e-2024"] .level-up-hover-card {
+  background:
+    linear-gradient(180deg, rgba(255, 253, 246, 0.98), rgba(246, 235, 208, 0.98));
+  color: #3f2b1c;
+  border-color: rgba(95, 50, 25, 0.18);
+  box-shadow: 0 18px 42px rgba(44, 27, 17, 0.24);
+  pointer-events: auto;
+}
+
+/* Dark-mode: HP roll buttons should be darker and match other dark controls */
+html[data-theme="dark"] body[data-active-screen="5.5e-2024"] .hp-roll-button,
+html[data-theme="dark"] body[data-active-screen="5.5e-2024"] .hp-roll-all-button {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text);
+}
+
+html[data-theme="dark"] body[data-active-screen="5.5e-2024"] .hp-roll-button:hover,
+html[data-theme="dark"] body[data-active-screen="5.5e-2024"] .hp-roll-all-button:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+/* Dark-mode: make magic hover badges and spell-choice fields readable */
+html[data-theme="dark"] body[data-active-screen="5.5e-2024"] .magic-spell-hover-badges span {
+  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text);
+}
+
 @media (max-width: 720px) {
   .site-theme-toggle {
     top: calc(12px + env(safe-area-inset-top, 0px));
