@@ -5,11 +5,13 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Criador de ficha D&D 5e (PDF)</title>
   <link rel="icon" type="image/png" href="favicon.png" />
+  <script src="./src/theme-boot.js"></script>
   <link rel="stylesheet" href="./src/style.css" />
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=EB+Garamond:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Libre+Baskerville:wght@400;700&family=Uncial+Antiqua&display=swap" rel="stylesheet">
 
   <script defer src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
   <script type="module" defer src="./src/analytics.js"></script>
+  <script type="module" defer src="./src/theme.js"></script>
   <script type="module" defer src="./src/script.js"></script>
 </head>
 
@@ -21,6 +23,7 @@
           <a href="./index.html" class="ghost-button">Voltar para a seleção</a>
           <a href="./minha-conta.html" class="secondary-button">Minha conta</a>
           <a href="./5.5e-2024.html" class="secondary-button">Abrir editor 5.5e</a>
+          <button type="button" class="theme-toggle editor-theme-toggle" data-theme-toggle aria-label="Alternar tema"></button>
           <button id="editorLogout5e" type="button" class="ghost-button editor-logout-button" hidden>Sair</button>
         </div>
 
@@ -35,6 +38,11 @@
           </button>
 
           <nav id="mobileEditorMenu5e" class="mobile-editor-menu" aria-label="Menu do editor" hidden>
+            <div class="mobile-menu-section mobile-menu-theme">
+              <span class="mobile-menu-label">Tema</span>
+              <button type="button" class="mobile-menu-button theme-toggle mobile-theme-toggle" data-theme-toggle aria-label="Alternar tema"></button>
+            </div>
+
             <div class="mobile-menu-section">
               <span class="mobile-menu-label">Navegação</span>
               <a href="./index.html" class="mobile-menu-link">Voltar para a seleção</a>
