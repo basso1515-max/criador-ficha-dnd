@@ -5538,6 +5538,77 @@ body[data-active-screen="5e-2024"] .dropdown-suggestion.is-active {
   background: rgba(180, 35, 47, 0.08);
 }
 
+body[data-active-screen="5e-2024"] .level-up-dialog {
+  border-color: rgba(36, 33, 29, 0.12);
+  background: var(--card);
+  box-shadow: 0 28px 70px rgba(36, 33, 29, 0.1);
+}
+
+body[data-active-screen="5e-2024"] .level-up-header {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(245, 240, 236, 0.9));
+}
+
+body[data-active-screen="5e-2024"] .level-up-tabs {
+  border-bottom-color: rgba(36, 33, 29, 0.12);
+  background: rgba(255, 255, 255, 0.92);
+}
+
+body[data-active-screen="5e-2024"] .level-up-tab {
+  border-color: rgba(36, 33, 29, 0.12);
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--text);
+}
+
+body[data-active-screen="5e-2024"] .level-up-choice-card,
+body[data-active-screen="5e-2024"] .level-up-method-card,
+body[data-active-screen="5e-2024"] .level-up-editor-card,
+body[data-active-screen="5e-2024"] .level-up-info-card,
+body[data-active-screen="5e-2024"] .level-up-empty-state,
+body[data-active-screen="5e-2024"] .level-up-review-card {
+  border-color: rgba(36, 33, 29, 0.12);
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: none;
+}
+
+body[data-active-screen="5e-2024"] .level-up-choice-card span,
+body[data-active-screen="5e-2024"] .level-up-method-card .level-up-method-copy,
+body[data-active-screen="5e-2024"] .level-up-review-card p,
+body[data-active-screen="5e-2024"] .level-up-info-card p,
+body[data-active-screen="5e-2024"] .level-up-empty-state p,
+body[data-active-screen="5e-2024"] .level-up-option-detail p {
+  color: #56504a;
+}
+
+body[data-active-screen="5e-2024"] .level-up-choice-card.is-active,
+body[data-active-screen="5e-2024"] .level-up-method-card.is-active {
+  border-color: rgba(180, 35, 47, 0.35);
+  box-shadow: 0 0 0 3px rgba(180, 35, 47, 0.08), 0 16px 34px rgba(36, 33, 29, 0.1);
+}
+
+body[data-active-screen="5e-2024"] .level-up-multiclass-picker {
+  border-color: rgba(36, 33, 29, 0.12);
+  background: rgba(255, 255, 255, 0.82);
+}
+
+body[data-active-screen="5e-2024"] .level-up-footer {
+  border-top-color: rgba(36, 33, 29, 0.12);
+  background: rgba(255, 255, 255, 0.92);
+}
+
+body[data-active-screen="5e-2024"] .level-up-next {
+  border-color: rgba(180, 35, 47, 0.25);
+  background: linear-gradient(180deg, rgba(248, 225, 228, 0.95), rgba(255, 249, 248, 0.95));
+  color: var(--text);
+}
+
+body[data-active-screen="5e-2024"] .level-up-next.is-ready:not(:disabled) {
+  border-color: rgba(180, 35, 47, 0.55);
+  background:
+    radial-gradient(circle at 18% 10%, rgba(196, 57, 82, 0.16), transparent 30%),
+    linear-gradient(180deg, #ba2f40, #7f1624);
+  color: #fff;
+}
+
 body[data-active-screen="5e-2024"] .dropdown-suggestion.is-touch-preview {
   background: rgba(180, 35, 47, 0.12);
   box-shadow: inset 3px 0 0 #b4232f;
@@ -7626,3 +7697,4 @@ html[data-theme="dark"] body[data-active-screen="5e-2024"] .floating-quick-butto
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
