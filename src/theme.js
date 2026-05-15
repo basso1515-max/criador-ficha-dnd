@@ -1,9 +1,9 @@
 const THEME_STORAGE_KEY = "dnd_theme_mode";
 const THEME_ORDER = ["dark", "light", "auto"];
 const THEME_META = {
-  auto: { icon: "A", label: "Tema automático" },
-  light: { icon: "\u2600", label: "Tema claro" },
-  dark: { icon: "\u263e", label: "Tema noturno" },
+  auto: { label: "Tema automático" },
+  light: { label: "Tema claro" },
+  dark: { label: "Tema noturno" },
 };
 
 const root = document.documentElement;
@@ -43,7 +43,7 @@ function getNextMode(mode) {
   return THEME_ORDER[(currentIndex + 1 + THEME_ORDER.length) % THEME_ORDER.length];
 }
 
-function applyTheme(mode) {
+function applyTheme(mode, fromMode = activeMode) {
   activeMode = THEME_ORDER.includes(mode) ? mode : "auto";
   const resolvedTheme = resolveTheme(activeMode);
 
@@ -51,7 +51,7 @@ function applyTheme(mode) {
   root.dataset.theme = resolvedTheme;
   root.style.colorScheme = resolvedTheme;
 
-  renderThemeToggles();
+  renderThemeToggles(fromMode);
 }
 
 function describeButtonState(mode) {
@@ -73,10 +73,9 @@ function describeButtonState(mode) {
   };
 }
 
-function renderThemeToggles() {
+function renderThemeToggles(fromMode = activeMode) {
   const toggles = document.querySelectorAll("[data-theme-toggle]");
   toggles.forEach((button) => {
-    const meta = THEME_META[activeMode] || THEME_META.auto;
     const state = describeButtonState(activeMode);
     let icon = button.querySelector(".theme-toggle-icon");
     let srText = button.querySelector(".theme-toggle-text");
@@ -88,6 +87,25 @@ function renderThemeToggles() {
       button.append(icon);
     }
 
+    if (!icon.querySelector(".theme-morph")) {
+      icon.textContent = "";
+      const morph = document.createElement("span");
+      morph.className = "theme-morph";
+
+      const moon = document.createElement("span");
+      moon.className = "theme-morph-moon";
+
+      const sun = document.createElement("span");
+      sun.className = "theme-morph-sun";
+
+      const auto = document.createElement("span");
+      auto.className = "theme-morph-auto";
+      auto.textContent = "A";
+
+      morph.append(moon, sun, auto);
+      icon.append(morph);
+    }
+
     if (!srText) {
       srText = document.createElement("span");
       srText.className = "theme-toggle-text";
@@ -95,21 +113,23 @@ function renderThemeToggles() {
     }
 
     button.dataset.themeMode = activeMode;
+    button.dataset.themeFrom = THEME_ORDER.includes(fromMode) ? fromMode : activeMode;
     button.dataset.resolvedTheme = resolveTheme(activeMode);
     button.setAttribute("aria-label", state.label);
     button.setAttribute("title", state.title);
     button.setAttribute("type", "button");
-    icon.textContent = meta.icon;
     srText.textContent = state.title;
   });
 }
 
-function animateThemeToggles() {
+function animateThemeToggles(fromMode, toMode) {
   document.querySelectorAll("[data-theme-toggle]").forEach((button) => {
+    button.dataset.themeFrom = fromMode;
+    button.dataset.themeMode = toMode;
     button.classList.remove("is-switching");
     void button.offsetWidth;
     button.classList.add("is-switching");
-    window.setTimeout(() => button.classList.remove("is-switching"), 320);
+    window.setTimeout(() => button.classList.remove("is-switching"), 480);
   });
 }
 
@@ -118,10 +138,11 @@ function setupThemeToggles() {
     if (button.dataset.themeReady === "true") return;
     button.dataset.themeReady = "true";
     button.addEventListener("click", () => {
+      const previousMode = activeMode;
       const nextMode = getNextMode(activeMode);
       storeThemeMode(nextMode);
-      applyTheme(nextMode);
-      animateThemeToggles();
+      applyTheme(nextMode, previousMode);
+      animateThemeToggles(previousMode, nextMode);
     });
   });
 
