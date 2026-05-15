@@ -6502,7 +6502,7 @@ body[data-active-screen="5e-2024"] .level-up-dialog .level-up-next.is-ready:not(
 }
 
 .theme-toggle[data-theme-mode="auto"] .theme-toggle-icon {
-  --theme-icon-spin: 180deg;
+  --theme-icon-spin: 0deg;
 }
 
 .theme-toggle[data-theme-mode="dark"] .theme-morph-moon {
