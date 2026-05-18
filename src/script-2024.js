@@ -11028,6 +11028,8 @@ import { createLevelUpAssistant } from "./level-up-assistant.js";
       item.append(checkbox, textWrap);
       item.classList.toggle("is-fixed", isFixed);
       item.classList.toggle("is-class-option", isAllowed);
+      item.classList.toggle("is-selected", isSelected && !isFixed);
+      item.classList.toggle("is-invalid", selectionState.invalidOutsideRules.includes(skill.id));
       el.skillsExtra.appendChild(item);
     });
 
@@ -11134,6 +11136,19 @@ import { createLevelUpAssistant } from "./level-up-assistant.js";
       el.skillsRuleWarning.textContent = warning;
       el.skillsRuleWarning.hidden = !warning;
     }
+
+    const selectedSkills = new Set(selectionState.selectedSkills);
+    const invalidSkills = new Set(selectionState.invalidOutsideRules);
+    el.skillsExtra?.querySelectorAll(".skill-item").forEach((item) => {
+      const checkbox = item.querySelector("input[data-skill]");
+      const skillId = checkbox?.getAttribute("data-skill") || "";
+      const isFixed = selectionState.fixedSkills.has(skillId);
+      const isSelected = selectedSkills.has(skillId);
+      item.classList.toggle("is-fixed", isFixed);
+      item.classList.toggle("is-class-option", selectionState.allowedSkills.has(skillId));
+      item.classList.toggle("is-selected", isSelected && !isFixed);
+      item.classList.toggle("is-invalid", invalidSkills.has(skillId));
+    });
 
     renderProficiencySummary2024();
   }

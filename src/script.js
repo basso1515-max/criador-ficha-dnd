@@ -4763,12 +4763,17 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       const checkbox = item.querySelector("input[data-skill]");
       const skillKey = checkbox?.getAttribute("data-skill");
       const isFixed = Boolean(skillKey) && skillContext.fixedSkills.has(skillKey);
+      const isSelected = Boolean(skillKey) && selected.has(skillKey);
+      const isAllowedChoice = Boolean(skillKey) && allowedChoiceSkills.has(skillKey);
+      const isInvalidSelection = isSelected && !isFixed && !isAllowedChoice;
       if (checkbox) {
         checkbox.disabled = isFixed;
         checkbox.title = isFixed ? "Proficiência concedida automaticamente pelas regras oficiais atuais." : "";
       }
       item.classList.toggle("is-fixed", isFixed);
       item.classList.toggle("is-class-option", Boolean(skillKey) && classChoiceSkills.has(skillKey));
+      item.classList.toggle("is-selected", isSelected && !isFixed);
+      item.classList.toggle("is-invalid", isInvalidSelection);
     });
 
     renderExpertiseChoices(skillContext);
