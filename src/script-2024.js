@@ -5931,7 +5931,7 @@ import { createLevelUpAssistant } from "./level-up-assistant.js";
     };
   }
 
-  function getSelectedFeatAbilityBonusState2024({ featValueMap = null, detailValues = null } = {}) {
+  function getSelectedFeatAbilityBonusState2024({ featValueMap = null, detailValues = null, excludeSlotId = "" } = {}) {
     const values = detailValues instanceof Map ? detailValues : readNamedFieldValues(el.featChoices);
     const selectedFeatValues = featValueMap instanceof Map
       ? Array.from(featValueMap.entries())
@@ -5942,14 +5942,17 @@ import { createLevelUpAssistant } from "./level-up-assistant.js";
     let valid = true;
 
     selectedFeatValues.forEach(([slotId, featId]) => {
+      const normalizedSlotId = String(slotId || "").trim();
+      if (!normalizedSlotId || (excludeSlotId && normalizedSlotId === excludeSlotId)) return;
+
       const rule = FEAT_ABILITY_BONUS_RULES_2024[featId];
       const feat = FEAT_BY_ID.get(featId);
       const featLabel = feat?.name_pt || feat?.name || labelFromSlug(featId);
-      if (!slotId || !rule) return;
+      if (!rule) return;
 
-      const firstAbilityName = `feat-ability-a-${slotId}`;
-      const secondAbilityName = `feat-ability-b-${slotId}`;
-      const modeName = `feat-ability-mode-${slotId}`;
+      const firstAbilityName = `feat-ability-a-${normalizedSlotId}`;
+      const secondAbilityName = `feat-ability-b-${normalizedSlotId}`;
+      const modeName = `feat-ability-mode-${normalizedSlotId}`;
 
       const getAbilityValue = (fieldName, options = []) => {
         const savedValue = String(values.get(fieldName) || "").trim();
@@ -6020,6 +6023,74 @@ import { createLevelUpAssistant } from "./level-up-assistant.js";
     });
 
     return { entries, complete, valid };
+  }
+
+  function getFeatAbilityBonusEntriesForSlot2024({ slotId, feat, detailValues }) {
+    if (!slotId || !feat?.id) return [];
+    const result = getSelectedFeatAbilityBonusState2024({
+      featValueMap: new Map([[slotId, feat.id]]),
+      detailValues,
+    });
+    return result.complete && result.valid ? result.entries : [];
+  }
+
+  function getAbilityScoresBeforeFeatBonusSlot2024(slotId, detailValues) {
+    return calculateEffectiveAbilityScores2024({
+      baseScores: getBaseAbilityScores(),
+      backgroundBonuses: buildBackgroundAbilityBonusEntries2024(),
+      featBonuses: getSelectedFeatAbilityBonusState2024({
+        featValueMap: readSelectValues(el.featChoices, "data-feat-choice-id"),
+        detailValues,
+        excludeSlotId: slotId,
+      }),
+    });
+  }
+
+  function getFeatAbilityLimitWarning2024({ slotId, feat, detailValues }) {
+    const entries = getFeatAbilityBonusEntriesForSlot2024({ slotId, feat, detailValues });
+    if (!entries.length) return "";
+
+    const effectiveBefore = getAbilityScoresBeforeFeatBonusSlot2024(slotId, detailValues);
+    if (!effectiveBefore.baseComplete) return "";
+
+    const scores = { ...effectiveBefore.scores };
+    const blocked = [];
+    const limited = [];
+
+    entries.forEach((entry) => {
+      const currentValue = Number(scores[entry.ability]);
+      if (!Number.isFinite(currentValue)) return;
+
+      const maxScore = Number.isFinite(entry.maxScore) ? Number(entry.maxScore) : 20;
+      const expectedValue = currentValue + Number(entry.amount || 0);
+      const nextValue = Math.min(maxScore, Math.max(1, expectedValue));
+      const appliedAmount = nextValue - currentValue;
+      const abilityLabel = formatAbilityLabel(entry.ability);
+
+      if (appliedAmount <= 0) {
+        blocked.push(`${abilityLabel} já está em ${currentValue}`);
+      } else if (appliedAmount < entry.amount) {
+        limited.push(`${abilityLabel} receberia só +${appliedAmount} de +${entry.amount}`);
+      }
+
+      scores[entry.ability] = nextValue;
+    });
+
+    if (!blocked.length && !limited.length) return "";
+
+    const selectedAbilities = new Set(entries.map((entry) => entry.ability));
+    const rule = FEAT_ABILITY_BONUS_RULES_2024[feat?.id] || {};
+    const candidateAbilities = rule.type === "choice" ? (rule.options || []) : ABILITY_ORDER;
+    const defaultMaxScore = Number.isFinite(entries[0]?.maxScore) ? Number(entries[0].maxScore) : 20;
+    const alternatives = candidateAbilities
+      .filter((ability) => !selectedAbilities.has(ability) && Number(effectiveBefore.scores[ability]) < defaultMaxScore)
+      .map(formatAbilityLabel);
+    const impact = [...blocked, ...limited].join(". ");
+    const suggestion = alternatives.length
+      ? `Considere ${formatList(alternatives)} ou escolha outro talento.`
+      : "Considere escolher outro talento.";
+
+    return `${impact}. O limite desse aumento é ${defaultMaxScore}. ${suggestion}`;
   }
 
   function applyAbilityBonusEntriesToScores2024(scores, breakdowns, entries = []) {
@@ -6662,6 +6733,17 @@ import { createLevelUpAssistant } from "./level-up-assistant.js";
         selectedValue: firstValue,
       });
       wrapper.appendChild(label);
+
+      const warningText = getFeatAbilityLimitWarning2024({ slotId, feat, detailValues });
+      if (warningText) {
+        const warning = document.createElement("p");
+        warning.className = "feat-choice-asi-warning";
+        warning.setAttribute("role", "status");
+        warning.setAttribute("aria-live", "polite");
+        warning.textContent = warningText;
+        wrapper.appendChild(warning);
+      }
+
       return wrapper;
     }
 
@@ -6705,6 +6787,17 @@ import { createLevelUpAssistant } from "./level-up-assistant.js";
 
       modeSelect.addEventListener("change", () => syncFeatAbilityBonusControlState2024(wrapper));
       syncFeatAbilityBonusControlState2024(wrapper);
+
+      const warningText = getFeatAbilityLimitWarning2024({ slotId, feat, detailValues });
+      if (warningText) {
+        const warning = document.createElement("p");
+        warning.className = "feat-choice-asi-warning";
+        warning.setAttribute("role", "status");
+        warning.setAttribute("aria-live", "polite");
+        warning.textContent = warningText;
+        wrapper.appendChild(warning);
+      }
+
       return wrapper;
     }
 

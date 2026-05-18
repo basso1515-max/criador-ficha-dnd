@@ -8240,9 +8240,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     return selectedFeatId ? "feat" : "asi";
   }
 
-  function collectSelectedFeatAbilityIncreases(featGrants = []) {
-    const featSelections = getCurrentFeatSelectionMap();
-    const asiSelections = getCurrentFeatAbilityIncreaseSelectionMap();
+  function collectSelectedFeatAbilityIncreasesFromMaps(featGrants = [], featSelections = new Map(), asiSelections = new Map(), excludedSlotKey = "") {
     const increases = [];
 
     featGrants.forEach((grant) => {
@@ -8250,11 +8248,13 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
 
       for (let slotIndex = 0; slotIndex < grant.picks; slotIndex += 1) {
         const slotKey = buildFeatChoiceSlotKey(grant, slotIndex);
-        const featId = featSelections.get(slotKey) || "";
+        if (excludedSlotKey && slotKey === excludedSlotKey) continue;
+
+        const featId = featSelections instanceof Map ? (featSelections.get(slotKey) || "") : "";
         const mode = getFeatAbilityIncreaseMode(grant, slotKey, featId, asiSelections);
         if (mode !== "asi") continue;
 
-        const values = asiSelections.get(slotKey) || {};
+        const values = asiSelections instanceof Map ? (asiSelections.get(slotKey) || {}) : {};
         increases.push({
           slotKey,
           sourceLabel: grant.sourceLabel,
@@ -8268,6 +8268,104 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     });
 
     return increases;
+  }
+
+  function collectSelectedFeatAbilityIncreases(featGrants = []) {
+    return collectSelectedFeatAbilityIncreasesFromMaps(
+      featGrants,
+      getCurrentFeatSelectionMap(),
+      getCurrentFeatAbilityIncreaseSelectionMap()
+    );
+  }
+
+  function getCurrentFlexibleAsiState5e() {
+    const flexibleAbilitySource = getFlexibleAbilitySource(getSelectedRaceData(), getSelectedSubraceData());
+    const asiEnabled = Boolean(flexibleAbilitySource);
+
+    return {
+      method: asiEnabled ? (flexibleAbilitySource?.picks ? "picks" : (el.asi21?.checked ? "2+1" : "1+1+1")) : null,
+      picks: asiEnabled ? (flexibleAbilitySource?.picks || 0) : 0,
+      bonus: asiEnabled ? (flexibleAbilitySource?.bonus || 1) : 0,
+      plus2: asiEnabled ? (el.asiPlus2?.value || "") : "",
+      plus1: asiEnabled ? (el.asiPlus1?.value || "") : "",
+      plusA: asiEnabled ? (el.asiPlusA?.value || "") : "",
+      plusB: asiEnabled ? (el.asiPlusB?.value || "") : "",
+      plusC: asiEnabled ? (el.asiPlusC?.value || "") : "",
+      from: asiEnabled ? (flexibleAbilitySource?.from || ABILITIES.map((ability) => ability.key)) : [],
+    };
+  }
+
+  function getAbilityScoresBeforeFeatAsiSlot5e(featGrants, featSelections, asiSelections, slotKey) {
+    const baseAttrs = {
+      for: clampInt(el.for.value, 1, 20),
+      des: clampInt(el.des.value, 1, 20),
+      con: clampInt(el.con.value, 1, 20),
+      int: clampInt(el.int.value, 1, 20),
+      sab: clampInt(el.sab.value, 1, 20),
+      car: clampInt(el.car.value, 1, 20),
+    };
+    const racialAttrs = applyAttributeBonuses(baseAttrs, getSelectedRaceData()?.atributos);
+    const subraceAttrs = applyAttributeBonuses(racialAttrs, getSelectedSubraceData()?.atributos);
+    const improved = applyAbilityScoreImprovements(subraceAttrs, getCurrentFlexibleAsiState5e());
+    const otherIncreases = collectSelectedFeatAbilityIncreasesFromMaps(featGrants, featSelections, asiSelections, slotKey);
+    return applyFeatAbilityIncreases5e(improved.attrs, otherIncreases).attrs;
+  }
+
+  function collectFeatAsiEntriesForSlot5e(grant, values = {}) {
+    if (!grant?.abilityIncrease) return [];
+
+    const maxScore = clampInt(grant.abilityIncrease.maxScore || 20, 1, 30);
+    if (values.distribution === "plus1plus1") {
+      if (!values.primary || !values.secondary || values.primary === values.secondary) return [];
+      return [
+        { ability: values.primary, amount: 1, maxScore },
+        { ability: values.secondary, amount: 1, maxScore },
+      ];
+    }
+
+    return values.primary ? [{ ability: values.primary, amount: 2, maxScore }] : [];
+  }
+
+  function getFeatAsiLimitWarning5e({ grant, slotKey, values, featGrants, featSelections, asiSelections }) {
+    const entries = collectFeatAsiEntriesForSlot5e(grant, values);
+    if (!entries.length) return "";
+
+    const scores = getAbilityScoresBeforeFeatAsiSlot5e(featGrants, featSelections, asiSelections, slotKey);
+    const simulatedScores = { ...scores };
+    const blocked = [];
+    const limited = [];
+
+    entries.forEach((entry) => {
+      const currentValue = Number(simulatedScores[entry.ability]);
+      if (!Number.isFinite(currentValue)) return;
+
+      const expectedValue = currentValue + Number(entry.amount || 0);
+      const nextValue = Math.min(entry.maxScore, Math.max(1, expectedValue));
+      const appliedAmount = nextValue - currentValue;
+      const abilityLabel = abilityKeyToLabel(entry.ability);
+
+      if (appliedAmount <= 0) {
+        blocked.push(`${abilityLabel} já está em ${currentValue}`);
+      } else if (appliedAmount < entry.amount) {
+        limited.push(`${abilityLabel} receberia só +${appliedAmount} de +${entry.amount}`);
+      }
+
+      simulatedScores[entry.ability] = nextValue;
+    });
+
+    if (!blocked.length && !limited.length) return "";
+
+    const maxScore = entries[0]?.maxScore || 20;
+    const selectedAbilities = new Set(entries.map((entry) => entry.ability));
+    const alternatives = ABILITIES
+      .filter((ability) => !selectedAbilities.has(ability.key) && Number(scores[ability.key]) < maxScore)
+      .map((ability) => ability.label);
+    const impact = [...blocked, ...limited].join(". ");
+    const suggestion = alternatives.length
+      ? `Considere ${formatList(alternatives)} ou mude a escolha para Talento opcional.`
+      : "Considere mudar a escolha para Talento opcional.";
+
+    return `${impact}. O limite desse aumento é ${maxScore}. ${suggestion}`;
   }
 
   function collectSelectedFeatChoices(featGrants = []) {
@@ -10009,12 +10107,15 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     ].join("");
   }
 
-  function renderFeatAbilityIncreaseControls(slotKey, values = {}) {
+  function renderFeatAbilityIncreaseControls(slotKey, values = {}, warningMessage = "") {
     const distribution = values.distribution === "plus1plus1" ? "plus1plus1" : "plus2";
     const primary = values.primary || "";
     const secondary = values.secondary || "";
     const secondaryHidden = distribution === "plus2" ? " hidden" : "";
     const primaryLabel = distribution === "plus1plus1" ? "Primeiro +1 em" : "+2 em";
+    const warningMarkup = warningMessage
+      ? `<p class="feat-choice-asi-warning" role="status" aria-live="polite">${escapeHtml(warningMessage)}</p>`
+      : "";
 
     return `
       <div class="feat-choice-asi-grid" data-feat-asi-controls="${escapeHtml(slotKey)}">
@@ -10038,6 +10139,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
             ${renderFeatAbilityOptionElements(secondary)}
           </select>
         </label>
+        ${warningMarkup}
       </div>
     `;
   }
@@ -10123,8 +10225,11 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
         const modeControls = grant.abilityIncrease
           ? renderFeatProgressionModeControls(slotKey, progressionMode)
           : "";
+        const asiWarning = grant.abilityIncrease && progressionMode === "asi"
+          ? getFeatAsiLimitWarning5e({ grant, slotKey, values: asiValues, featGrants: grants, featSelections: selections, asiSelections })
+          : "";
         const asiControls = grant.abilityIncrease && progressionMode === "asi"
-          ? renderFeatAbilityIncreaseControls(slotKey, asiValues)
+          ? renderFeatAbilityIncreaseControls(slotKey, asiValues, asiWarning)
           : "";
         const featControls = (!grant.abilityIncrease || progressionMode === "feat")
           ? `

@@ -5044,6 +5044,22 @@ body.level-up-modal-open .magic-spell-hover-card:not([hidden]) {
   margin-top: 4px;
 }
 
+.feat-choice-asi-warning {
+  margin: 4px 0 0;
+  padding: 10px 12px;
+  border: 1px solid rgba(169, 52, 33, 0.28);
+  border-radius: 10px;
+  background: rgba(255, 246, 240, 0.9);
+  color: #8b2f20;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.feat-choice-bonus-fields .feat-choice-asi-warning {
+  margin-top: 8px;
+}
+
 .feat-choice-field .dropdown-anchor {
   position: relative;
 }
@@ -7635,6 +7651,7 @@ html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-scree
 html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .equipment-shopping-warning--caution,
 html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .equipment-shopping-detail.is-warning,
 html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .equipment-item-suggestion.is-disabled small,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .feat-choice-asi-warning,
 html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .spell-badge.blocked,
 html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .magic-spell-hover-source.is-warning {
   border-color: rgba(255, 154, 118, 0.36);
