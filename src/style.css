@@ -7054,6 +7054,13 @@ html[data-theme="dark"] body[data-standalone-route="5e"] {
   --accent: #ff9a76;
   --input-bg: #211209;
   --focus-ring: rgba(255, 154, 118, 0.25);
+  --editor-dark-surface: rgba(255, 232, 196, 0.065);
+  --editor-dark-surface-strong: rgba(255, 180, 118, 0.11);
+  --editor-dark-chip: rgba(255, 232, 196, 0.09);
+  --editor-dark-border: rgba(255, 154, 118, 0.28);
+  --editor-dark-muted: rgba(255, 222, 181, 0.78);
+  --editor-dark-danger: #ffc095;
+  --editor-dark-success: #8ce8d0;
   --page-background:
     radial-gradient(circle at 18% 0%, rgba(179, 64, 44, 0.22), transparent 30%),
     radial-gradient(circle at 90% 10%, rgba(255, 172, 91, 0.13), transparent 30%),
@@ -7169,6 +7176,13 @@ html[data-theme="dark"] body[data-active-screen="5.5e-2024"] {
   --accent: #ff6571;
   --input-bg: #11171c;
   --focus-ring: rgba(255, 101, 113, 0.24);
+  --editor-dark-surface: rgba(255, 255, 255, 0.045);
+  --editor-dark-surface-strong: rgba(255, 101, 113, 0.1);
+  --editor-dark-chip: rgba(255, 255, 255, 0.06);
+  --editor-dark-border: rgba(255, 255, 255, 0.14);
+  --editor-dark-muted: rgba(220, 225, 222, 0.76);
+  --editor-dark-danger: #ffb4a9;
+  --editor-dark-success: #8ce8d0;
   --page-background:
     linear-gradient(180deg, rgba(19, 24, 29, 0.96), rgba(12, 15, 18, 0.99)),
     linear-gradient(90deg, rgba(255, 101, 113, 0.08), transparent 34%, rgba(72, 198, 174, 0.08)),
@@ -7442,6 +7456,161 @@ html[data-theme="dark"] body[data-active-screen="5.5e-2024"] .magic-spell-hover-
   border-color: rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.03);
   color: var(--text);
+}
+
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .attr-total-preview,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .asi-kicker,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .available-spell-count,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .equipment-shopping-total,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .feature-choice-cascade-step small,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .magic-summary-chip,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .magic-spell-hover-badges span,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .magic-level-meta span,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .magic-level-source,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .spell-badge,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .spell-source-badge,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .spell-source-level-pill,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .spell-source-stat,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .spellbook-level-count {
+  border-color: var(--editor-dark-border);
+  background: var(--editor-dark-chip);
+  color: var(--text);
+  box-shadow: none;
+}
+
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .attr-total-preview {
+  color: var(--accent);
+}
+
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .spell-check-item,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .spell-check-item strong {
+  color: var(--text);
+}
+
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .spell-check-item.is-disabled {
+  opacity: 0.78;
+}
+
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .spell-check-item + .spell-check-item {
+  border-top-color: var(--editor-dark-border);
+}
+
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .edition-summary-list,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .edition-summary-list li,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .edition-summary-list strong,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .preview-box,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .preview-box-2024 {
+  color: var(--text);
+}
+
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .edition-summary-list li.is-pending,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .edition-summary-list li.is-pending strong {
+  color: var(--editor-dark-danger);
+}
+
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .hp-max-highlight span {
+  color: var(--editor-dark-muted);
+}
+
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .asi-section,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .asi-meta-item,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .asi-method-option,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .asi-select-field,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .attr-die,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .attr-roll-card,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .attr-roll-empty,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .attr-total-preview-card,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .beta-radio-option,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .equipment-choice-panel,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .equipment-source--shopping,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .equipment-shopping-row,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .feat-choice-card--static,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .feat-choice-description,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .feature-choice-cascade-step,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .feature-choice-hover-card,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .hp-roll-all-button,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .hp-roll-button,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .magic-level-fieldbox,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .magic-level-spell,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .magic-summary-field,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .method-option,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .multiclass-row,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .skill-item,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .spell-card,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .spell-checklist,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .spell-pickers .row,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .spellbook-entry,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .spellbook-section {
+  border-color: var(--editor-dark-border);
+  background: var(--editor-dark-surface);
+  color: var(--text);
+  box-shadow: none;
+}
+
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .attr-die.is-kept,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .method-option:hover,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .asi-method-option:hover,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .feature-choice-cascade-step:hover,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .hp-roll-all-button:hover,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .hp-roll-button:hover,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .magic-level-spell:hover,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .spell-check-item:hover {
+  border-color: var(--editor-dark-border);
+  background: var(--editor-dark-surface-strong);
+  box-shadow: none;
+}
+
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .asi-method-option.is-active,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .method-option.is-active,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .spell-card.is-selected,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .magic-level-card.has-content {
+  border-color: var(--editor-dark-border);
+  background: var(--editor-dark-surface-strong);
+  box-shadow: none;
+}
+
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .asi-panel-copy,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .asi-select-field span,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .asi-method-option small,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .equipment-choice-card p,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .equipment-choice-empty,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .equipment-choice-summary,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .equipment-shopping-detail,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .equipment-shopping-helper,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .equipment-shopping-summary,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .equipment-shopping-total span,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .feat-choice-description.is-empty,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .feature-choice-cascade-step > span:not(.feature-choice-hover-card),
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .magic-detail-head p,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .magic-level-empty,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .magic-level-fieldbox.is-empty,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .magic-level-spell span,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .magic-spell-hover-meta,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .magic-spell-hover-source,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .skill-item small,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .spell-check-empty,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .spell-check-item small,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .spell-source-meta,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .spell-source-title p,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .spellbook-meta {
+  color: var(--editor-dark-muted);
+}
+
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .equipment-shopping-warning--caution,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .equipment-shopping-detail.is-warning,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .equipment-item-suggestion.is-disabled small,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .spell-badge.blocked,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .magic-spell-hover-source.is-warning {
+  border-color: rgba(255, 154, 118, 0.36);
+  background: rgba(255, 154, 118, 0.1);
+  color: var(--editor-dark-danger);
+}
+
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .spell-badge.selected,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .skill-item.is-fixed {
+  border-color: rgba(100, 214, 184, 0.36);
+  background: rgba(100, 214, 184, 0.1);
+  color: var(--editor-dark-success);
 }
 
 html[data-theme="dark"] .level-up-dialog {
