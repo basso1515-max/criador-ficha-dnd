@@ -629,11 +629,13 @@ export function createLevelUpAssistant(config = {}) {
     const parent = target.parentNode;
     if (!parent) return false;
 
+    hideLevelUpTransientSurfaces(target);
     const nextSibling = target.nextSibling;
     mount.appendChild(target);
     target.classList.add("is-level-up-portaled");
 
     portaledElements.push(() => {
+      hideLevelUpTransientSurfaces(target);
       target.classList.remove("is-level-up-portaled");
       if (nextSibling && nextSibling.parentNode === parent) {
         parent.insertBefore(target, nextSibling);
@@ -650,6 +652,15 @@ export function createLevelUpAssistant(config = {}) {
       const restore = portaledElements.pop();
       restore?.();
     }
+  }
+
+  function hideLevelUpTransientSurfaces(target) {
+    target?.querySelectorAll?.(".dropdown-suggestions, .dropdown-hover-card, .magic-spell-hover-card, .feature-choice-hover-card").forEach((node) => {
+      node.hidden = true;
+    });
+    target?.querySelectorAll?.(".dropdown-suggestion.is-active, .dropdown-suggestion.is-touch-preview").forEach((node) => {
+      node.classList.remove("is-active", "is-touch-preview");
+    });
   }
 
   function getFirstFollowUpTab() {
