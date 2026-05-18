@@ -8030,6 +8030,10 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     const options = getFeatPoolOptions(pool);
     if (!options.length) return null;
 
+    const abilityIncreaseConfig = config?.abilityIncrease
+      ? (typeof config.abilityIncrease === "object" ? config.abilityIncrease : {})
+      : null;
+
     return {
       key: [sourceType, sourceId, featureId || "origem"].filter(Boolean).join(":"),
       sourceType,
@@ -8041,6 +8045,9 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       picks,
       pool,
       optionalRule: Boolean(optionalRule || config?.regraOpcional),
+      abilityIncrease: abilityIncreaseConfig
+        ? { maxScore: clampInt(abilityIncreaseConfig.maxScore || 20, 1, 30) }
+        : null,
       options,
     };
   }
@@ -8143,8 +8150,12 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
             sourceId: classSourceId,
             sourceLabel: classLabel,
             featureId: `asi-${requiredLevel}`,
-            featureName: `Talento opcional (${requiredLevel}º nível)`,
-            config: { picks: 1, pool: "talentos-oficiais-2014" },
+            featureName: `Aumento de atributo / talento opcional (${requiredLevel}º nível)`,
+            config: {
+              picks: 1,
+              pool: "talentos-oficiais-2014",
+              abilityIncrease: { maxScore: 20 },
+            },
             optionalRule: true,
           });
           if (asiFeatGrant) grants.push(asiFeatGrant);
@@ -8199,18 +8210,79 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     return selections;
   }
 
+  function getCurrentFeatAbilityIncreaseSelectionMap() {
+    const selections = new Map();
+    if (!el.featChoicesContainer) return selections;
+
+    el.featChoicesContainer.querySelectorAll("select[data-feat-asi-slot-key]").forEach((select) => {
+      const slotKey = select.getAttribute("data-feat-asi-slot-key") || "";
+      const field = select.getAttribute("data-feat-asi-field") || "";
+      if (!slotKey || !field) return;
+
+      const entry = selections.get(slotKey) || {};
+      entry[field] = select.value || "";
+      selections.set(slotKey, entry);
+    });
+
+    return selections;
+  }
+
+  function getFeatAbilityIncreaseMode(grant, slotKey, selectedFeatId = "", asiSelections = null) {
+    if (!grant?.abilityIncrease) return "feat";
+    const values = asiSelections instanceof Map ? asiSelections.get(slotKey) : null;
+    const mode = String(values?.mode || "").trim();
+    if (mode === "asi" || mode === "feat") return mode;
+    return selectedFeatId ? "feat" : "asi";
+  }
+
+  function collectSelectedFeatAbilityIncreases(featGrants = []) {
+    const featSelections = getCurrentFeatSelectionMap();
+    const asiSelections = getCurrentFeatAbilityIncreaseSelectionMap();
+    const increases = [];
+
+    featGrants.forEach((grant) => {
+      if (!grant?.abilityIncrease) return;
+
+      for (let slotIndex = 0; slotIndex < grant.picks; slotIndex += 1) {
+        const slotKey = buildFeatChoiceSlotKey(grant, slotIndex);
+        const featId = featSelections.get(slotKey) || "";
+        const mode = getFeatAbilityIncreaseMode(grant, slotKey, featId, asiSelections);
+        if (mode !== "asi") continue;
+
+        const values = asiSelections.get(slotKey) || {};
+        increases.push({
+          slotKey,
+          sourceLabel: grant.sourceLabel,
+          grantLabel: grant.label,
+          distribution: values.distribution === "plus1plus1" ? "plus1plus1" : "plus2",
+          primary: values.primary || "",
+          secondary: values.secondary || "",
+          maxScore: grant.abilityIncrease.maxScore || 20,
+        });
+      }
+    });
+
+    return increases;
+  }
+
   function collectSelectedFeatChoices(featGrants = []) {
     const selections = getCurrentFeatSelectionMap();
+    const asiSelections = getCurrentFeatAbilityIncreaseSelectionMap();
     const selectedFeats = [];
 
     featGrants.forEach((grant) => {
       for (let slotIndex = 0; slotIndex < grant.picks; slotIndex += 1) {
-        const featId = selections.get(buildFeatChoiceSlotKey(grant, slotIndex)) || "";
+        const slotKey = buildFeatChoiceSlotKey(grant, slotIndex);
+        const featId = selections.get(slotKey) || "";
+        if (grant?.abilityIncrease && getFeatAbilityIncreaseMode(grant, slotKey, featId, asiSelections) !== "feat") {
+          continue;
+        }
+
         const feat = FEAT_BY_ID.get(featId);
         if (!feat) continue;
 
         selectedFeats.push({
-          slotKey: buildFeatChoiceSlotKey(grant, slotIndex),
+          slotKey,
           featId,
           feat,
           sourceLabel: grant.sourceLabel,
@@ -9923,6 +9995,60 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     }).join("");
   }
 
+  function renderFeatAbilityOptionElements(selectedValue = "") {
+    return [
+      `<option value=""${selectedValue ? "" : " selected"} disabled>Selecione...</option>`,
+      ...ABILITIES.map((ability) => `
+        <option value="${escapeHtml(ability.key)}"${selectedValue === ability.key ? " selected" : ""}>${escapeHtml(ability.label)}</option>
+      `),
+    ].join("");
+  }
+
+  function renderFeatAbilityIncreaseControls(slotKey, values = {}) {
+    const distribution = values.distribution === "plus1plus1" ? "plus1plus1" : "plus2";
+    const primary = values.primary || "";
+    const secondary = values.secondary || "";
+    const secondaryHidden = distribution === "plus2" ? " hidden" : "";
+    const primaryLabel = distribution === "plus1plus1" ? "Primeiro +1 em" : "+2 em";
+
+    return `
+      <div class="feat-choice-asi-grid" data-feat-asi-controls="${escapeHtml(slotKey)}">
+        <p class="note subtle">Aplique o aumento sem ultrapassar 20 no atributo final.</p>
+        <label class="row feat-choice-field">
+          <span>Distribuição</span>
+          <select data-feat-asi-slot-key="${escapeHtml(slotKey)}" data-feat-asi-field="distribution">
+            <option value="plus2"${distribution === "plus2" ? " selected" : ""}>+2 em um atributo</option>
+            <option value="plus1plus1"${distribution === "plus1plus1" ? " selected" : ""}>+1 em dois atributos</option>
+          </select>
+        </label>
+        <label class="row feat-choice-field">
+          <span>${escapeHtml(primaryLabel)}</span>
+          <select data-feat-asi-slot-key="${escapeHtml(slotKey)}" data-feat-asi-field="primary">
+            ${renderFeatAbilityOptionElements(primary)}
+          </select>
+        </label>
+        <label class="row feat-choice-field"${secondaryHidden}>
+          <span>Segundo +1 em</span>
+          <select data-feat-asi-slot-key="${escapeHtml(slotKey)}" data-feat-asi-field="secondary">
+            ${renderFeatAbilityOptionElements(secondary)}
+          </select>
+        </label>
+      </div>
+    `;
+  }
+
+  function renderFeatProgressionModeControls(slotKey, mode) {
+    return `
+      <label class="row feat-choice-field">
+        <span>Escolha</span>
+        <select data-feat-asi-slot-key="${escapeHtml(slotKey)}" data-feat-asi-field="mode">
+          <option value="asi"${mode === "asi" ? " selected" : ""}>Aumento de atributo</option>
+          <option value="feat"${mode === "feat" ? " selected" : ""}>Talento opcional</option>
+        </select>
+      </label>
+    `;
+  }
+
   function renderFeatChoices() {
     if (!el.featChoicesPanel || !el.featChoicesContainer) return;
 
@@ -9935,6 +10061,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     const classEntries = collectClassEntries(cls, subclass, totalLevel);
     const grants = collectFeatChoiceSources({ race, subrace, background, classEntries });
     const selections = getCurrentFeatSelectionMap();
+    const asiSelections = getCurrentFeatAbilityIncreaseSelectionMap();
 
     if (!grants.length) {
       cleanupFeatChoiceFields();
@@ -9952,14 +10079,20 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     const totalChoices = grants.reduce((sum, grant) => sum + grant.picks, 0);
     const sourceLabels = grants.map((grant) => grant.label);
     const hasOptionalRule = grants.some((grant) => grant.optionalRule);
+    const hasAbilityIncreaseChoice = grants.some((grant) => grant.abilityIncrease);
 
     el.featChoicesSummary.textContent = totalChoices === 1
-      ? "1 escolha de talento disponível para a origem selecionada."
-      : `${totalChoices} escolhas de talento disponíveis para as origens selecionadas.`;
+      ? (hasAbilityIncreaseChoice
+        ? "1 escolha de progressão disponível para a origem selecionada."
+        : "1 escolha de talento disponível para a origem selecionada.")
+      : (hasAbilityIncreaseChoice
+        ? `${totalChoices} escolhas de progressão disponíveis para as origens selecionadas.`
+        : `${totalChoices} escolhas de talento disponíveis para as origens selecionadas.`);
 
     if (el.featChoicesInfo) {
       const infoParts = [
         sourceLabels.length ? `Origens: ${formatList(sourceLabels)}.` : "",
+        hasAbilityIncreaseChoice ? "Nos níveis de melhoria de classe, escolha aumento de atributo ou talento opcional." : "",
         hasOptionalRule ? "Estas escolhas usam a regra opcional de talentos." : "",
       ].filter(Boolean);
       el.featChoicesInfo.textContent = infoParts.join(" ");
@@ -9968,32 +10101,48 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     el.featChoicesContainer.innerHTML = grants.map((grant) => {
       const meta = [
         grant.picks === 1 ? "1 escolha" : `${grant.picks} escolhas`,
+        grant.abilityIncrease ? "aumento de atributo ou talento" : "",
         grant.optionalRule ? "regra opcional" : "",
       ].filter(Boolean).join(" • ");
 
       const choiceFields = Array.from({ length: grant.picks }, (_, slotIndex) => {
         const slotKey = buildFeatChoiceSlotKey(grant, slotIndex);
         const selectedId = selections.get(slotKey) || "";
+        const asiValues = asiSelections.get(slotKey) || {};
+        const progressionMode = getFeatAbilityIncreaseMode(grant, slotKey, selectedId, asiSelections);
         const selectedFeat = FEAT_BY_ID.get(selectedId) || null;
         const label = grant.picks === 1 ? "Talento" : `Talento ${slotIndex + 1}`;
         const options = grant.options.map((feat) => `
           <option value="${escapeHtml(feat.id)}"${selectedId === feat.id ? " selected" : ""}>${escapeHtml(feat.name_pt || feat.name || feat.id)}</option>
         `).join("");
+        const modeControls = grant.abilityIncrease
+          ? renderFeatProgressionModeControls(slotKey, progressionMode)
+          : "";
+        const asiControls = grant.abilityIncrease && progressionMode === "asi"
+          ? renderFeatAbilityIncreaseControls(slotKey, asiValues)
+          : "";
+        const featControls = (!grant.abilityIncrease || progressionMode === "feat")
+          ? `
+            <label class="row generic-dropdown-field feat-choice-field" data-feat-field-key="${escapeHtml(slotKey)}" data-feat-placeholder="Selecione um talento...">
+              <span>${escapeHtml(label)}</span>
+              <div class="dropdown-anchor">
+                <input type="text" data-feat-input="1" autocomplete="off" placeholder="Selecione um talento..." />
+                <div class="dropdown-suggestions" data-feat-suggestions="1" hidden></div>
+                <div class="dropdown-hover-card" data-feat-hover-card="1" hidden></div>
+              </div>
+              <select class="native-select-hidden" data-feat-slot-key="${escapeHtml(slotKey)}" tabindex="-1" aria-hidden="true">
+                <option value="" selected disabled>Selecione um talento...</option>
+                ${options}
+              </select>
+              <p class="feat-choice-description${selectedFeat ? "" : " is-empty"}">${escapeHtml(selectedFeat ? summarizeFeatDescription(selectedFeat) : "Digite para filtrar talentos e passe o mouse na lista para ver o resumo na lateral.")}</p>
+            </label>
+          `
+          : "";
 
         return `
-          <label class="row generic-dropdown-field feat-choice-field" data-feat-field-key="${escapeHtml(slotKey)}" data-feat-placeholder="Selecione um talento...">
-            <span>${escapeHtml(label)}</span>
-            <div class="dropdown-anchor">
-              <input type="text" data-feat-input="1" autocomplete="off" placeholder="Selecione um talento..." />
-              <div class="dropdown-suggestions" data-feat-suggestions="1" hidden></div>
-              <div class="dropdown-hover-card" data-feat-hover-card="1" hidden></div>
-            </div>
-            <select class="native-select-hidden" data-feat-slot-key="${escapeHtml(slotKey)}" tabindex="-1" aria-hidden="true">
-              <option value="" selected disabled>Selecione um talento...</option>
-              ${options}
-            </select>
-            <p class="feat-choice-description${selectedFeat ? "" : " is-empty"}">${escapeHtml(selectedFeat ? summarizeFeatDescription(selectedFeat) : "Digite para filtrar talentos e passe o mouse na lista para ver o resumo na lateral.")}</p>
-          </label>
+          ${modeControls}
+          ${asiControls}
+          ${featControls}
         `;
       }).join("");
 
@@ -10013,6 +10162,16 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
   }
 
   function onFeatChoiceChanged(event) {
+    const asiSelect = event.target.closest("select[data-feat-asi-slot-key]");
+    if (asiSelect && el.featChoicesContainer) {
+      setStatus("");
+      renderFeatChoices();
+      renderLanguageChoices();
+      updateSkillSelectionFeedback();
+      atualizarPreview();
+      return;
+    }
+
     const select = event.target.closest("select[data-feat-slot-key]");
     if (!select || !el.featChoicesContainer) return;
     handleFeatChoiceSelection(select);
@@ -17091,8 +17250,60 @@ function getSelectedSubclassData() {
     const racialAttrs = applyAttributeBonuses(state.attrs, state.race?.atributos);
     const subraceAttrs = applyAttributeBonuses(racialAttrs, state.subrace?.atributos);
     const improved = applyAbilityScoreImprovements(subraceAttrs, state.asi);
-    const featAttrs = applyAttributeBonuses(improved.attrs, collectFixedFeatAbilityBonuses(state?.selectedFeats, state?.selectedFeatDetails));
-    return { attrs: featAttrs, warnings: improved.warnings };
+    const classIncreases = applyFeatAbilityIncreases5e(improved.attrs, state?.selectedFeatAbilityIncreases);
+    const featAttrs = applyAttributeBonuses(classIncreases.attrs, collectFixedFeatAbilityBonuses(state?.selectedFeats, state?.selectedFeatDetails));
+    return { attrs: featAttrs, warnings: [...improved.warnings, ...classIncreases.warnings] };
+  }
+
+  function applyFeatAbilityIncreases5e(baseAttrs, increases = []) {
+    const attrs = { ...baseAttrs };
+    const warnings = [];
+
+    const apply = (entry, ability, amount) => {
+      const label = entry?.grantLabel || "Aumento de atributo";
+      const maxScore = clampInt(entry?.maxScore || 20, 1, 30);
+      if (!Object.prototype.hasOwnProperty.call(attrs, ability)) {
+        warnings.push(`${label}: atributo inválido.`);
+        return;
+      }
+
+      const currentValue = Number(attrs[ability] || 0);
+      const nextValue = Math.min(maxScore, Math.max(1, currentValue + Number(amount || 0)));
+      if (nextValue <= currentValue) {
+        warnings.push(`${label}: ${abilityKeyToLabel(ability)} já está no limite ${maxScore}.`);
+        return;
+      }
+      if (nextValue < currentValue + Number(amount || 0)) {
+        warnings.push(`${label}: ${abilityKeyToLabel(ability)} foi limitado a ${maxScore}.`);
+      }
+      attrs[ability] = nextValue;
+    };
+
+    (Array.isArray(increases) ? increases : []).forEach((entry) => {
+      const label = entry?.grantLabel || "Aumento de atributo";
+      if (entry?.distribution === "plus1plus1") {
+        if (!entry.primary || !entry.secondary) {
+          warnings.push(`${label}: escolha dois atributos para aplicar +1/+1.`);
+          return;
+        }
+        if (entry.primary === entry.secondary) {
+          warnings.push(`${label}: os dois bônus de +1 devem ir para atributos diferentes.`);
+          apply(entry, entry.primary, 1);
+          return;
+        }
+        apply(entry, entry.primary, 1);
+        apply(entry, entry.secondary, 1);
+        return;
+      }
+
+      if (!entry?.primary) {
+        warnings.push(`${label}: escolha um atributo para aplicar +2.`);
+        return;
+      }
+      apply(entry, entry.primary, 2);
+    });
+
+    return { attrs, warnings };
   }
 
   function createAbilityPreviewBreakdowns5e(baseAttrs = {}) {
@@ -17165,6 +17376,27 @@ function getSelectedSubclassData() {
     return entries;
   }
 
+  function collectFeatAbilityIncreaseBreakdownEntries5e(increases = []) {
+    const entries = [];
+
+    (Array.isArray(increases) ? increases : []).forEach((entry) => {
+      const source = `Aumento de atributo (${entry?.grantLabel || "classe"})`;
+      if (entry?.distribution === "plus1plus1") {
+        if (entry.primary && entry.secondary && entry.primary !== entry.secondary) {
+          entries.push({ ability: entry.primary, amount: 1, source });
+          entries.push({ ability: entry.secondary, amount: 1, source });
+        }
+        return;
+      }
+
+      if (entry?.primary) {
+        entries.push({ ability: entry.primary, amount: 2, source });
+      }
+    });
+
+    return entries;
+  }
+
   function collectFeatAbilityBreakdownEntries5e(selectedFeats = [], selectedFeatDetails = []) {
     const entries = [];
     const featIds = getSelectedFeatIdSet(selectedFeats);
@@ -17210,6 +17442,7 @@ function getSelectedSubclassData() {
     applyAbilityPreviewEntries5e(attrs, breakdowns, collectAbilityBonusEntriesFromMap5e(state?.race?.atributos, state?.race?.nome ? `Raça ${state.race.nome}` : "Raça"));
     applyAbilityPreviewEntries5e(attrs, breakdowns, collectAbilityBonusEntriesFromMap5e(state?.subrace?.atributos, state?.subrace?.nome ? `Sub-raça ${state.subrace.nome}` : "Sub-raça"));
     applyAbilityPreviewEntries5e(attrs, breakdowns, collectFlexibleAsiBreakdownEntries5e(state));
+    applyAbilityPreviewEntries5e(attrs, breakdowns, collectFeatAbilityIncreaseBreakdownEntries5e(state?.selectedFeatAbilityIncreases));
     applyAbilityPreviewEntries5e(attrs, breakdowns, collectFeatAbilityBreakdownEntries5e(state?.selectedFeats, state?.selectedFeatDetails));
 
     return {
@@ -18953,6 +19186,7 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
     const classEntries = collectClassEntries(cls, subclass, totalLevel);
     const featGrants = collectFeatChoiceSources({ race, subrace, background: bg, classEntries });
     const selectedFeats = collectSelectedFeatChoices(featGrants);
+    const selectedFeatAbilityIncreases = collectSelectedFeatAbilityIncreases(featGrants);
     const featDetailSources = collectFeatDetailSources(selectedFeats);
     const selectedFeatDetails = collectSelectedFeatDetails(featDetailSources);
     const subclassDetailSources = collectSubclassDetailSources(classEntries);
@@ -19061,6 +19295,7 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
       background: bg,
       featGrants,
       selectedFeats,
+      selectedFeatAbilityIncreases,
       selectedFeatDetails,
       selectedSubclassDetails,
       companionChoiceSources,

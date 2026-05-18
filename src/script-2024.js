@@ -1811,6 +1811,7 @@ import { createLevelUpAssistant } from "./level-up-assistant.js";
     });
 
     restoreFormPreset(el.form, preset);
+    syncAllCustomSelectFields2024();
     syncUnitToggleButtons(document);
     updatePreview();
   }

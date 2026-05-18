@@ -83,6 +83,16 @@ function completeAuth(message, redirectTo) {
   }
 }
 
+function getAuthRedirect(fallbackPage) {
+  return returnTo || fallbackPage;
+}
+
+function getAuthRedirectMessage(actionLabel, fallbackMessage) {
+  return returnTo
+    ? `${actionLabel}. Voltando ao editor.`
+    : fallbackMessage;
+}
+
 function getPasswordStrength(password) {
   const value = String(password || "");
   if (!value) {
@@ -129,7 +139,10 @@ el.loginForm?.addEventListener("submit", async (event) => {
       password: formData.get("password"),
     });
     el.loginForm.reset();
-    completeAuth("Conta acessada. Redirecionando para sua página.", LOGIN_SUCCESS_PAGE);
+    completeAuth(
+      getAuthRedirectMessage("Conta acessada", "Conta acessada. Redirecionando para sua página."),
+      getAuthRedirect(LOGIN_SUCCESS_PAGE)
+    );
   } catch (error) {
     setStatus(error?.message || "Não foi possível entrar na conta.", "warning");
   }
@@ -155,7 +168,10 @@ el.registerForm?.addEventListener("submit", async (event) => {
     });
     el.registerForm.reset();
     updateRegisterPasswordStrength();
-    completeAuth("Conta criada. Redirecionando para a página inicial.", REGISTER_SUCCESS_PAGE);
+    completeAuth(
+      getAuthRedirectMessage("Conta criada", "Conta criada. Redirecionando para a página inicial."),
+      getAuthRedirect(REGISTER_SUCCESS_PAGE)
+    );
   } catch (error) {
     setStatus(error?.message || "Não foi possível criar a conta.", "warning");
   }

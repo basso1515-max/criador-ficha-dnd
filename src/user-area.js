@@ -12,6 +12,8 @@ import {
 
 const IGNORED_INPUT_TYPES = new Set(["button", "file", "image", "reset", "submit"]);
 const CHECKABLE_INPUT_TYPES = new Set(["checkbox", "radio"]);
+const PENDING_EDITOR_DRAFT_KEY = "dnd_sheet_pending_editor_draft_v1";
+const PENDING_EDITOR_DRAFT_TTL_MS = 1000 * 60 * 60 * 12;
 const SAVE_BUTTON_CONTENT = new WeakMap();
 
 export function captureFormPreset(form) {
@@ -120,7 +122,9 @@ export function initializeUserArea({
 
   hydrateAccountStorage().then(() => {
     render();
-    loadRequestedCharacter();
+    if (!restorePendingEditorDraft()) {
+      loadRequestedCharacter();
+    }
   });
 
   elements.loginForm?.addEventListener("submit", async (event) => {
@@ -181,6 +185,7 @@ export function initializeUserArea({
     if (!getCurrentUser()) {
       event?.preventDefault();
       closeMobileMenu();
+      savePendingEditorDraft(edition, buildPayload(), getCurrentReturnTarget());
       window.location.href = buildLoginReturnUrl();
       return;
     }
@@ -253,6 +258,26 @@ export function initializeUserArea({
   });
 
   render();
+
+  function restorePendingEditorDraft() {
+    const draft = readPendingEditorDraft();
+    if (!draft) return false;
+    if (draft.edition !== edition || draft.returnTo !== getCurrentReturnTarget()) return false;
+
+    const snapshot = draft.payload?.snapshot || draft.snapshot;
+    if (!snapshot || typeof snapshot !== "object") {
+      clearPendingEditorDraft();
+      return false;
+    }
+
+    restore?.(snapshot);
+    state.selectedCharacterId = "";
+    state.showSavedPanel = false;
+    clearPendingEditorDraft();
+    render();
+    notify("Rascunho restaurado. Revise e salve o personagem na sua conta.", "success");
+    return true;
+  }
 }
 
 function renderUserArea({ edition, elements, saveButtons, state }) {
@@ -382,9 +407,99 @@ function getRequestedCharacterId() {
 }
 
 function buildLoginReturnUrl() {
-  const page = window.location.pathname.split("/").pop() || "index.html";
-  const returnTo = `${page}${window.location.search || ""}${window.location.hash || ""}`;
+  const returnTo = getCurrentReturnTarget();
   return `./conta.html?returnTo=${encodeURIComponent(returnTo)}`;
+}
+
+function getCurrentReturnTarget() {
+  const page = window.location.pathname.split("/").pop() || "index.html";
+  return `${page}${window.location.search || ""}${window.location.hash || ""}`;
+}
+
+function savePendingEditorDraft(edition, payload, returnTo) {
+  const storage = getWritableDraftStorage();
+  if (!storage) return false;
+
+  try {
+    storage.setItem(PENDING_EDITOR_DRAFT_KEY, JSON.stringify({
+      version: 1,
+      edition,
+      returnTo,
+      savedAt: Date.now(),
+      payload,
+    }));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function readPendingEditorDraft() {
+  const entry = getDraftStorageEntry();
+  if (!entry?.raw) return null;
+
+  try {
+    const draft = JSON.parse(entry.raw);
+    if (!draft || draft.version !== 1) {
+      entry.storage.removeItem(PENDING_EDITOR_DRAFT_KEY);
+      return null;
+    }
+
+    const savedAt = Number(draft.savedAt || 0);
+    if (!savedAt || Date.now() - savedAt > PENDING_EDITOR_DRAFT_TTL_MS) {
+      entry.storage.removeItem(PENDING_EDITOR_DRAFT_KEY);
+      return null;
+    }
+
+    return draft;
+  } catch {
+    entry.storage.removeItem(PENDING_EDITOR_DRAFT_KEY);
+    return null;
+  }
+}
+
+function clearPendingEditorDraft() {
+  getDraftStorageCandidates().forEach((storage) => {
+    try {
+      storage.removeItem(PENDING_EDITOR_DRAFT_KEY);
+    } catch {}
+  });
+}
+
+function getDraftStorageEntry() {
+  for (const storage of getDraftStorageCandidates()) {
+    try {
+      const raw = storage.getItem(PENDING_EDITOR_DRAFT_KEY);
+      if (raw) return { storage, raw };
+    } catch {}
+  }
+  return null;
+}
+
+function getWritableDraftStorage() {
+  return getDraftStorageCandidates().find((storage) => {
+    try {
+      const testKey = `${PENDING_EDITOR_DRAFT_KEY}_test`;
+      storage.setItem(testKey, "1");
+      storage.removeItem(testKey);
+      return true;
+    } catch {
+      return false;
+    }
+  }) || null;
+}
+
+function getDraftStorageCandidates() {
+  if (typeof window === "undefined") return [];
+  return ["sessionStorage", "localStorage"]
+    .map((name) => {
+      try {
+        return window[name];
+      } catch {
+        return null;
+      }
+    })
+    .filter(Boolean);
 }
 
 function getSaveButtonContent(button) {

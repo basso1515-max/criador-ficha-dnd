@@ -5038,6 +5038,12 @@ body.level-up-modal-open .magic-spell-hover-card:not([hidden]) {
   margin-top: 12px;
 }
 
+.feat-choice-asi-grid {
+  display: grid;
+  gap: 10px;
+  margin-top: 4px;
+}
+
 .feat-choice-field .dropdown-anchor {
   position: relative;
 }
@@ -7414,7 +7420,7 @@ html[data-theme="dark"] body[data-active-screen="5.5e-2024"] .level-up-hover-car
   color: #3f2b1c;
   border-color: rgba(95, 50, 25, 0.18);
   box-shadow: 0 18px 42px rgba(44, 27, 17, 0.24);
-  pointer-events: auto;
+  pointer-events: none;
 }
 
 /* Dark-mode: HP roll buttons should be darker and match other dark controls */
