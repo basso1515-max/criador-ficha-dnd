@@ -2,8 +2,11 @@ import { CLASSES as CLASSES_2024 } from "./data/5.5e/classes.js";
 import { RACAS as RACES_2024, SUBRACAS as SUBRACES_2024 } from "./data/5.5e/racas.js";
 import { ANTECEDENTES as BACKGROUNDS_2024 } from "./data/5.5e/antecedentes.js";
 import { SUBCLASSES as SUBCLASSES_2024 } from "./data/5.5e/subclasses.js";
+import { ANTECEDENTES as BACKGROUNDS_2014 } from "./data/5e/antecedentes.js";
 
 const ABILITIES = ["for", "des", "con", "int", "sab", "car"];
+const LEGACY_BACKGROUND_ID_2024 = "antecedente-legado";
+const LEGACY_BACKGROUND_LABEL_2024 = "Antecedente legado";
 const OFFICIAL_GUIDANCE_URL = "https://www.dndbeyond.com/posts/1875-updating-your-campaign-to-the-5-5e-d-d-rules";
 const OFFICIAL_CHARACTER_RULES_URL = "https://www.dndbeyond.com/sources/dnd/free-rules/creating-a-character";
 
@@ -46,25 +49,28 @@ const ALIGNMENT_BY_LABEL = new Map([
 ]);
 
 const RACE_ALIASES = new Map([
-  ["goliath", "golias"],
-  ["humano variante", "humano"],
-]);
-
-const BACKGROUND_ALIASES = new Map([
-  ["artesao da guilda", "artesao"],
-  ["forasteiro", "guia"],
-  ["heroi do povo", "fazendeiro"],
-  ["orfao de rua", "andarilho"],
+  ["goliath", {
+    id: "golias",
+    note: "Goliath foi levado para Golias 5.5e.",
+    reviewNote: "Revise a Dádiva Gigante/linhagem de Golias, pois a espécie 5.5e tem escolhas próprias.",
+  }],
+  ["humano variante", {
+    id: "humano",
+    note: "Humano variante foi levado para Humano 5.5e.",
+    reviewNote: "Revise o talento do Humano: no 5.5e ele recebe um talento de origem extra, não o mesmo pacote do Humano Variante 5e.",
+  }],
 ]);
 
 const CLASS_BY_LABEL = makeNormalizedMap(Object.values(CLASSES_2024));
 const RACE_BY_LABEL = makeNormalizedMap(Object.values(RACES_2024));
 const BACKGROUND_BY_LABEL = makeNormalizedMap(Object.values(BACKGROUNDS_2024));
+const LEGACY_BACKGROUND_BY_LABEL = makeNormalizedMap(Object.values(BACKGROUNDS_2014));
 const SUBRACE_BY_LABEL = makeNormalizedMap(Object.values(SUBRACES_2024));
 const SUBCLASS_BY_LABEL = makeNormalizedMap(Object.values(SUBCLASSES_2024));
 const CLASS_BY_ID = new Map(Object.values(CLASSES_2024).map((entry) => [entry.id, entry]));
 const RACE_BY_ID = new Map(Object.values(RACES_2024).map((entry) => [entry.id, entry]));
 const BACKGROUND_BY_ID = new Map(Object.values(BACKGROUNDS_2024).map((entry) => [entry.id, entry]));
+const LEGACY_BACKGROUND_BY_ID = new Map(Object.values(BACKGROUNDS_2014).map((entry) => [entry.id, entry]));
 const SUBRACE_BY_ID = new Map(Object.values(SUBRACES_2024).map((entry) => [entry.id, entry]));
 const SUBCLASS_BY_ID = new Map(Object.values(SUBCLASSES_2024).map((entry) => [entry.id, entry]));
 
@@ -88,8 +94,11 @@ export function build5eTo2024MigrationPayload(character, { mode = "duplicate" } 
 
   copyAttributeMethod(source, fields);
   copyBaseAbilityScores(source, fields);
-  copyAbilityBonusChoices(source, fields);
+  const copiedAbilityBonuses = copyAbilityBonusChoices(source, fields);
   copyMainBuild(source, fields, report);
+  if (copiedAbilityBonuses) {
+    report.review.push("Bônus de atributo copiados da ficha 5e foram preservados como ponto de partida; confirme se eles vêm do antecedente 5.5e/antecedente antigo e ignore aumentos de atributo de espécie antiga.");
+  }
   copyMulticlassRows(source, fields, report);
   copyAlignment(source, fields);
   copyAppearance(source, fields);
@@ -150,6 +159,7 @@ function copyBaseAbilityScores(source, fields) {
 
 function copyAbilityBonusChoices(source, fields) {
   const usesTriple = source.checkedById("asi-1-1-1");
+  let copiedCount = 0;
   fields.push(makeField({
     id: "abilityMode2024",
     tag: "select",
@@ -163,15 +173,25 @@ function copyAbilityBonusChoices(source, fields) {
       ["asi-plusC", "c"],
     ].forEach(([fromId, slot]) => {
       const value = source.valueById(fromId);
-      if (value) fields.push(makeAbilitySlotField(slot, value));
+      if (value) {
+        fields.push(makeAbilitySlotField(slot, value));
+        copiedCount += 1;
+      }
     });
-    return;
+    return copiedCount;
   }
 
   const primary = source.valueById("asi-plus2");
   const secondary = source.valueById("asi-plus1");
-  if (primary) fields.push(makeAbilitySlotField("primary", primary));
-  if (secondary) fields.push(makeAbilitySlotField("secondary", secondary));
+  if (primary) {
+    fields.push(makeAbilitySlotField("primary", primary));
+    copiedCount += 1;
+  }
+  if (secondary) {
+    fields.push(makeAbilitySlotField("secondary", secondary));
+    copiedCount += 1;
+  }
+  return copiedCount;
 }
 
 function copyMainBuild(source, fields, report) {
@@ -194,10 +214,14 @@ function copyMainBuild(source, fields, report) {
 
   const backgroundResult = resolveBackground(source.valueById("antecedente"));
   addResolvedField(fields, "antecedente2024", backgroundResult);
+  addLegacyBackgroundFields(fields, backgroundResult);
   pushResolutionReport(report, "Antecedente", source.valueById("antecedente"), backgroundResult);
 
-  if (backgroundResult.id) {
+  if (backgroundResult.id && backgroundResult.id !== LEGACY_BACKGROUND_ID_2024) {
     report.review.push("Revise os bônus de atributo do antecedente 5.5e: pelas regras atuais, esses bônus vêm do antecedente, não da espécie.");
+  }
+  if (backgroundResult.id === LEGACY_BACKGROUND_ID_2024) {
+    report.review.push("Antecedente legado: escolha +2/+1 ou +1/+1/+1 em atributos, escolha um talento de origem e confira se as perícias/ferramentas antigas preservadas continuam corretas.");
   }
   if (raceResult.id) {
     report.review.push("Se a espécie veio de livro antigo, ignore aumentos de atributo antigos da espécie e use apenas os aumentos do antecedente.");
@@ -254,7 +278,8 @@ function copyNotes(character, source, fields, report, mode) {
 
   const sourceSummary = character.summary ? `Resumo original: ${character.summary}` : "";
   const officialLines = [
-    "Migração 5e -> 5.5e criada a partir das orientações oficiais: usar uma nova ficha 5.5e, adicionar a classe 5.5e no mesmo nível, espelhar escolhas possíveis, manter inventário e revisar antecedentes/espécies antigos.",
+    "Migração 5e -> 5.5e criada a partir das orientações oficiais: usar uma nova ficha 5.5e, adicionar a classe 5.5e no mesmo nível, espelhar escolhas possíveis e manter inventário.",
+    "Antecedentes antigos sem versão 5.5e são mantidos como legado: escolha +2/+1 ou +1/+1/+1 em atributos e um talento de origem se o antecedente antigo não conceder talento. Espécies antigas devem ignorar aumentos de atributo antigos.",
     mode === "transfer"
       ? "Modo escolhido: transferir completamente para 5.5e; a ficha 5e original foi removida após criar esta versão."
       : "Modo escolhido: duplicar; a ficha 5e original foi mantida na conta.",
@@ -277,8 +302,13 @@ function resolveClass(sourceValue) {
 function resolveRace(sourceValue) {
   const text = normalizeText(sourceValue);
   const alias = RACE_ALIASES.get(text);
-  const exact = (alias && RACE_BY_ID.get(alias)) || RACE_BY_LABEL.get(text) || RACE_BY_ID.get(String(sourceValue || ""));
-  if (exact) return resolved(exact.id, exact.nome, alias ? "Equivalência aplicada." : "");
+  const exact = (alias && RACE_BY_ID.get(alias.id)) || RACE_BY_LABEL.get(text) || RACE_BY_ID.get(String(sourceValue || ""));
+  if (exact) {
+    return resolved(exact.id, exact.nome, alias?.note || "", {
+      needsReview: Boolean(alias),
+      reviewNote: alias?.reviewNote || "",
+    });
+  }
   return unresolved("Espécie de livro antigo não está cadastrada no editor 5.5e; use a regra oficial de espécie antiga e revise atributos.");
 }
 
@@ -295,11 +325,17 @@ function resolveSubrace(sourceValue, raceId) {
 }
 
 function resolveBackground(sourceValue) {
+  if (!String(sourceValue || "").trim()) return resolved("", "");
   const text = normalizeText(sourceValue);
-  const alias = BACKGROUND_ALIASES.get(text);
-  const exact = (alias && BACKGROUND_BY_ID.get(alias)) || BACKGROUND_BY_LABEL.get(text) || BACKGROUND_BY_ID.get(String(sourceValue || ""));
-  if (exact) return resolved(exact.id, exact.nome, alias ? "Equivalência de antecedente aplicada; revise se combina com a mesa." : "");
-  return unresolved("Antecedente antigo não está cadastrado no editor 5.5e; escolha os bônus de atributo e um talento de origem conforme a regra oficial.");
+  const exact = BACKGROUND_BY_LABEL.get(text) || BACKGROUND_BY_ID.get(String(sourceValue || ""));
+  if (exact) return resolved(exact.id, exact.nome);
+
+  const legacy = LEGACY_BACKGROUND_BY_LABEL.get(text) || LEGACY_BACKGROUND_BY_ID.get(String(sourceValue || ""));
+  return resolved(LEGACY_BACKGROUND_ID_2024, LEGACY_BACKGROUND_LABEL_2024, "Regra oficial de antecedente antigo aplicada.", {
+    needsReview: true,
+    reviewNote: "O antecedente não foi trocado por um antecedente 2024 parecido; ele foi mantido como antecedente legado, com atributos livres e talento de origem à escolha.",
+    legacyBackground: buildLegacyBackgroundPayload(sourceValue, legacy),
+  });
 }
 
 function resolveSubclass(sourceValue, classId, classLevel) {
@@ -322,10 +358,21 @@ function addResolvedField(fields, id, result) {
   fields.push(makeField({ id, tag: "select", value: result.id }));
 }
 
+function addLegacyBackgroundFields(fields, result) {
+  if (result?.id !== LEGACY_BACKGROUND_ID_2024) return;
+  const legacy = result.legacyBackground || buildLegacyBackgroundPayload("");
+  fields.push(makeField({ id: "legacyBackgroundName2024", value: legacy.name }));
+  fields.push(makeField({ id: "legacyBackgroundSkills2024", value: legacy.skills.join(",") }));
+  fields.push(makeField({ id: "legacyBackgroundTools2024", value: legacy.tools.join(",") }));
+}
+
 function pushResolutionReport(report, label, sourceValue, result) {
   if (!sourceValue || !String(sourceValue).trim()) return;
   if (result.id) {
     report.converted.push(`${label}: ${sourceValue} -> ${result.label || result.id}${result.note ? ` (${result.note})` : ""}.`);
+    if (result.needsReview) {
+      report.review.push(`${label}: ${sourceValue}. ${result.reviewNote || result.note || "Revise esta conversão."}`);
+    }
   } else {
     report.review.push(`${label}: ${sourceValue}. ${result.note}`);
   }
@@ -334,7 +381,7 @@ function pushResolutionReport(report, label, sourceValue, result) {
 function buildMigrationSummary(sourceSummary, report) {
   const convertedCount = report.converted.length;
   const reviewCount = report.review.length;
-  const base = `Migrado do D&D 5e para 5.5e: ${convertedCount} equivalências aplicadas`;
+  const base = `Migrado do D&D 5e para 5.5e: ${convertedCount} ajuste(s) automático(s) aplicado(s)`;
   const suffix = reviewCount ? `, ${reviewCount} ponto(s) para revisar.` : ".";
   const original = String(sourceSummary || "").trim();
   return `${base}${suffix}${original ? ` ${original}` : ""}`.slice(0, 260);
@@ -408,8 +455,8 @@ function makeField({
   };
 }
 
-function resolved(id, label, note = "") {
-  return { id, label, note };
+function resolved(id, label, note = "", extra = {}) {
+  return { id, label, note, ...extra };
 }
 
 function unresolved(note) {
@@ -422,6 +469,21 @@ function makeNormalizedMap(records) {
       .map((record) => [normalizeText(record?.nome || ""), record])
       .filter(([key]) => key)
   );
+}
+
+function buildLegacyBackgroundPayload(sourceValue, legacy = null) {
+  const name = String(legacy?.nome || sourceValue || "Antecedente antigo").trim();
+  return {
+    name,
+    skills: normalizeStringList(legacy?.pericias),
+    tools: normalizeStringList(legacy?.ferramentas),
+  };
+}
+
+function normalizeStringList(value) {
+  return Array.isArray(value)
+    ? value.map((item) => String(item || "").trim()).filter(Boolean)
+    : [];
 }
 
 function normalizeText(value) {

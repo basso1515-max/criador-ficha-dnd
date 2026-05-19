@@ -91,7 +91,7 @@ function setMigrateModalOpen(isOpen, character = null) {
   const name = character?.name || "este personagem";
   if (el.migrateTitle) el.migrateTitle.textContent = `Migrar ${name} para D&D 5.5e?`;
   if (el.migrateSummary) {
-    el.migrateSummary.textContent = "A nova ficha usará os dados salvos, aplicará equivalências oficiais quando houver no editor 5.5e e registrará pontos de revisão nas notas.";
+    el.migrateSummary.textContent = "A nova ficha usará os dados salvos, aplicará ajustes oficiais quando houver no editor 5.5e e registrará pontos de revisão nas notas.";
   }
   el.migrateDuplicate?.focus();
 }

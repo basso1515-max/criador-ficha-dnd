@@ -160,13 +160,13 @@ export function createMigrationReviewAssistant(config = {}) {
     if (contentEl) {
       contentEl.innerHTML = `
         <div class="migration-review-summary-grid" aria-label="Resumo da migração">
-          ${renderStatCard("Equivalências", converted.length, "Aplicadas automaticamente")}
+          ${renderStatCard("Ajustes", converted.length, "Aplicados automaticamente")}
           ${renderStatCard("Revisões", review.length, "Pontos que merecem conferência")}
           ${renderStatCard("Pendências", pending.length, "Abertas no editor agora", pending.length ? "is-warning" : "is-success")}
         </div>
 
         <div class="migration-review-grid">
-          ${renderListCard("Equivalências aplicadas", converted, "Nenhuma equivalência automática foi registrada.", "converted")}
+          ${renderListCard("Ajustes aplicados", converted, "Nenhum ajuste automático foi registrado.", "converted")}
           ${renderListCard("Pontos para revisar", review, "Nenhum ponto manual de revisão foi registrado.", "review")}
           ${renderListCard("Pendências atuais do editor", pending, "Nenhuma pendência obrigatória no editor agora.", pending.length ? "pending" : "clear")}
         </div>

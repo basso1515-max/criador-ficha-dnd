@@ -1281,6 +1281,7 @@ import { saveCharacterForCurrentUser } from "./account-storage.js";
     ["ferramentas-de-cartografo", "Ferramentas de cartógrafo"],
     ["ferramentas-de-ladrao", "Ferramentas de ladrão"],
     ["ferramentas-de-navegador", "Ferramentas de navegador"],
+    ["kit-de-disfarce", "Kit de disfarce"],
     ["kit-de-falsificacao", "Kit de falsificação"],
     ["kit-de-herborismo", "Kit de herborismo"],
     ["ferramentas-de-artesao-um", "1 ferramenta de artesão à escolha"],
@@ -1317,10 +1318,34 @@ import { saveCharacterForCurrentUser } from "./account-storage.js";
       .sort((a, b) => String(a.label || "").localeCompare(String(b.label || ""), "pt-BR"));
   }
 
+  const LEGACY_BACKGROUND_ID_2024 = "antecedente-legado";
+  const LEGACY_BACKGROUND_ORIGIN_FEAT_SLOT_ID_2024 = "legacy-background-origin";
+  const LEGACY_BACKGROUND_2024 = {
+    id: LEGACY_BACKGROUND_ID_2024,
+    nome: "Antecedente legado",
+    legacyOlderBook: true,
+    pericias: [],
+    ferramentas: [],
+    idiomas: { picks: 0, from: [] },
+    equipamento: [],
+    ouro: { gp: 0 },
+    recurso: {
+      nome: "Antecedente de livro antigo",
+      resumo: "Use um antecedente de livro antigo pelas regras oficiais: escolha +2/+1 ou +1/+1/+1 em atributos e um talento de origem se o antecedente não trouxer talento.",
+    },
+    personalidade: [],
+    ideais: [],
+    vinculos: [],
+    defeitos: [],
+    aumentosAtributo2024: [...ABILITY_ORDER],
+    talentoOrigem: null,
+    equipamento2024: null,
+  };
+
   const RACE_LIST = sortByLocale(Object.values(RACAS || {}), "nome");
   const SUBRACE_LIST = sortByLocale(Object.values(SUBRACAS || {}), "nome");
   const CLASS_LIST = sortByLocale(Object.values(CLASSES_2024 || {}), "nome");
-  const BACKGROUND_LIST = sortByLocale(Object.values(ANTECEDENTES || {}), "nome");
+  const BACKGROUND_LIST = sortByLocale([...Object.values(ANTECEDENTES || {}), LEGACY_BACKGROUND_2024], "nome");
   const SUBCLASS_LIST = sortByLocale(Object.values(SUBCLASSES || {}), "nome");
   const FEAT_LIST = sortByLocale([...TALENTOS], "name_pt");
   const ORIGIN_FEATS = FEAT_LIST.filter((feat) => feat?.categoria === "origem");
@@ -1650,6 +1675,10 @@ import { saveCharacterForCurrentUser } from "./account-storage.js";
     antecedenteSuggestions: document.getElementById("antecedenteSuggestions2024"),
     antecedenteHoverCard: document.getElementById("antecedenteHoverCard2024"),
     antecedente: document.getElementById("antecedente2024"),
+    legacyBackgroundNameField: document.getElementById("legacyBackgroundNameField2024"),
+    legacyBackgroundName: document.getElementById("legacyBackgroundName2024"),
+    legacyBackgroundSkills: document.getElementById("legacyBackgroundSkills2024"),
+    legacyBackgroundTools: document.getElementById("legacyBackgroundTools2024"),
     racaInput: document.getElementById("racaInput2024"),
     racaSuggestions: document.getElementById("racaSuggestions2024"),
     racaHoverCard: document.getElementById("racaHoverCard2024"),
@@ -1809,7 +1838,7 @@ import { saveCharacterForCurrentUser } from "./account-storage.js";
       subrace?.nome || "",
       classDistribution || (cls ? `${cls.nome} ${getSelectedLevel()}` : ""),
       subclass?.nome || "",
-      background?.nome || "",
+      getBackgroundDisplayName2024(background),
     ].filter(Boolean).join(" • ");
   }
 
@@ -1997,6 +2026,10 @@ import { saveCharacterForCurrentUser } from "./account-storage.js";
     ].forEach((field) => field?.addEventListener("change", renderAll));
     el.nivel?.addEventListener("input", onLevelChanged2024);
     el.nivel?.addEventListener("change", onLevelChanged2024);
+    el.legacyBackgroundName?.addEventListener("input", () => {
+      updateInfoBoxes();
+      updatePreview();
+    });
     [el.attrMethodFree, el.attrMethodRoll, el.attrMethodStandard, el.attrMethodPointbuy]
       .forEach((field) => field?.addEventListener("change", onAbilityMethodChanged2024));
     el.attrRollBtn?.addEventListener("click", applyRolledAttributes2024);
@@ -2993,6 +3026,11 @@ import { saveCharacterForCurrentUser } from "./account-storage.js";
     const subclass = getSelectedSubclass();
     const classEntries = getResolvedClassEntries2024();
     const classDistribution = buildClassLevelDistributionSummary2024(classEntries);
+    const isLegacyBackground = isLegacyBackground2024(background);
+
+    if (el.legacyBackgroundNameField) {
+      el.legacyBackgroundNameField.hidden = !isLegacyBackground;
+    }
 
     if (cls) {
       const subclassNames = getSubclassesForClass(cls).map((item) => item.nome);
@@ -3030,7 +3068,18 @@ import { saveCharacterForCurrentUser } from "./account-storage.js";
       el.raceInfo.textContent = "";
     }
 
-    if (background) {
+    if (background && isLegacyBackground) {
+      const legacySkills = getLegacyBackgroundSkillIds2024(background);
+      const legacyTools = getLegacyBackgroundToolIds2024(background);
+      const lines = [
+        `${getBackgroundDisplayName2024(background)} usa a regra oficial de antecedentes de livros antigos.`,
+        `Atributos de origem possíveis: ${formatList(ABILITY_ORDER.map(formatAbilityLabel))}.`,
+        "Talento de origem: escolha livre se o antecedente antigo não tiver talento.",
+        legacySkills.length ? `Perícias antigas preservadas: ${formatList(legacySkills.map(formatSkillLabel))}.` : "",
+        legacyTools.length ? `Ferramentas antigas preservadas: ${formatList(legacyTools.map(formatToolLabel))}.` : "",
+      ].filter(Boolean);
+      el.backgroundInfo.textContent = lines.join(" ");
+    } else if (background) {
       const featLabel = formatBackgroundFeat(background);
       const lines = [
         `Atributos de origem possíveis: ${formatList((background.aumentosAtributo2024 || []).map(formatAbilityLabel))}.`,
@@ -5413,6 +5462,24 @@ import { saveCharacterForCurrentUser } from "./account-storage.js";
     const background = BACKGROUND_BY_ID.get(value);
     if (!background) return { summary: "", lines: [], body: "", search: "" };
 
+    if (isLegacyBackground2024(background)) {
+      const attributes = formatList(ABILITY_ORDER.map(formatAbilityLabel));
+      return {
+        summary: "Antecedente de livro antigo • talento de origem à escolha",
+        lines: [
+          `Atributos possíveis: ${attributes}`,
+          "Talento de origem: escolha livre se o antecedente antigo não trouxer talento.",
+          "Perícias, ferramentas, idiomas e equipamento antigos devem ser preservados a partir da ficha original.",
+        ],
+        body: background.recurso?.resumo || "",
+        search: [
+          background.nome,
+          "antecedente antigo legado livro anterior compatibilidade origem talento atributos",
+          attributes,
+        ].filter(Boolean).join(" "),
+      };
+    }
+
     const skills = formatList((background.pericias || []).map(formatSkillLabel));
     const tools = formatList((background.ferramentas || []).map(formatBackgroundTool));
     const attributes = formatList((background.aumentosAtributo2024 || []).map(formatAbilityLabel));
@@ -5968,7 +6035,8 @@ import { saveCharacterForCurrentUser } from "./account-storage.js";
   function buildBackgroundAbilityBonusEntries2024() {
     const selectedBonuses = getSelectedAbilityBonuses();
     const background = getSelectedBackground();
-    const sourceLabel = background?.nome ? `Antecedente ${background.nome}` : "Antecedente";
+    const displayName = getBackgroundDisplayName2024(background);
+    const sourceLabel = displayName ? `Antecedente ${displayName}` : "Antecedente";
     if (!selectedBonuses.complete || !selectedBonuses.valid) {
       return {
         entries: [],
@@ -6424,6 +6492,7 @@ import { saveCharacterForCurrentUser } from "./account-storage.js";
   }
 
   function getActiveFeatChoiceDefinitions({
+    background = getSelectedBackground(),
     race = getSelectedRace(),
     cls = getSelectedClass(),
     subclass = getSelectedSubclass(),
@@ -6434,6 +6503,16 @@ import { saveCharacterForCurrentUser } from "./account-storage.js";
       ? getResolvedClassEntries2024(classEntries)
       : getResolvedClassEntries2024(collectClassEntries2024(cls, subclass, level));
     const slots = [];
+
+    if (isLegacyBackground2024(background)) {
+      slots.push({
+        id: LEGACY_BACKGROUND_ORIGIN_FEAT_SLOT_ID_2024,
+        type: "origin",
+        level: 1,
+        title: "Talento de origem do antecedente legado",
+        help: "Antecedentes de livros antigos que não concedem talento recebem um talento de origem à escolha.",
+      });
+    }
 
     if (race?.id === "humano") {
       slots.push({
@@ -6952,7 +7031,7 @@ import { saveCharacterForCurrentUser } from "./account-storage.js";
       if (entry) entries.push(entry);
     });
 
-    getActiveFeatChoiceDefinitions({ race, classEntries: resolvedEntries, cls, subclass, level }).forEach((slot) => {
+    getActiveFeatChoiceDefinitions({ background, race, classEntries: resolvedEntries, cls, subclass, level }).forEach((slot) => {
       const featId = String(featValueMap.get(slot.id) || "").trim();
       const feat = FEAT_BY_ID.get(featId);
       if (!feat) return;
@@ -7261,7 +7340,7 @@ import { saveCharacterForCurrentUser } from "./account-storage.js";
     const classEntries = getResolvedClassEntries2024();
     const savedValues = readSelectValues(el.featChoices, "data-feat-choice-id");
     const detailValues = readNamedFieldValues(el.featChoices);
-    const activeSlots = getActiveFeatChoiceDefinitions({ race, classEntries, cls, subclass, level });
+    const activeSlots = getActiveFeatChoiceDefinitions({ background, race, classEntries, cls, subclass, level });
     const selectedFeatEntries = collectSelectedFeatEntries2024({
       background,
       race,
@@ -7286,7 +7365,14 @@ import { saveCharacterForCurrentUser } from "./account-storage.js";
     const sideColumn = document.createElement("div");
     sideColumn.className = "feat-choice-side";
 
-    if (background) {
+    if (isLegacyBackground2024(background)) {
+      sideCards.push(
+        createStaticCard(
+          "Talento de origem do antecedente",
+          "Antecedente legado usa um talento de origem à escolha quando o antecedente antigo não fornece talento."
+        )
+      );
+    } else if (background) {
       sideCards.push(
         createStaticCard(
           "Talento de origem do antecedente",
@@ -8434,7 +8520,7 @@ import { saveCharacterForCurrentUser } from "./account-storage.js";
       previewItem(
         "Origem",
         [
-          background?.nome || "Antecedente pendente",
+          getBackgroundDisplayName2024(background) || "Antecedente pendente",
           race?.nome || "Espécie pendente",
           subrace?.nome || "",
         ].filter(Boolean).join(" • ")
@@ -8462,7 +8548,9 @@ import { saveCharacterForCurrentUser } from "./account-storage.js";
       ),
       previewItem(
         "Perícias do antecedente",
-        background?.pericias?.length ? formatList(background.pericias.map(formatSkillLabel)) : "Selecione um antecedente"
+        isLegacyBackground2024(background)
+          ? (getLegacyBackgroundSkillIds2024(background).length ? formatList(getLegacyBackgroundSkillIds2024(background).map(formatSkillLabel)) : "Confira as perícias antigas nas notas")
+          : background?.pericias?.length ? formatList(background.pericias.map(formatSkillLabel)) : "Selecione um antecedente"
       ),
       previewItem(
         "Perícias da classe",
@@ -8470,9 +8558,11 @@ import { saveCharacterForCurrentUser } from "./account-storage.js";
       ),
       previewItem(
         "Ferramentas do antecedente",
-        background?.ferramentas?.length ? formatList(background.ferramentas.map((tool) => formatBackgroundTool(tool))) : "Selecione um antecedente"
+        isLegacyBackground2024(background)
+          ? (getLegacyBackgroundToolIds2024(background).length ? formatList(getLegacyBackgroundToolIds2024(background).map(formatToolLabel)) : "Confira as ferramentas antigas nas notas")
+          : background?.ferramentas?.length ? formatList(background.ferramentas.map((tool) => formatBackgroundTool(tool))) : "Selecione um antecedente"
       ),
-      previewItem("Talento fixo do antecedente", background ? formatBackgroundFeat(background) : "Selecione um antecedente"),
+      previewItem("Talento do antecedente", formatBackgroundOriginFeatSummary2024(background)),
       previewItem("Escolhas ativas de talentos", featSummary || "Nenhuma escolha adicional ativa neste nível"),
     ];
   }
@@ -8662,12 +8752,15 @@ import { saveCharacterForCurrentUser } from "./account-storage.js";
     const effectiveAbilityScores = getEffectiveAbilityScores();
     const speciesChoices = getSpeciesChoiceDefinitions(race, getSelectedSubrace());
     const equipmentSelections = readNamedFieldValues(el.equipmentChoices);
-    const featSlots = getActiveFeatChoiceDefinitions({ race, classEntries, cls, subclass, level });
+    const featSlots = getActiveFeatChoiceDefinitions({ background, race, classEntries, cls, subclass, level });
     const selectedFeatEntries = collectSelectedFeatEntries2024({ background, race, cls, subclass, level, classEntries });
     const featDetailSources = collectFeatDetailSources2024(selectedFeatEntries);
 
     if (!cls) pending.push("Escolha a classe.");
     if (!background) pending.push("Escolha o antecedente.");
+    if (isLegacyBackground2024(background) && !getLegacyBackgroundName2024()) {
+      pending.push("Informe o nome do antecedente antigo mantido na ficha.");
+    }
     if (!race) pending.push("Escolha a espécie.");
     if (race?.subracas?.length && !getSelectedSubrace()) pending.push("Escolha a linhagem ou variação da espécie.");
     if (subclassUnlockLevel && primaryEntry?.level >= subclassUnlockLevel && !getSelectedSubclass()) {
@@ -8734,7 +8827,9 @@ import { saveCharacterForCurrentUser } from "./account-storage.js";
       if (selected) return;
 
       if (slot.type === "origin") {
-        pending.push("Escolha o talento de origem extra do Humano.");
+        pending.push(slot.id === LEGACY_BACKGROUND_ORIGIN_FEAT_SLOT_ID_2024
+          ? "Escolha o talento de origem do antecedente legado."
+          : "Escolha o talento de origem extra do Humano.");
         return;
       }
 
@@ -10492,6 +10587,7 @@ import { saveCharacterForCurrentUser } from "./account-storage.js";
 
   function getFixedSkillIds2024(background = getSelectedBackground(), race = getSelectedRace()) {
     const fixed = new Set(background?.pericias || []);
+    getLegacyBackgroundSkillIds2024(background).forEach((skillId) => fixed.add(skillId));
     getSpeciesChoiceDefinitions(race, getSelectedSubrace())
       .map((choice) => getDynamicSelectValue(el.speciesChoices, "data-species-choice-id", choice.id))
       .filter((value) => SKILL_LABEL_BY_ID.has(value))
@@ -11274,8 +11370,12 @@ import { saveCharacterForCurrentUser } from "./account-storage.js";
     if (background?.pericias?.length) {
       hintParts.push(`<strong>${escapeHtml(background.nome)}</strong>: ${escapeHtml(formatList(background.pericias.map(formatSkillLabel)))} automáticas.`);
     }
+    if (isLegacyBackground2024(background) && getLegacyBackgroundSkillIds2024(background).length) {
+      hintParts.push(`<strong>${escapeHtml(getBackgroundDisplayName2024(background))}</strong>: ${escapeHtml(formatList(getLegacyBackgroundSkillIds2024(background).map(formatSkillLabel)))} automáticas do antecedente antigo.`);
+    }
 
-    const speciesSkills = Array.from(selectionState.fixedSkills).filter((skillId) => !(background?.pericias || []).includes(skillId));
+    const backgroundSkillIds = new Set([...(background?.pericias || []), ...getLegacyBackgroundSkillIds2024(background)]);
+    const speciesSkills = Array.from(selectionState.fixedSkills).filter((skillId) => !backgroundSkillIds.has(skillId));
     if (speciesSkills.length) {
       hintParts.push(`<strong>Espécie / linhagem</strong>: ${escapeHtml(formatList(speciesSkills.map(formatSkillLabel)))} automáticas.`);
     }
@@ -11378,6 +11478,7 @@ import { saveCharacterForCurrentUser } from "./account-storage.js";
     return Array.from(new Set([
       ...getClassToolIds2024(resolvedEntries).map((item) => formatToolLabel(item)),
       ...((background?.ferramentas || []).map((item) => formatBackgroundTool(item))),
+      ...getLegacyBackgroundToolIds2024(background).map((item) => formatToolLabel(item)),
       ...Array.from(collectFeatGrantedToolIds2024()).map((item) => formatToolLabel(item)),
     ].filter(Boolean)));
   }
@@ -14746,7 +14847,7 @@ import { saveCharacterForCurrentUser } from "./account-storage.js";
     return {
       texto: {
         nome: el.nome.value.trim(),
-        antecedente: background?.nome || "",
+        antecedente: getBackgroundDisplayName2024(background),
         raca: race?.nome || "",
         alinhamento: quickSheetData.alinhamento,
         xp: quickSheetData.xp,
@@ -14769,7 +14870,7 @@ import { saveCharacterForCurrentUser } from "./account-storage.js";
         classe: classDistribution || cls?.nome || "",
         subclasse: subclassSummary || subclass?.nome || "",
         nivel: classEntries.length ? String(level) : "",
-        background: background?.nome || "",
+        background: getBackgroundDisplayName2024(background),
         especie: race?.nome || "",
         alinhamento: quickSheetData.alinhamento,
         xp: quickSheetData.xp,
@@ -15421,6 +15522,39 @@ import { saveCharacterForCurrentUser } from "./account-storage.js";
     return BACKGROUND_BY_ID.get(el.antecedente.value) || null;
   }
 
+  function isLegacyBackground2024(background = getSelectedBackground()) {
+    return Boolean(background?.legacyOlderBook || background?.id === LEGACY_BACKGROUND_ID_2024);
+  }
+
+  function getLegacyBackgroundName2024() {
+    return String(el.legacyBackgroundName?.value || "").trim();
+  }
+
+  function getBackgroundDisplayName2024(background = getSelectedBackground()) {
+    if (!background) return "";
+    if (!isLegacyBackground2024(background)) return background.nome || "";
+    const legacyName = getLegacyBackgroundName2024();
+    return legacyName ? `${legacyName} (antecedente legado)` : background.nome;
+  }
+
+  function parseLegacyBackgroundList2024(field) {
+    return String(field?.value || "")
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+
+  function getLegacyBackgroundSkillIds2024(background = getSelectedBackground()) {
+    if (!isLegacyBackground2024(background)) return [];
+    return parseLegacyBackgroundList2024(el.legacyBackgroundSkills)
+      .filter((skillId) => SKILL_LABEL_BY_ID.has(skillId));
+  }
+
+  function getLegacyBackgroundToolIds2024(background = getSelectedBackground()) {
+    if (!isLegacyBackground2024(background)) return [];
+    return parseLegacyBackgroundList2024(el.legacyBackgroundTools);
+  }
+
   function getSelectedRace() {
     return RACE_BY_ID.get(el.raca.value) || null;
   }
@@ -15467,6 +15601,14 @@ import { saveCharacterForCurrentUser } from "./account-storage.js";
     return background?.talentoOrigem?.variante
       ? `${featLabel} (${labelFromSlug(background.talentoOrigem.variante)})`
       : featLabel;
+  }
+
+  function formatBackgroundOriginFeatSummary2024(background = getSelectedBackground()) {
+    if (!background) return "Selecione um antecedente";
+    if (!isLegacyBackground2024(background)) return formatBackgroundFeat(background) || "Sem talento registrado";
+
+    const featId = getDynamicSelectValue(el.featChoices, "data-feat-choice-id", LEGACY_BACKGROUND_ORIGIN_FEAT_SLOT_ID_2024);
+    return featId ? formatFeatLabel(featId) : "Escolha um talento de origem";
   }
 
   function formatSelectedSize(race, subrace) {
