@@ -58,7 +58,7 @@ Já possui criação guiada, espécies, antecedentes, classes, talentos, magias,
 ├── server-data/          # Dados locais ignorados pelo Git
 ├── src/                  # Aplicação, estilos e catálogos de dados
 │   ├── data/             # Catálogos de regras e opções
-│   ├── editors/          # Motores dos editores 5e e 2024
+│   ├── editors/          # Motores dos editores 5e e 2024, divididos por edição
 │   ├── shared/           # Utilitários compartilhados entre editores
 │   └── styles/           # CSS dividido por área do produto
 ├── 5e.html               # Editor 5e
@@ -90,7 +90,16 @@ Os motores principais vivem em:
 - `src/editors/5e/main.js`: fluxo do editor D&D 5e.
 - `src/editors/2024/main.js`: fluxo do editor D&D 5.5e / 2024.
 
-Para reduzir duplicação entre eles, utilitários compartilhados ficam em `src/shared/`, como helpers de texto e layout de PDF.
+Cada motor foi quebrado em módulos por responsabilidade:
+
+- `main.js`: orquestra estado, leitura do formulário, renderização e exportação.
+- `static-options.js`: listas simples de opções, rótulos e valores fixos.
+- `rules-config.js`: tabelas de XP, slots, conjuração, perícias, idiomas, moedas e regras gerais.
+- `feature-config.js`: escolhas guiadas de classe, subclasse, companheiros e magias concedidas.
+- `class-progressions.js`: progressões estáticas específicas do editor 2024.
+- `default-pdf-map.js`: fallback do mapa de campos do PDF 5e.
+
+Para reduzir duplicação entre os editores, utilitários compartilhados ficam em `src/shared/`, como helpers de texto e layout de PDF. As validações em `scripts/check.mjs` leem os módulos de cada edição como um conjunto, então as checagens estruturais continuam cobrindo os motores mesmo depois da separação.
 
 O CSS principal em `src/style.css` funciona como índice e importa arquivos menores de `src/styles/`, separados por domínio: base/home, conta, estrutura dos editores, assistente de nível, atributos/perícias, equipamento/magias, escolhas guiadas, tema 5e e tema escuro/responsivo.
 

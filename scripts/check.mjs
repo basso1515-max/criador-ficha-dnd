@@ -79,6 +79,17 @@ function collectScriptFiles(relativeDir) {
 
 const files = [...collectScriptFiles("src"), ...collectScriptFiles("scripts"), ...collectScriptFiles("api")];
 
+function readSourceFiles(relativeFiles) {
+  return relativeFiles
+    .map((file) => readFileSync(path.join(root, file), "utf8"))
+    .join("\n");
+}
+
+function readEditorSource(edition) {
+  const editorDir = edition === "2024" ? "src/editors/2024" : "src/editors/5e";
+  return readSourceFiles(collectScriptFiles(editorDir));
+}
+
 let hasErrors = false;
 
 for (const file of files) {
@@ -371,8 +382,8 @@ function validateWarlockData() {
   const spellIds5e = collectSpellIds(MAGIAS_5E);
   const spellIds2024 = collectSpellIds(MAGIAS_2024);
   const spellRecords5eById = new Map(collectSpellRecords(MAGIAS_5E).map((spell) => [spell.id, spell]));
-  const script5e = readFileSync(path.join(root, "src/editors/5e/main.js"), "utf8");
-  const script2024 = readFileSync(path.join(root, "src/editors/2024/main.js"), "utf8");
+  const script5e = readEditorSource("5e");
+  const script2024 = readEditorSource("2024");
 
   (warlock5e?.subclasses || []).forEach((id) => {
     if (!warlockSubclasses5e.some((subclass) => subclass.id === id)) {
@@ -580,8 +591,8 @@ function validatePaladinOathSpellData() {
   const spellIds2024 = collectSpellIds(MAGIAS_2024);
   const subclasses5e = listRecords(SUBCLASSES_5E);
   const subclasses2024 = listRecords(SUBCLASSES_2024);
-  const script5e = readFileSync(path.join(root, "src/editors/5e/main.js"), "utf8");
-  const script2024 = readFileSync(path.join(root, "src/editors/2024/main.js"), "utf8");
+  const script5e = readEditorSource("5e");
+  const script2024 = readEditorSource("2024");
   const oathMap2024 = extractConstObjectBlock(script2024, "PALADIN_OATH_GRANTED_SPELL_IDS_2024");
   const grantedSpellBlock5e = extractConstObjectBlock(script5e, "SUBCLASS_GRANTED_SPELL_SOURCE_DEFINITIONS");
 
@@ -637,8 +648,8 @@ function validateDruidCircleSpellData() {
   const subclasses2024 = listRecords(SUBCLASSES_2024);
   const html5e = readFileSync(path.join(root, "5e.html"), "utf8");
   const html2024 = readFileSync(path.join(root, "5.5e-2024.html"), "utf8");
-  const script5e = readFileSync(path.join(root, "src/editors/5e/main.js"), "utf8");
-  const script2024 = readFileSync(path.join(root, "src/editors/2024/main.js"), "utf8");
+  const script5e = readEditorSource("5e");
+  const script2024 = readEditorSource("2024");
   const landMap2024 = extractConstObjectBlock(script2024, "DRUID_LAND_CIRCLE_SPELL_IDS_2024");
   const circleMap2024 = extractConstObjectBlock(script2024, "DRUID_CIRCLE_GRANTED_SPELL_IDS_2024");
 
@@ -738,7 +749,7 @@ function validateDruidCircleSpellData() {
 function validateFeatureChoiceEngine2024() {
   const errors = [];
   const html2024 = readFileSync(path.join(root, "5.5e-2024.html"), "utf8");
-  const script2024 = readFileSync(path.join(root, "src/editors/2024/main.js"), "utf8");
+  const script2024 = readEditorSource("2024");
   const requiredHtmlIds = [
     "featureChoicesPanel2024",
     "featureChoicesSummary2024",
@@ -786,7 +797,7 @@ function validateFeatureChoiceEngine2024() {
 function validateFeatureChoiceEngine5e() {
   const errors = [];
   const html5e = readFileSync(path.join(root, "5e.html"), "utf8");
-  const script5e = readFileSync(path.join(root, "src/editors/5e/main.js"), "utf8");
+  const script5e = readEditorSource("5e");
   const requiredHtmlIds = [
     "featureChoicesPanel",
     "featureChoicesSummary",
@@ -873,7 +884,7 @@ function validateFeatureChoiceEngine5e() {
 function validateSubclassProficiencyChoiceEngine5e() {
   const errors = [];
   const html5e = readFileSync(path.join(root, "5e.html"), "utf8");
-  const script5e = readFileSync(path.join(root, "src/editors/5e/main.js"), "utf8");
+  const script5e = readEditorSource("5e");
 
   [
     "subclassProficiencyChoicesPanel",
@@ -929,8 +940,8 @@ function validateCompanionChoiceEngines() {
   const errors = [];
   const html2024 = readFileSync(path.join(root, "5.5e-2024.html"), "utf8");
   const html5e = readFileSync(path.join(root, "5e.html"), "utf8");
-  const script2024 = readFileSync(path.join(root, "src/editors/2024/main.js"), "utf8");
-  const script5e = readFileSync(path.join(root, "src/editors/5e/main.js"), "utf8");
+  const script2024 = readEditorSource("2024");
+  const script5e = readEditorSource("5e");
 
   [
     "companionChoicesPanel2024",
@@ -1004,7 +1015,7 @@ function validateCompanionChoiceEngines() {
 function validateArtificerInfusionEngine5e() {
   const errors = [];
   const html5e = readFileSync(path.join(root, "5e.html"), "utf8");
-  const script5e = readFileSync(path.join(root, "src/editors/5e/main.js"), "utf8");
+  const script5e = readEditorSource("5e");
 
   [
     "artificerInfusionsPanel",
