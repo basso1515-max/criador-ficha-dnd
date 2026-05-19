@@ -1,0 +1,53 @@
+# Checklist De Produção
+
+Este projeto pode rodar localmente sem muita cerimônia, mas publicação pública pede alguns cuidados extras. Use esta lista antes de abrir o app para outras pessoas.
+
+## Ambiente
+
+- Configure HTTPS no domínio final.
+- Use Upstash Redis persistente em produção.
+- Defina `UPSTASH_REDIS_REST_URL` e `UPSTASH_REDIS_REST_TOKEN` somente no painel da Vercel ou no provedor de deploy.
+- Não publique `.env.local`, dumps de Redis, `server-data/`, logs ou arquivos gerados em `out/`.
+- Rode `npm audit --omit=dev` antes do deploy.
+- Rode `npm run check`, `npm run smoke:dom` e `npm run test:e2e` antes de promover uma versão.
+
+## Segredos
+
+- Se qualquer token local já foi compartilhado, rotacione no Upstash/Vercel.
+- Revogue tokens antigos depois de confirmar que a produção usa os novos.
+- Mantenha `.env.example` atualizado com nomes de variáveis, nunca com valores reais.
+- Evite colar tokens em issues, commits, prints ou conversas públicas.
+
+## Dados E Backups
+
+- Defina uma rotina de export/backup do Redis antes de depender do app para campanhas reais.
+- Teste restauração em um ambiente separado antes de precisar dela.
+- Documente quem pode acessar o banco de produção.
+- Se o app for aberto a outras pessoas, defina política clara de retenção/exclusão de contas.
+
+## Segurança Da Aplicação
+
+- Confirme que os cookies de sessão estão com `HttpOnly`, `SameSite=Lax` e `Secure` em HTTPS.
+- Mantenha rate limit ativo para cadastro, login e migração.
+- Verifique se rotas sensíveis rejeitam origem cross-site.
+- Mantenha `Cache-Control: no-store` em respostas da API.
+- Revise headers de produção no `vercel.json` após mudanças grandes.
+
+## Privacidade
+
+- Explique quais dados são salvos: nome, e-mail, personagens, escolhas da ficha e snapshots.
+- Informe que PDFs gerados no navegador não são salvos automaticamente pelo servidor.
+- Inclua contato/caminho para pedir exclusão de conta se houver usuários externos.
+- Evite coletar dados que não ajudam diretamente o produto.
+
+## Conteúdo E Licenças
+
+- Separe claramente código, dados próprios, dados SRD e templates de PDF.
+- Antes de publicar amplamente, revise atribuições, permissões de uso e marcas.
+- Não apresente o projeto como oficial, afiliado ou endossado pela Wizards of the Coast.
+
+## Monitoramento
+
+- Ative logs da Vercel para erros de API.
+- Acompanhe falhas de cadastro/login/salvamento depois de cada deploy.
+- Se o app receber usuários externos, considere alertas simples para erro 5xx e limite de Redis.

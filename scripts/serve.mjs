@@ -6,7 +6,9 @@ import path from "node:path";
 const root = process.cwd();
 const host = process.env.HOST || "127.0.0.1";
 const port = Number(process.env.PORT || 8000);
-const dataDir = path.join(root, "server-data");
+const dataDir = process.env.SERVER_DATA_DIR
+  ? path.resolve(process.env.SERVER_DATA_DIR)
+  : path.join(root, "server-data");
 const accountsFile = path.join(dataDir, "accounts.json");
 
 const STORE_VERSION = 1;

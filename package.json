@@ -7,6 +7,8 @@
   "scripts": {
     "check": "node scripts/check.mjs",
     "smoke:dom": "node scripts/smoke-dom.mjs",
+    "test:e2e": "node scripts/e2e-account.mjs",
+    "test": "npm run check && npm run smoke:dom && npm run test:e2e",
     "serve": "node scripts/serve.mjs",
     "serve:watchdog": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/server-watchdog.ps1",
     "server:install-startup": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/install-server-startup.ps1",

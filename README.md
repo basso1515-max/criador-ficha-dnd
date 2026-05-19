@@ -110,6 +110,18 @@ npm run smoke:dom
 Executa um smoke test das principais telas e fluxos de DOM.
 
 ```powershell
+npm run test:e2e
+```
+
+Executa um teste de fluxo real da API local: cadastro, sessão, salvamento, overwrite, migração 5e para 5.5e, exclusão de personagem, troca de senha e exclusão de conta.
+
+```powershell
+npm test
+```
+
+Roda a bateria principal: validação estrutural, smoke DOM e E2E de conta/API.
+
+```powershell
 npm run serve:watchdog
 ```
 
@@ -138,6 +150,13 @@ server-data/accounts.json
 ```
 
 Esse arquivo é ignorado pelo Git.
+
+Para rodar uma instância isolada sem tocar nos dados locais padrão, use:
+
+```powershell
+$env:SERVER_DATA_DIR="C:\caminho\temporario\server-data"
+npm run serve
+```
 
 Em produção na Vercel, as rotas em `api/` usam Upstash Redis. Configure as variáveis abaixo no ambiente:
 
@@ -184,6 +203,11 @@ Alguns cuidados já implementados:
 - armazenamento persistente fora do navegador.
 
 Para publicar na internet, use HTTPS e revise as variáveis de ambiente antes do deploy.
+
+Veja também:
+
+- [Checklist de produção](docs/production-hardening.md)
+- [Modelo simples de política de privacidade](docs/privacy-policy-template.md)
 
 ## Status Do Projeto
 
