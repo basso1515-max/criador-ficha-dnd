@@ -855,7 +855,7 @@ import { saveCharacterForCurrentUser } from "./account-storage.js";
       [4, 3, 3, 3, 2, 1, 1, 1], [4, 3, 3, 3, 2, 1, 1, 1], [4, 3, 3, 3, 2, 1, 1, 1, 1], [4, 3, 3, 3, 3, 1, 1, 1, 1],
       [4, 3, 3, 3, 3, 2, 1, 1, 1], [4, 3, 3, 3, 3, 2, 2, 1, 1],
     ],
-    artificer: [
+    half: [
       [], [2], [2], [3], [3], [4, 2], [4, 2], [4, 3], [4, 3], [4, 3, 2], [4, 3, 2],
       [4, 3, 3], [4, 3, 3], [4, 3, 3, 1], [4, 3, 3, 1], [4, 3, 3, 2], [4, 3, 3, 2], [4, 3, 3, 3, 1],
       [4, 3, 3, 3, 1], [4, 3, 3, 3, 2], [4, 3, 3, 3, 2],
@@ -936,7 +936,7 @@ import { saveCharacterForCurrentUser } from "./account-storage.js";
       sourceClassId: "paladino",
       ability: "car",
       multiclassProgression: "half-up",
-      slotTable: SLOT_TABLES_2024.artificer,
+      slotTable: SLOT_TABLES_2024.half,
       cantripsByLevel: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
       preparedByLevel: PREPARED_HALF_SPELLS_2024,
       selectionLabel: "Magias preparadas",
@@ -946,7 +946,7 @@ import { saveCharacterForCurrentUser } from "./account-storage.js";
       sourceClassId: "patrulheiro",
       ability: "sab",
       multiclassProgression: "half-up",
-      slotTable: SLOT_TABLES_2024.artificer,
+      slotTable: SLOT_TABLES_2024.half,
       cantripsByLevel: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
       preparedByLevel: PREPARED_HALF_SPELLS_2024,
       selectionLabel: "Magias preparadas",

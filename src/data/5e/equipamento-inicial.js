@@ -578,7 +578,7 @@ export const CLASS_EQUIPMENT_RULES = {
         label: "Arma inicial",
         description: "(a) cajado ou (b) adaga",
         options: [
-          { id: "cajado", label: "Cajado", grants: [{ type: "weapon", ref: "cajado" }] },
+          { id: "cajado", label: "Cajado", grants: [{ type: "weapon", ref: "bordao" }] },
           { id: "adaga", label: "Adaga", grants: [{ type: "weapon", ref: "adaga" }] },
         ],
       },

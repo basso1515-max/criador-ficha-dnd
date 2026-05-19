@@ -322,7 +322,7 @@ export const ARMAS = {
     } 
   },
 
-  "foice curta": { 
+  "foice-curta": { 
     id: "foice-curta", 
     nome: "Foice Curta",
     categoria: "simples",

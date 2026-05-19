@@ -4,9 +4,21 @@ import path from "node:path";
 import { CLASSES as CLASSES_5E } from "../src/data/5e/classes.js";
 import { MAGIAS as MAGIAS_5E } from "../src/data/5e/magias.js";
 import { SUBCLASSES as SUBCLASSES_5E } from "../src/data/5e/subclasses.js";
+import { ARMAS as ARMAS_5E } from "../src/data/5e/armas.js";
+import { ARMADURAS as ARMADURAS_5E } from "../src/data/5e/armaduras.js";
+import {
+  CLASS_EQUIPMENT_RULES as CLASS_EQUIPMENT_RULES_5E,
+  BACKGROUND_EQUIPMENT_RULES as BACKGROUND_EQUIPMENT_RULES_5E,
+} from "../src/data/5e/equipamento-inicial.js";
 import { CLASSES as CLASSES_2024 } from "../src/data/5.5e/classes.js";
 import { MAGIAS as MAGIAS_2024 } from "../src/data/5.5e/magias.js";
 import { SUBCLASSES as SUBCLASSES_2024 } from "../src/data/5.5e/subclasses.js";
+import { ARMAS as ARMAS_2024 } from "../src/data/5.5e/armas.js";
+import { ARMADURAS as ARMADURAS_2024 } from "../src/data/5.5e/armaduras.js";
+import {
+  CLASS_EQUIPMENT_RULES as CLASS_EQUIPMENT_RULES_2024,
+  BACKGROUND_EQUIPMENT_RULES as BACKGROUND_EQUIPMENT_RULES_2024,
+} from "../src/data/5.5e/equipamento-inicial.js";
 import { FEATURE_SUMMARIES_2024 } from "../src/data/5.5e/feature-summaries.js";
 import {
   WARLOCK_INVOCATIONS_5E,
@@ -203,6 +215,104 @@ function validateWarlockCatalog(edition, invocations, pactBoons, errors) {
       }
     }
   });
+}
+
+function validateCatalogKeyIds(edition, catalogName, catalog, errors) {
+  if (Array.isArray(catalog)) return;
+
+  Object.entries(catalog || {}).forEach(([key, item]) => {
+    if (!item?.id) {
+      errors.push(`${edition}: ${catalogName} com chave ${key} sem id.`);
+      return;
+    }
+    if (key !== item.id) {
+      errors.push(`${edition}: ${catalogName} com chave/id divergente (${key} != ${item.id}).`);
+    }
+  });
+}
+
+function collectEquipmentGrants(value, grants = []) {
+  if (!value || typeof value !== "object") return grants;
+  if (Array.isArray(value)) {
+    value.forEach((item) => collectEquipmentGrants(item, grants));
+    return grants;
+  }
+
+  if (value.type && "ref" in value) {
+    grants.push(value);
+  }
+
+  Object.values(value).forEach((item) => collectEquipmentGrants(item, grants));
+  return grants;
+}
+
+function validateEquipmentWeaponArmorRefs(edition, sourceName, source, weaponIds, armorIds, errors) {
+  collectEquipmentGrants(source).forEach((grant) => {
+    if (grant.type === "weapon" && !weaponIds.has(grant.ref)) {
+      errors.push(`${edition}: ${sourceName} referencia arma ausente (${grant.ref}).`);
+    }
+    if (grant.type === "armor" && !armorIds.has(grant.ref)) {
+      errors.push(`${edition}: ${sourceName} referencia armadura ausente (${grant.ref}).`);
+    }
+  });
+}
+
+function validateClassStartingEquipmentRefs(edition, classes, weaponIds, armorIds, errors) {
+  listRecords(classes).forEach((classe) => {
+    (classe.equipamentoInicial || []).forEach((group) => {
+      (group.armas || []).forEach((weaponId) => {
+        if (!weaponIds.has(weaponId)) {
+          errors.push(`${edition}: ${classe.id} referencia arma inicial ausente (${weaponId}).`);
+        }
+      });
+      (group.armaduras || []).forEach((armorId) => {
+        if (!armorIds.has(armorId)) {
+          errors.push(`${edition}: ${classe.id} referencia armadura inicial ausente (${armorId}).`);
+        }
+      });
+    });
+  });
+}
+
+function validateCatalogReferenceIntegrity() {
+  const errors = [];
+  const datasets = [
+    {
+      edition: "5e",
+      classes: CLASSES_5E,
+      weapons: ARMAS_5E,
+      armors: ARMADURAS_5E,
+      classEquipmentRules: CLASS_EQUIPMENT_RULES_5E,
+      backgroundEquipmentRules: BACKGROUND_EQUIPMENT_RULES_5E,
+    },
+    {
+      edition: "2024",
+      classes: CLASSES_2024,
+      weapons: ARMAS_2024,
+      armors: ARMADURAS_2024,
+      classEquipmentRules: CLASS_EQUIPMENT_RULES_2024,
+      backgroundEquipmentRules: BACKGROUND_EQUIPMENT_RULES_2024,
+    },
+  ];
+
+  datasets.forEach((dataset) => {
+    validateCatalogKeyIds(dataset.edition, "arma", dataset.weapons, errors);
+    validateCatalogKeyIds(dataset.edition, "armadura", dataset.armors, errors);
+
+    const weaponIds = new Set(listRecords(dataset.weapons).map((item) => item.id));
+    const armorIds = new Set(listRecords(dataset.armors).map((item) => item.id));
+    validateClassStartingEquipmentRefs(dataset.edition, dataset.classes, weaponIds, armorIds, errors);
+    validateEquipmentWeaponArmorRefs(dataset.edition, "equipamento inicial de classe", dataset.classEquipmentRules, weaponIds, armorIds, errors);
+    validateEquipmentWeaponArmorRefs(dataset.edition, "equipamento inicial de antecedente", dataset.backgroundEquipmentRules, weaponIds, armorIds, errors);
+  });
+
+  if (errors.length) {
+    console.error("\nValidacao de referencias de catalogos falhou:");
+    errors.forEach((error) => console.error(`- ${error}`));
+    process.exit(1);
+  }
+
+  console.log("OK: referencias de catalogos");
 }
 
 function validateWarlockData() {
@@ -899,6 +1009,7 @@ function validateArtificerInfusionEngine5e() {
   console.log("OK: motor de infusões do Artífice 5e");
 }
 
+validateCatalogReferenceIntegrity();
 validateWarlockData();
 validatePaladinOathSpellData();
 validateDruidCircleSpellData();

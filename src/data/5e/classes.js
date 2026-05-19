@@ -339,7 +339,7 @@ export const CLASSES = {
     proficiencias: {
       armaduras: ["leve", "media", "escudo"],
       restricoes: ["Druidas não usam armaduras/escudos de metal por tradição."],
-      armas: ["clava","adaga","dardo","azagaia","maca","cajado","cimitarra","foice","funda","lanca"],
+      armas: ["clava","adaga","dardo","azagaia","maca","bordao","cimitarra","foice","funda","lanca"],
       ferramentas: ["kit-de-herborismo"],
       periciasEscolha: { picks: 2, from: ["arcanismo","adestrarAnimais","intuicao","medicina","natureza","percepcao","religiao","sobrevivencia"] }
     },
@@ -395,7 +395,7 @@ export const CLASSES = {
     salvaguardas: ["con", "car"],
     proficiencias: {
       armaduras: [],
-      armas: ["adaga","dardo","funda","cajado","besta-leve"],
+      armas: ["adaga","dardo","funda","bordao","besta-leve"],
       ferramentas: [],
       periciasEscolha: { picks: 2, from: ["arcanismo","enganacao","intuicao","intimidacao","persuasao","religiao"] }
     },
@@ -567,12 +567,12 @@ export const CLASSES = {
     salvaguardas: ["int", "sab"],
     proficiencias: {
       armaduras: [],
-      armas: ["adaga","dardo","funda","cajado","besta-leve"],
+      armas: ["adaga","dardo","funda","bordao","besta-leve"],
       ferramentas: [],
       periciasEscolha: { picks: 2, from: ["arcanismo","historia","intuicao","investigacao","medicina","religiao"] }
     },
     equipamentoInicial: [
-      { grupo: "A", descr: "(a) cajado OU (b) adaga", armas: ["cajado"] },
+      { grupo: "A", descr: "(a) cajado OU (b) adaga", armas: ["bordao"] },
       { grupo: "B", descr: "(a) bolsa de componentes OU (b) foco arcano", armas: [] },
       { grupo: "C", descr: "(a) pacote do erudito OU (b) pacote do explorador", armas: [] },
       { grupo: "D", descr: "Livro de magias", armas: [] }
