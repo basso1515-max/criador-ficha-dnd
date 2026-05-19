@@ -57,6 +57,10 @@ Já possui criação guiada, espécies, antecedentes, classes, talentos, magias,
 ├── scripts/              # Servidor local, validações e utilitários
 ├── server-data/          # Dados locais ignorados pelo Git
 ├── src/                  # Aplicação, estilos e catálogos de dados
+│   ├── data/             # Catálogos de regras e opções
+│   ├── editors/          # Motores dos editores 5e e 2024
+│   ├── shared/           # Utilitários compartilhados entre editores
+│   └── styles/           # CSS dividido por área do produto
 ├── 5e.html               # Editor 5e
 ├── 5.5e-2024.html        # Editor 5.5e / 2024
 ├── conta.html            # Login/cadastro
@@ -73,6 +77,22 @@ Já possui criação guiada, espécies, antecedentes, classes, talentos, magias,
 - API serverless na Vercel.
 - Upstash Redis em produção.
 - Armazenamento JSON local para desenvolvimento.
+
+## Organização Do Frontend
+
+Os entrypoints mantidos para compatibilidade com o HTML são:
+
+- `src/script.js`: carrega o editor D&D 5e.
+- `src/script-2024.js`: carrega o editor D&D 5.5e / 2024.
+
+Os motores principais vivem em:
+
+- `src/editors/5e/main.js`: fluxo do editor D&D 5e.
+- `src/editors/2024/main.js`: fluxo do editor D&D 5.5e / 2024.
+
+Para reduzir duplicação entre eles, utilitários compartilhados ficam em `src/shared/`, como helpers de texto e layout de PDF.
+
+O CSS principal em `src/style.css` funciona como índice e importa arquivos menores de `src/styles/`, separados por domínio: base/home, conta, estrutura dos editores, assistente de nível, atributos/perícias, equipamento/magias, escolhas guiadas, tema 5e e tema escuro/responsivo.
 
 ## Rodando Localmente
 

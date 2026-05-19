@@ -43,6 +43,8 @@ const requiredFiles = [
   "5.5e-2024.html",
   "src/script.js",
   "src/script-2024.js",
+  "src/editors/5e/main.js",
+  "src/editors/2024/main.js",
   "src/style.css",
   "assets/pdf/5e/ficha5e.pdf",
   "assets/pdf/5e/pdf-map.json",
@@ -369,8 +371,8 @@ function validateWarlockData() {
   const spellIds5e = collectSpellIds(MAGIAS_5E);
   const spellIds2024 = collectSpellIds(MAGIAS_2024);
   const spellRecords5eById = new Map(collectSpellRecords(MAGIAS_5E).map((spell) => [spell.id, spell]));
-  const script5e = readFileSync(path.join(root, "src/script.js"), "utf8");
-  const script2024 = readFileSync(path.join(root, "src/script-2024.js"), "utf8");
+  const script5e = readFileSync(path.join(root, "src/editors/5e/main.js"), "utf8");
+  const script2024 = readFileSync(path.join(root, "src/editors/2024/main.js"), "utf8");
 
   (warlock5e?.subclasses || []).forEach((id) => {
     if (!warlockSubclasses5e.some((subclass) => subclass.id === id)) {
@@ -510,7 +512,7 @@ function validateWarlockData() {
   });
 
   if (script2024.includes("const WARLOCK_ELDRITCH_INVOCATIONS_BY_LEVEL_2024")) {
-    errors.push("2024: src/script-2024.js voltou a duplicar a tabela de invocacoes de Bruxo.");
+    errors.push("2024: src/editors/2024/main.js voltou a duplicar a tabela de invocacoes de Bruxo.");
   }
   [
     "getKnownWarlockCantripIdsForInvocationDetails2024",
@@ -578,8 +580,8 @@ function validatePaladinOathSpellData() {
   const spellIds2024 = collectSpellIds(MAGIAS_2024);
   const subclasses5e = listRecords(SUBCLASSES_5E);
   const subclasses2024 = listRecords(SUBCLASSES_2024);
-  const script5e = readFileSync(path.join(root, "src/script.js"), "utf8");
-  const script2024 = readFileSync(path.join(root, "src/script-2024.js"), "utf8");
+  const script5e = readFileSync(path.join(root, "src/editors/5e/main.js"), "utf8");
+  const script2024 = readFileSync(path.join(root, "src/editors/2024/main.js"), "utf8");
   const oathMap2024 = extractConstObjectBlock(script2024, "PALADIN_OATH_GRANTED_SPELL_IDS_2024");
   const grantedSpellBlock5e = extractConstObjectBlock(script5e, "SUBCLASS_GRANTED_SPELL_SOURCE_DEFINITIONS");
 
@@ -635,8 +637,8 @@ function validateDruidCircleSpellData() {
   const subclasses2024 = listRecords(SUBCLASSES_2024);
   const html5e = readFileSync(path.join(root, "5e.html"), "utf8");
   const html2024 = readFileSync(path.join(root, "5.5e-2024.html"), "utf8");
-  const script5e = readFileSync(path.join(root, "src/script.js"), "utf8");
-  const script2024 = readFileSync(path.join(root, "src/script-2024.js"), "utf8");
+  const script5e = readFileSync(path.join(root, "src/editors/5e/main.js"), "utf8");
+  const script2024 = readFileSync(path.join(root, "src/editors/2024/main.js"), "utf8");
   const landMap2024 = extractConstObjectBlock(script2024, "DRUID_LAND_CIRCLE_SPELL_IDS_2024");
   const circleMap2024 = extractConstObjectBlock(script2024, "DRUID_CIRCLE_GRANTED_SPELL_IDS_2024");
 
@@ -736,7 +738,7 @@ function validateDruidCircleSpellData() {
 function validateFeatureChoiceEngine2024() {
   const errors = [];
   const html2024 = readFileSync(path.join(root, "5.5e-2024.html"), "utf8");
-  const script2024 = readFileSync(path.join(root, "src/script-2024.js"), "utf8");
+  const script2024 = readFileSync(path.join(root, "src/editors/2024/main.js"), "utf8");
   const requiredHtmlIds = [
     "featureChoicesPanel2024",
     "featureChoicesSummary2024",
@@ -784,7 +786,7 @@ function validateFeatureChoiceEngine2024() {
 function validateFeatureChoiceEngine5e() {
   const errors = [];
   const html5e = readFileSync(path.join(root, "5e.html"), "utf8");
-  const script5e = readFileSync(path.join(root, "src/script.js"), "utf8");
+  const script5e = readFileSync(path.join(root, "src/editors/5e/main.js"), "utf8");
   const requiredHtmlIds = [
     "featureChoicesPanel",
     "featureChoicesSummary",
@@ -871,7 +873,7 @@ function validateFeatureChoiceEngine5e() {
 function validateSubclassProficiencyChoiceEngine5e() {
   const errors = [];
   const html5e = readFileSync(path.join(root, "5e.html"), "utf8");
-  const script5e = readFileSync(path.join(root, "src/script.js"), "utf8");
+  const script5e = readFileSync(path.join(root, "src/editors/5e/main.js"), "utf8");
 
   [
     "subclassProficiencyChoicesPanel",
@@ -927,8 +929,8 @@ function validateCompanionChoiceEngines() {
   const errors = [];
   const html2024 = readFileSync(path.join(root, "5.5e-2024.html"), "utf8");
   const html5e = readFileSync(path.join(root, "5e.html"), "utf8");
-  const script2024 = readFileSync(path.join(root, "src/script-2024.js"), "utf8");
-  const script5e = readFileSync(path.join(root, "src/script.js"), "utf8");
+  const script2024 = readFileSync(path.join(root, "src/editors/2024/main.js"), "utf8");
+  const script5e = readFileSync(path.join(root, "src/editors/5e/main.js"), "utf8");
 
   [
     "companionChoicesPanel2024",
@@ -1002,7 +1004,7 @@ function validateCompanionChoiceEngines() {
 function validateArtificerInfusionEngine5e() {
   const errors = [];
   const html5e = readFileSync(path.join(root, "5e.html"), "utf8");
-  const script5e = readFileSync(path.join(root, "src/script.js"), "utf8");
+  const script5e = readFileSync(path.join(root, "src/editors/5e/main.js"), "utf8");
 
   [
     "artificerInfusionsPanel",
