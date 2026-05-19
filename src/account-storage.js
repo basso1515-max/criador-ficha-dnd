@@ -406,6 +406,40 @@ export async function saveCharacterForCurrentUser(edition, payload, { overwriteI
   return { ...data.character };
 }
 
+export async function migrateCharacterVersionForCurrentUser({
+  sourceEdition = "5e",
+  targetEdition = "5.5e-2024",
+  characterId,
+  payload,
+  mode = "duplicate",
+} = {}) {
+  await ensureServerReady();
+  if (!currentAccount) {
+    throw new Error("Entre em uma conta para migrar personagens.");
+  }
+
+  const sanitizedPayload = {
+    name: sanitizeCharacterName(payload?.name),
+    summary: sanitizeCharacterSummary(payload?.summary),
+    snapshot: payload?.snapshot || {},
+  };
+
+  const data = await requestApi("/api/characters", {
+    method: "POST",
+    body: {
+      action: "migrate-version",
+      sourceEdition,
+      targetEdition,
+      characterId,
+      payload: sanitizedPayload,
+      mode,
+    },
+  });
+
+  currentAccount = normalizeClientAccount(data.account);
+  return { character: { ...data.character }, sourceRemoved: Boolean(data.sourceRemoved) };
+}
+
 export async function deleteCharacterForCurrentUser(edition, characterId) {
   await ensureServerReady();
   if (!currentAccount) {

@@ -749,6 +749,60 @@ async function handleAccountApiInternal(req, res, pathname) {
 
   if (method === "POST" && pathname === "/api/characters") {
     const { account } = await requireAuthenticatedAccount(redis, req);
+
+    if (body.action === "migrate-version") {
+      const sourceEdition = String(body.sourceEdition || "");
+      const targetEdition = String(body.targetEdition || "");
+      const mode = String(body.mode || "duplicate");
+      if (sourceEdition !== "5e" || targetEdition !== "5.5e-2024") {
+        throw new HttpError(400, "Esta migracao so esta disponivel de D&D 5e para D&D 5.5e.");
+      }
+      if (!["duplicate", "transfer"].includes(mode)) {
+        throw new HttpError(400, "Modo de migracao invalido.");
+      }
+
+      const sourceBucket = getEditionBucket(account, sourceEdition);
+      const targetBucket = getEditionBucket(account, targetEdition);
+      const sourceId = readOptionalRecordId(body.characterId, "character", "Personagem");
+      if (!sourceId) throw new HttpError(400, "Personagem invalido.");
+
+      const sourceIndex = sourceBucket.findIndex((item) => item.id === sourceId);
+      if (sourceIndex < 0) {
+        throw new HttpError(404, "Personagem salvo nao encontrado.");
+      }
+      if (targetBucket.length >= ACCOUNT_LIMIT_PER_EDITION) {
+        throw new HttpError(400, `Limite de ${ACCOUNT_LIMIT_PER_EDITION} personagens salvos na edicao 5.5e atingido.`);
+      }
+
+      const now = new Date().toISOString();
+      const payload = body.payload || {};
+      const characterPayload = {
+        name: sanitizeCharacterName(payload.name),
+        summary: sanitizeCharacterSummary(payload.summary),
+        snapshot: sanitizeSnapshot(payload.snapshot, { strict: true }),
+      };
+      const character = {
+        id: makeId("character"),
+        edition: targetEdition,
+        ...characterPayload,
+        createdAt: now,
+        updatedAt: now,
+      };
+
+      targetBucket.push(character);
+      if (mode === "transfer") {
+        sourceBucket.splice(sourceIndex, 1);
+      }
+
+      await saveAccount(redis, account);
+      sendJson(res, 200, {
+        account: toClientAccount(account),
+        character,
+        sourceRemoved: mode === "transfer",
+      });
+      return;
+    }
+
     const bucket = getEditionBucket(account, body.edition);
     const now = new Date().toISOString();
     const payload = body.payload || {};

@@ -7,9 +7,11 @@ import {
   hydrateAccountStorage,
   isUsingServerStorage,
   listAllCharactersForCurrentUser,
+  migrateCharacterVersionForCurrentUser,
   logoutAccount,
   updateCurrentAccount,
 } from "./account-storage.js";
+import { build5eTo2024MigrationPayload } from "./character-migration.js";
 
 const EDITION_META = {
   "5e": {
@@ -42,11 +44,18 @@ const el = {
   deleteModal: document.getElementById("deleteAccountModal"),
   deleteCancel: document.getElementById("deleteAccountCancel"),
   deleteConfirm: document.getElementById("deleteAccountConfirm"),
+  migrateModal: document.getElementById("migrateCharacterModal"),
+  migrateTitle: document.getElementById("migrateCharacterModalTitle"),
+  migrateSummary: document.getElementById("migrateCharacterSummary"),
+  migrateCancel: document.getElementById("migrateCharacterCancel"),
+  migrateDuplicate: document.getElementById("migrateCharacterDuplicate"),
+  migrateTransfer: document.getElementById("migrateCharacterTransfer"),
   authLink: document.getElementById("userPageAuthLink"),
   status: document.getElementById("userPageStatus"),
 };
 
 let pendingDeletePassword = "";
+let pendingMigrationCharacter = null;
 
 function setStatus(message, tone = "info") {
   if (!el.status) return;
@@ -68,6 +77,23 @@ function setDeleteModalOpen(isOpen) {
   }
 
   el.deleteConfirm?.focus();
+}
+
+function setMigrateModalOpen(isOpen, character = null) {
+  if (!el.migrateModal) return;
+  pendingMigrationCharacter = isOpen ? character : null;
+  el.migrateModal.hidden = !isOpen;
+
+  if (!isOpen) {
+    return;
+  }
+
+  const name = character?.name || "este personagem";
+  if (el.migrateTitle) el.migrateTitle.textContent = `Migrar ${name} para D&D 5.5e?`;
+  if (el.migrateSummary) {
+    el.migrateSummary.textContent = "A nova ficha usará os dados salvos, aplicará equivalências oficiais quando houver no editor 5.5e e registrará pontos de revisão nas notas.";
+  }
+  el.migrateDuplicate?.focus();
 }
 
 function renderUserPage() {
@@ -107,6 +133,9 @@ function renderCharacterCard(character) {
   const updatedAt = formatDate(character.updatedAt);
   const summary = character.summary || "Sem resumo principal.";
   const editorUrl = `${meta.editor}?characterId=${encodeURIComponent(character.id)}#${meta.hash}`;
+  const migrationAction = character.edition === "5e"
+    ? `<button type="button" class="secondary-button" data-user-character-migrate="${escapeHtml(character.id)}">Migrar para 5.5e</button>`
+    : "";
 
   return `
     <article class="user-page-character-item">
@@ -120,6 +149,7 @@ function renderCharacterCard(character) {
       <p>${escapeHtml(summary)}</p>
       <div class="saved-character-actions">
         <a class="secondary-button" href="${escapeHtml(editorUrl)}">Abrir no editor</a>
+        ${migrationAction}
         <button type="button" class="ghost-button" data-user-character-delete="${escapeHtml(character.id)}" data-edition="${escapeHtml(character.edition)}">Excluir</button>
       </div>
     </article>
@@ -133,6 +163,21 @@ el.logout?.addEventListener("click", async () => {
 });
 
 el.list?.addEventListener("click", async (event) => {
+  const migrateButton = event.target.closest("[data-user-character-migrate]");
+  if (migrateButton) {
+    const characterId = migrateButton.getAttribute("data-user-character-migrate");
+    const character = listAllCharactersForCurrentUser()
+      .find((item) => item.edition === "5e" && item.id === characterId);
+    if (!character) {
+      setStatus("Personagem 5e não encontrado.", "warning");
+      renderUserPage();
+      return;
+    }
+    setStatus("", "info");
+    setMigrateModalOpen(true, character);
+    return;
+  }
+
   const button = event.target.closest("[data-user-character-delete]");
   if (!button) return;
 
@@ -210,6 +255,11 @@ el.deleteCancel?.addEventListener("click", () => {
   setStatus("Exclusão cancelada.", "info");
 });
 
+el.migrateCancel?.addEventListener("click", () => {
+  setMigrateModalOpen(false);
+  setStatus("Migração cancelada.", "info");
+});
+
 el.deleteModal?.addEventListener("click", (event) => {
   if (event.target === el.deleteModal) {
     setDeleteModalOpen(false);
@@ -217,10 +267,21 @@ el.deleteModal?.addEventListener("click", (event) => {
   }
 });
 
+el.migrateModal?.addEventListener("click", (event) => {
+  if (event.target === el.migrateModal) {
+    setMigrateModalOpen(false);
+    setStatus("Migração cancelada.", "info");
+  }
+});
+
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && el.deleteModal && !el.deleteModal.hidden) {
     setDeleteModalOpen(false);
     setStatus("Exclusão cancelada.", "info");
+  }
+  if (event.key === "Escape" && el.migrateModal && !el.migrateModal.hidden) {
+    setMigrateModalOpen(false);
+    setStatus("Migração cancelada.", "info");
   }
 });
 
@@ -242,6 +303,43 @@ el.deleteConfirm?.addEventListener("click", async () => {
     setStatus(error?.message || "Não foi possível excluir a conta.", "warning");
   }
 });
+
+el.migrateDuplicate?.addEventListener("click", () => {
+  migratePendingCharacter("duplicate");
+});
+
+el.migrateTransfer?.addEventListener("click", () => {
+  migratePendingCharacter("transfer");
+});
+
+async function migratePendingCharacter(mode) {
+  const character = pendingMigrationCharacter;
+  if (!character) {
+    setMigrateModalOpen(false);
+    setStatus("Escolha um personagem 5e para migrar.", "warning");
+    return;
+  }
+
+  try {
+    const payload = build5eTo2024MigrationPayload(character, { mode });
+    const result = await migrateCharacterVersionForCurrentUser({
+      sourceEdition: "5e",
+      targetEdition: "5.5e-2024",
+      characterId: character.id,
+      payload,
+      mode,
+    });
+    setMigrateModalOpen(false);
+    renderUserPage();
+
+    const action = result.sourceRemoved ? "transferido" : "duplicado";
+    const reviewCount = payload.report.review.length;
+    const reviewText = reviewCount ? ` ${reviewCount} ponto(s) foram anotados para revisão.` : "";
+    setStatus(`Personagem ${action} para D&D 5.5e: ${result.character.name}.${reviewText}`, "success");
+  } catch (error) {
+    setStatus(error?.message || "Não foi possível migrar o personagem.", "warning");
+  }
+}
 
 function formatDate(value) {
   const date = new Date(value);

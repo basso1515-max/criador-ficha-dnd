@@ -147,6 +147,34 @@
       <p id="userPageStatus" class="note account-page-status" aria-live="polite"></p>
     </section>
 
+    <div id="migrateCharacterModal" class="account-modal-backdrop" hidden>
+      <section class="account-modal account-modal--migration" role="dialog" aria-modal="true" aria-labelledby="migrateCharacterModalTitle">
+        <div class="account-form-heading">
+          <span>Atualizar versão</span>
+          <h2 id="migrateCharacterModalTitle">Migrar para D&D 5.5e?</h2>
+          <p id="migrateCharacterSummary">Escolha como deseja criar a ficha atualizada.</p>
+        </div>
+
+        <div class="migration-choice-grid" aria-label="Como migrar o personagem">
+          <button id="migrateCharacterDuplicate" type="button" class="migration-choice-button">
+            <strong>Duplicar e manter 5e</strong>
+            <span>Cria uma ficha 5.5e e preserva a versão 5e na conta.</span>
+          </button>
+
+          <button id="migrateCharacterTransfer" type="button" class="migration-choice-button migration-choice-button--primary">
+            <strong>Transferir para 5.5e</strong>
+            <span>Cria a ficha 5.5e e remove a versão 5e original.</span>
+          </button>
+        </div>
+
+        <p class="migration-rule-note">A migração aplica equivalências disponíveis no editor 5.5e e registra revisões nas notas da nova ficha.</p>
+
+        <div class="account-modal-actions">
+          <button id="migrateCharacterCancel" type="button" class="ghost-button">Cancelar</button>
+        </div>
+      </section>
+    </div>
+
     <div id="deleteAccountModal" class="account-modal-backdrop" hidden>
       <section class="account-modal" role="dialog" aria-modal="true" aria-labelledby="deleteAccountModalTitle">
         <div class="account-form-heading">

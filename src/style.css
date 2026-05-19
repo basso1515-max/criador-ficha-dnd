@@ -1104,6 +1104,93 @@ fieldset,
   font-size: 16px;
 }
 
+.account-modal--migration {
+  width: min(620px, 100%);
+  border-color: rgba(90, 62, 36, 0.24);
+  background:
+    radial-gradient(circle at top right, rgba(166, 124, 82, 0.14), rgba(166, 124, 82, 0) 36%),
+    linear-gradient(180deg, rgba(255, 253, 247, 0.98), rgba(244, 234, 212, 0.96)),
+    var(--card);
+}
+
+.migration-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.migration-choice-button {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  min-height: 126px;
+  padding: 16px;
+  border: 1px solid rgba(90, 62, 36, 0.22);
+  border-radius: 8px;
+  background: rgba(255, 250, 238, 0.72);
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+}
+
+.migration-choice-button:hover,
+.migration-choice-button:focus-visible {
+  transform: translateY(-1px);
+  border-color: rgba(90, 62, 36, 0.42);
+  background: rgba(255, 250, 238, 0.96);
+  box-shadow: 0 12px 24px rgba(74, 52, 28, 0.12);
+}
+
+.migration-choice-button:focus-visible {
+  outline: 3px solid rgba(166, 124, 82, 0.28);
+  outline-offset: 2px;
+}
+
+.migration-choice-button strong {
+  color: var(--accent);
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.migration-choice-button span {
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+.migration-choice-button--primary {
+  border-color: rgba(90, 62, 36, 0.36);
+  background: var(--primary-bg);
+  color: var(--primary-text);
+}
+
+.migration-choice-button--primary strong,
+.migration-choice-button--primary span {
+  color: var(--primary-text);
+}
+
+.migration-rule-note {
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid rgba(90, 62, 36, 0.16);
+  border-radius: 8px;
+  background: rgba(255, 250, 238, 0.58);
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+@media (max-width: 620px) {
+  .migration-choice-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .migration-choice-button {
+    min-height: 0;
+  }
+}
+
 .account-modal-actions {
   display: flex;
   justify-content: flex-end;
@@ -6866,6 +6953,46 @@ html[data-theme="dark"] .account-character-item {
   background:
     linear-gradient(180deg, rgba(39, 31, 23, 0.96), rgba(25, 21, 17, 0.94)),
     var(--card);
+}
+
+html[data-theme="dark"] .account-modal--migration {
+  border-color: rgba(232, 201, 153, 0.24);
+  background:
+    radial-gradient(circle at top right, rgba(217, 167, 102, 0.14), rgba(217, 167, 102, 0) 36%),
+    linear-gradient(180deg, rgba(39, 31, 23, 0.98), rgba(25, 21, 17, 0.96)),
+    var(--card);
+}
+
+html[data-theme="dark"] .migration-choice-button,
+html[data-theme="dark"] .migration-rule-note {
+  border-color: rgba(232, 201, 153, 0.22);
+  background: rgba(255, 246, 224, 0.08);
+  color: var(--text);
+}
+
+html[data-theme="dark"] .migration-choice-button:hover,
+html[data-theme="dark"] .migration-choice-button:focus-visible {
+  border-color: rgba(232, 201, 153, 0.4);
+  background: rgba(255, 246, 224, 0.12);
+}
+
+html[data-theme="dark"] .migration-choice-button--primary {
+  border-color: var(--primary-border);
+  background: var(--primary-bg);
+}
+
+html[data-theme="dark"] .migration-choice-button strong {
+  color: var(--accent);
+}
+
+html[data-theme="dark"] .migration-choice-button span,
+html[data-theme="dark"] .migration-rule-note {
+  color: var(--muted);
+}
+
+html[data-theme="dark"] .migration-choice-button--primary strong,
+html[data-theme="dark"] .migration-choice-button--primary span {
+  color: var(--primary-text);
 }
 
 html[data-theme="dark"] .user-page-stats span,
