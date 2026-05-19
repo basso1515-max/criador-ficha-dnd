@@ -2,7 +2,7 @@
 
 Um criador de personagens de D&D feito em HTML, CSS e JavaScript puro, com foco em montar fichas jogáveis sem transformar a preparação da aventura em uma maratona de planilha.
 
-O projeto nasceu para resolver uma dor bem prática: escolher raça/espécie, classe, antecedentes, talentos, magias, equipamentos e detalhes de progressão com ajuda visual, resumo automático e exportação para PDF preenchível.
+O projeto nasceu de um sonho bem claro: fazer uma ficha da forma como a WotC planejou que as fichas fossem feitas da forma mais oficial possível. E também para resolver uma dor bem prática: escolher raça/espécie, classe, antecedentes, talentos, magias, equipamentos e detalhes de progressão com ajuda visual, resumo automático e exportação para PDF preenchível.
 
 ## O Que Ele Faz
 
