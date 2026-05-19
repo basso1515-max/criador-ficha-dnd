@@ -26,6 +26,8 @@ import {
 } from "./data/subclass-learned-options.js";
 import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggleButtons } from "./user-area.js";
 import { createLevelUpAssistant } from "./level-up-assistant.js";
+import { createMigrationReviewAssistant } from "./migration-review-assistant.js";
+import { saveCharacterForCurrentUser } from "./account-storage.js";
 
 (() => {
   "use strict";
@@ -1767,14 +1769,31 @@ import { createLevelUpAssistant } from "./level-up-assistant.js";
 
   if (!el.form) return;
 
+  let activeMigrationContext2024 = null;
+  let activeMigrationCharacter2024 = null;
+  let migrationReviewAssistant2024 = null;
+
   function captureSavedCharacterPreset2024() {
-    return {
+    const preset = {
       ...captureFormPreset(el.form),
       extra: {
         multiclassRowIds: getAdditionalMulticlassRows2024().map((row) => row.getAttribute("data-row-id") || ""),
         selectedSpellsBySource: getSpellSelectionSnapshot2024(),
       },
     };
+
+    if (activeMigrationContext2024) {
+      if (activeMigrationContext2024.migratedFrom) {
+        preset.migratedFrom = activeMigrationContext2024.migratedFrom;
+      }
+      preset.extra = {
+        ...preset.extra,
+        migrationReport: activeMigrationContext2024.report,
+        migrationReview: activeMigrationContext2024.reviewState || {},
+      };
+    }
+
+    return preset;
   }
 
   function buildSavedCharacterSummary2024() {
@@ -1795,6 +1814,8 @@ import { createLevelUpAssistant } from "./level-up-assistant.js";
   }
 
   function restoreSavedCharacterPreset2024(preset) {
+    activeMigrationContext2024 = readMigrationContext2024(preset);
+
     withDeferredHeavyUi2024(() => {
       ensureMulticlassRowsForPreset2024(preset?.extra?.multiclassRowIds || []);
       restoreSpellSelectionSnapshot2024(preset?.extra?.selectedSpellsBySource || {});
@@ -1814,6 +1835,60 @@ import { createLevelUpAssistant } from "./level-up-assistant.js";
     syncAllCustomSelectFields2024();
     syncUnitToggleButtons(document);
     updatePreview();
+  }
+
+  function readMigrationContext2024(preset) {
+    const report = preset?.extra?.migrationReport;
+    const migratedFrom = preset?.migratedFrom || null;
+    if (!report || typeof report !== "object") return null;
+
+    return {
+      migratedFrom,
+      report: {
+        converted: Array.isArray(report.converted) ? [...report.converted] : [],
+        review: Array.isArray(report.review) ? [...report.review] : [],
+        sources: Array.isArray(report.sources) ? [...report.sources] : [],
+      },
+      reviewState: {
+        ...(preset?.extra?.migrationReview && typeof preset.extra.migrationReview === "object"
+          ? preset.extra.migrationReview
+          : {}),
+      },
+    };
+  }
+
+  function handleMigratedCharacterLoaded2024(character) {
+    activeMigrationCharacter2024 = character || null;
+    if (!activeMigrationContext2024 || !migrationReviewAssistant2024) return;
+
+    window.setTimeout(() => {
+      migrationReviewAssistant2024?.open({
+        character: activeMigrationCharacter2024,
+        context: activeMigrationContext2024,
+      });
+    }, 80);
+  }
+
+  async function saveMigrationReviewState2024(reviewState) {
+    if (!activeMigrationCharacter2024?.id || !activeMigrationContext2024) {
+      throw new Error("Abra o personagem migrado pela sua conta antes de salvar a revisão.");
+    }
+
+    activeMigrationContext2024 = {
+      ...activeMigrationContext2024,
+      reviewState: {
+        ...(activeMigrationContext2024.reviewState || {}),
+        ...reviewState,
+      },
+    };
+
+    const saved = await saveCharacterForCurrentUser("5.5e-2024", {
+      name: String(el.nome?.value || activeMigrationCharacter2024.name || "").trim() || activeMigrationCharacter2024.name,
+      summary: buildSavedCharacterSummary2024(),
+      snapshot: captureSavedCharacterPreset2024(),
+    }, { overwriteId: activeMigrationCharacter2024.id });
+
+    activeMigrationCharacter2024 = saved;
   }
 
   function ensureMulticlassRowsForPreset2024(rowIds = []) {
@@ -1980,6 +2055,12 @@ import { createLevelUpAssistant } from "./level-up-assistant.js";
     el.nomeRandomNeutro?.addEventListener("click", () => applyGeneratedCharacterName2024("neutro"));
     el.form.addEventListener("submit", handlePdfSubmit);
 
+    migrationReviewAssistant2024 = createMigrationReviewAssistant({
+      getPendingChoices: collectPendingChoices,
+      saveReviewState: saveMigrationReviewState2024,
+      setStatus: setStatus2024,
+    });
+
     initializeUserArea({
       edition: "5.5e-2024",
       form: el.form,
@@ -2014,6 +2095,7 @@ import { createLevelUpAssistant } from "./level-up-assistant.js";
       getCharacterName: () => String(el.nome?.value || "").trim(),
       getCharacterSummary: buildSavedCharacterSummary2024,
       setStatus: setStatus2024,
+      onCharacterLoaded: handleMigratedCharacterLoaded2024,
     });
 
     renderAll();

@@ -72,6 +72,7 @@ export function initializeUserArea({
   getCharacterName,
   getCharacterSummary,
   setStatus,
+  onCharacterLoaded,
 }) {
   if (!edition || !form || !elements?.root) return;
 
@@ -101,6 +102,12 @@ export function initializeUserArea({
     renderUserArea({ edition, elements, saveButtons, state });
   };
 
+  const notifyCharacterLoaded = (character, source) => {
+    if (typeof onCharacterLoaded === "function") {
+      onCharacterLoaded(character, { source });
+    }
+  };
+
   const loadRequestedCharacter = () => {
     if (!requestedCharacterId || state.didAutoLoad) return;
     const character = listCharactersForCurrentUser(edition).find((item) => item.id === requestedCharacterId);
@@ -118,6 +125,7 @@ export function initializeUserArea({
     state.showSavedPanel = true;
     render();
     notify(`Personagem carregado: ${character.name}.`, "success");
+    notifyCharacterLoaded(character, "url");
   };
 
   hydrateAccountStorage().then(() => {
@@ -224,6 +232,7 @@ export function initializeUserArea({
       state.showSavedPanel = true;
       render();
       notify(`Personagem carregado: ${character.name}.`, "success");
+      notifyCharacterLoaded(character, "list");
       return;
     }
 
