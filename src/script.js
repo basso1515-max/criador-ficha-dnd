@@ -1641,17 +1641,6 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
         9: ["golpe-de-chama", "curar-ferimentos-em-massa"],
       },
     },
-    "druida-mar": {
-      featureLabel: "Magias do Círculo do Mar",
-      sourceClassId: "druida",
-      ability: "sab",
-      unlocks: {
-        3: ["neblina", "lufada-de-vento"],
-        5: ["respirar-agua", "relampago"],
-        7: ["controlar-agua", "andar-na-agua"],
-        9: ["conjurar-elementais", "muralha-de-agua"],
-      },
-    },
     "feiticeiro-lunar": {
       featureLabel: "Magias Lunares",
       sourceClassId: "feiticeiro",
@@ -2052,6 +2041,23 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
   const EXTRA_EQUIPMENT_GROUP_LABELS = EXTRA_EQUIPMENT_GROUP_LABELS_2024 || {};
   const EXTRA_EQUIPMENT_BY_ID = new Map(EXTRA_EQUIPMENT_CATALOG.map((item) => [item.id, item]));
   const SPELL_LEVEL_LABELS = ["Truque", "1º círculo", "2º círculo", "3º círculo", "4º círculo", "5º círculo", "6º círculo", "7º círculo", "8º círculo", "9º círculo"];
+  const MAGIC_SPELL_TAG_FILTERS = [
+    { value: "all", label: "Todas" },
+    { value: "selected", label: "Selecionadas" },
+    { value: "ritual", label: "Ritual" },
+    { value: "concentracao", label: "Concentração" },
+    { value: "dano", label: "Dano" },
+    { value: "cura", label: "Cura" },
+    { value: "defesa", label: "Defesa" },
+    { value: "controle", label: "Controle" },
+    { value: "utilidade", label: "Utilidade" },
+  ];
+  const MAGIC_FILTER_DEFAULTS = {
+    query: "",
+    level: "all",
+    school: "all",
+    tag: "all",
+  };
   const STANDARD_ABILITY_SET = [15, 14, 13, 12, 10, 8];
   const POINT_BUY_COSTS = {
     8: 0,
@@ -2991,6 +2997,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
   let activePdfMap = clonePdfMapDefaults();
   let pdfMapLoadPromise = Promise.resolve(activePdfMap);
   const spellSelectionState = new Map();
+  let magicFilterState = { ...MAGIC_FILTER_DEFAULTS };
   const ATTRIBUTE_INPUTS = ["for", "des", "con", "int", "sab", "car"].map((key) => el[key]);
   const ATTRIBUTE_SELECTS = {};
   const ATTRIBUTE_POINTBUY_CONTROLS = {};
@@ -3304,6 +3311,9 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     });
     if (el.availableSpellPanel) {
       el.availableSpellPanel.addEventListener("change", onSpellChecklistChanged);
+      el.availableSpellPanel.addEventListener("change", onMagicFilterControlChanged);
+      el.availableSpellPanel.addEventListener("input", onMagicFilterControlInput);
+      el.availableSpellPanel.addEventListener("click", onMagicFilterControlClicked);
       el.availableSpellPanel.addEventListener("mouseover", onMagicSpellHoverStart);
       el.availableSpellPanel.addEventListener("mousemove", onMagicSpellHoverMove);
       el.availableSpellPanel.addEventListener("mouseout", onMagicSpellHoverEnd);
@@ -11419,19 +11429,6 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
         return "Fica difícil de detectar em ambientes naturais.";
       case "druida-terra:corpo da natureza":
         return "Ganha imunidade a veneno e doença.";
-      case "druida-mar:magias do circulo do mar":
-      case "druida-mar:magias do círculo do mar":
-        return "Mantém magias oceânicas e tempestuosas sempre preparadas.";
-      case "druida-mar:ira do mar":
-        return "Gasta Forma Selvagem para criar uma emanação oceânica que causa dano e empurra.";
-      case "druida-mar:afinidade aquatica":
-      case "druida-mar:afinidade aquática":
-        return "Aumenta sua Ira do Mar e concede deslocamento de natação.";
-      case "druida-mar:nascido da tempestade":
-        return "Enquanto sua Ira do Mar estiver ativa, ganha voo e resistências elementais.";
-      case "druida-mar:dadiva oceanica":
-      case "druida-mar:dádiva oceânica":
-        return "Compartilha sua Ira do Mar com outra criatura.";
       case "druida-pastor:totem espiritual":
         return "Invoca um espírito totêmico que concede bônus ao grupo.";
       case "druida-pastor:invocador poderoso":
@@ -11692,17 +11689,10 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
         return "Realiza um ataque adicional em combate.";
       case "patrulheiro-perseguidor:desaparecimento":
         return "Pode ficar invisível ao se mover.";
-      case "barbaro-arvore-mundo:viagem pela arvore":
-        return "Ao ativar a Fúria, teleporta-se e depois pode repetir o salto; uma vez por Fúria, pode levar aliados.";
       case "barbaro-espinhos:abandono temerario":
         return "Ao usar Ataque Descuidado durante a Fúria, recebe pontos de vida temporários.";
       case "barbaro-espinhos:investida do batalhador":
         return "Enquanto estiver em Fúria, pode Disparar como ação bônus.";
-      case "bardo-danca:virtuose da danca":
-        return "Recebe vantagem em testes de Atuação ligados à dança.";
-      case "bardo-danca:evasao condutora":
-      case "bardo-danca:evasão condutora":
-        return "Ganha uma Evasão aprimorada e pode estender esse benefício a criaturas próximas.";
       case "bardo-conhecimento:pericias adicionais":
       case "bardo-conhecimento:perícias adicionais":
         return "Ganha proficiência em perícias adicionais.";
@@ -11775,32 +11765,11 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       case "monge-mestre-bebado:proficiencias extras":
       case "monge-mestre-bebado:proficiências extras":
         return "Ganha proficiência em Atuação e em ferramentas ligadas a bebidas.";
-      case "barbaro-arvore-mundo:vitalidade da arvore":
-        return "Ao entrar em Fúria, recebe pontos de vida temporários iguais ao seu nível de bárbaro.";
-      case "barbaro-arvore-mundo:forca que da vida":
-      case "barbaro-arvore-mundo:força que dá vida":
-        return "No início do turno enquanto estiver em Fúria, pode conceder pontos de vida temporários a um aliado próximo.";
-      case "barbaro-arvore-mundo:ramos da arvore":
-        return "Durante a Fúria, usa a reação para puxar uma criatura próxima, trazê-la para perto e zerar seu deslocamento.";
-      case "barbaro-arvore-mundo:raizes demolidoras":
-      case "barbaro-arvore-mundo:raízes demolidoras":
-        return "Suas armas pesadas ou versáteis ganham mais alcance e podem empurrar ou derrubar ao acertar.";
       case "barbaro-espinhos:armadura do batalhador":
         return "Com armadura espinhosa, pode atacar com os espinhos como ação bônus e ferir inimigos agarrados.";
       case "barbaro-espinhos:retaliacao espinhosa":
       case "barbaro-espinhos:retaliação espinhosa":
         return "Quando uma criatura adjacente o acerta corpo a corpo, seus espinhos devolvem dano perfurante.";
-      case "bardo-danca:defesa sem armadura":
-        return "Sem armadura nem escudo, sua CA usa Destreza e Carisma.";
-      case "bardo-danca:golpes ageis":
-      case "bardo-danca:golpes ágeis":
-        return "Ao gastar Inspiração de Bardo, faz um ataque desarmado extra.";
-      case "bardo-danca:dano de bardo":
-        return "Seus ataques desarmados passam a usar o dado da Inspiração de Bardo para causar mais dano.";
-      case "bardo-danca:movimento inspirador":
-        return "Quando um inimigo termina o turno perto de você, pode gastar Inspiração para se mover e deixar um aliado fazer o mesmo.";
-      case "bardo-danca:passos em conjunto":
-        return "Ao rolar iniciativa, pode gastar Inspiração para conceder bônus a você e a aliados próximos.";
       case "bardo-glamour:manto da inspiracao":
       case "bardo-glamour:manto da inspiração":
         return "Concede pontos de vida temporários e reposiciona aliados sem ataques de oportunidade.";
@@ -16825,8 +16794,6 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     const isWearingArmor = (equipmentLoadout.armors || []).some((armor) => armor?.categoria !== "escudo");
     const activeStyles = getActiveFightingStyleIds(state);
     const featIds = getSelectedFeatIdSet(state?.selectedFeats);
-    const hasDanceUnarmoredDefense = resolvedClassEntries.some((entry) => entry?.classId === "bardo" && entry?.subclassData?.id === "bardo-danca" && entry.level >= 3);
-
     const baseOptions = [];
     const unarmoredDefenseOwner = resolvedClassEntries.find((entry) => entry?.classId === "barbaro" || entry?.classId === "monge") || null;
 
@@ -16844,10 +16811,6 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
 
     if (!isWearingArmor && featIds.has("pele-de-dragao")) {
       baseOptions.push(13 + (mods.des || 0));
-    }
-
-    if (!isWearingArmor && shieldBonus === 0 && hasDanceUnarmoredDefense) {
-      baseOptions.push(10 + (mods.des || 0) + (mods.car || 0));
     }
 
     baseOptions.push(10 + (mods.des || 0));
@@ -18493,6 +18456,207 @@ function listVisibleSpellPickerSourceKeys(sources = []) {
       : base;
   }
 
+  function buildMagicFilterOption(value, label, currentValue) {
+    const stringValue = String(value);
+    return `<option value="${escapeHtml(stringValue)}" ${String(currentValue) === stringValue ? "selected" : ""}>${escapeHtml(label)}</option>`;
+  }
+
+  function hasActiveMagicFilters(state = magicFilterState) {
+    return Boolean(
+      String(state.query || "").trim()
+      || state.level !== MAGIC_FILTER_DEFAULTS.level
+      || state.school !== MAGIC_FILTER_DEFAULTS.school
+      || state.tag !== MAGIC_FILTER_DEFAULTS.tag
+    );
+  }
+
+  function getMagicSpellSearchText(spell) {
+    return normalizePt([
+      spell?.nome,
+      spell?.nomeEN,
+      spell?.escola,
+      schoolLabelFromKey(spell?.normalizedSchool),
+      spell?.fonte,
+      spell?.tempoConjuracao,
+      spell?.alcance,
+      spell?.duracao,
+      spell?.componentesDetalhe,
+      spell?.resumo,
+      spell?.descricao,
+      ...(Array.isArray(spell?.tags) ? spell.tags : []),
+    ].filter(Boolean).join(" "));
+  }
+
+  function getMagicSpellNormalizedTags(spell) {
+    return (Array.isArray(spell?.tags) ? spell.tags : [])
+      .map((tag) => normalizePt(tag))
+      .filter(Boolean);
+  }
+
+  function spellMatchesMagicTagFilter(spell, tagFilter, selectedHere) {
+    if (!tagFilter || tagFilter === "all") return true;
+    if (tagFilter === "selected") return selectedHere;
+    if (tagFilter === "ritual") return Boolean(spell?.ritual);
+    if (tagFilter === "concentracao") return Boolean(spell?.concentracao);
+
+    const tags = getMagicSpellNormalizedTags(spell);
+    if (tags.includes(tagFilter)) return true;
+
+    const searchText = getMagicSpellSearchText(spell);
+    switch (tagFilter) {
+      case "dano":
+        return searchText.includes("dano") || /\b\d+d\d+\b/.test(searchText);
+      case "cura":
+        return searchText.includes("cura") || searchText.includes("curar") || searchText.includes("pontos de vida") || searchText.includes("pv");
+      case "defesa":
+        return searchText.includes("defesa") || searchText.includes("protecao") || searchText.includes("resistencia") || searchText.includes("classe de armadura");
+      case "controle":
+        return searchText.includes("controle") || searchText.includes("desvantagem") || searchText.includes("paralisa") || searchText.includes("restri") || searchText.includes("empurra") || searchText.includes("puxa");
+      case "utilidade":
+        return searchText.includes("utilidade") || searchText.includes("detect") || searchText.includes("teleport") || searchText.includes("comunic") || searchText.includes("invisibilidade");
+      default:
+        return tags.some((tag) => tag.includes(tagFilter));
+    }
+  }
+
+  function isMagicSpellSelectedForSource(source, spell, kind) {
+    return isSpellSelected(source?.sourceKey, spell?.id, kind);
+  }
+
+  function spellMatchesMagicFilters(spell, source, kind) {
+    const selectedHere = isMagicSpellSelectedForSource(source, spell, kind);
+    if (selectedHere) return true;
+
+    const filters = magicFilterState;
+    const normalizedQuery = normalizePt(filters.query || "");
+    if (normalizedQuery && !getMagicSpellSearchText(spell).includes(normalizedQuery)) return false;
+    if (filters.level !== "all" && Number(spell?.nivel || 0) !== Number(filters.level)) return false;
+    if (filters.school !== "all" && normalizeSchoolKey(spell?.normalizedSchool || spell?.escola) !== filters.school) return false;
+    return spellMatchesMagicTagFilter(spell, filters.tag, selectedHere);
+  }
+
+  function sortMagicSpellPickerOptions(spells, source, kind) {
+    return (spells || []).slice().sort((a, b) => {
+      const selectedDiff = Number(isMagicSpellSelectedForSource(source, b, kind)) - Number(isMagicSpellSelectedForSource(source, a, kind));
+      if (selectedDiff) return selectedDiff;
+
+      const levelDiff = Number(a?.nivel || 0) - Number(b?.nivel || 0);
+      if (levelDiff) return levelDiff;
+
+      const schoolDiff = schoolLabelFromKey(a?.normalizedSchool).localeCompare(schoolLabelFromKey(b?.normalizedSchool), "pt-BR");
+      if (schoolDiff) return schoolDiff;
+
+      return String(a?.nome || "").localeCompare(String(b?.nome || ""), "pt-BR");
+    });
+  }
+
+  function filterMagicSpellPickerOptions(spells, source, kind) {
+    return sortMagicSpellPickerOptions(
+      (spells || []).filter((spell) => spellMatchesMagicFilters(spell, source, kind)),
+      source,
+      kind
+    );
+  }
+
+  function buildMagicSpellFilterToolbarMarkup({ visibleCount = 0, totalCount = 0 } = {}) {
+    const active = hasActiveMagicFilters();
+    const levelOptions = [
+      buildMagicFilterOption("all", "Todos os círculos", magicFilterState.level),
+      ...SPELL_LEVEL_LABELS.map((label, level) => buildMagicFilterOption(String(level), level === 0 ? "Truques" : label, magicFilterState.level)),
+    ].join("");
+    const schoolOptions = [
+      buildMagicFilterOption("all", "Todas as escolas", magicFilterState.school),
+      ...Object.entries(ESCOLAS)
+        .sort((a, b) => a[1].localeCompare(b[1], "pt-BR"))
+        .map(([key, label]) => buildMagicFilterOption(key, label, magicFilterState.school)),
+    ].join("");
+    const tagOptions = MAGIC_SPELL_TAG_FILTERS
+      .map((filter) => buildMagicFilterOption(filter.value, filter.label, magicFilterState.tag))
+      .join("");
+    const resultText = active
+      ? `${visibleCount}/${totalCount} opções visíveis`
+      : `${totalCount} opções disponíveis`;
+
+    return `
+      <div class="magic-filter-toolbar" role="search" aria-label="Filtros de magias">
+        <label class="magic-filter-field magic-filter-field--search">
+          <span>Buscar</span>
+          <input
+            type="search"
+            data-magic-filter="query"
+            value="${escapeHtml(magicFilterState.query || "")}"
+            placeholder="Nome, escola, tag, descrição..."
+            autocomplete="off"
+          />
+        </label>
+        <label class="magic-filter-field">
+          <span>Círculo</span>
+          <select data-magic-filter="level">${levelOptions}</select>
+        </label>
+        <label class="magic-filter-field">
+          <span>Escola</span>
+          <select data-magic-filter="school">${schoolOptions}</select>
+        </label>
+        <label class="magic-filter-field">
+          <span>Etiqueta</span>
+          <select data-magic-filter="tag">${tagOptions}</select>
+        </label>
+        <button type="button" class="magic-filter-reset" data-magic-filter-reset ${active ? "" : "disabled"}>Limpar</button>
+        <p class="magic-filter-results">${escapeHtml(resultText)}</p>
+      </div>
+    `;
+  }
+
+  function restoreMagicFilterFocus(filterKey, selectionStart = null, selectionEnd = null) {
+    if (!filterKey || !el.magicSourcesList) return;
+    window.requestAnimationFrame(() => {
+      const control = el.magicSourcesList?.querySelector(`[data-magic-filter="${filterKey}"]`);
+      if (!control) return;
+      control.focus();
+      if (typeof control.setSelectionRange === "function" && selectionStart !== null) {
+        const start = Math.min(Number(selectionStart) || 0, String(control.value || "").length);
+        const end = Math.min(selectionEnd === null ? start : Number(selectionEnd) || start, String(control.value || "").length);
+        control.setSelectionRange(start, end);
+      }
+    });
+  }
+
+  function applyMagicFilterControlValue(control) {
+    const filterKey = control?.getAttribute?.("data-magic-filter") || "";
+    if (!Object.prototype.hasOwnProperty.call(magicFilterState, filterKey)) return;
+
+    const nextValue = String(control.value || "");
+    if (magicFilterState[filterKey] === nextValue) return;
+
+    const selectionStart = typeof control.selectionStart === "number" ? control.selectionStart : null;
+    const selectionEnd = typeof control.selectionEnd === "number" ? control.selectionEnd : null;
+    magicFilterState = {
+      ...magicFilterState,
+      [filterKey]: nextValue,
+    };
+    renderMagicSection();
+    restoreMagicFilterFocus(filterKey, selectionStart, selectionEnd);
+  }
+
+  function onMagicFilterControlInput(event) {
+    const control = event.target?.closest?.("[data-magic-filter]");
+    if (!control || control.tagName !== "INPUT") return;
+    applyMagicFilterControlValue(control);
+  }
+
+  function onMagicFilterControlChanged(event) {
+    const control = event.target?.closest?.("[data-magic-filter]");
+    if (!control || control.tagName === "INPUT") return;
+    applyMagicFilterControlValue(control);
+  }
+
+  function onMagicFilterControlClicked(event) {
+    const resetButton = event.target?.closest?.("[data-magic-filter-reset]");
+    if (!resetButton) return;
+    magicFilterState = { ...MAGIC_FILTER_DEFAULTS };
+    renderMagicSection();
+  }
+
   function findMagicSpellHoverTarget(target) {
     return target?.closest?.("[data-spell-id]") || null;
   }
@@ -18771,8 +18935,7 @@ function buildCantripChecklistMarkup(spells, source, sourceMap = new Map(), dupl
     return `<div class="spell-check-empty">Nenhum truque disponível.</div>`;
   }
 
-  return spells
-    .sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"))
+  return sortMagicSpellPickerOptions(spells, source, "cantrip")
     .map((spell) => buildSpellChecklistItemMarkup(spell, source, "cantrip", sourceMap, duplicateSourceKeys))
     .join("");
 }
@@ -18788,8 +18951,7 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
       <section class="spell-check-group">
         <h4>${escapeHtml(`${source.limits.selectionLabel} - ${SPELL_LEVEL_LABELS[level] || `${level}º círculo`}`)}</h4>
         <div class="spell-check-group-list">
-          ${levelSpells
-            .sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"))
+          ${sortMagicSpellPickerOptions(levelSpells, source, "spell")
             .map((spell) => buildSpellChecklistItemMarkup(spell, source, "spell", sourceMap, duplicateSourceKeys))
             .join("")}
         </div>
@@ -18809,7 +18971,9 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
 
   const sourceMap = new Map(context.sources.map((source) => [source.sourceKey, source]));
   const visibleSourceKeys = listVisibleSpellPickerSourceKeys(context.sources);
-  el.magicSourcesList.innerHTML = visibleSources.map((source) => {
+  let totalSpellOptions = 0;
+  let visibleSpellOptions = 0;
+  const sourceCardsMarkup = visibleSources.map((source) => {
       const eligibleSpells = getEligibleSpellsForCasting(source.limits);
       const eligibleIds = new Set(eligibleSpells.filter((spell) => spell.restriction.allowed).map((spell) => spell.id));
       enforceSpellSelectionLimitsForSource(source, eligibleIds, sourceMap);
@@ -18818,6 +18982,10 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
       const flexibleUsed = countFlexibleSpellsSelectedForSource(source);
       const availableCantrips = eligibleSpells.filter((spell) => spell.nivel === 0 && spell.restriction.allowed);
       const availableSpells = eligibleSpells.filter((spell) => spell.nivel > 0 && spell.restriction.allowed);
+      const filteredCantrips = filterMagicSpellPickerOptions(availableCantrips, source, "cantrip");
+      const filteredSpells = filterMagicSpellPickerOptions(availableSpells, source, "spell");
+      totalSpellOptions += availableCantrips.length + availableSpells.length;
+      visibleSpellOptions += filteredCantrips.length + filteredSpells.length;
       const selection = getSpellSelectionForSource(source.sourceKey);
       const capLabel = source.limits.maxSpellLevel > 0
         ? SPELL_LEVEL_LABELS[source.limits.maxSpellLevel] || `${source.limits.maxSpellLevel}º círculo`
@@ -18827,16 +18995,14 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
         : "";
       const distributionMarkup = buildSpellLevelDistributionMarkup(source);
       const warningMarkup = buildSpellSelectionWarningMarkup(source, selection);
-      const groupedSpellLevels = groupSpellsByLevel(availableSpells)
+      const groupedSpellLevels = groupSpellsByLevel(filteredSpells)
         .filter(([level]) => Number(level) > 0 && Number(level) <= Number(source.limits.maxSpellLevel || 0));
       const spellLevelBlocksMarkup = groupedSpellLevels.length
         ? groupedSpellLevels.map(([level, levelSpells]) => `
             <div class="row">
               <span>${escapeHtml(`${source.limits.selectionLabel} - ${SPELL_LEVEL_LABELS[level] || `${level}º círculo`}`)}</span>
               <div class="spell-checklist" data-scroll-key="${escapeHtml(`${source.sourceKey}:spell:${level}`)}">
-                ${levelSpells
-                  .slice()
-                  .sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"))
+                ${sortMagicSpellPickerOptions(levelSpells, source, "spell")
                   .map((spell) => buildSpellChecklistItemMarkup(spell, source, "spell", sourceMap, visibleSourceKeys))
                   .join("")}
               </div>
@@ -18873,13 +19039,20 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
           <div class="row-inline spell-pickers">
             <div class="row">
               <span>Truques disponíveis</span>
-              <div class="spell-checklist" data-scroll-key="${escapeHtml(`${source.sourceKey}:cantrip`)}">${buildCantripChecklistMarkup(availableCantrips, source, sourceMap, visibleSourceKeys)}</div>
+              <div class="spell-checklist" data-scroll-key="${escapeHtml(`${source.sourceKey}:cantrip`)}">${buildCantripChecklistMarkup(filteredCantrips, source, sourceMap, visibleSourceKeys)}</div>
             </div>
             ${spellLevelBlocksMarkup}
           </div>
         </section>
       `;
     }).join("");
+    el.magicSourcesList.innerHTML = [
+      buildMagicSpellFilterToolbarMarkup({
+        visibleCount: visibleSpellOptions,
+        totalCount: totalSpellOptions,
+      }),
+      sourceCardsMarkup,
+    ].join("");
     restoreMagicChecklistScrollPositions();
   }
 

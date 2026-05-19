@@ -91,29 +91,6 @@ export const SUBCLASSES = {
   },
 
 // ===== BARBARO =====
-  "barbaro-arvore-mundo": {
-    id: "barbaro-arvore-mundo",
-    classeBase: "barbaro",
-    nome: "Caminho da Árvore do Mundo",
-    fonte: "PHB24",
-    nivel: 3,
-    descricao: "Canaliza o poder da Árvore do Mundo para proteger aliados, controlar inimigos e atravessar o campo de batalha em saltos sobrenaturais.",
-    features: {
-      3: [
-        { nome: "Vitalidade da Árvore", descricao: "Ao entrar em Fúria, recebe pontos de vida temporários iguais ao seu nível de bárbaro." },
-        { nome: "Força que Dá Vida", descricao: "No início de cada turno enquanto estiver em Fúria, pode conceder pontos de vida temporários a um aliado próximo." }
-      ],
-      6: [
-        { nome: "Ramos da Árvore", descricao: "Durante a Fúria, usa sua reação para puxar uma criatura próxima, teletransportá-la para perto de você e zerar seu deslocamento." }
-      ],
-      10: [
-        { nome: "Raízes Demolidoras", descricao: "Suas armas pesadas ou versáteis ganham alcance aumentado e podem aplicar empurrão ou derrubada ao acertar." }
-      ],
-      14: [
-        { nome: "Viagem pela Árvore", descricao: "Teleporta-se ao ativar a Fúria e pode repetir o salto depois; uma vez por Fúria, pode levar vários aliados junto." }
-      ]
-    }
-  },
   "barbaro-fera": {
     id: "barbaro-fera",
     classeBase: "barbaro",
@@ -352,29 +329,6 @@ export const SUBCLASSES = {
       ],
       14: [
         { nome: "Criação Superior", descricao: "Cria objetos maiores sem custo." }
-      ]
-    }
-  },
-  "bardo-danca": {
-    id: "bardo-danca",
-    classeBase: "bardo",
-    nome: "Colégio da Dança",
-    fonte: "PHB24",
-    nivel: 3,
-    descricao: "Transforma dança em magia marcial, usando ritmo, mobilidade e impacto corporal para apoiar o grupo e desorientar inimigos.",
-    features: {
-      3: [
-        { nome: "Virtuose da Dança", descricao: "Recebe vantagem em testes de Atuação que envolvam dança." },
-        { nome: "Defesa sem Armadura", descricao: "Enquanto não usa armadura nem escudo, sua CA passa a usar Destreza e Carisma." },
-        { nome: "Golpes Ágeis", descricao: "Ao gastar Inspiração de Bardo, pode realizar um ataque desarmado extra." },
-        { nome: "Dano de Bardo", descricao: "Seus ataques desarmados causam dano igual ao dado atual de Inspiração de Bardo mais Destreza." }
-      ],
-      6: [
-        { nome: "Movimento Inspirador", descricao: "Quando um inimigo termina o turno perto de você, pode gastar Inspiração de Bardo para se mover e permitir que um aliado faça o mesmo." },
-        { nome: "Passos em Conjunto", descricao: "Ao rolar iniciativa, pode gastar Inspiração de Bardo para conceder bônus a você e aliados próximos." }
-      ],
-      14: [
-        { nome: "Evasão Condutora", descricao: "Ganha uma forma de Evasão aprimorada e pode estender esse benefício a criaturas próximas no mesmo teste de Destreza." }
       ]
     }
   },
@@ -1182,29 +1136,6 @@ export const SUBCLASSES = {
       ],
       14: [
         { nome: "Renascer das Cinzas", descricao: "Explosão ao cair." }
-      ]
-    }
-  },
-  "druida-mar": {
-    id: "druida-mar",
-    classeBase: "druida",
-    nome: "Círculo do Mar",
-    fonte: "PHB24",
-    nivel: 3,
-    descricao: "Druida das marés e tempestades que usa o poder do oceano para envolver inimigos, causar dano elemental e dominar ambientes aquáticos.",
-    features: {
-      3: [
-        { nome: "Magias do Círculo do Mar", descricao: "Mantém certas magias oceânicas e tempestuosas sempre preparadas conforme sobe de nível." },
-        { nome: "Ira do Mar", descricao: "Gasta Forma Selvagem para criar uma emanação de spray oceânico que causa dano de frio e empurra criaturas." }
-      ],
-      6: [
-        { nome: "Afinidade Aquática", descricao: "Aumenta a área da sua Ira do Mar e concede deslocamento de natação igual ao seu deslocamento." }
-      ],
-      10: [
-        { nome: "Nascido da Tempestade", descricao: "Enquanto sua Ira do Mar estiver ativa, recebe deslocamento de voo e resistência a dano de frio, elétrico e trovejante." }
-      ],
-      14: [
-        { nome: "Dádiva Oceânica", descricao: "Pode compartilhar sua Ira do Mar com outra criatura e, ao gastar mais Forma Selvagem, manter a emanação em ambos." }
       ]
     }
   },

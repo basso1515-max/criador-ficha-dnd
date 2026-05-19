@@ -274,12 +274,50 @@ function validateClassStartingEquipmentRefs(edition, classes, weaponIds, armorId
   });
 }
 
+function validateClassSubclassRefs(edition, classes, subclasses, errors) {
+  const subclassById = new Map(listRecords(subclasses).map((subclass) => [subclass.id, subclass]));
+  const listedSubclassIds = new Set();
+
+  listRecords(classes).forEach((classe) => {
+    (classe.subclasses || []).forEach((subclassId) => {
+      listedSubclassIds.add(subclassId);
+      const subclass = subclassById.get(subclassId);
+      if (!subclass) {
+        errors.push(`${edition}: ${classe.id} referencia subclasse ausente (${subclassId}).`);
+        return;
+      }
+      if (subclass.classeBase !== classe.id) {
+        errors.push(`${edition}: ${classe.id} lista ${subclassId}, mas classeBase=${subclass.classeBase}.`);
+      }
+    });
+  });
+
+  subclassById.forEach((subclass) => {
+    if (!listedSubclassIds.has(subclass.id)) {
+      errors.push(`${edition}: subclasse ${subclass.id} não aparece na lista da classe ${subclass.classeBase}.`);
+    }
+  });
+}
+
+function validateEditionBoundary(edition, subclasses, expectedSource, errors) {
+  listRecords(subclasses).forEach((subclass) => {
+    const source = String(subclass.fonte || "").trim().toUpperCase();
+    if (edition === "5e" && source === "PHB24") {
+      errors.push(`5e: subclasse 2024 vazou para o catálogo legado (${subclass.id}).`);
+    }
+    if (edition === "2024" && source && source !== expectedSource) {
+      errors.push(`2024: subclasse fora do PHB24 no catálogo 2024 (${subclass.id}: ${subclass.fonte}).`);
+    }
+  });
+}
+
 function validateCatalogReferenceIntegrity() {
   const errors = [];
   const datasets = [
     {
       edition: "5e",
       classes: CLASSES_5E,
+      subclasses: SUBCLASSES_5E,
       weapons: ARMAS_5E,
       armors: ARMADURAS_5E,
       classEquipmentRules: CLASS_EQUIPMENT_RULES_5E,
@@ -288,6 +326,7 @@ function validateCatalogReferenceIntegrity() {
     {
       edition: "2024",
       classes: CLASSES_2024,
+      subclasses: SUBCLASSES_2024,
       weapons: ARMAS_2024,
       armors: ARMADURAS_2024,
       classEquipmentRules: CLASS_EQUIPMENT_RULES_2024,
@@ -298,6 +337,8 @@ function validateCatalogReferenceIntegrity() {
   datasets.forEach((dataset) => {
     validateCatalogKeyIds(dataset.edition, "arma", dataset.weapons, errors);
     validateCatalogKeyIds(dataset.edition, "armadura", dataset.armors, errors);
+    validateClassSubclassRefs(dataset.edition, dataset.classes, dataset.subclasses, errors);
+    validateEditionBoundary(dataset.edition, dataset.subclasses, "PHB24", errors);
 
     const weaponIds = new Set(listRecords(dataset.weapons).map((item) => item.id));
     const armorIds = new Set(listRecords(dataset.armors).map((item) => item.id));

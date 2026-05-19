@@ -108,7 +108,6 @@ export const CLASSES = {
       ]
     },
     subclasses: [
-      "barbaro-arvore-mundo",
       "barbaro-fera",
       "barbaro-magia-selvagem",
       "barbaro-arauto-tempestade",
@@ -161,7 +160,6 @@ export const CLASSES = {
     subclasses: [
       "bardo-bravura",
       "bardo-criacao",
-      "bardo-danca",
       "bardo-eloquencia",
       "bardo-espadas",
       "bardo-conhecimento",
@@ -379,7 +377,6 @@ export const CLASSES = {
       "druida-terra",
       "druida-estrelas",
       "druida-fogo-selvagem",
-      "druida-mar",
       "druida-pastor",
       "druida-esporos",
       "druida-sonhos"

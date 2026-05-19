@@ -5047,6 +5047,67 @@ select[multiple] option {
   font-weight: 700;
 }
 
+.magic-filter-toolbar {
+  display: grid;
+  grid-template-columns: minmax(190px, 2fr) repeat(3, minmax(130px, 1fr)) auto;
+  align-items: end;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding: 12px;
+  border: 1px solid rgba(139,94,52,0.16);
+  border-radius: 8px;
+  background: rgba(255,252,244,0.72);
+}
+
+.magic-filter-field {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.magic-filter-field span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.magic-filter-field input,
+.magic-filter-field select {
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 10px;
+  border: 1px solid rgba(139,94,52,0.22);
+  border-radius: 8px;
+  background: rgba(255,255,255,0.94);
+  color: var(--text);
+  font: inherit;
+}
+
+.magic-filter-reset {
+  min-height: 40px;
+  padding: 8px 14px;
+  border: 1px solid rgba(139,94,52,0.22);
+  border-radius: 8px;
+  background: rgba(255,255,255,0.9);
+  color: var(--text);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.magic-filter-reset:disabled {
+  cursor: default;
+  opacity: 0.58;
+}
+
+.magic-filter-results {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
 
 .spell-pickers {
   gap: 12px;
@@ -5184,6 +5245,21 @@ body.level-up-modal-open .magic-spell-hover-card:not([hidden]) {
   .magic-hero-panel,
   .magic-level-grid,
   .spellbook-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .magic-filter-toolbar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .magic-filter-field--search,
+  .magic-filter-results {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 640px) {
+  .magic-filter-toolbar {
     grid-template-columns: 1fr;
   }
 }
@@ -7847,6 +7923,15 @@ html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-scree
   background: var(--editor-dark-surface);
   color: var(--text);
   box-shadow: none;
+}
+
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .magic-filter-toolbar,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .magic-filter-field input,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .magic-filter-field select,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .magic-filter-reset {
+  border-color: var(--editor-dark-border);
+  background: var(--editor-dark-surface);
+  color: var(--text);
 }
 
 html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .attr-die.is-kept,

@@ -847,6 +847,23 @@ import { saveCharacterForCurrentUser } from "./account-storage.js";
     8: "8º nível",
     9: "9º nível",
   };
+  const MAGIC_SPELL_TAG_FILTERS_2024 = [
+    { value: "all", label: "Todas" },
+    { value: "selected", label: "Selecionadas" },
+    { value: "ritual", label: "Ritual" },
+    { value: "concentracao", label: "Concentração" },
+    { value: "dano", label: "Dano" },
+    { value: "cura", label: "Cura" },
+    { value: "defesa", label: "Defesa" },
+    { value: "controle", label: "Controle" },
+    { value: "utilidade", label: "Utilidade" },
+  ];
+  const MAGIC_FILTER_DEFAULTS_2024 = {
+    query: "",
+    level: "all",
+    school: "all",
+    tag: "all",
+  };
   const SPELL_SLOT_LEVELS_2024 = [1, 2, 3, 4, 5, 6, 7, 8, 9];
   const SLOT_TABLES_2024 = {
     full: [
@@ -1458,7 +1475,7 @@ import { saveCharacterForCurrentUser } from "./account-storage.js";
   const SPELL_BY_ID_2024 = new Map(SPELL_LIST_2024.map((spell) => [spell.id, spell]));
   const ALL_SPELLCASTING_CLASS_IDS_2024 = Array.from(new Set(
     SPELL_LIST_2024.flatMap((spell) => Array.isArray(spell?.normalizedClasses) ? spell.normalizedClasses : [])
-  )).filter(Boolean);
+  )).filter((classId) => Boolean(classId && CLASSES_2024?.[classId]));
   const WARLOCK_NON_DAMAGE_CANTRIP_IDS_2024 = new Set([
     "amigos",
     "ilusao-menor",
@@ -1587,6 +1604,7 @@ import { saveCharacterForCurrentUser } from "./account-storage.js";
   let recalcFloatingSubmitButton2024 = null;
   let lastMagicContext2024 = null;
   const spellSelectionState2024 = new Map();
+  let magicFilterState2024 = { ...MAGIC_FILTER_DEFAULTS_2024 };
   let multiclassRowCounter2024 = 0;
   const CUSTOM_SELECT_FIELDS_2024 = {};
   const FEAT_CUSTOM_SELECT_PREFIX_2024 = "feat-choice-2024:";
@@ -2069,6 +2087,9 @@ import { saveCharacterForCurrentUser } from "./account-storage.js";
     el.skillsExtra?.addEventListener("change", onSkillSelectionChanged2024);
     el.expertiseChoices?.addEventListener("change", onExpertiseChoiceChanged2024);
     el.availableSpellPanel?.addEventListener("change", onMagicSpellChecklistChanged2024);
+    el.availableSpellPanel?.addEventListener("change", onMagicFilterControlChanged2024);
+    el.availableSpellPanel?.addEventListener("input", onMagicFilterControlInput2024);
+    el.availableSpellPanel?.addEventListener("click", onMagicFilterControlClicked2024);
     el.availableSpellPanel?.addEventListener("mouseover", onMagicSpellHoverStart2024);
     el.availableSpellPanel?.addEventListener("mousemove", onMagicSpellHoverMove2024);
     el.availableSpellPanel?.addEventListener("mouseout", onMagicSpellHoverEnd2024);
@@ -13907,6 +13928,213 @@ import { saveCharacterForCurrentUser } from "./account-storage.js";
     return ESCOLAS[spell?.normalizedSchool] || spell?.escola || labelFromSlug(spell?.normalizedSchool || "");
   }
 
+  function buildMagicFilterOption2024(value, label, currentValue) {
+    const stringValue = String(value);
+    return `<option value="${escapeHtml(stringValue)}" ${String(currentValue) === stringValue ? "selected" : ""}>${escapeHtml(label)}</option>`;
+  }
+
+  function hasActiveMagicFilters2024(state = magicFilterState2024) {
+    return Boolean(
+      String(state.query || "").trim()
+      || state.level !== MAGIC_FILTER_DEFAULTS_2024.level
+      || state.school !== MAGIC_FILTER_DEFAULTS_2024.school
+      || state.tag !== MAGIC_FILTER_DEFAULTS_2024.tag
+    );
+  }
+
+  function getMagicSpellSearchText2024(spell) {
+    return normalizePt([
+      spell?.nome,
+      spell?.nomeEN,
+      spell?.escola,
+      formatSpellSchoolLabel2024(spell),
+      spell?.fonte,
+      spell?.tempoConjuracao,
+      spell?.alcance,
+      spell?.duracao,
+      spell?.componentesDetalhe,
+      spell?.resumo,
+      spell?.descricao,
+      ...(Array.isArray(spell?.tags) ? spell.tags : []),
+    ].filter(Boolean).join(" "));
+  }
+
+  function getMagicSpellNormalizedTags2024(spell) {
+    return (Array.isArray(spell?.tags) ? spell.tags : [])
+      .map((tag) => normalizePt(tag))
+      .filter(Boolean);
+  }
+
+  function spellMatchesMagicTagFilter2024(spell, tagFilter, selectedHere) {
+    if (!tagFilter || tagFilter === "all") return true;
+    if (tagFilter === "selected") return selectedHere;
+    if (tagFilter === "ritual") return Boolean(spell?.ritual);
+    if (tagFilter === "concentracao") return Boolean(spell?.concentracao);
+
+    const tags = getMagicSpellNormalizedTags2024(spell);
+    if (tags.includes(tagFilter)) return true;
+
+    const searchText = getMagicSpellSearchText2024(spell);
+    switch (tagFilter) {
+      case "dano":
+        return searchText.includes("dano") || /\b\d+d\d+\b/.test(searchText);
+      case "cura":
+        return searchText.includes("cura") || searchText.includes("curar") || searchText.includes("pontos de vida") || searchText.includes("pv");
+      case "defesa":
+        return searchText.includes("defesa") || searchText.includes("protecao") || searchText.includes("resistencia") || searchText.includes("classe de armadura");
+      case "controle":
+        return searchText.includes("controle") || searchText.includes("desvantagem") || searchText.includes("paralisa") || searchText.includes("restri") || searchText.includes("empurra") || searchText.includes("puxa");
+      case "utilidade":
+        return searchText.includes("utilidade") || searchText.includes("detect") || searchText.includes("teleport") || searchText.includes("comunic") || searchText.includes("invisibilidade");
+      default:
+        return tags.some((tag) => tag.includes(tagFilter));
+    }
+  }
+
+  function isMagicSpellSelectedForSource2024(source, spell, kind) {
+    if (!source?.sourceKey || !spell?.id) return false;
+    const selection = getSpellSelectionForSource2024(source.sourceKey);
+    const metrics = getSpellSelectionMetrics2024(source);
+    const bucket = kind === "cantrip" ? selection.cantrips : selection.spells;
+    const grantedBucket = kind === "cantrip" ? metrics.granted.cantrips : metrics.granted.spells;
+    return bucket.has(spell.id) || grantedBucket.has(spell.id);
+  }
+
+  function spellMatchesMagicFilters2024(spell, source, kind) {
+    const selectedHere = isMagicSpellSelectedForSource2024(source, spell, kind);
+    if (selectedHere) return true;
+
+    const filters = magicFilterState2024;
+    const normalizedQuery = normalizePt(filters.query || "");
+    if (normalizedQuery && !getMagicSpellSearchText2024(spell).includes(normalizedQuery)) return false;
+    if (filters.level !== "all" && Number(spell?.nivel || 0) !== Number(filters.level)) return false;
+    if (filters.school !== "all" && normalizeSchoolKey2024(spell?.normalizedSchool || spell?.escola) !== filters.school) return false;
+    return spellMatchesMagicTagFilter2024(spell, filters.tag, selectedHere);
+  }
+
+  function sortMagicSpellPickerOptions2024(spells, source, kind) {
+    return (spells || []).slice().sort((a, b) => {
+      const selectedDiff = Number(isMagicSpellSelectedForSource2024(source, b, kind)) - Number(isMagicSpellSelectedForSource2024(source, a, kind));
+      if (selectedDiff) return selectedDiff;
+
+      const levelDiff = Number(a?.nivel || 0) - Number(b?.nivel || 0);
+      if (levelDiff) return levelDiff;
+
+      const schoolDiff = formatSpellSchoolLabel2024(a).localeCompare(formatSpellSchoolLabel2024(b), "pt-BR");
+      if (schoolDiff) return schoolDiff;
+
+      return String(a?.nome || "").localeCompare(String(b?.nome || ""), "pt-BR");
+    });
+  }
+
+  function filterMagicSpellPickerOptions2024(spells, source, kind) {
+    return sortMagicSpellPickerOptions2024(
+      (spells || []).filter((spell) => spellMatchesMagicFilters2024(spell, source, kind)),
+      source,
+      kind
+    );
+  }
+
+  function buildMagicSpellFilterToolbarMarkup2024({ visibleCount = 0, totalCount = 0 } = {}) {
+    const active = hasActiveMagicFilters2024();
+    const levelOptions = [
+      buildMagicFilterOption2024("all", "Todos os níveis", magicFilterState2024.level),
+      buildMagicFilterOption2024("0", "Truques", magicFilterState2024.level),
+      ...SPELL_SLOT_LEVELS_2024.map((level) => buildMagicFilterOption2024(String(level), SPELL_LEVEL_LABELS_2024[level] || `${level}º nível`, magicFilterState2024.level)),
+    ].join("");
+    const schoolOptions = [
+      buildMagicFilterOption2024("all", "Todas as escolas", magicFilterState2024.school),
+      ...Object.entries(ESCOLAS)
+        .sort((a, b) => a[1].localeCompare(b[1], "pt-BR"))
+        .map(([key, label]) => buildMagicFilterOption2024(key, label, magicFilterState2024.school)),
+    ].join("");
+    const tagOptions = MAGIC_SPELL_TAG_FILTERS_2024
+      .map((filter) => buildMagicFilterOption2024(filter.value, filter.label, magicFilterState2024.tag))
+      .join("");
+    const resultText = active
+      ? `${visibleCount}/${totalCount} opções visíveis`
+      : `${totalCount} opções disponíveis`;
+
+    return `
+      <div class="magic-filter-toolbar" role="search" aria-label="Filtros de magias">
+        <label class="magic-filter-field magic-filter-field--search">
+          <span>Buscar</span>
+          <input
+            type="search"
+            data-magic-filter="query"
+            value="${escapeHtml(magicFilterState2024.query || "")}"
+            placeholder="Nome, escola, tag, descrição..."
+            autocomplete="off"
+          />
+        </label>
+        <label class="magic-filter-field">
+          <span>Nível</span>
+          <select data-magic-filter="level">${levelOptions}</select>
+        </label>
+        <label class="magic-filter-field">
+          <span>Escola</span>
+          <select data-magic-filter="school">${schoolOptions}</select>
+        </label>
+        <label class="magic-filter-field">
+          <span>Etiqueta</span>
+          <select data-magic-filter="tag">${tagOptions}</select>
+        </label>
+        <button type="button" class="magic-filter-reset" data-magic-filter-reset ${active ? "" : "disabled"}>Limpar</button>
+        <p class="magic-filter-results">${escapeHtml(resultText)}</p>
+      </div>
+    `;
+  }
+
+  function restoreMagicFilterFocus2024(filterKey, selectionStart = null, selectionEnd = null) {
+    if (!filterKey || !el.magicSourcesList) return;
+    window.requestAnimationFrame(() => {
+      const control = el.magicSourcesList?.querySelector(`[data-magic-filter="${filterKey}"]`);
+      if (!control) return;
+      control.focus();
+      if (typeof control.setSelectionRange === "function" && selectionStart !== null) {
+        const start = Math.min(Number(selectionStart) || 0, String(control.value || "").length);
+        const end = Math.min(selectionEnd === null ? start : Number(selectionEnd) || start, String(control.value || "").length);
+        control.setSelectionRange(start, end);
+      }
+    });
+  }
+
+  function applyMagicFilterControlValue2024(control) {
+    const filterKey = control?.getAttribute?.("data-magic-filter") || "";
+    if (!Object.prototype.hasOwnProperty.call(magicFilterState2024, filterKey)) return;
+
+    const nextValue = String(control.value || "");
+    if (magicFilterState2024[filterKey] === nextValue) return;
+
+    const selectionStart = typeof control.selectionStart === "number" ? control.selectionStart : null;
+    const selectionEnd = typeof control.selectionEnd === "number" ? control.selectionEnd : null;
+    magicFilterState2024 = {
+      ...magicFilterState2024,
+      [filterKey]: nextValue,
+    };
+    renderMagicSection2024();
+    restoreMagicFilterFocus2024(filterKey, selectionStart, selectionEnd);
+  }
+
+  function onMagicFilterControlInput2024(event) {
+    const control = event.target?.closest?.("[data-magic-filter]");
+    if (!control || control.tagName !== "INPUT") return;
+    applyMagicFilterControlValue2024(control);
+  }
+
+  function onMagicFilterControlChanged2024(event) {
+    const control = event.target?.closest?.("[data-magic-filter]");
+    if (!control || control.tagName === "INPUT") return;
+    applyMagicFilterControlValue2024(control);
+  }
+
+  function onMagicFilterControlClicked2024(event) {
+    const resetButton = event.target?.closest?.("[data-magic-filter-reset]");
+    if (!resetButton) return;
+    magicFilterState2024 = { ...MAGIC_FILTER_DEFAULTS_2024 };
+    renderMagicSection2024();
+  }
+
   function buildSpellNotes2024(spell) {
     const parts = [];
     if (spell?.resumo) {
@@ -14299,9 +14527,16 @@ import { saveCharacterForCurrentUser } from "./account-storage.js";
     }
 
     const sourceMap = new Map(context.sources.map((source) => [source.sourceKey, source]));
-    el.magicSourcesList.innerHTML = context.sources.map((source) => {
+    let totalSpellOptions = 0;
+    let visibleSpellOptions = 0;
+    const sourceCardsMarkup = context.sources.map((source) => {
       const eligibleSpells = getEligibleSpellsForSource2024(source);
-      const cantrips = eligibleSpells.filter((spell) => Number(spell.nivel || 0) === 0);
+      const availableCantrips = eligibleSpells.filter((spell) => Number(spell.nivel || 0) === 0);
+      const availableSpells = eligibleSpells.filter((spell) => Number(spell.nivel || 0) > 0);
+      const cantrips = filterMagicSpellPickerOptions2024(availableCantrips, source, "cantrip");
+      const filteredSpells = filterMagicSpellPickerOptions2024(availableSpells, source, "spell");
+      totalSpellOptions += availableCantrips.length + availableSpells.length;
+      visibleSpellOptions += cantrips.length + filteredSpells.length;
       const granted = getGrantedSpellBucketsForSource2024(source);
       const cascadeMarkup = buildMagicSourceCascadeMarkup2024(source, granted);
       const minSpellLevel = clampInt(source.limits.minSpellLevel || 1, 1, 9);
@@ -14310,7 +14545,7 @@ import { saveCharacterForCurrentUser } from "./account-storage.js";
         .filter((level) => level >= minSpellLevel && level <= maxSpellLevel)
         .map((level) => ({
           level,
-          spells: eligibleSpells.filter((spell) => Number(spell.nivel || 0) === level),
+          spells: filteredSpells.filter((spell) => Number(spell.nivel || 0) === level),
         }))
         .filter((group) => group.spells.length > 0);
 
@@ -14334,7 +14569,7 @@ import { saveCharacterForCurrentUser } from "./account-storage.js";
               <h4>Truques</h4>
               <div class="spell-checklist">
                 <div class="spell-check-group-list">
-                  ${cantrips.map((spell) => buildSpellChecklistItemMarkup2024(spell, source, "cantrip", sourceMap)).join("")}
+                  ${sortMagicSpellPickerOptions2024(cantrips, source, "cantrip").map((spell) => buildSpellChecklistItemMarkup2024(spell, source, "cantrip", sourceMap)).join("")}
                 </div>
               </div>
             </div>
@@ -14344,7 +14579,7 @@ import { saveCharacterForCurrentUser } from "./account-storage.js";
               <h4>${escapeHtml(SPELL_LEVEL_LABELS_2024[group.level])}</h4>
               <div class="spell-checklist">
                 ${group.spells.length
-                  ? `<div class="spell-check-group-list">${group.spells.map((spell) => buildSpellChecklistItemMarkup2024(spell, source, "spell", sourceMap)).join("")}</div>`
+                  ? `<div class="spell-check-group-list">${sortMagicSpellPickerOptions2024(group.spells, source, "spell").map((spell) => buildSpellChecklistItemMarkup2024(spell, source, "spell", sourceMap)).join("")}</div>`
                   : '<div class="spell-check-empty">Nenhuma magia disponível para este nível.</div>'}
               </div>
             </div>
@@ -14352,6 +14587,13 @@ import { saveCharacterForCurrentUser } from "./account-storage.js";
         </section>
       `;
     }).join("");
+    el.magicSourcesList.innerHTML = [
+      buildMagicSpellFilterToolbarMarkup2024({
+        visibleCount: visibleSpellOptions,
+        totalCount: totalSpellOptions,
+      }),
+      sourceCardsMarkup,
+    ].join("");
   }
 
   function renderSelectedSpellBook2024(context) {
