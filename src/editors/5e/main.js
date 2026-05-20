@@ -633,6 +633,245 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     magic: false,
     preview: false,
   };
+  const personagemSubscribers = [];
+  const personagemChangedKeys = new Set();
+  const personagemTarget = { snapshot: null };
+  let personagemBatchDepth = 0;
+  let personagemInitialized = false;
+  let personagemRefreshEnabled = false;
+  let applyingPersonagemReaction = false;
+  const personagem = new Proxy(personagemTarget, {
+    set(target, property, value) {
+      const key = String(property);
+      if (Object.is(target[key], value)) return true;
+      target[key] = value;
+      if (key !== "snapshot") {
+        personagemChangedKeys.add(key);
+        if (!personagemBatchDepth && personagemInitialized && personagemRefreshEnabled) {
+          publishPersonagemChanges(new Set([key]), { source: "direct" });
+        }
+      }
+      return true;
+    },
+  });
+
+  function stableStateStringify(value) {
+    const seen = new WeakSet();
+
+    const normalize = (item) => {
+      if (item instanceof Set) return Array.from(item).sort();
+      if (Array.isArray(item)) return item.map(normalize);
+      if (item && typeof item === "object") {
+        if (typeof Node !== "undefined" && item instanceof Node) return "[Node]";
+        if (seen.has(item)) return "[Circular]";
+        seen.add(item);
+        return Object.keys(item).sort().reduce((acc, key) => {
+          const nextValue = item[key];
+          if (typeof nextValue !== "function") {
+            acc[key] = normalize(nextValue);
+          }
+          return acc;
+        }, {});
+      }
+      return item;
+    };
+
+    return JSON.stringify(normalize(value));
+  }
+
+  function classEntriesSignature(entries = []) {
+    return (Array.isArray(entries) ? entries : [])
+      .map((entry) => [
+        entry.uid,
+        entry.classId,
+        entry.subclassId,
+        entry.level,
+      ].join(":"))
+      .join("|");
+  }
+
+  function selectedFeatIdsSignature(feats = []) {
+    return (Array.isArray(feats) ? feats : [])
+      .map((feat) => feat?.id || feat?.name_pt || feat?.name || "")
+      .filter(Boolean)
+      .join("|");
+  }
+
+  function projectPersonagemState(state = {}) {
+    const classSignature = classEntriesSignature(state.classEntries);
+    const attributesSignature = stableStateStringify({
+      attrs: state.attrs,
+      asi: state.asi,
+      hpProgressionMode: state.hpProgressionMode,
+      hpRolls: state.hpRolls,
+    });
+    const choicesSignature = stableStateStringify({
+      selectedFeats: state.selectedFeats,
+      selectedFeatAbilityIncreases: state.selectedFeatAbilityIncreases,
+      selectedFeatDetails: state.selectedFeatDetails,
+      selectedSubclassDetails: state.selectedSubclassDetails,
+      selectedCompanionChoices: state.selectedCompanionChoices,
+      selectedRaceDetails: state.selectedRaceDetails,
+      selectedLanguages: state.selectedLanguages,
+      selectedExpertises: state.selectedExpertises,
+      selectedFightingStyles: state.selectedFightingStyles,
+      selectedWarlockPactBoons: state.selectedWarlockPactBoons,
+      selectedWarlockInvocations: state.selectedWarlockInvocations,
+      selectedFeatureChoices: state.selectedFeatureChoices,
+      selectedSubclassProficiencyChoices: state.selectedSubclassProficiencyChoices,
+      artificerInfusionState: state.artificerInfusionState,
+      equipmentSelections: state.equipmentSelections,
+    });
+    const magicSignature = stableStateStringify({
+      classSignature,
+      race: state.race?.id || state.raca,
+      subrace: state.subrace?.id || state.subraca,
+      selectedFeatIds: selectedFeatIdsSignature(state.selectedFeats),
+      selectedFeatDetails: state.selectedFeatDetails,
+      selectedSubclassDetails: state.selectedSubclassDetails,
+      selectedRaceDetails: state.selectedRaceDetails,
+      selectedFeatureChoices: state.selectedFeatureChoices,
+      selectedSpellsBySource: state.selectedSpellsBySource,
+      spellSlotsUsed: state.spellSlotsUsed,
+      attrs: state.attrs,
+    });
+
+    return {
+      nome: state.nome || "",
+      classe: state.classe || "",
+      nivel: state.nivel || 1,
+      nivelClassePrincipal: state.nivelClassePrincipal || 1,
+      arquetipo: state.arquetipo || "",
+      raca: state.raca || "",
+      subraca: state.subraca || "",
+      antecedente: state.antecedente || "",
+      classSignature,
+      attributesSignature,
+      choicesSignature,
+      magicSignature,
+      previewSignature: stableStateStringify({
+        identity: {
+          nomeJogador: state.nomeJogador,
+          nome: state.nome,
+          classe: state.classe,
+          nivel: state.nivel,
+          nivelClassePrincipal: state.nivelClassePrincipal,
+          arquetipo: state.arquetipo,
+          raca: state.raca,
+          subraca: state.subraca,
+          antecedente: state.antecedente,
+          alinhamento: state.alinhamento,
+          xp: state.xp,
+          divindade: state.divindade,
+        },
+        physical: {
+          idade: state.idade,
+          altura: state.altura,
+          peso: state.peso,
+          olhos: state.olhos,
+          pele: state.pele,
+          cabelo: state.cabelo,
+        },
+        resources: {
+          caManual: state.caManual,
+          deslocamentoManual: state.deslocamentoManual,
+          deslocamento: state.deslocamento,
+          hpMaxManual: state.hpMaxManual,
+          hpAtualManual: state.hpAtualManual,
+          hpTempManual: state.hpTempManual,
+          units: state.units,
+        },
+        attributesSignature,
+        choicesSignature,
+        magicSignature,
+        skillsExtra: state.skillsExtra,
+        skillFixed: state.skillFixed,
+        textos: state.textos,
+      }),
+    };
+  }
+
+  function subscribePersonagem(keys, handler) {
+    personagemSubscribers.push({
+      keys: new Set(Array.isArray(keys) ? keys : [keys]),
+      handler,
+    });
+  }
+
+  function publishPersonagemChanges(changedKeys, detail = {}) {
+    if (!changedKeys.size || applyingPersonagemReaction) return;
+
+    const eventDetail = {
+      source: detail.source || "unknown",
+      changedKeys: Array.from(changedKeys),
+      state: personagem.snapshot,
+    };
+    document.dispatchEvent(new CustomEvent("character-state:changed", { detail: eventDetail }));
+
+    applyingPersonagemReaction = true;
+    try {
+      personagemSubscribers.forEach((subscriber) => {
+        if (![...subscriber.keys].some((key) => changedKeys.has(key))) return;
+        subscriber.handler({
+          ...eventDetail,
+          changedKeys,
+          personagem,
+        });
+      });
+    } finally {
+      applyingPersonagemReaction = false;
+    }
+  }
+
+  function syncPersonagemState({ source = "manual", refresh = true } = {}) {
+    const nextState = collectState();
+    const nextProjection = projectPersonagemState(nextState);
+    personagemTarget.snapshot = nextState;
+
+    personagemBatchDepth += 1;
+    try {
+      Object.entries(nextProjection).forEach(([key, value]) => {
+        personagem[key] = value;
+      });
+    } finally {
+      personagemBatchDepth -= 1;
+    }
+
+    const changedKeys = new Set(personagemChangedKeys);
+    personagemChangedKeys.clear();
+    const canPublish = refresh && personagemRefreshEnabled && changedKeys.size;
+    personagemInitialized = true;
+    if (canPublish) publishPersonagemChanges(changedKeys, { source });
+    return nextState;
+  }
+
+  function enableReactiveCharacterState() {
+    personagemRefreshEnabled = true;
+  }
+
+  function commitCharacterStateMutation(source = "manual") {
+    return syncPersonagemState({ source });
+  }
+
+  function bindReactiveCharacterForm() {
+    if (!el.form) return;
+    el.form.addEventListener("input", () => {
+      commitCharacterStateMutation("form:input");
+    });
+    el.form.addEventListener("change", () => {
+      commitCharacterStateMutation("form:change");
+    });
+  }
+
+  subscribePersonagem("magicSignature", () => {
+    renderMagicSection();
+    syncPersonagemState({ source: "magic:render", refresh: false });
+  });
+
+  subscribePersonagem("previewSignature", ({ changedKeys }) => {
+    if (changedKeys.has("magicSignature")) return;
+    atualizarPreview();
+  });
 
   function isDeferringHeavyUi() {
     return deferredHeavyUiDepth > 0;
@@ -718,7 +957,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     restoreFormPreset(el.form, preset);
     syncAllCustomSelectFields();
     syncUnitToggleButtons(document);
-    atualizarPreview();
+    commitCharacterStateMutation("preset:restore");
   }
 
   function ensureMulticlassRowsForPreset(rowIds = []) {
@@ -804,6 +1043,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     initializeLevelUpAssistant();
     initializePointBuyControls();
     initializeStandardAttributeSelects();
+    bindReactiveCharacterForm();
 
     renderSkillsExtra();
     renderAsiOptions();
@@ -927,10 +1167,6 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     if (el.nomeRandomFeminino) el.nomeRandomFeminino.addEventListener("click", () => applyGeneratedCharacterName("feminino"));
     if (el.nomeRandomNeutro) el.nomeRandomNeutro.addEventListener("click", () => applyGeneratedCharacterName("neutro"));
 
-    el.form.addEventListener("input", () => {
-      atualizarPreview();
-    });
-
     el.form.addEventListener("submit", async (ev) => {
       ev.preventDefault();
       const tab = window.open("", "_blank");
@@ -1022,6 +1258,8 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     onDivinityChanged();
     renderMagicSection();
     atualizarPreview();
+    syncPersonagemState({ source: "initial", refresh: false });
+    enableReactiveCharacterState();
     initializeFloatingSubmitButton();
     initializeVersionPicker();
   });
@@ -1639,8 +1877,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     renderArtificerInfusions();
     renderCompanionChoices();
     renderLanguageChoices();
-    renderMagicSection();
-    atualizarPreview();
+    commitCharacterStateMutation("level:total");
   }
 
   function onPrimaryClassLevelChanged() {
@@ -1657,8 +1894,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     renderArtificerInfusions();
     renderCompanionChoices();
     renderLanguageChoices();
-    renderMagicSection();
-    atualizarPreview();
+    commitCharacterStateMutation("level:primary-class");
   }
 
   function onAddMulticlassRow() {
@@ -1688,8 +1924,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     renderArtificerInfusions();
     renderCompanionChoices();
     renderLanguageChoices();
-    renderMagicSection();
-    atualizarPreview();
+    commitCharacterStateMutation("multiclass:add");
   }
 
   function onMulticlassRowsChanged(event) {
@@ -1708,13 +1943,12 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     renderArtificerInfusions();
     renderCompanionChoices();
     renderLanguageChoices();
-    renderMagicSection();
-    atualizarPreview();
+    commitCharacterStateMutation("multiclass:change");
   }
 
   function onXpChanged() {
     syncXpWithLevel();
-    atualizarPreview();
+    commitCharacterStateMutation("xp");
   }
 
   function onMulticlassRowClicked(event) {
@@ -1736,8 +1970,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     renderArtificerInfusions();
     renderCompanionChoices();
     renderLanguageChoices();
-    renderMagicSection();
-    atualizarPreview();
+    commitCharacterStateMutation("multiclass:remove");
   }
 
   function initializeLevelUpAssistant() {
@@ -1795,9 +2028,8 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     renderRaceDetailChoices();
     renderLanguageChoices();
     renderExpertiseChoices();
-    renderMagicSection();
     renderHitPointRollControls({ force: true });
-    atualizarPreview();
+    commitCharacterStateMutation("level-up");
   }
 
   function applyMainClassLevelUp({ toLevel }) {
@@ -2377,7 +2609,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
 
   function onSkillSelectionChanged() {
     updateSkillSelectionFeedback();
-    atualizarPreview();
+    commitCharacterStateMutation("skills");
   }
 
   function onRaceChanged() {
@@ -2414,7 +2646,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     syncSuggestedSkillSelections();
     renderFeatChoices();
     renderLanguageChoices();
-    renderMagicSection();
+    commitCharacterStateMutation("race");
   }
 
   function onDistanceUnitChanged() {
@@ -2437,7 +2669,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     previousDistanceUnit = nextUnit;
     localStorage.setItem("distance_unit", nextUnit);
     onRaceChanged();
-    atualizarPreview();
+    commitCharacterStateMutation("units:distance");
   }
 
   function onWeightUnitChanged() {
@@ -2448,7 +2680,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     previousWeightUnit = nextUnit;
     localStorage.setItem("weight_unit", nextUnit);
     updatePhysicalProfileInfo();
-    atualizarPreview();
+    commitCharacterStateMutation("units:weight");
   }
 
   function onSubraceChanged() {
@@ -2458,7 +2690,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     syncSuggestedSkillSelections();
     renderFeatChoices();
     renderLanguageChoices();
-    renderMagicSection();
+    commitCharacterStateMutation("subrace");
   }
 
   function initializeCustomSelectFields() {
@@ -2472,7 +2704,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       describeOption: (value, label) => describeClassOption(value || label),
       onCommit: () => {
         onClassChanged();
-        atualizarPreview();
+        commitCharacterStateMutation("custom-select:class");
       },
     });
 
@@ -2486,7 +2718,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       describeOption: (value) => describeSubclassOption(value),
       onCommit: () => {
         onSubclassChanged();
-        atualizarPreview();
+        commitCharacterStateMutation("custom-select:subclass");
       },
     });
 
@@ -2500,7 +2732,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       describeOption: (value, label) => describeBackgroundOption(value || label),
       onCommit: () => {
         onBackgroundChanged();
-        atualizarPreview();
+        commitCharacterStateMutation("custom-select:background");
       },
     });
 
@@ -2514,7 +2746,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       describeOption: (value, label) => describeRaceOption(value || label),
       onCommit: () => {
         onRaceChanged();
-        atualizarPreview();
+        commitCharacterStateMutation("custom-select:race");
       },
     });
 
@@ -2528,7 +2760,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       describeOption: (value) => describeSubraceOption(value),
       onCommit: () => {
         onSubraceChanged();
-        atualizarPreview();
+        commitCharacterStateMutation("custom-select:subrace");
       },
     });
 
@@ -2540,7 +2772,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       hoverCard: el.traitsSelectHoverCard,
       placeholder: "Selecione um traço...",
       describeOption: (value, label) => describeTextChoiceOption(value || label),
-      onCommit: atualizarPreview,
+      onCommit: () => commitCharacterStateMutation("custom-select:trait"),
     });
 
     CUSTOM_SELECT_FIELDS.ideaisSelect = createCustomSelectField({
@@ -2551,7 +2783,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       hoverCard: el.ideaisSelectHoverCard,
       placeholder: "Selecione um ideal...",
       describeOption: (value, label) => describeTextChoiceOption(value || label),
-      onCommit: atualizarPreview,
+      onCommit: () => commitCharacterStateMutation("custom-select:ideal"),
     });
 
     CUSTOM_SELECT_FIELDS.vinculosSelect = createCustomSelectField({
@@ -2562,7 +2794,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       hoverCard: el.vinculosSelectHoverCard,
       placeholder: "Selecione um vínculo...",
       describeOption: (value, label) => describeTextChoiceOption(value || label),
-      onCommit: atualizarPreview,
+      onCommit: () => commitCharacterStateMutation("custom-select:bond"),
     });
 
     CUSTOM_SELECT_FIELDS.defeitosSelect = createCustomSelectField({
@@ -2573,7 +2805,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       hoverCard: el.defeitosSelectHoverCard,
       placeholder: "Selecione um defeito...",
       describeOption: (value, label) => describeTextChoiceOption(value || label),
-      onCommit: atualizarPreview,
+      onCommit: () => commitCharacterStateMutation("custom-select:flaw"),
     });
 
     Object.values(CUSTOM_SELECT_FIELDS).forEach((field) => syncCustomSelectField(field.key));
@@ -3279,21 +3511,21 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
         setStatus(`${invocation?.label || "Essa invocação"} já foi escolhida para esse bruxo.`);
         select.value = "";
         renderWarlockInvocationChoices();
-        atualizarPreview();
+        commitCharacterStateMutation("warlock-invocation:duplicate");
         return;
       }
     }
 
     setStatus("");
     renderWarlockInvocationChoices();
-    atualizarPreview();
+    commitCharacterStateMutation("warlock-invocation");
   }
 
   function handleWarlockPactBoonSelection(select) {
     if (!select) return;
     setStatus("");
     renderWarlockInvocationChoices();
-    atualizarPreview();
+    commitCharacterStateMutation("warlock-pact-boon");
   }
 
   function onWarlockInvocationChoiceChanged(event) {
@@ -3765,8 +3997,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     }
 
     renderFeatureChoices();
-    renderMagicSection();
-    atualizarPreview();
+    commitCharacterStateMutation("feature-choice");
   }
 
   function cleanupSubclassProficiencyChoiceFields() {
@@ -4205,7 +4436,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     }
 
     renderSubclassProficiencyChoices();
-    atualizarPreview();
+    commitCharacterStateMutation("subclass-proficiency");
   }
 
   function collectSubclassProficiencyChoicePendingLines(stateOrEntries = null) {
@@ -4679,14 +4910,14 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
           ? "Essa infusão já foi escolhida como conhecida."
           : "Essa infusão já está ativa em outro item.");
         renderArtificerInfusions();
-        atualizarPreview();
+        commitCharacterStateMutation("artificer-infusion:duplicate");
         return;
       }
     }
 
     setStatus("");
     renderArtificerInfusions();
-    atualizarPreview();
+    commitCharacterStateMutation("artificer-infusion");
   }
 
   function buildSelectedArtificerInfusionLines(selectionState = null) {
@@ -5009,7 +5240,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
 
     setStatus("");
     renderCompanionChoices();
-    atualizarPreview();
+    commitCharacterStateMutation("companion-choice");
   }
 
   function buildSelectedCompanionChoiceLines(classEntries = null, selectedChoices = null) {
@@ -5309,9 +5540,8 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       }
     }
     refreshMulticlassPrerequisiteFeedback();
-    refreshMagicAfterAttributeChange();
-    atualizarPreview();
     updateAttributeMethodUi();
+    commitCharacterStateMutation("attributes:set");
   }
 
   function getCurrentAttributeValues() {
@@ -5501,8 +5731,8 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       enforcePointBuyLimits();
     }
     refreshMulticlassPrerequisiteFeedback();
-    refreshMagicAfterAttributeChange();
     updateAttributeMethodUi();
+    commitCharacterStateMutation("attributes");
   }
 
   function onAttributeMethodChanged() {
@@ -5529,8 +5759,8 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       lastAttributeRolls = [];
     }
     refreshMulticlassPrerequisiteFeedback();
-    refreshMagicAfterAttributeChange();
     updateAttributeMethodUi();
+    commitCharacterStateMutation("attribute-method");
   }
 
   function calculateSortedValues(attrs) {
@@ -5552,7 +5782,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     renderArtificerInfusions();
     renderCompanionChoices();
     renderLanguageChoices();
-    renderMagicSection();
+    commitCharacterStateMutation("class");
   }
 
   function onSubclassChanged() {
@@ -5565,8 +5795,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     renderArtificerInfusions();
     renderCompanionChoices();
     renderLanguageChoices();
-    renderMagicSection();
-    atualizarPreview();
+    commitCharacterStateMutation("subclass");
   }
 
   function onBackgroundChanged() {
@@ -5600,7 +5829,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     renderFightingStyleChoices();
     renderFeatChoices();
     renderLanguageChoices();
-    atualizarPreview();
+    commitCharacterStateMutation("background");
   }
 
   function getFeatPoolOptions(pool = "") {
@@ -7874,7 +8103,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       renderFeatChoices();
       renderLanguageChoices();
       updateSkillSelectionFeedback();
-      atualizarPreview();
+      commitCharacterStateMutation("feat-asi-choice");
       return;
     }
 
@@ -7896,7 +8125,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
         select.value = "";
         setStatus(`${feat?.name_pt || feat?.name || "Esse talento"} já foi escolhido em outra origem.`);
         renderFeatChoices();
-        atualizarPreview();
+        commitCharacterStateMutation("feat-choice:duplicate");
         return;
       }
     }
@@ -7905,7 +8134,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     renderFeatChoices();
     renderLanguageChoices();
     updateSkillSelectionFeedback();
-    atualizarPreview();
+    commitCharacterStateMutation("feat-choice");
   }
 
   function onFeatDetailChoiceChanged(event) {
@@ -7923,14 +8152,14 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
         select.value = "";
         setStatus("Essa escolha já foi usada neste mesmo talento.");
         renderFeatDetailChoices();
-        atualizarPreview();
+        commitCharacterStateMutation("feat-detail:duplicate");
         return;
       }
     }
 
     setStatus("");
     renderFeatDetailChoices();
-    atualizarPreview();
+    commitCharacterStateMutation("feat-detail");
   }
 
   function onSubclassDetailChoiceChanged(event) {
@@ -7939,8 +8168,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
 
     setStatus("");
     renderSubclassDetailChoices();
-    renderMagicSection();
-    atualizarPreview();
+    commitCharacterStateMutation("subclass-detail");
   }
 
   function onRaceDetailChoiceChanged(event) {
@@ -7949,8 +8177,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
 
     setStatus("");
     renderRaceDetailChoices();
-    renderMagicSection();
-    atualizarPreview();
+    commitCharacterStateMutation("race-detail");
   }
 
   function buildLanguageChoiceSlotKey(grant, slotIndex) {
@@ -9734,7 +9961,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
         select.value = "";
         setStatus(`${formatLanguageLabel(selectedId)} já faz parte dos idiomas base dessa origem.`);
         renderLanguageChoices();
-        atualizarPreview();
+        commitCharacterStateMutation("language:duplicate-base");
         return;
       }
 
@@ -9745,14 +9972,14 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
         select.value = "";
         setStatus(`${formatLanguageLabel(selectedId)} já foi escolhido em outra origem.`);
         renderLanguageChoices();
-        atualizarPreview();
+        commitCharacterStateMutation("language:duplicate");
         return;
       }
     }
 
     setStatus("");
     renderLanguageChoices();
-    atualizarPreview();
+    commitCharacterStateMutation("language");
   }
 
   function buildExpertiseChoiceSource(key, sourceLabel, picks, pool = null) {
@@ -9955,14 +10182,14 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
         select.value = "";
         setStatus(`${skillKeyToLabel(selectedSkill)} já foi escolhido para outra expertise.`);
         renderExpertiseChoices();
-        atualizarPreview();
+        commitCharacterStateMutation("expertise:duplicate");
         return;
       }
     }
 
     setStatus("");
     renderExpertiseChoices();
-    atualizarPreview();
+    commitCharacterStateMutation("expertise");
   }
 
   function getFightingStyleOptions(styleIds = []) {
@@ -10332,14 +10559,14 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
         select.value = "";
         setStatus(`${FIGHTING_STYLE_DEFINITIONS[selectedId]?.label || "Esse estilo"} já foi escolhido em outra origem.`);
         renderFightingStyleChoices();
-        atualizarPreview();
+        commitCharacterStateMutation("fighting-style:duplicate");
         return;
       }
     }
 
     setStatus("");
     renderFightingStyleChoices();
-    atualizarPreview();
+    commitCharacterStateMutation("fighting-style");
   }
 
   function onAlignmentChanged({ showSuggestions = false, allowEmptySuggestions = false, showAllOnFocus = false } = {}) {
@@ -10428,7 +10655,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     hideAlignmentSuggestions();
     hideAlignmentHoverCard();
     onAlignmentChanged();
-    atualizarPreview();
+    commitCharacterStateMutation("alignment");
   }
 
   function parseAlignmentAxes(value) {
@@ -10595,7 +10822,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     hideDivinitySuggestions();
     hideDivinityHoverCard();
     onDivinityChanged();
-    atualizarPreview();
+    commitCharacterStateMutation("divinity");
   }
 
   function renderAsiOptions() {
@@ -10648,7 +10875,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       });
       normalizeVisibleAsiSelections(flexibleConfig.picks);
       updateAsiMethodUi();
-      atualizarPreview();
+      commitCharacterStateMutation("asi-method");
       return;
     }
 
@@ -10656,7 +10883,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       el.asi21Controls.style.display = "none";
       el.asi111Controls.style.display = "none";
       updateAsiMethodUi();
-      atualizarPreview();
+      commitCharacterStateMutation("asi-method");
       return;
     }
 
@@ -10667,7 +10894,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       normalizeVisibleAsiSelections(3);
     }
     updateAsiMethodUi();
-    atualizarPreview();
+    commitCharacterStateMutation("asi-method");
   }
 
   function getVisibleAsiPickSelects(maxVisible = 3) {
@@ -10705,7 +10932,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     } else if (!el.asi21.checked) {
       normalizeVisibleAsiSelections(3);
     }
-    atualizarPreview();
+    commitCharacterStateMutation("asi");
   }
 
   function applyStatusTone(target, tone = "") {
@@ -10925,8 +11152,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
         applyRandomChoicePanels({ overwrite });
         applyRandomFlavorFields({ overwrite });
         syncAutoManagedTextareas();
-        renderMagicSection();
-        atualizarPreview();
+        commitCharacterStateMutation("randomize");
 
         setStatus(overwrite
           ? "Aleatorização completa da ficha concluída."
@@ -11030,8 +11256,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     syncSuggestedSkillSelections();
     renderFightingStyleChoices();
     renderFeatChoices();
-    renderMagicSection();
-    atualizarPreview();
+    commitCharacterStateMutation("multiclass:random");
   }
 
   function setAttributeMethod(method) {
@@ -11406,7 +11631,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     });
 
     renderFeatureChoices();
-    renderMagicSection();
+    commitCharacterStateMutation("feature-choice:random");
   }
 
   function fillRandomSubclassProficiencyChoices({ overwrite = false } = {}) {
@@ -11435,7 +11660,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     });
 
     renderSubclassProficiencyChoices();
-    atualizarPreview();
+    commitCharacterStateMutation("subclass-proficiency:random");
   }
 
   function fillRandomArtificerInfusions({ overwrite = false } = {}) {
@@ -11629,7 +11854,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
 
     setSelectedSkillKeys(new Set([...context.fixedSkills, ...randomizedExtras]));
     updateSkillSelectionFeedback(context);
-    atualizarPreview();
+    commitCharacterStateMutation("skills:random");
   }
 
   function fillRandomLanguageChoices({ overwrite = false } = {}) {
@@ -11764,7 +11989,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     }
 
     refreshBackgroundInfoSummary();
-    atualizarPreview();
+    commitCharacterStateMutation("equipment:random");
   }
 
   function fillRandomSpellSelections({ overwrite = false } = {}) {
@@ -11824,9 +12049,8 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       });
     }
 
-    renderMagicSection();
     renderWarlockInvocationChoices();
-    atualizarPreview();
+    commitCharacterStateMutation("spells:random");
   }
 
   function applyRandomFlavorFields({ overwrite = false } = {}) {
@@ -11900,7 +12124,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
 
     if (!file) {
       selectedPortraitImage = null;
-      atualizarPreview();
+      commitCharacterStateMutation("portrait:clear");
       return;
     }
 
@@ -11910,12 +12134,12 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       selectedPortraitImage = null;
       input.value = "";
       setStatus("A aparência do personagem aceita apenas imagens JPG ou PNG.");
-      atualizarPreview();
+      commitCharacterStateMutation("portrait:error");
       return;
     }
 
     setStatus(`Imagem de aparência carregada: ${file.name}`);
-    atualizarPreview();
+    commitCharacterStateMutation("portrait");
   }
 
   async function onSymbolImageChanged(event) {
@@ -11924,7 +12148,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
 
     if (!file) {
       selectedSymbolImage = null;
-      atualizarPreview();
+      commitCharacterStateMutation("symbol:clear");
       return;
     }
 
@@ -11934,12 +12158,12 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       selectedSymbolImage = null;
       input.value = "";
       setStatus("O símbolo aceita apenas imagens JPG ou PNG.");
-      atualizarPreview();
+      commitCharacterStateMutation("symbol:error");
       return;
     }
 
     setStatus(`Imagem do símbolo carregada: ${file.name}`);
-    atualizarPreview();
+    commitCharacterStateMutation("symbol");
   }
 
   function quebrarTextoInteligente(texto, max = 40) {
@@ -12651,7 +12875,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
 
   function onHitPointProgressionChanged() {
     renderHitPointRollControls({ force: true });
-    atualizarPreview();
+    commitCharacterStateMutation("hit-points:progression");
   }
 
   function setRandomHitPointRoll(input) {
@@ -12684,7 +12908,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       getHitPointProgressionMode(),
       Object.values(collectHitPointRollValues({ includeEmpty: true })).filter((value) => !String(value || "").trim()).length
     );
-    atualizarPreview();
+    commitCharacterStateMutation("hit-points:rolls");
   }
 
   function clampInt(v, min, max) {
@@ -13855,10 +14079,10 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
           const selectionMap = collectEquipmentSelectionState();
           if (select.hasAttribute("data-equipment-option-select")) {
             renderEquipmentChoices(selectionMap);
-            atualizarPreview();
+            commitCharacterStateMutation("equipment:option");
           } else {
             refreshBackgroundInfoSummary(selectionMap);
-            atualizarPreview();
+            commitCharacterStateMutation("equipment:item");
           }
         },
       });
@@ -13919,14 +14143,14 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       refreshBackgroundInfoSummary();
     }
 
-    atualizarPreview();
+    commitCharacterStateMutation("equipment");
   }
 
   function onEquipmentChoicesInput(event) {
     const target = event.target;
     if (!(target instanceof HTMLElement) || !target.hasAttribute("data-equipment-selection-key")) return;
     refreshBackgroundInfoSummary();
-    atualizarPreview();
+    commitCharacterStateMutation("equipment:input");
   }
 
   function resolveLegacyClassEquipmentLoadout(classData) {
@@ -16539,11 +16763,6 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
     return lines.join("\n");
   }
 
-
-  function refreshMagicAfterAttributeChange() {
-    renderMagicSection();
-  }
-
   function buildSpellSourceDistribution(entries = []) {
     const counts = new Map();
     entries.forEach(({ sourceLabel }) => {
@@ -16807,9 +17026,8 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
     }
 
     setStatus("");
-    renderMagicSection();
     renderWarlockInvocationChoices();
-    atualizarPreview();
+    commitCharacterStateMutation("spell-selection");
   }
 
   function onMagicSlotUsageInput(event) {
