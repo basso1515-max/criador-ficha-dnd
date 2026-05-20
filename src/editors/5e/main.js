@@ -92,6 +92,11 @@ import {
   SUBCLASS_SPELL_LIST_AUGMENTS,
   SUBCLASS_GRANTED_SPELL_SOURCE_DEFINITIONS,
 } from "./feature-config.js";
+import { createCharacterStateController } from "./character-state.js";
+import { bindEquipmentUiEvents5e } from "./equipment-ui.js";
+import { bindFeatureChoiceEvents5e, renderFeatureChoicePanels5e } from "./feature-choices-ui.js";
+import { bindPdfSubmit5e } from "./pdf-export.js";
+import { bindSpellsUiEvents5e, createSpellSelectionStore } from "./spells-ui.js";
 
 const DEFAULT_TEMPLATE_URL = "./assets/pdf/5e/ficha5e.pdf";
 const PDF_MAP_URL = "./assets/pdf/5e/pdf-map.json";
@@ -663,7 +668,8 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
   let lastInspectionJson = "";
   let activePdfMap = clonePdfMapDefaults();
   let pdfMapLoadPromise = Promise.resolve(activePdfMap);
-  const spellSelectionState = new Map();
+  const spellSelectionStore = createSpellSelectionStore();
+  const spellSelectionState = spellSelectionStore.state;
   let magicFilterState = { ...MAGIC_FILTER_DEFAULTS };
   const ATTRIBUTE_INPUTS = ["for", "des", "con", "int", "sab", "car"].map((key) => el[key]);
   const ATTRIBUTE_SELECTS = {};
@@ -709,286 +715,19 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
   let skillSelectionState = {
     lastAutoFixed: new Set(),
   };
-  let deferredHeavyUiDepth = 0;
-  const pendingHeavyUiRefresh = {
-    magic: false,
-    preview: false,
-  };
-  const personagemSubscribers = [];
-  const personagemChangedKeys = new Set();
-  const personagemTarget = { snapshot: null };
-  let personagemBatchDepth = 0;
-  let personagemInitialized = false;
-  let personagemRefreshEnabled = false;
-  let applyingPersonagemReaction = false;
-  const personagem = new Proxy(personagemTarget, {
-    set(target, property, value) {
-      const key = String(property);
-      if (Object.is(target[key], value)) return true;
-      target[key] = value;
-      if (key !== "snapshot") {
-        personagemChangedKeys.add(key);
-        if (!personagemBatchDepth && personagemInitialized && personagemRefreshEnabled) {
-          publishPersonagemChanges(new Set([key]), { source: "direct" });
-        }
-      }
-      return true;
-    },
+  const characterStateController = createCharacterStateController({
+    collectState,
+    renderMagicSection,
+    updatePreview: atualizarPreview,
+    isSpellCatalogLoaded,
   });
-
-  function stableStateStringify(value) {
-    const seen = new WeakSet();
-
-    const normalize = (item) => {
-      if (item instanceof Set) return Array.from(item).sort();
-      if (Array.isArray(item)) return item.map(normalize);
-      if (item && typeof item === "object") {
-        if (typeof Node !== "undefined" && item instanceof Node) return "[Node]";
-        if (seen.has(item)) return "[Circular]";
-        seen.add(item);
-        return Object.keys(item).sort().reduce((acc, key) => {
-          const nextValue = item[key];
-          if (typeof nextValue !== "function") {
-            acc[key] = normalize(nextValue);
-          }
-          return acc;
-        }, {});
-      }
-      return item;
-    };
-
-    return JSON.stringify(normalize(value));
-  }
-
-  function classEntriesSignature(entries = []) {
-    return (Array.isArray(entries) ? entries : [])
-      .map((entry) => [
-        entry.uid,
-        entry.classId,
-        entry.subclassId,
-        entry.level,
-      ].join(":"))
-      .join("|");
-  }
-
-  function selectedFeatIdsSignature(feats = []) {
-    return (Array.isArray(feats) ? feats : [])
-      .map((feat) => feat?.id || feat?.name_pt || feat?.name || "")
-      .filter(Boolean)
-      .join("|");
-  }
-
-  function projectPersonagemState(state = {}) {
-    const classSignature = classEntriesSignature(state.classEntries);
-    const attributesSignature = stableStateStringify({
-      attrs: state.attrs,
-      asi: state.asi,
-      hpProgressionMode: state.hpProgressionMode,
-      hpRolls: state.hpRolls,
-    });
-    const choicesSignature = stableStateStringify({
-      selectedFeats: state.selectedFeats,
-      selectedFeatAbilityIncreases: state.selectedFeatAbilityIncreases,
-      selectedFeatDetails: state.selectedFeatDetails,
-      selectedSubclassDetails: state.selectedSubclassDetails,
-      selectedCompanionChoices: state.selectedCompanionChoices,
-      selectedRaceDetails: state.selectedRaceDetails,
-      selectedLanguages: state.selectedLanguages,
-      selectedExpertises: state.selectedExpertises,
-      selectedFightingStyles: state.selectedFightingStyles,
-      selectedWarlockPactBoons: state.selectedWarlockPactBoons,
-      selectedWarlockInvocations: state.selectedWarlockInvocations,
-      selectedFeatureChoices: state.selectedFeatureChoices,
-      selectedSubclassProficiencyChoices: state.selectedSubclassProficiencyChoices,
-      artificerInfusionState: state.artificerInfusionState,
-      equipmentSelections: state.equipmentSelections,
-    });
-    const magicSignature = stableStateStringify({
-      classSignature,
-      race: state.race?.id || state.raca,
-      subrace: state.subrace?.id || state.subraca,
-      selectedFeatIds: selectedFeatIdsSignature(state.selectedFeats),
-      selectedFeatDetails: state.selectedFeatDetails,
-      selectedSubclassDetails: state.selectedSubclassDetails,
-      selectedRaceDetails: state.selectedRaceDetails,
-      selectedFeatureChoices: state.selectedFeatureChoices,
-      selectedSpellsBySource: state.selectedSpellsBySource,
-      spellSlotsUsed: state.spellSlotsUsed,
-      attrs: state.attrs,
-    });
-
-    return {
-      nome: state.nome || "",
-      classe: state.classe || "",
-      nivel: state.nivel || 1,
-      nivelClassePrincipal: state.nivelClassePrincipal || 1,
-      arquetipo: state.arquetipo || "",
-      raca: state.raca || "",
-      subraca: state.subraca || "",
-      antecedente: state.antecedente || "",
-      classSignature,
-      attributesSignature,
-      choicesSignature,
-      magicSignature,
-      previewSignature: stableStateStringify({
-        identity: {
-          nomeJogador: state.nomeJogador,
-          nome: state.nome,
-          classe: state.classe,
-          nivel: state.nivel,
-          nivelClassePrincipal: state.nivelClassePrincipal,
-          arquetipo: state.arquetipo,
-          raca: state.raca,
-          subraca: state.subraca,
-          antecedente: state.antecedente,
-          alinhamento: state.alinhamento,
-          xp: state.xp,
-          divindade: state.divindade,
-        },
-        physical: {
-          idade: state.idade,
-          altura: state.altura,
-          peso: state.peso,
-          olhos: state.olhos,
-          pele: state.pele,
-          cabelo: state.cabelo,
-        },
-        resources: {
-          caManual: state.caManual,
-          deslocamentoManual: state.deslocamentoManual,
-          deslocamento: state.deslocamento,
-          hpMaxManual: state.hpMaxManual,
-          hpAtualManual: state.hpAtualManual,
-          hpTempManual: state.hpTempManual,
-          units: state.units,
-        },
-        attributesSignature,
-        choicesSignature,
-        magicSignature,
-        skillsExtra: state.skillsExtra,
-        skillFixed: state.skillFixed,
-        textos: state.textos,
-      }),
-    };
-  }
-
-  function subscribePersonagem(keys, handler) {
-    personagemSubscribers.push({
-      keys: new Set(Array.isArray(keys) ? keys : [keys]),
-      handler,
-    });
-  }
-
-  function publishPersonagemChanges(changedKeys, detail = {}) {
-    if (!changedKeys.size || applyingPersonagemReaction) return;
-
-    const eventDetail = {
-      source: detail.source || "unknown",
-      changedKeys: Array.from(changedKeys),
-      state: personagem.snapshot,
-    };
-    document.dispatchEvent(new CustomEvent("character-state:changed", { detail: eventDetail }));
-
-    applyingPersonagemReaction = true;
-    try {
-      personagemSubscribers.forEach((subscriber) => {
-        if (![...subscriber.keys].some((key) => changedKeys.has(key))) return;
-        subscriber.handler({
-          ...eventDetail,
-          changedKeys,
-          personagem,
-        });
-      });
-    } finally {
-      applyingPersonagemReaction = false;
-    }
-  }
-
-  function syncPersonagemState({ source = "manual", refresh = true } = {}) {
-    const nextState = collectState();
-    const nextProjection = projectPersonagemState(nextState);
-    personagemTarget.snapshot = nextState;
-
-    personagemBatchDepth += 1;
-    try {
-      Object.entries(nextProjection).forEach(([key, value]) => {
-        personagem[key] = value;
-      });
-    } finally {
-      personagemBatchDepth -= 1;
-    }
-
-    const changedKeys = new Set(personagemChangedKeys);
-    personagemChangedKeys.clear();
-    const canPublish = refresh && personagemRefreshEnabled && changedKeys.size;
-    personagemInitialized = true;
-    if (canPublish) publishPersonagemChanges(changedKeys, { source });
-    return nextState;
-  }
-
-  function enableReactiveCharacterState() {
-    personagemRefreshEnabled = true;
-  }
-
-  function commitCharacterStateMutation(source = "manual") {
-    return syncPersonagemState({ source });
-  }
-
-  function bindReactiveCharacterForm() {
-    if (!el.form) return;
-    el.form.addEventListener("input", () => {
-      commitCharacterStateMutation("form:input");
-    });
-    el.form.addEventListener("change", () => {
-      commitCharacterStateMutation("form:change");
-    });
-  }
-
-  subscribePersonagem("magicSignature", () => {
-    renderMagicSection();
-    syncPersonagemState({ source: "magic:render", refresh: false });
-  });
-
-  subscribePersonagem("previewSignature", ({ changedKeys }) => {
-    if (changedKeys.has("magicSignature") && isSpellCatalogLoaded()) return;
-    atualizarPreview();
-  });
-
-  function isDeferringHeavyUi() {
-    return deferredHeavyUiDepth > 0;
-  }
-
-  function deferHeavyUiRefresh(key) {
-    pendingHeavyUiRefresh[key] = true;
-  }
-
-  function flushDeferredHeavyUiRefreshes() {
-    const shouldRenderMagic = pendingHeavyUiRefresh.magic;
-    const shouldUpdatePreview = pendingHeavyUiRefresh.preview;
-    pendingHeavyUiRefresh.magic = false;
-    pendingHeavyUiRefresh.preview = false;
-
-    if (shouldRenderMagic) {
-      renderMagicSection();
-      return;
-    }
-
-    if (shouldUpdatePreview) {
-      atualizarPreview();
-    }
-  }
-
-  function withDeferredHeavyUi(task) {
-    deferredHeavyUiDepth += 1;
-    try {
-      return task();
-    } finally {
-      deferredHeavyUiDepth -= 1;
-      if (!deferredHeavyUiDepth) {
-        flushDeferredHeavyUiRefreshes();
-      }
-    }
-  }
+  const bindReactiveCharacterForm = () => characterStateController.bindForm(el.form);
+  const commitCharacterStateMutation = characterStateController.commit;
+  const deferHeavyUiRefresh = characterStateController.defer;
+  const enableReactiveCharacterState = characterStateController.enableReactiveCharacterState;
+  const isDeferringHeavyUi = characterStateController.isDeferring;
+  const syncPersonagemState = characterStateController.sync;
+  const withDeferredHeavyUi = characterStateController.withDeferred;
 
   function captureSavedCharacterPreset() {
     collectState();
@@ -1069,14 +808,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
   }
 
   function restoreSpellSelectionSnapshot(snapshot = {}) {
-    spellSelectionState.clear();
-    Object.entries(snapshot || {}).forEach(([sourceKey, selection]) => {
-      if (!sourceKey) return;
-      spellSelectionState.set(sourceKey, {
-        cantrips: new Set(Array.isArray(selection?.cantrips) ? selection.cantrips : []),
-        spells: new Set(Array.isArray(selection?.spells) ? selection.spells : []),
-      });
-    });
+    spellSelectionStore.restore(snapshot);
   }
 
   function syncAllCustomSelectFields() {
@@ -1095,18 +827,20 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     onSubclassChanged();
     onBackgroundChanged();
     renderAsiOptions();
-    renderFeatChoices();
-    renderFeatDetailChoices();
-    renderSubclassDetailChoices();
-    renderWarlockInvocationChoices();
-    renderFeatureChoices();
-    renderSubclassProficiencyChoices();
-    renderArtificerInfusions();
-    renderCompanionChoices();
-    renderRaceDetailChoices();
-    renderLanguageChoices();
-    renderExpertiseChoices();
-    renderFightingStyleChoices();
+    renderFeatureChoicePanels5e({
+      renderFeatChoices,
+      renderFeatDetailChoices,
+      renderSubclassDetailChoices,
+      renderWarlockInvocationChoices,
+      renderFeatureChoices,
+      renderSubclassProficiencyChoices,
+      renderArtificerInfusions,
+      renderCompanionChoices,
+      renderRaceDetailChoices,
+      renderLanguageChoices,
+      renderExpertiseChoices,
+      renderFightingStyleChoices,
+    });
     renderEquipmentChoices();
     renderHitPointRollControls({ force: true });
     updateAttributeMethodUi();
@@ -1128,18 +862,20 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
 
     renderSkillsExtra();
     renderAsiOptions();
-    renderFeatChoices();
-    renderFeatDetailChoices();
-    renderSubclassDetailChoices();
-    renderWarlockInvocationChoices();
-    renderFeatureChoices();
-    renderSubclassProficiencyChoices();
-    renderArtificerInfusions();
-    renderCompanionChoices();
-    renderRaceDetailChoices();
-    renderLanguageChoices();
-    renderExpertiseChoices();
-    renderFightingStyleChoices();
+    renderFeatureChoicePanels5e({
+      renderFeatChoices,
+      renderFeatDetailChoices,
+      renderSubclassDetailChoices,
+      renderWarlockInvocationChoices,
+      renderFeatureChoices,
+      renderSubclassProficiencyChoices,
+      renderArtificerInfusions,
+      renderCompanionChoices,
+      renderRaceDetailChoices,
+      renderLanguageChoices,
+      renderExpertiseChoices,
+      renderFightingStyleChoices,
+    });
     updateNameRandomizerButtonsState();
     el.skillsExtra.addEventListener("change", onSkillSelectionChanged);
 
@@ -1165,22 +901,24 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     el.antecedente.addEventListener("change", onBackgroundChanged);
     el.xp.addEventListener("input", onXpChanged);
     el.xp.addEventListener("change", onXpChanged);
-    if (el.featChoicesContainer) el.featChoicesContainer.addEventListener("change", onFeatChoiceChanged);
-    if (el.featDetailChoicesContainer) el.featDetailChoicesContainer.addEventListener("change", onFeatDetailChoiceChanged);
-    if (el.subclassDetailChoicesContainer) el.subclassDetailChoicesContainer.addEventListener("change", onSubclassDetailChoiceChanged);
-    if (el.warlockInvocationsContainer) el.warlockInvocationsContainer.addEventListener("change", onWarlockInvocationChoiceChanged);
-    if (el.featureChoicesContainer) el.featureChoicesContainer.addEventListener("change", onFeatureChoiceChanged);
-    if (el.subclassProficiencyChoicesContainer) el.subclassProficiencyChoicesContainer.addEventListener("change", onSubclassProficiencyChoiceChanged);
-    if (el.artificerInfusionsContainer) el.artificerInfusionsContainer.addEventListener("change", onArtificerInfusionChanged);
-    if (el.companionChoicesContainer) el.companionChoicesContainer.addEventListener("change", onCompanionChoiceChanged);
-    if (el.raceDetailChoicesContainer) el.raceDetailChoicesContainer.addEventListener("change", onRaceDetailChoiceChanged);
-    if (el.languageChoicesContainer) el.languageChoicesContainer.addEventListener("change", onLanguageChoiceChanged);
-    if (el.expertiseChoicesContainer) el.expertiseChoicesContainer.addEventListener("change", onExpertiseChoiceChanged);
-    if (el.fightingStyleContainer) el.fightingStyleContainer.addEventListener("change", onFightingStyleChoiceChanged);
-    if (el.equipmentChoicesPanel) {
-      el.equipmentChoicesPanel.addEventListener("change", onEquipmentChoicesChanged);
-      el.equipmentChoicesPanel.addEventListener("input", onEquipmentChoicesInput);
-    }
+    bindFeatureChoiceEvents5e(el, {
+      onFeatChoiceChanged,
+      onFeatDetailChoiceChanged,
+      onSubclassDetailChoiceChanged,
+      onWarlockInvocationChoiceChanged,
+      onFeatureChoiceChanged,
+      onSubclassProficiencyChoiceChanged,
+      onArtificerInfusionChanged,
+      onCompanionChoiceChanged,
+      onRaceDetailChoiceChanged,
+      onLanguageChoiceChanged,
+      onExpertiseChoiceChanged,
+      onFightingStyleChoiceChanged,
+    });
+    bindEquipmentUiEvents5e(el, {
+      onEquipmentChoicesChanged,
+      onEquipmentChoicesInput,
+    });
     [el.hpMethodFixed, el.hpMethodRolled].forEach((input) => {
       if (input) input.addEventListener("change", onHitPointProgressionChanged);
     });
@@ -1216,21 +954,16 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     [el.traitsSelect, el.ideaisSelect, el.vinculosSelect, el.defeitosSelect].forEach((select) => {
       select.addEventListener("change", atualizarPreview);
     });
-    if (el.availableSpellPanel) {
-      el.availableSpellPanel.addEventListener("change", onSpellChecklistChanged);
-      el.availableSpellPanel.addEventListener("change", onMagicFilterControlChanged);
-      el.availableSpellPanel.addEventListener("input", onMagicFilterControlInput);
-      el.availableSpellPanel.addEventListener("click", onMagicFilterControlClicked);
-      el.availableSpellPanel.addEventListener("mouseover", onMagicSpellHoverStart);
-      el.availableSpellPanel.addEventListener("mousemove", onMagicSpellHoverMove);
-      el.availableSpellPanel.addEventListener("mouseout", onMagicSpellHoverEnd);
-    }
-    if (el.selectedSpellBook) {
-      el.selectedSpellBook.addEventListener("mouseover", onMagicSpellHoverStart);
-      el.selectedSpellBook.addEventListener("mousemove", onMagicSpellHoverMove);
-      el.selectedSpellBook.addEventListener("mouseout", onMagicSpellHoverEnd);
-    }
-    if (el.magicSlotsGrid) el.magicSlotsGrid.addEventListener("input", onMagicSlotUsageInput);
+    bindSpellsUiEvents5e(el, {
+      onSpellChecklistChanged,
+      onMagicFilterControlChanged,
+      onMagicFilterControlInput,
+      onMagicFilterControlClicked,
+      onMagicSpellHoverStart,
+      onMagicSpellHoverMove,
+      onMagicSpellHoverEnd,
+      onMagicSlotUsageInput,
+    });
     if (el.aparenciaPersonagem) el.aparenciaPersonagem.addEventListener("change", onPortraitImageChanged);
     if (el.imagemSimbolo) el.imagemSimbolo.addEventListener("change", onSymbolImageChanged);
     [el.attrMethodFree, el.attrMethodRoll, el.attrMethodStandard, el.attrMethodPointbuy].forEach((input) => {
@@ -1248,39 +981,13 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     if (el.nomeRandomFeminino) el.nomeRandomFeminino.addEventListener("click", () => applyGeneratedCharacterName("feminino"));
     if (el.nomeRandomNeutro) el.nomeRandomNeutro.addEventListener("click", () => applyGeneratedCharacterName("neutro"));
 
-    el.form.addEventListener("submit", async (ev) => {
-      ev.preventDefault();
-      const tab = window.open("", "_blank");
-      if (!tab) {
-        alert("O navegador bloqueou a abertura de nova aba (popup). Habilite popups para este site e tente de novo.");
-        return;
-      }
-
-      try {
-        writeLoadingScreen(
-          tab,
-          "Preparando dados da ficha...",
-          "Validando as informações preenchidas e organizando tudo para montar o PDF da ficha 5e."
-        );
-      } catch (err) {
-        console.error(err);
-        setStatus("Não foi possível preparar a nova aba para gerar a ficha.");
-        return;
-      }
-
-      try {
-        await pdfMapLoadPromise;
-      } catch {}
-
-      setStatus("Gerando PDF da ficha 5e...");
-
-      try {
-        await gerarFichaPdf(tab);
-      } catch (err) {
-        console.error(err);
-        writeErrorScreen(tab, err);
-        setStatus("Não foi possível gerar a ficha.");
-      }
+    bindPdfSubmit5e({
+      form: el.form,
+      generatePdf: gerarFichaPdf,
+      loadPdfMap: () => pdfMapLoadPromise,
+      setStatus,
+      writeErrorScreen,
+      writeLoadingScreen,
     });
 
     initializeUserArea({
@@ -15006,30 +14713,15 @@ function getSelectedSubclassData() {
   }
 
   function getSpellSelectionForSource(sourceKey) {
-    if (!spellSelectionState.has(sourceKey)) {
-      spellSelectionState.set(sourceKey, {
-        cantrips: new Set(),
-        spells: new Set(),
-      });
-    }
-
-    return spellSelectionState.get(sourceKey);
+    return spellSelectionStore.ensure(sourceKey);
   }
 
   function cleanupSpellSelectionForSource(sourceKey) {
-    if (!sourceKey) return;
-    spellSelectionState.delete(sourceKey);
+    spellSelectionStore.remove(sourceKey);
   }
 
   function getSpellSelectionSnapshot() {
-    const snapshot = {};
-    spellSelectionState.forEach((selection, sourceKey) => {
-      snapshot[sourceKey] = {
-        cantrips: Array.from(selection.cantrips),
-        spells: Array.from(selection.spells),
-      };
-    });
-    return snapshot;
+    return spellSelectionStore.snapshot();
   }
 
   function ensureGrantedSpellSelections(sources = []) {

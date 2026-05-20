@@ -120,6 +120,11 @@ import {
   CLERIC_CHANNEL_DIVINITY_BY_LEVEL_2024,
   CLERIC_DOMAIN_GRANTED_SPELL_IDS_2024,
 } from "./class-progressions.js";
+import { createDeferredUiController } from "./character-state.js";
+import { bindEquipmentUiEvents2024 } from "./equipment-ui.js";
+import { bindFeatureChoiceEvents2024, renderFeatureChoicePanels2024 } from "./feature-choices-ui.js";
+import { bindPdfSubmit2024 } from "./pdf-export.js";
+import { bindSpellsUiEvents2024, createSpellSelectionStore2024 } from "./spells-ui.js";
 
 (() => {
   "use strict";
@@ -374,7 +379,8 @@ import {
   let floatingSubmitBarTicking2024 = false;
   let recalcFloatingSubmitButton2024 = null;
   let lastMagicContext2024 = null;
-  const spellSelectionState2024 = new Map();
+  const spellSelectionStore2024 = createSpellSelectionStore2024();
+  const spellSelectionState2024 = spellSelectionStore2024.state;
   let magicFilterState2024 = { ...MAGIC_FILTER_DEFAULTS_2024 };
   let multiclassRowCounter2024 = 0;
   const CUSTOM_SELECT_FIELDS_2024 = {};
@@ -392,50 +398,18 @@ import {
   let languageCustomSelectKeys2024 = [];
   let activeMagicHoverTarget2024 = null;
   let hitPointRollControlsSignature2024 = "";
-  let deferredHeavyUiDepth2024 = 0;
-  const pendingHeavyUiRefresh2024 = {
-    magic: false,
-    preview: false,
-  };
-
-  function isDeferringHeavyUi2024() {
-    return deferredHeavyUiDepth2024 > 0;
-  }
-
-  function deferHeavyUiRefresh2024(key) {
-    pendingHeavyUiRefresh2024[key] = true;
-  }
-
-  function flushDeferredHeavyUiRefreshes2024() {
-    const shouldRenderMagic = pendingHeavyUiRefresh2024.magic;
-    const shouldUpdatePreview = pendingHeavyUiRefresh2024.preview;
-    pendingHeavyUiRefresh2024.magic = false;
-    pendingHeavyUiRefresh2024.preview = false;
-
-    if (shouldRenderMagic) {
-      renderMagicSection2024();
-    }
-
-    if (shouldUpdatePreview) {
-      updatePreview();
-    }
-
-    if ((shouldRenderMagic || shouldUpdatePreview) && typeof recalcFloatingSubmitButton2024 === "function") {
-      window.requestAnimationFrame(() => recalcFloatingSubmitButton2024());
-    }
-  }
-
-  function withDeferredHeavyUi2024(task) {
-    deferredHeavyUiDepth2024 += 1;
-    try {
-      return task();
-    } finally {
-      deferredHeavyUiDepth2024 -= 1;
-      if (!deferredHeavyUiDepth2024) {
-        flushDeferredHeavyUiRefreshes2024();
+  const deferredUiController2024 = createDeferredUiController({
+    renderMagic: renderMagicSection2024,
+    updatePreview,
+    afterFlush: () => {
+      if (typeof recalcFloatingSubmitButton2024 === "function") {
+        window.requestAnimationFrame(() => recalcFloatingSubmitButton2024());
       }
-    }
-  }
+    },
+  });
+  const deferHeavyUiRefresh2024 = deferredUiController2024.defer;
+  const isDeferringHeavyUi2024 = deferredUiController2024.isDeferring;
+  const withDeferredHeavyUi2024 = deferredUiController2024.withDeferred;
 
   const el = {
     form: document.getElementById("sheetForm2024"),
@@ -737,25 +711,11 @@ import {
   }
 
   function getSpellSelectionSnapshot2024() {
-    const snapshot = {};
-    spellSelectionState2024.forEach((selection, sourceKey) => {
-      snapshot[sourceKey] = {
-        cantrips: Array.from(selection.cantrips || []),
-        spells: Array.from(selection.spells || []),
-      };
-    });
-    return snapshot;
+    return spellSelectionStore2024.snapshot();
   }
 
   function restoreSpellSelectionSnapshot2024(snapshot = {}) {
-    spellSelectionState2024.clear();
-    Object.entries(snapshot || {}).forEach(([sourceKey, selection]) => {
-      if (!sourceKey) return;
-      spellSelectionState2024.set(sourceKey, {
-        cantrips: new Set(Array.isArray(selection?.cantrips) ? selection.cantrips : []),
-        spells: new Set(Array.isArray(selection?.spells) ? selection.spells : []),
-      });
-    });
+    spellSelectionStore2024.restore(snapshot);
   }
 
   function syncAllCustomSelectFields2024() {
@@ -845,30 +805,32 @@ import {
     attachDropdownSuggestionContainerTouchBlur2024(el.divindadeSuggestions, el.divindadeInput);
     el.abilityScores?.addEventListener("input", onAbilityScoresChanged);
     el.abilityScores?.addEventListener("change", onAbilityScoresChanged);
-    el.abilityChoices?.addEventListener("change", onAbilityBonusChoicesChanged2024);
-    el.speciesChoices?.addEventListener("change", onSpeciesChoiceChanged2024);
-    el.warlockInvocationsContainer?.addEventListener("change", onWarlockInvocationChoiceChanged2024);
-    el.featureChoicesContainer?.addEventListener("change", onFeatureChoiceChanged2024);
-    el.subclassDetailChoicesContainer?.addEventListener("change", onSubclassDetailChoiceChanged2024);
-    el.companionChoicesContainer?.addEventListener("change", onCompanionChoiceChanged2024);
-    el.equipmentChoices?.addEventListener("change", onEquipmentChoicesChanged2024);
-    el.equipmentChoices?.addEventListener("input", onEquipmentChoicesInput2024);
-    el.featChoices?.addEventListener("change", onFeatChoiceChanged2024);
-    el.languageChoices?.addEventListener("change", onLanguageChoiceChanged2024);
-    el.skillsExtra?.addEventListener("change", onSkillSelectionChanged2024);
-    el.expertiseChoices?.addEventListener("change", onExpertiseChoiceChanged2024);
-    el.availableSpellPanel?.addEventListener("change", onMagicSpellChecklistChanged2024);
-    el.availableSpellPanel?.addEventListener("change", onMagicFilterControlChanged2024);
-    el.availableSpellPanel?.addEventListener("input", onMagicFilterControlInput2024);
-    el.availableSpellPanel?.addEventListener("click", onMagicFilterControlClicked2024);
-    el.availableSpellPanel?.addEventListener("mouseover", onMagicSpellHoverStart2024);
-    el.availableSpellPanel?.addEventListener("mousemove", onMagicSpellHoverMove2024);
-    el.availableSpellPanel?.addEventListener("mouseout", onMagicSpellHoverEnd2024);
-    el.selectedSpellBook?.addEventListener("mouseover", onMagicSpellHoverStart2024);
-    el.selectedSpellBook?.addEventListener("mousemove", onMagicSpellHoverMove2024);
-    el.selectedSpellBook?.addEventListener("mouseout", onMagicSpellHoverEnd2024);
-    el.magicSlotsGrid?.addEventListener("input", onMagicSlotUsageInput2024);
-    el.magicSlotsGrid?.addEventListener("change", onMagicSlotUsageInput2024);
+    bindFeatureChoiceEvents2024(el, {
+      onAbilityBonusChoicesChanged: onAbilityBonusChoicesChanged2024,
+      onSpeciesChoiceChanged: onSpeciesChoiceChanged2024,
+      onWarlockInvocationChoiceChanged: onWarlockInvocationChoiceChanged2024,
+      onFeatureChoiceChanged: onFeatureChoiceChanged2024,
+      onSubclassDetailChoiceChanged: onSubclassDetailChoiceChanged2024,
+      onCompanionChoiceChanged: onCompanionChoiceChanged2024,
+      onFeatChoiceChanged: onFeatChoiceChanged2024,
+      onLanguageChoiceChanged: onLanguageChoiceChanged2024,
+      onSkillSelectionChanged: onSkillSelectionChanged2024,
+      onExpertiseChoiceChanged: onExpertiseChoiceChanged2024,
+    });
+    bindEquipmentUiEvents2024(el, {
+      onEquipmentChoicesChanged: onEquipmentChoicesChanged2024,
+      onEquipmentChoicesInput: onEquipmentChoicesInput2024,
+    });
+    bindSpellsUiEvents2024(el, {
+      onMagicSpellChecklistChanged: onMagicSpellChecklistChanged2024,
+      onMagicFilterControlChanged: onMagicFilterControlChanged2024,
+      onMagicFilterControlInput: onMagicFilterControlInput2024,
+      onMagicFilterControlClicked: onMagicFilterControlClicked2024,
+      onMagicSpellHoverStart: onMagicSpellHoverStart2024,
+      onMagicSpellHoverMove: onMagicSpellHoverMove2024,
+      onMagicSpellHoverEnd: onMagicSpellHoverEnd2024,
+      onMagicSlotUsageInput: onMagicSlotUsageInput2024,
+    });
     el.btnAddMulticlass?.addEventListener("click", onAddMulticlassRow2024);
     el.multiclassRows?.addEventListener("input", onMulticlassRowsChanged2024);
     el.multiclassRows?.addEventListener("change", onMulticlassRowsChanged2024);
@@ -878,7 +840,7 @@ import {
     el.nomeRandomMasculino?.addEventListener("click", () => applyGeneratedCharacterName2024("masculino"));
     el.nomeRandomFeminino?.addEventListener("click", () => applyGeneratedCharacterName2024("feminino"));
     el.nomeRandomNeutro?.addEventListener("click", () => applyGeneratedCharacterName2024("neutro"));
-    el.form.addEventListener("submit", handlePdfSubmit);
+    bindPdfSubmit2024(el.form, handlePdfSubmit);
 
     migrationReviewAssistant2024 = createMigrationReviewAssistant({
       getPendingChoices: collectPendingChoices,
@@ -937,14 +899,16 @@ import {
     syncRecommendedStandardSetForClass2024();
     renderAbilityChoices();
     renderSpeciesChoices();
-    renderWarlockInvocationChoices2024();
-    renderFeatChoices();
-    renderLanguageChoices2024();
-    renderSkillChoices2024();
-    renderFeatureChoices2024();
-    renderSubclassDetailChoices2024();
-    renderCompanionChoices2024();
-    renderExpertiseChoices2024();
+    renderFeatureChoicePanels2024({
+      renderWarlockInvocationChoices: renderWarlockInvocationChoices2024,
+      renderFeatChoices,
+      renderLanguageChoices: renderLanguageChoices2024,
+      renderSkillChoices: renderSkillChoices2024,
+      renderFeatureChoices: renderFeatureChoices2024,
+      renderSubclassDetailChoices: renderSubclassDetailChoices2024,
+      renderCompanionChoices: renderCompanionChoices2024,
+      renderExpertiseChoices: renderExpertiseChoices2024,
+    });
     renderEquipmentChoices();
     renderHitPointRollControls2024();
     syncAlignmentInfo2024();
@@ -11735,22 +11699,11 @@ import {
   }
 
   function getSpellSelectionForSource2024(sourceKey) {
-    if (!spellSelectionState2024.has(sourceKey)) {
-      spellSelectionState2024.set(sourceKey, {
-        cantrips: new Set(),
-        spells: new Set(),
-      });
-    }
-    return spellSelectionState2024.get(sourceKey);
+    return spellSelectionStore2024.ensure(sourceKey);
   }
 
   function cleanupStaleSpellSelections2024(validSourceKeys = []) {
-    const allowed = new Set(validSourceKeys.filter(Boolean));
-    Array.from(spellSelectionState2024.keys()).forEach((sourceKey) => {
-      if (!allowed.has(sourceKey)) {
-        spellSelectionState2024.delete(sourceKey);
-      }
-    });
+    spellSelectionStore2024.deleteExcept(validSourceKeys);
   }
 
   function getSpellcastingContribution2024(level, progression) {
