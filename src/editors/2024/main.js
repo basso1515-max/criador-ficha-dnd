@@ -24,12 +24,17 @@ import {
   BATTLE_MASTER_MANEUVERS_2024,
   BATTLE_MASTER_MANEUVERS_BY_LEVEL_2024,
 } from "../../data/subclass-learned-options.js";
-import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggleButtons } from "../../user-area.js";
+import { captureFormPreset, restoreFormPreset, syncUnitToggleButtons } from "../../user-area.js";
 import { createLevelUpAssistant } from "../../level-up-assistant.js";
 import { createMigrationReviewAssistant } from "../../migration-review-assistant.js";
 import { saveCharacterForCurrentUser } from "../../account-storage.js";
 import { fitPdfTextToField as fitSharedPdfTextToField } from "../../shared/pdf-layout.js";
 import { escapeHtml, normalizePt, slugify } from "../../shared/text-utils.js";
+import { createFloatingSubmitButtonController } from "../floating-submit-ui.js";
+import {
+  initializeUnitToggleGroups as initializeEditorUnitToggleGroups2024,
+  syncUnitToggleGroupStates as syncEditorUnitToggleGroupStates2024,
+} from "../unit-toggle-ui.js";
 import {
   ABILITY_LABELS,
   ABILITY_ORDER,
@@ -120,11 +125,13 @@ import {
   CLERIC_CHANNEL_DIVINITY_BY_LEVEL_2024,
   CLERIC_DOMAIN_GRANTED_SPELL_IDS_2024,
 } from "./class-progressions.js";
+import { bindCharacterBasicsEvents2024 } from "./character-basics-ui.js";
 import { createDeferredUiController } from "./character-state.js";
 import { bindEquipmentUiEvents2024 } from "./equipment-ui.js";
 import { bindFeatureChoiceEvents2024, renderFeatureChoicePanels2024 } from "./feature-choices-ui.js";
 import { bindPdfSubmit2024 } from "./pdf-export.js";
 import { bindSpellsUiEvents2024, createSpellSelectionStore2024 } from "./spells-ui.js";
+import { initializeUserArea2024 } from "./user-area-ui.js";
 
 (() => {
   "use strict";
@@ -375,9 +382,6 @@ import { bindSpellsUiEvents2024, createSpellSelectionStore2024 } from "./spells-
   let lastValidPointBuyValues2024 = Object.fromEntries(ABILITY_ORDER.map((ability) => [ability, 8]));
   let lastAppliedStandardPreset2024 = null;
   let lastStandardPresetClassId2024 = "";
-  let floatingSubmitBarMetrics2024 = null;
-  let floatingSubmitBarTicking2024 = false;
-  let recalcFloatingSubmitButton2024 = null;
   let lastMagicContext2024 = null;
   const spellSelectionStore2024 = createSpellSelectionStore2024();
   const spellSelectionState2024 = spellSelectionStore2024.state;
@@ -398,14 +402,15 @@ import { bindSpellsUiEvents2024, createSpellSelectionStore2024 } from "./spells-
   let languageCustomSelectKeys2024 = [];
   let activeMagicHoverTarget2024 = null;
   let hitPointRollControlsSignature2024 = "";
+  const floatingSubmitButton2024 = createFloatingSubmitButtonController({
+    barId: "floatingSubmitBar2024",
+    previewPanelSelector: ".preview-panel-2024",
+    previewBoxId: "preview2024",
+  });
   const deferredUiController2024 = createDeferredUiController({
     renderMagic: renderMagicSection2024,
     updatePreview,
-    afterFlush: () => {
-      if (typeof recalcFloatingSubmitButton2024 === "function") {
-        window.requestAnimationFrame(() => recalcFloatingSubmitButton2024());
-      }
-    },
+    afterFlush: () => floatingSubmitButton2024.requestRecalc(),
   });
   const deferHeavyUiRefresh2024 = deferredUiController2024.defer;
   const isDeferringHeavyUi2024 = deferredUiController2024.isDeferring;
@@ -748,7 +753,7 @@ import { bindSpellsUiEvents2024, createSpellSelectionStore2024 } from "./spells-
     populateSelect(el.subraca, [], "Selecione a linhagem...");
     populateSelect(el.subclasse, [], "Selecione a subclasse...");
 
-    initializeUnitToggleGroups2024();
+    initializeEditorUnitToggleGroups2024({ targetIds: ["distanceUnit2024", "weightUnit2024"] });
     const savedDistanceUnit = localStorage.getItem("distance_unit");
     const savedWeightUnit = localStorage.getItem("weight_unit");
     if (el.distanceUnit) {
@@ -757,7 +762,7 @@ import { bindSpellsUiEvents2024, createSpellSelectionStore2024 } from "./spells-
     if (el.weightUnit) {
       el.weightUnit.value = WEIGHT_UNITS_2024[savedWeightUnit] ? savedWeightUnit : "kg";
     }
-    syncUnitToggleGroupStates2024();
+    syncEditorUnitToggleGroupStates2024({ targetIds: ["distanceUnit2024", "weightUnit2024"] });
 
     el.subraca.disabled = true;
     el.subclasse.disabled = true;
@@ -765,46 +770,35 @@ import { bindSpellsUiEvents2024, createSpellSelectionStore2024 } from "./spells-
     initializeMulticlassUi2024();
     initializeLevelUpAssistant2024();
 
-    [
-      el.classe,
-      el.antecedente,
-      el.raca,
-      el.subraca,
-      el.subclasse,
-      el.abilityMode,
-    ].forEach((field) => field?.addEventListener("change", renderAll));
-    el.nivel?.addEventListener("input", onLevelChanged2024);
-    el.nivel?.addEventListener("change", onLevelChanged2024);
-    el.legacyBackgroundName?.addEventListener("input", () => {
-      updateInfoBoxes();
-      updatePreview();
+    bindCharacterBasicsEvents2024(el, {
+      onCoreSelectionChanged: renderAll,
+      onLevelChanged: onLevelChanged2024,
+      onLegacyBackgroundNameInput: () => {
+        updateInfoBoxes();
+        updatePreview();
+      },
+      onAbilityMethodChanged: onAbilityMethodChanged2024,
+      applyRolledAttributes: applyRolledAttributes2024,
+      shuffleStandardArray: shuffleStandardArray2024,
+      onDistanceUnitChanged: onDistanceUnitChanged2024,
+      onWeightUnitChanged: onWeightUnitChanged2024,
+      onXpChanged: onXpChanged2024,
+      updatePreview,
+      onHitPointProgressionChanged: onHitPointProgressionChanged2024,
+      onHitPointRollsInput: onHitPointRollsInput2024,
+      onHitPointRollsClick: onHitPointRollsClick2024,
+      onDivinityChanged: onDivinityChanged2024,
+      consumeDropdownInteractionBlur: consumeDropdownInteractionBlur2024,
+      hideDivinitySuggestions: hideDivinitySuggestions2024,
+      hideDivinityHoverCard: hideDivinityHoverCard2024,
+      attachDropdownSuggestionContainerTouchBlur: attachDropdownSuggestionContainerTouchBlur2024,
+      onAbilityScoresChanged,
+      onAddMulticlassRow: onAddMulticlassRow2024,
+      onMulticlassRowsChanged: onMulticlassRowsChanged2024,
+      onMulticlassRowClicked: onMulticlassRowClicked2024,
+      randomizeSheet: randomizeSheet2024,
+      applyGeneratedCharacterName: applyGeneratedCharacterName2024,
     });
-    [el.attrMethodFree, el.attrMethodRoll, el.attrMethodStandard, el.attrMethodPointbuy]
-      .forEach((field) => field?.addEventListener("change", onAbilityMethodChanged2024));
-    el.attrRollBtn?.addEventListener("click", applyRolledAttributes2024);
-    el.attrStandardShuffleBtn?.addEventListener("click", shuffleStandardArray2024);
-    el.distanceUnit?.addEventListener("change", onDistanceUnitChanged2024);
-    el.weightUnit?.addEventListener("change", onWeightUnitChanged2024);
-    el.xp?.addEventListener("input", onXpChanged2024);
-    el.xp?.addEventListener("change", onXpChanged2024);
-
-    [el.nome, el.alinhamento, el.ca, el.hpAtual, el.hpMax, el.hpTemp, el.hdGastos, el.appearance, el.notes]
-      .forEach((field) => field?.addEventListener("input", updatePreview));
-    [el.hpMethodFixed, el.hpMethodRolled].forEach((field) => field?.addEventListener("change", onHitPointProgressionChanged2024));
-    el.hpRollsPanel?.addEventListener("input", onHitPointRollsInput2024);
-    el.hpRollsPanel?.addEventListener("change", onHitPointRollsInput2024);
-    el.hpRollsPanel?.addEventListener("click", onHitPointRollsClick2024);
-    el.divindadeInput?.addEventListener("input", () => onDivinityChanged2024({ showSuggestions: true }));
-    el.divindadeInput?.addEventListener("focus", () => onDivinityChanged2024({ showSuggestions: true, allowEmptySuggestions: true, showAllOnFocus: true }));
-    el.divindadeInput?.addEventListener("click", () => onDivinityChanged2024({ showSuggestions: true, allowEmptySuggestions: true, showAllOnFocus: true }));
-    el.divindadeInput?.addEventListener("blur", () => {
-      if (consumeDropdownInteractionBlur2024(el.divindadeInput)) return;
-      window.setTimeout(hideDivinitySuggestions2024, 120);
-      window.setTimeout(hideDivinityHoverCard2024, 140);
-    });
-    attachDropdownSuggestionContainerTouchBlur2024(el.divindadeSuggestions, el.divindadeInput);
-    el.abilityScores?.addEventListener("input", onAbilityScoresChanged);
-    el.abilityScores?.addEventListener("change", onAbilityScoresChanged);
     bindFeatureChoiceEvents2024(el, {
       onAbilityBonusChoicesChanged: onAbilityBonusChoicesChanged2024,
       onSpeciesChoiceChanged: onSpeciesChoiceChanged2024,
@@ -831,15 +825,6 @@ import { bindSpellsUiEvents2024, createSpellSelectionStore2024 } from "./spells-
       onMagicSpellHoverEnd: onMagicSpellHoverEnd2024,
       onMagicSlotUsageInput: onMagicSlotUsageInput2024,
     });
-    el.btnAddMulticlass?.addEventListener("click", onAddMulticlassRow2024);
-    el.multiclassRows?.addEventListener("input", onMulticlassRowsChanged2024);
-    el.multiclassRows?.addEventListener("change", onMulticlassRowsChanged2024);
-    el.multiclassRows?.addEventListener("click", onMulticlassRowClicked2024);
-    el.btnRandomizeAll?.addEventListener("click", () => randomizeSheet2024({ mode: "all" }));
-    el.btnRandomizeRemaining?.addEventListener("click", () => randomizeSheet2024({ mode: "remaining" }));
-    el.nomeRandomMasculino?.addEventListener("click", () => applyGeneratedCharacterName2024("masculino"));
-    el.nomeRandomFeminino?.addEventListener("click", () => applyGeneratedCharacterName2024("feminino"));
-    el.nomeRandomNeutro?.addEventListener("click", () => applyGeneratedCharacterName2024("neutro"));
     bindPdfSubmit2024(el.form, handlePdfSubmit);
 
     migrationReviewAssistant2024 = createMigrationReviewAssistant({
@@ -848,35 +833,8 @@ import { bindSpellsUiEvents2024, createSpellSelectionStore2024 } from "./spells-
       setStatus: setStatus2024,
     });
 
-    initializeUserArea({
-      edition: "5.5e-2024",
-      form: el.form,
-      elements: {
-        root: el.userArea,
-        container: el.userAreaContainer,
-        header: el.userAreaHeader,
-        authPanel: el.authPanel,
-        loginForm: el.loginForm,
-        registerForm: el.registerForm,
-        userPanel: el.userPanel,
-        accountName: el.accountName,
-        accountEmail: el.accountEmail,
-        sessionRow: el.userSessionRow,
-        count: el.userAreaCount,
-        logoutButton: el.logoutAccount,
-        pageLogoutButton: el.editorLogout,
-        mobileLogoutButton: el.mobileLogout,
-        mobileMenuShell: el.mobileMenuShell,
-        mobileMenuToggle: el.mobileMenuToggle,
-        mobileMenu: el.mobileMenu,
-        mobileCharacterBlock: el.mobileCharacterBlock,
-        mobileCharacterName: el.mobileCharacterName,
-        mobileCharacterSummary: el.mobileCharacterSummary,
-        saveButton: el.saveCharacter,
-        saveButtons: [el.quickSaveCharacter, el.mobileSaveCharacter],
-        empty: el.emptySaves,
-        list: el.savedCharactersList,
-      },
+    initializeUserArea2024({
+      el,
       capture: captureSavedCharacterPreset2024,
       restore: restoreSavedCharacterPreset2024,
       getCharacterName: () => String(el.nome?.value || "").trim(),
@@ -886,7 +844,7 @@ import { bindSpellsUiEvents2024, createSpellSelectionStore2024 } from "./spells-
     });
 
     renderAll();
-    initializeFloatingSubmitButton2024();
+    floatingSubmitButton2024.initialize();
   }
 
   function renderAll() {
@@ -914,9 +872,7 @@ import { bindSpellsUiEvents2024, createSpellSelectionStore2024 } from "./spells-
     syncAlignmentInfo2024();
     renderMagicSection2024();
     updatePreview();
-    if (!isDeferringHeavyUi2024() && typeof recalcFloatingSubmitButton2024 === "function") {
-      window.requestAnimationFrame(() => recalcFloatingSubmitButton2024());
-    }
+    if (!isDeferringHeavyUi2024()) floatingSubmitButton2024.requestRecalc();
   }
 
   function onAbilityScoresChanged() {
@@ -1917,45 +1873,6 @@ import { bindSpellsUiEvents2024, createSpellSelectionStore2024 } from "./spells-
     });
 
     Object.keys(CUSTOM_SELECT_FIELDS_2024).forEach((key) => syncCustomSelectField2024(key));
-  }
-
-  function initializeUnitToggleGroups2024() {
-    document.querySelectorAll(".unit-toggle[data-target]").forEach((group) => {
-      const targetId = group.getAttribute("data-target");
-      if (targetId !== "distanceUnit2024" && targetId !== "weightUnit2024") return;
-      const input = targetId ? document.getElementById(targetId) : null;
-      if (!input) return;
-
-      const syncActiveState = () => {
-        group.querySelectorAll(".unit-toggle-btn").forEach((button) => {
-          button.classList.toggle("is-active", button.getAttribute("data-value") === input.value);
-        });
-      };
-
-      group.querySelectorAll(".unit-toggle-btn").forEach((button) => {
-        button.addEventListener("click", () => {
-          const nextValue = button.getAttribute("data-value") || "";
-          if (!nextValue || input.value === nextValue) return;
-          input.value = nextValue;
-          syncActiveState();
-          input.dispatchEvent(new Event("change", { bubbles: true }));
-        });
-      });
-
-      syncActiveState();
-    });
-  }
-
-  function syncUnitToggleGroupStates2024() {
-    document.querySelectorAll(".unit-toggle[data-target]").forEach((group) => {
-      const targetId = group.getAttribute("data-target");
-      if (targetId !== "distanceUnit2024" && targetId !== "weightUnit2024") return;
-      const input = targetId ? document.getElementById(targetId) : null;
-      if (!input) return;
-      group.querySelectorAll(".unit-toggle-btn").forEach((button) => {
-        button.classList.toggle("is-active", button.getAttribute("data-value") === input.value);
-      });
-    });
   }
 
   function createCustomSelectField2024({
@@ -8069,78 +7986,6 @@ import { bindSpellsUiEvents2024, createSpellSelectionStore2024 } from "./spells-
     updateAbilityScoreInfo();
     renderFeatChoices();
     updatePreview();
-  }
-
-  function initializeFloatingSubmitButton2024() {
-    const bar = document.getElementById("floatingSubmitBar2024");
-    const previewPanel = document.querySelector(".preview-panel-2024");
-    const previewBox = document.getElementById("preview2024");
-    if (!bar || !previewPanel || !previewBox) return;
-
-    const recalc = () => {
-      floatingSubmitBarMetrics2024 = {
-        bar,
-        previewPanel,
-        previewBox,
-        originalTop: 0,
-      };
-      bar.classList.remove("is-floating");
-      bar.style.removeProperty("--floating-submit-left");
-      bar.style.removeProperty("--floating-submit-width-js");
-
-      const panelRect = previewPanel.getBoundingClientRect();
-      const barRect = bar.getBoundingClientRect();
-      floatingSubmitBarMetrics2024.originalTop = barRect.top + window.scrollY;
-      floatingSubmitBarMetrics2024.left = panelRect.left + window.scrollX;
-      floatingSubmitBarMetrics2024.width = panelRect.width;
-
-      syncFloatingSubmitButton2024();
-    };
-    recalcFloatingSubmitButton2024 = recalc;
-
-    const requestSync = () => {
-      if (floatingSubmitBarTicking2024) return;
-      floatingSubmitBarTicking2024 = true;
-      window.requestAnimationFrame(() => {
-        floatingSubmitBarTicking2024 = false;
-        syncFloatingSubmitButton2024();
-      });
-    };
-
-    window.addEventListener("scroll", requestSync, { passive: true });
-    window.addEventListener("resize", recalc);
-    window.setTimeout(recalc, 0);
-  }
-
-  function syncFloatingSubmitButton2024() {
-    if (!floatingSubmitBarMetrics2024) return;
-
-    const { bar, previewBox, originalTop, left, width } = floatingSubmitBarMetrics2024;
-    if (!bar || !previewBox) return;
-
-    if (window.innerWidth <= 720) {
-      bar.classList.remove("is-floating");
-      bar.style.removeProperty("--floating-submit-left");
-      bar.style.removeProperty("--floating-submit-width-js");
-      return;
-    }
-
-    const topOffset = 16;
-    const previewRect = previewBox.getBoundingClientRect();
-    const thresholdY = originalTop - topOffset;
-    const lockStartY = window.scrollY >= thresholdY;
-    const previewBottomPassedTop = previewRect.bottom <= topOffset;
-
-    if (lockStartY && previewBottomPassedTop) {
-      bar.classList.add("is-floating");
-      bar.style.setProperty("--floating-submit-left", `${left}px`);
-      bar.style.setProperty("--floating-submit-width-js", `${width}px`);
-      return;
-    }
-
-    bar.classList.remove("is-floating");
-    bar.style.removeProperty("--floating-submit-left");
-    bar.style.removeProperty("--floating-submit-width-js");
   }
 
   function pickRandom2024(values = []) {

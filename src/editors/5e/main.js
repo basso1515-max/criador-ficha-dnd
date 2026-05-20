@@ -21,15 +21,14 @@ import {
   RANGER_NATURAL_EXPLORER_OPTIONS_5E,
 } from "../../data/subclass-learned-options.js";
 import { buildRandomCharacterNameForRace } from "../../data/character-name-randomizer.js";
-import { captureFormPreset, initializeUserArea, restoreFormPreset, syncUnitToggleButtons } from "../../user-area.js";
+import { captureFormPreset, restoreFormPreset, syncUnitToggleButtons } from "../../user-area.js";
 import { createLevelUpAssistant } from "../../level-up-assistant.js";
 import { fitPdfTextToField as fitSharedPdfTextToField } from "../../shared/pdf-layout.js";
 import { escapeHtml as escapeHtmlBase, normalizePt } from "../../shared/text-utils.js";
+import { createFloatingSubmitButtonController } from "../floating-submit-ui.js";
+import { initializeUnitToggleGroups as initializeEditorUnitToggleGroups } from "../unit-toggle-ui.js";
 import { DEFAULT_PDF_MAP } from "./default-pdf-map.js";
 import {
-  VERSION_ROUTE_HOME,
-  VERSION_ROUTE_5E,
-  VERSION_ROUTE_2024,
   alinhamento,
   ABILITIES,
   SKILLS,
@@ -92,11 +91,14 @@ import {
   SUBCLASS_SPELL_LIST_AUGMENTS,
   SUBCLASS_GRANTED_SPELL_SOURCE_DEFINITIONS,
 } from "./feature-config.js";
+import { bindCharacterBasicsEvents5e } from "./character-basics-ui.js";
 import { createCharacterStateController } from "./character-state.js";
 import { bindEquipmentUiEvents5e } from "./equipment-ui.js";
 import { bindFeatureChoiceEvents5e, renderFeatureChoicePanels5e } from "./feature-choices-ui.js";
 import { bindPdfSubmit5e } from "./pdf-export.js";
 import { bindSpellsUiEvents5e, createSpellSelectionStore } from "./spells-ui.js";
+import { initializeUserArea5e } from "./user-area-ui.js";
+import { initializeVersionPicker5e } from "./version-picker-ui.js";
 
 const DEFAULT_TEMPLATE_URL = "./assets/pdf/5e/ficha5e.pdf";
 const PDF_MAP_URL = "./assets/pdf/5e/pdf-map.json";
@@ -709,12 +711,14 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
   let selectedSymbolImage = null;
   const magicChecklistScrollState = new Map();
   const knownSpellDistributionCache = new Map();
-  let floatingSubmitBarMetrics = null;
-  let floatingSubmitBarTicking = false;
-  let recalcFloatingSubmitButton = null;
   let skillSelectionState = {
     lastAutoFixed: new Set(),
   };
+  const floatingSubmitButton = createFloatingSubmitButtonController({
+    barId: "floatingSubmitBar",
+    previewPanelSelector: ".preview-panel",
+    previewBoxId: "preview",
+  });
   const characterStateController = createCharacterStateController({
     collectState,
     renderMagicSection,
@@ -877,30 +881,46 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       renderFightingStyleChoices,
     });
     updateNameRandomizerButtonsState();
-    el.skillsExtra.addEventListener("change", onSkillSelectionChanged);
-
-    el.raca.addEventListener("change", onRaceChanged);
-    el.subraca.addEventListener("change", onSubraceChanged);
-    el.classe.addEventListener("change", onClassChanged);
-    el.arquetipo.addEventListener("change", onSubclassChanged);
-    el.nivel.addEventListener("input", onTotalLevelChanged);
-    if (el.classeNivelPrincipal) el.classeNivelPrincipal.addEventListener("input", onPrimaryClassLevelChanged);
-    if (el.btnAddMulticlass) el.btnAddMulticlass.addEventListener("click", onAddMulticlassRow);
-    if (el.multiclassRows) {
-      el.multiclassRows.addEventListener("input", onMulticlassRowsChanged);
-      el.multiclassRows.addEventListener("change", onMulticlassRowsChanged);
-      el.multiclassRows.addEventListener("click", onMulticlassRowClicked);
-    }
-    el.asi21.addEventListener("change", onAsiMethodChanged);
-    el.asi111.addEventListener("change", onAsiMethodChanged);
-    el.asiPlus2.addEventListener("change", atualizarPreview);
-    el.asiPlus1.addEventListener("change", atualizarPreview);
-    el.asiPlusA.addEventListener("change", onAsiSelectionChanged);
-    el.asiPlusB.addEventListener("change", onAsiSelectionChanged);
-    el.asiPlusC.addEventListener("change", onAsiSelectionChanged);
-    el.antecedente.addEventListener("change", onBackgroundChanged);
-    el.xp.addEventListener("input", onXpChanged);
-    el.xp.addEventListener("change", onXpChanged);
+    bindCharacterBasicsEvents5e(el, {
+      attributeInputs: ATTRIBUTE_INPUTS,
+      onSkillSelectionChanged,
+      onRaceChanged,
+      onSubraceChanged,
+      onClassChanged,
+      onSubclassChanged,
+      onTotalLevelChanged,
+      onPrimaryClassLevelChanged,
+      onAddMulticlassRow,
+      onMulticlassRowsChanged,
+      onMulticlassRowClicked,
+      onAsiMethodChanged,
+      updatePreview: atualizarPreview,
+      onAsiSelectionChanged,
+      onBackgroundChanged,
+      onXpChanged,
+      onHitPointProgressionChanged,
+      onHitPointRollsInput,
+      onHitPointRollsClick,
+      onDistanceUnitChanged,
+      onWeightUnitChanged,
+      updatePhysicalProfileInfo,
+      onAlignmentChanged,
+      onDivinityChanged,
+      consumeDropdownInteractionBlur,
+      hideAlignmentSuggestions,
+      hideAlignmentHoverCard,
+      hideDivinitySuggestions,
+      hideDivinityHoverCard,
+      attachDropdownSuggestionContainerTouchBlur,
+      onPortraitImageChanged,
+      onSymbolImageChanged,
+      onAttributeMethodChanged,
+      onAttributeInputsChanged,
+      applyRolledAttributes,
+      shuffleStandardArray,
+      randomizeSheet,
+      applyGeneratedCharacterName,
+    });
     bindFeatureChoiceEvents5e(el, {
       onFeatChoiceChanged,
       onFeatDetailChoiceChanged,
@@ -919,41 +939,6 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       onEquipmentChoicesChanged,
       onEquipmentChoicesInput,
     });
-    [el.hpMethodFixed, el.hpMethodRolled].forEach((input) => {
-      if (input) input.addEventListener("change", onHitPointProgressionChanged);
-    });
-    if (el.hpRollsPanel) {
-      el.hpRollsPanel.addEventListener("input", onHitPointRollsInput);
-      el.hpRollsPanel.addEventListener("change", onHitPointRollsInput);
-      el.hpRollsPanel.addEventListener("click", onHitPointRollsClick);
-    }
-    el.distanceUnit.addEventListener("change", onDistanceUnitChanged);
-    el.weightUnit.addEventListener("change", onWeightUnitChanged);
-    [el.idade, el.altura, el.peso, el.olhos, el.pele, el.cabelo].forEach((input) => {
-      if (!input) return;
-      input.addEventListener("input", updatePhysicalProfileInfo);
-    });
-    el.alinhamento.addEventListener("input", () => onAlignmentChanged({ showSuggestions: true }));
-    el.alinhamento.addEventListener("focus", () => onAlignmentChanged({ showSuggestions: true, allowEmptySuggestions: true, showAllOnFocus: true }));
-    el.alinhamento.addEventListener("click", () => onAlignmentChanged({ showSuggestions: true, allowEmptySuggestions: true, showAllOnFocus: true }));
-    el.alinhamento.addEventListener("blur", () => {
-      if (consumeDropdownInteractionBlur(el.alinhamento)) return;
-      window.setTimeout(hideAlignmentSuggestions, 120);
-      window.setTimeout(hideAlignmentHoverCard, 140);
-    });
-    attachDropdownSuggestionContainerTouchBlur(el.alinhamentoSuggestions, el.alinhamento);
-    el.divindade.addEventListener("input", () => onDivinityChanged({ showSuggestions: true }));
-    el.divindade.addEventListener("focus", () => onDivinityChanged({ showSuggestions: true, allowEmptySuggestions: true, showAllOnFocus: true }));
-    el.divindade.addEventListener("click", () => onDivinityChanged({ showSuggestions: true, allowEmptySuggestions: true, showAllOnFocus: true }));
-    el.divindade.addEventListener("blur", () => {
-      if (consumeDropdownInteractionBlur(el.divindade)) return;
-      window.setTimeout(hideDivinitySuggestions, 120);
-      window.setTimeout(hideDivinityHoverCard, 140);
-    });
-    attachDropdownSuggestionContainerTouchBlur(el.divindadeSuggestions, el.divindade);
-    [el.traitsSelect, el.ideaisSelect, el.vinculosSelect, el.defeitosSelect].forEach((select) => {
-      select.addEventListener("change", atualizarPreview);
-    });
     bindSpellsUiEvents5e(el, {
       onSpellChecklistChanged,
       onMagicFilterControlChanged,
@@ -964,22 +949,6 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       onMagicSpellHoverEnd,
       onMagicSlotUsageInput,
     });
-    if (el.aparenciaPersonagem) el.aparenciaPersonagem.addEventListener("change", onPortraitImageChanged);
-    if (el.imagemSimbolo) el.imagemSimbolo.addEventListener("change", onSymbolImageChanged);
-    [el.attrMethodFree, el.attrMethodRoll, el.attrMethodStandard, el.attrMethodPointbuy].forEach((input) => {
-      input.addEventListener("change", onAttributeMethodChanged);
-    });
-    ATTRIBUTE_INPUTS.forEach((input) => {
-      input.addEventListener("input", () => onAttributeInputsChanged(input));
-      input.addEventListener("change", () => onAttributeInputsChanged(input));
-    });
-    el.attrRollBtn.addEventListener("click", applyRolledAttributes);
-    el.attrStandardShuffleBtn.addEventListener("click", shuffleStandardArray);
-    if (el.btnRandomizeAll) el.btnRandomizeAll.addEventListener("click", () => randomizeSheet({ mode: "all" }));
-    if (el.btnRandomizeRemaining) el.btnRandomizeRemaining.addEventListener("click", () => randomizeSheet({ mode: "remaining" }));
-    if (el.nomeRandomMasculino) el.nomeRandomMasculino.addEventListener("click", () => applyGeneratedCharacterName("masculino"));
-    if (el.nomeRandomFeminino) el.nomeRandomFeminino.addEventListener("click", () => applyGeneratedCharacterName("feminino"));
-    if (el.nomeRandomNeutro) el.nomeRandomNeutro.addEventListener("click", () => applyGeneratedCharacterName("neutro"));
 
     bindPdfSubmit5e({
       form: el.form,
@@ -990,35 +959,8 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       writeLoadingScreen,
     });
 
-    initializeUserArea({
-      edition: "5e",
-      form: el.form,
-      elements: {
-        root: el.userArea,
-        container: el.userAreaContainer,
-        header: el.userAreaHeader,
-        authPanel: el.authPanel,
-        loginForm: el.loginForm,
-        registerForm: el.registerForm,
-        userPanel: el.userPanel,
-        accountName: el.accountName,
-        accountEmail: el.accountEmail,
-        sessionRow: el.userSessionRow,
-        count: el.userAreaCount,
-        logoutButton: el.logoutAccount,
-        pageLogoutButton: el.editorLogout,
-        mobileLogoutButton: el.mobileLogout,
-        mobileMenuShell: el.mobileMenuShell,
-        mobileMenuToggle: el.mobileMenuToggle,
-        mobileMenu: el.mobileMenu,
-        mobileCharacterBlock: el.mobileCharacterBlock,
-        mobileCharacterName: el.mobileCharacterName,
-        mobileCharacterSummary: el.mobileCharacterSummary,
-        saveButton: el.saveCharacter,
-        saveButtons: [el.quickSaveCharacter, el.mobileSaveCharacter],
-        empty: el.emptySaves,
-        list: el.savedCharactersList,
-      },
+    initializeUserArea5e({
+      el,
       capture: captureSavedCharacterPreset,
       restore: restoreSavedCharacterPreset,
       getCharacterName: () => String(el.nome?.value || "").trim(),
@@ -1031,7 +973,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     restoreFromLocalStorage();
     renderEquipmentChoices();
     renderHitPointRollControls({ force: true });
-    initializeUnitToggleGroups();
+    initializeEditorUnitToggleGroups();
     onAttributeMethodChanged();
     onRaceChanged();
     onClassChanged();
@@ -1048,193 +990,12 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     atualizarPreview();
     syncPersonagemState({ source: "initial", refresh: false });
     enableReactiveCharacterState();
-    initializeFloatingSubmitButton();
-    initializeVersionPicker();
+    floatingSubmitButton.initialize();
+    initializeVersionPicker5e({
+      el,
+      on5eActivated: () => floatingSubmitButton.requestRecalc(),
+    });
   });
-
-  function initializeFloatingSubmitButton() {
-    const bar = document.getElementById("floatingSubmitBar");
-    const previewPanel = document.querySelector(".preview-panel");
-    const previewBox = document.getElementById("preview");
-    if (!bar || !previewPanel || !previewBox) return;
-
-    const recalc = () => {
-      floatingSubmitBarMetrics = {
-        bar,
-        previewPanel,
-        previewBox,
-        originalTop: 0,
-      };
-      bar.classList.remove("is-floating");
-      bar.style.removeProperty("--floating-submit-left");
-      bar.style.removeProperty("--floating-submit-width-js");
-
-      const panelRect = previewPanel.getBoundingClientRect();
-      const barRect = bar.getBoundingClientRect();
-      floatingSubmitBarMetrics.originalTop = barRect.top + window.scrollY;
-      floatingSubmitBarMetrics.left = panelRect.left + window.scrollX;
-      floatingSubmitBarMetrics.width = panelRect.width;
-
-      syncFloatingSubmitButton();
-    };
-    recalcFloatingSubmitButton = recalc;
-
-    const requestSync = () => {
-      if (floatingSubmitBarTicking) return;
-      floatingSubmitBarTicking = true;
-      window.requestAnimationFrame(() => {
-        floatingSubmitBarTicking = false;
-        syncFloatingSubmitButton();
-      });
-    };
-
-    window.addEventListener("scroll", requestSync, { passive: true });
-    window.addEventListener("resize", recalc);
-    window.setTimeout(recalc, 0);
-  }
-
-  function syncFloatingSubmitButton() {
-    if (!floatingSubmitBarMetrics) return;
-
-    const { bar, previewBox, originalTop, left, width } = floatingSubmitBarMetrics;
-    if (!bar || !previewBox) return;
-
-    if (window.innerWidth <= 720) {
-      bar.classList.remove("is-floating");
-      bar.style.removeProperty("--floating-submit-left");
-      bar.style.removeProperty("--floating-submit-width-js");
-      return;
-    }
-
-    const topOffset = 16;
-    const previewRect = previewBox.getBoundingClientRect();
-    const thresholdY = originalTop - topOffset;
-    const lockStartY = window.scrollY >= thresholdY;
-    const previewBottomPassedTop = previewRect.bottom <= topOffset;
-
-    if (lockStartY && previewBottomPassedTop) {
-      bar.classList.add("is-floating");
-      bar.style.setProperty("--floating-submit-left", `${left}px`);
-      bar.style.setProperty("--floating-submit-width-js", `${width}px`);
-      return;
-    }
-
-    bar.classList.remove("is-floating");
-    bar.style.removeProperty("--floating-submit-left");
-    bar.style.removeProperty("--floating-submit-width-js");
-  }
-
-  function initializeVersionPicker() {
-    document.querySelectorAll("[data-version-route]").forEach((button) => {
-      button.addEventListener("click", () => {
-        setVersionRoute(button.getAttribute("data-version-route"));
-      });
-    });
-
-    const standaloneRoute = document.body?.dataset?.standaloneRoute || "";
-    if (standaloneRoute) {
-      setActiveVersionScreen(standaloneRoute);
-      return;
-    }
-
-    window.addEventListener("hashchange", syncVersionScreenFromHash);
-    syncVersionScreenFromHash({ replaceInvalidHash: true });
-  }
-
-  function normalizeVersionRoute(value = "") {
-    const normalized = String(value || "")
-      .replace(/^#/, "")
-      .trim()
-      .toLowerCase();
-
-    if (normalized === VERSION_ROUTE_5E || normalized === "dnd-5e") return VERSION_ROUTE_5E;
-    if (
-      normalized === VERSION_ROUTE_2024
-      || normalized === "5.5e"
-      || normalized === "5e2024"
-      || normalized === "2024"
-      || normalized === "dnd-2024"
-    ) {
-      return VERSION_ROUTE_2024;
-    }
-
-    return VERSION_ROUTE_HOME;
-  }
-
-  function setVersionRoute(route, { replace = false } = {}) {
-    const normalizedRoute = normalizeVersionRoute(route);
-    const nextHash = `#${normalizedRoute}`;
-
-    if (window.location.hash === nextHash) {
-      setActiveVersionScreen(normalizedRoute);
-      return;
-    }
-
-    if (replace) {
-      window.history.replaceState(null, "", nextHash);
-      setActiveVersionScreen(normalizedRoute);
-      return;
-    }
-
-    window.location.hash = nextHash;
-  }
-
-  function syncVersionScreenFromHash({ replaceInvalidHash = false } = {}) {
-    const normalizedRoute = normalizeVersionRoute(window.location.hash);
-    if (replaceInvalidHash && window.location.hash !== `#${normalizedRoute}`) {
-      window.history.replaceState(null, "", `#${normalizedRoute}`);
-    }
-    setActiveVersionScreen(normalizedRoute);
-  }
-
-  function setActiveVersionScreen(route) {
-    const normalizedRoute = normalizeVersionRoute(route);
-    const isHome = normalizedRoute === VERSION_ROUTE_HOME;
-    const is5e = normalizedRoute === VERSION_ROUTE_5E;
-    const is2024 = normalizedRoute === VERSION_ROUTE_2024;
-
-    if (el.versionHomeScreen) el.versionHomeScreen.hidden = !isHome;
-    if (el.version5eScreen) el.version5eScreen.hidden = !is5e;
-    if (el.version2024Screen) el.version2024Screen.hidden = !is2024;
-
-    if (document.body) {
-      document.body.dataset.activeScreen = normalizedRoute;
-    }
-
-    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
-
-    if (is5e && typeof recalcFloatingSubmitButton === "function") {
-      window.requestAnimationFrame(() => {
-        recalcFloatingSubmitButton();
-      });
-    }
-  }
-
-  function initializeUnitToggleGroups() {
-    document.querySelectorAll(".unit-toggle[data-target]").forEach((group) => {
-      const targetId = group.getAttribute("data-target");
-      const input = targetId ? document.getElementById(targetId) : null;
-      if (!input) return;
-
-      const syncActiveState = () => {
-        group.querySelectorAll(".unit-toggle-btn").forEach((button) => {
-          button.classList.toggle("is-active", button.getAttribute("data-value") === input.value);
-        });
-      };
-
-      group.querySelectorAll(".unit-toggle-btn").forEach((button) => {
-        button.addEventListener("click", () => {
-          const nextValue = button.getAttribute("data-value") || "";
-          if (!nextValue || input.value === nextValue) return;
-          input.value = nextValue;
-          syncActiveState();
-          input.dispatchEvent(new Event("change", { bubbles: true }));
-        });
-      });
-
-      syncActiveState();
-    });
-  }
 
   function populateSelect(select, items, placeholder = null) {
     const opts = [];
@@ -18766,9 +18527,7 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
       <p><strong>Equipamento:</strong><br>${escapeHtml(ficha.texto.equipamento || "-").replaceAll("\n", "<br>")}</p>
     `;
 
-    if (typeof recalcFloatingSubmitButton === "function") {
-      window.requestAnimationFrame(() => recalcFloatingSubmitButton());
-    }
+    floatingSubmitButton.requestRecalc();
   }
 
   function writeErrorScreen(tab, err) {

@@ -1,0 +1,46 @@
+import { initializeUserArea } from "../../user-area.js";
+
+export function initializeUserArea5e({
+  el,
+  capture,
+  restore,
+  getCharacterName,
+  getCharacterSummary,
+  setStatus,
+}) {
+  return initializeUserArea({
+    edition: "5e",
+    form: el.form,
+    elements: {
+      root: el.userArea,
+      container: el.userAreaContainer,
+      header: el.userAreaHeader,
+      authPanel: el.authPanel,
+      loginForm: el.loginForm,
+      registerForm: el.registerForm,
+      userPanel: el.userPanel,
+      accountName: el.accountName,
+      accountEmail: el.accountEmail,
+      sessionRow: el.userSessionRow,
+      count: el.userAreaCount,
+      logoutButton: el.logoutAccount,
+      pageLogoutButton: el.editorLogout,
+      mobileLogoutButton: el.mobileLogout,
+      mobileMenuShell: el.mobileMenuShell,
+      mobileMenuToggle: el.mobileMenuToggle,
+      mobileMenu: el.mobileMenu,
+      mobileCharacterBlock: el.mobileCharacterBlock,
+      mobileCharacterName: el.mobileCharacterName,
+      mobileCharacterSummary: el.mobileCharacterSummary,
+      saveButton: el.saveCharacter,
+      saveButtons: [el.quickSaveCharacter, el.mobileSaveCharacter],
+      empty: el.emptySaves,
+      list: el.savedCharactersList,
+    },
+    capture,
+    restore,
+    getCharacterName,
+    getCharacterSummary,
+    setStatus,
+  });
+}
