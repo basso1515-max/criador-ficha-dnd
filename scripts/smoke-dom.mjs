@@ -39,7 +39,7 @@ const smokePages = [
       "#btnRandomizeAll",
     ],
     setup: `
-      (() => {
+      (async () => {
         const assert = (condition, message) => {
           if (!condition) throw new Error(message);
         };
@@ -51,6 +51,27 @@ const smokePages = [
           events.forEach((eventName) => dispatch(node, eventName));
           return node;
         };
+        const waitForCondition = async (predicate, message, timeoutMs = 8000) => {
+          const start = Date.now();
+          let lastError = null;
+          while (Date.now() - start < timeoutMs) {
+            try {
+              if (predicate()) return;
+            } catch (error) {
+              lastError = error;
+            }
+            await new Promise((resolve) => setTimeout(resolve, 40));
+          }
+          throw new Error(message + (lastError ? ": " + lastError.message : ""));
+        };
+        const waitForLazyCatalogs = () => waitForCondition(() => {
+          const loadingText = [
+            "#featureChoicesSummary",
+            "#magicSummary",
+            "#warlockInvocationsSummary",
+          ].map((selector) => document.querySelector(selector)?.textContent || "").join(" ");
+          return !loadingText.includes("Carregando");
+        }, "Catálogo lazy 5e não terminou de carregar");
         const setClassLevel = (className, level) => {
           setValue("#classe", className, ["change"]);
           setValue("#nivel", level, ["input", "change"]);
@@ -60,8 +81,9 @@ const smokePages = [
           .filter((select) => (select.getAttribute("data-feature-choice-slot-key") || "").includes(":feature-choice:class:" + featureId + ":"));
         const selectsForFeatureKind = (kind, featureId) => featureSelects()
           .filter((select) => (select.getAttribute("data-feature-choice-slot-key") || "").includes(":feature-choice:" + kind + ":" + featureId + ":"));
-        const assertFeatureSlots = (className, level, expectations) => {
+        const assertFeatureSlots = async (className, level, expectations) => {
           setClassLevel(className, level);
+          await waitForLazyCatalogs();
           assert(!document.querySelector("#featureChoicesPanel")?.hidden, "Painel de escolhas oculto para " + className + " nivel " + level);
           expectations.forEach(([featureId, expectedCount]) => {
             const count = selectsForFeature(featureId).length;
@@ -265,14 +287,14 @@ const smokePages = [
         chooseFeatureKind("subclass", "fiendish-resilience", "frio");
         assertFeatureChoiceResolved("1/1", ["Resiliência Infernal", "Frio"], "Resiliência Infernal");
 
-        assertFeatureSlots("Feiticeiro", 17, [["metamagic", 4]]);
+        await assertFeatureSlots("Feiticeiro", 17, [["metamagic", 4]]);
         const metamagic = new Set();
         for (let index = 0; index < 4; index += 1) {
           metamagic.add(chooseFeature("metamagic", "", index));
         }
         assert(metamagic.size === 4, "Metamagia 5e permitiu escolha duplicada no smoke.");
 
-        assertFeatureSlots("Mago", 20, [["spell-mastery-1", 1], ["spell-mastery-2", 1], ["signature-spells", 2]]);
+        await assertFeatureSlots("Mago", 20, [["spell-mastery-1", 1], ["spell-mastery-2", 1], ["signature-spells", 2]]);
         chooseFeature("spell-mastery-1");
         chooseFeature("spell-mastery-2");
         chooseFeature("signature-spells", "", 0);
@@ -392,6 +414,7 @@ const smokePages = [
         assert((document.querySelector("#preview")?.textContent || "").includes("Espírito Selvagem"), "Preview 5e não recebeu Espírito Selvagem.");
 
         setClassLevel("Bruxo", 3);
+        await waitForLazyCatalogs();
         assert(!document.querySelector("#warlockInvocationsPanel")?.hidden, "Painel de invocações do Bruxo 5e não abriu no nível 3.");
         assert(document.querySelector("#warlockInvocationsContainer [data-warlock-invocation-hover-card]"), "Hovercard de invocações do Bruxo 5e ausente.");
         clearCantripsExcept("rajada-mistica");
@@ -427,7 +450,7 @@ const smokePages = [
       "#nivel",
     ],
     setup: `
-      (() => {
+      (async () => {
         const assert = (condition, message) => {
           if (!condition) throw new Error(message);
         };
@@ -438,6 +461,19 @@ const smokePages = [
           node.value = String(value);
           events.forEach((eventName) => dispatch(node, eventName));
           return node;
+        };
+        const waitForCondition = async (predicate, message, timeoutMs = 8000) => {
+          const start = Date.now();
+          let lastError = null;
+          while (Date.now() - start < timeoutMs) {
+            try {
+              if (predicate()) return;
+            } catch (error) {
+              lastError = error;
+            }
+            await new Promise((resolve) => setTimeout(resolve, 40));
+          }
+          throw new Error(message + (lastError ? ": " + lastError.message : ""));
         };
         const click = (selector) => {
           const node = document.querySelector(selector);
@@ -485,8 +521,10 @@ const smokePages = [
             return Math.abs(titleCenter - triggerCenter) <= 3;
           }), "Botões ? de PV 5e não estão alinhados ao título.");
         };
-        const assertSpellHoverInAssistant = () => {
+        const assertSpellHoverInAssistant = async () => {
           clickLevelUpTab("Magias");
+          await waitForCondition(() => Array.from(document.querySelectorAll(".level-up-portaled-panel [id^='availableSpellPanel'] [data-spell-id]"))
+            .some((item) => !item.querySelector("input[type='checkbox']")?.disabled), "Assistente 5e não carregou magias para hovercard.");
           const availableSpell = Array.from(document.querySelectorAll(".level-up-portaled-panel [id^='availableSpellPanel'] [data-spell-id]"))
             .find((item) => !item.querySelector("input[type='checkbox']")?.disabled);
           assert(availableSpell, "Assistente 5e não tem magia disponível para testar hovercard.");
@@ -499,6 +537,7 @@ const smokePages = [
             input.checked = true;
             dispatch(input, "change");
           }
+          await waitForCondition(() => Boolean(document.querySelector(".level-up-portaled-panel [id^='selectedSpellBook'] [data-spell-id]")), "Assistente 5e não registrou magia selecionada.");
           const selectedSpell = document.querySelector(".level-up-portaled-panel [id^='selectedSpellBook'] [data-spell-id]");
           assert(selectedSpell, "Assistente 5e não tem magia selecionada para testar hovercard.");
           selectedSpell.dispatchEvent(new MouseEvent("mouseover", { bubbles: true, clientX: 180, clientY: 180 }));
@@ -577,7 +616,7 @@ const smokePages = [
         assert(modalText().includes("Pontos de vida do novo nível"), "Botão de avançar etapa 5e não levou para PV.");
         assert(document.querySelector(".level-up-content .level-up-hover-trigger"), "Aba de PV 5e não exibiu hovercards de descrição.");
         assertHpMethodTitles();
-        assertSpellHoverInAssistant();
+        await assertSpellHoverInAssistant();
         clickLevelUpTab("PV");
 
         click(".level-up-prev");
@@ -944,7 +983,7 @@ const smokePages = [
       "#nivel2024",
     ],
     setup: `
-      (() => {
+      (async () => {
         const assert = (condition, message) => {
           if (!condition) throw new Error(message);
         };

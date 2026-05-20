@@ -3,22 +3,11 @@ import { CLASSES } from "../../data/5e/classes.js";
 import { SUBCLASSES } from "../../data/5e/subclasses.js";
 import { ANTECEDENTES } from "../../data/5e/antecedentes.js";
 import { DIVINDADES } from "../../data/5e/divindades.js";
-import { MAGIAS, ESCOLAS } from "../../data/5e/magias.js";
 import { ARMAS, PROPRIEDADES_ARMA } from "../../data/5e/armas.js";
 import { ARMADURAS } from "../../data/5e/armaduras.js";
 import { EQUIPMENT_OPTION_LISTS, CLASS_EQUIPMENT_RULES, BACKGROUND_EQUIPMENT_RULES } from "../../data/5e/equipamento-inicial.js";
 import { EXTRA_EQUIPMENT_CATALOG_2024, EXTRA_EQUIPMENT_GROUP_LABELS_2024 } from "../../data/5.5e/equipment-compendium.js";
 import { TALENTOS } from "../../data/5e/talentos.js";
-import {
-  WARLOCK_INVOCATIONS_5E,
-  WARLOCK_INVOCATIONS_BY_LEVEL_5E,
-  WARLOCK_PACT_BOONS_5E,
-  formatWarlockInvocationPrerequisites,
-  getWarlockInvocationById,
-  getWarlockInvocationCountByLevel,
-  getWarlockInvocationOptions,
-  getWarlockPactBoonById,
-} from "../../data/warlock-invocations.js";
 import {
   ARCANE_SHOT_OPTIONS_5E,
   ARCANE_SHOT_OPTIONS_BY_LEVEL_5E,
@@ -150,8 +139,100 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
   const RANDOM_EYE_COLORS = ["azuis", "castanhos", "cinzentos", "âmbar", "verdes", "violeta"];
   const RANDOM_SKIN_TONES = ["clara", "morena", "bronzeada", "cobreada", "oliva", "escura"];
   const RANDOM_HAIR_COLORS = ["pretos", "castanho-escuros", "castanho-claros", "ruivos", "loiros", "grisalhos"];
-  const SPELL_LIST = flattenMagicDataset(MAGIAS);
-  const SPELL_BY_ID = new Map(SPELL_LIST.map((spell) => [spell.id, spell]));
+  const ESCOLAS = {
+    abjuracao: "Abjuração",
+    adivinhacao: "Adivinhação",
+    encantamento: "Encantamento",
+    evocacao: "Evocação",
+    ilusao: "Ilusão",
+    necromancia: "Necromancia",
+    transmutacao: "Transmutação",
+    conjuracao: "Conjuração",
+  };
+  let SPELL_LIST = [];
+  let SPELL_BY_ID = new Map();
+  let spellCatalogLoadPromise = null;
+  let spellCatalogLoadError = null;
+  let WARLOCK_INVOCATIONS_5E = [];
+  let WARLOCK_INVOCATIONS_BY_LEVEL_5E = [];
+  let WARLOCK_PACT_BOONS_5E = [];
+  let formatWarlockInvocationPrerequisites = () => "";
+  let getWarlockInvocationById = () => null;
+  let getWarlockInvocationCountByLevel = () => 0;
+  let getWarlockInvocationOptions = () => [];
+  let getWarlockPactBoonById = () => null;
+  let warlockCatalogLoadPromise = null;
+  let warlockCatalogLoadError = null;
+
+  function isSpellCatalogLoaded() {
+    return SPELL_BY_ID.size > 0;
+  }
+
+  function loadSpellCatalog() {
+    if (isSpellCatalogLoaded()) return Promise.resolve({ spells: SPELL_LIST, byId: SPELL_BY_ID });
+    if (!spellCatalogLoadPromise) {
+      spellCatalogLoadError = null;
+      spellCatalogLoadPromise = import("../../data/5e/magias.js")
+        .then(({ MAGIAS }) => {
+          SPELL_LIST = flattenMagicDataset(MAGIAS);
+          SPELL_BY_ID = new Map(SPELL_LIST.map((spell) => [spell.id, spell]));
+          return { spells: SPELL_LIST, byId: SPELL_BY_ID };
+        })
+        .catch((error) => {
+          spellCatalogLoadPromise = null;
+          spellCatalogLoadError = error;
+          throw error;
+        });
+    }
+    return spellCatalogLoadPromise;
+  }
+
+  function isWarlockCatalogLoaded() {
+    return WARLOCK_INVOCATIONS_5E.length > 0 || WARLOCK_PACT_BOONS_5E.length > 0;
+  }
+
+  function loadWarlockCatalog() {
+    if (isWarlockCatalogLoaded()) {
+      return Promise.resolve({
+        invocations: WARLOCK_INVOCATIONS_5E,
+        pactBoons: WARLOCK_PACT_BOONS_5E,
+      });
+    }
+    if (!warlockCatalogLoadPromise) {
+      warlockCatalogLoadError = null;
+      warlockCatalogLoadPromise = import("../../data/warlock-invocations.js")
+        .then((module) => {
+          WARLOCK_INVOCATIONS_5E = module.WARLOCK_INVOCATIONS_5E || [];
+          WARLOCK_INVOCATIONS_BY_LEVEL_5E = module.WARLOCK_INVOCATIONS_BY_LEVEL_5E || [];
+          WARLOCK_PACT_BOONS_5E = module.WARLOCK_PACT_BOONS_5E || [];
+          formatWarlockInvocationPrerequisites = module.formatWarlockInvocationPrerequisites;
+          getWarlockInvocationById = module.getWarlockInvocationById;
+          getWarlockInvocationCountByLevel = module.getWarlockInvocationCountByLevel;
+          getWarlockInvocationOptions = module.getWarlockInvocationOptions;
+          getWarlockPactBoonById = module.getWarlockPactBoonById;
+          return {
+            invocations: WARLOCK_INVOCATIONS_5E,
+            pactBoons: WARLOCK_PACT_BOONS_5E,
+          };
+        })
+        .catch((error) => {
+          warlockCatalogLoadPromise = null;
+          warlockCatalogLoadError = error;
+          throw error;
+        });
+    }
+    return warlockCatalogLoadPromise;
+  }
+
+  function resolveSpellIdList(value) {
+    if (typeof value === "function") return resolveSpellIdList(value());
+    return Array.isArray(value) ? value.filter(Boolean) : [];
+  }
+
+  function getSpellIdsByPredicate(predicate) {
+    if (!isSpellCatalogLoaded()) return [];
+    return SPELL_LIST.filter(predicate).map((spell) => spell.id);
+  }
 
   const SUBCLASS_BONUS_PICKER_SOURCE_DEFINITIONS = {
     "bardo-conhecimento": [
@@ -177,7 +258,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
         spellLimit: 0,
         maxSpellLevel: 0,
         showInPicker: true,
-        allowedSpellIds: SPELL_LIST.filter((spell) => Number(spell.nivel || 0) === 0 && spell.normalizedClasses.includes("mago")).map((spell) => spell.id),
+        allowedSpellIds: () => getSpellIdsByPredicate((spell) => Number(spell.nivel || 0) === 0 && spell.normalizedClasses.includes("mago")),
         selectionLabel: "Truques bônus",
       },
     ],
@@ -206,7 +287,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
         spellLimit: 0,
         maxSpellLevel: 0,
         showInPicker: true,
-        allowedSpellIds: SPELL_LIST.filter((spell) => Number(spell.nivel || 0) === 0 && spell.normalizedClasses.includes("druida")).map((spell) => spell.id),
+        allowedSpellIds: () => getSpellIdsByPredicate((spell) => Number(spell.nivel || 0) === 0 && spell.normalizedClasses.includes("druida")),
         selectionLabel: "Truque druídico",
       },
     ],
@@ -869,7 +950,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
   });
 
   subscribePersonagem("previewSignature", ({ changedKeys }) => {
-    if (changedKeys.has("magicSignature")) return;
+    if (changedKeys.has("magicSignature") && isSpellCatalogLoaded()) return;
     atualizarPreview();
   });
 
@@ -3417,6 +3498,31 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
 
     cleanupWarlockInvocationChoiceFields();
 
+    if (warlockEntries.length && !isWarlockCatalogLoaded()) {
+      el.warlockInvocationsPanel.hidden = false;
+      el.warlockInvocationsSummary.textContent = warlockCatalogLoadError
+        ? "Não foi possível carregar as invocações do Bruxo."
+        : "Carregando invocações do Bruxo...";
+      el.warlockInvocationsContainer.innerHTML = "";
+      if (el.warlockInvocationsInfo) {
+        el.warlockInvocationsInfo.textContent = warlockCatalogLoadError
+          ? "Tente trocar a classe ou recarregar a página para buscar o catálogo novamente."
+          : "O catálogo de invocações é carregado sob demanda para manter a ficha inicial mais leve.";
+      }
+      if (!warlockCatalogLoadError) {
+        loadWarlockCatalog()
+          .then(() => {
+            renderWarlockInvocationChoices();
+            commitCharacterStateMutation("warlock-catalog:loaded");
+          })
+          .catch((error) => {
+            console.error("Erro ao carregar invocações do Bruxo:", error);
+            renderWarlockInvocationChoices();
+          });
+      }
+      return;
+    }
+
     const activeEntries = warlockEntries
       .map((entry) => ({
         entry,
@@ -3942,6 +4048,10 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     });
   }
 
+  function featureChoiceSourcesNeedSpellCatalog(sources = []) {
+    return (Array.isArray(sources) ? sources : []).some((source) => source?.optionSet === "wizard-spells");
+  }
+
   function renderFeatureChoices() {
     if (!el.featureChoicesPanel || !el.featureChoicesContainer) return;
 
@@ -3953,6 +4063,31 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       el.featureChoicesSummary.textContent = "";
       el.featureChoicesContainer.innerHTML = "";
       if (el.featureChoicesInfo) el.featureChoicesInfo.textContent = "";
+      return;
+    }
+
+    if (featureChoiceSourcesNeedSpellCatalog(sources) && !isSpellCatalogLoaded()) {
+      el.featureChoicesPanel.hidden = false;
+      el.featureChoicesSummary.textContent = spellCatalogLoadError
+        ? "Não foi possível carregar as opções de magia."
+        : "Carregando opções de magia...";
+      el.featureChoicesContainer.innerHTML = "";
+      if (el.featureChoicesInfo) {
+        el.featureChoicesInfo.textContent = spellCatalogLoadError
+          ? "Tente trocar o nível/classe ou recarregar a página para buscar o catálogo novamente."
+          : "As opções de magia do Mago são carregadas sob demanda para manter a ficha inicial mais leve.";
+      }
+      if (!spellCatalogLoadError) {
+        loadSpellCatalog()
+          .then(() => {
+            renderFeatureChoices();
+            commitCharacterStateMutation("spell-catalog:feature-options-loaded");
+          })
+          .catch((error) => {
+            console.error("Erro ao carregar catálogo de magias:", error);
+            renderFeatureChoices();
+          });
+      }
       return;
     }
 
@@ -7348,6 +7483,10 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     selectionLabel = "Magias concedidas",
     showInPicker = false,
   } = {}) {
+    allowedSpellIds = resolveSpellIdList(allowedSpellIds);
+    bonusSpellIds = resolveSpellIdList(bonusSpellIds);
+    grantedSpellIds = resolveSpellIdList(grantedSpellIds);
+    seedSpellIds = resolveSpellIdList(seedSpellIds);
     const pb = proficiencyBonus(state?.nivel || 1);
     const { attrs: resolvedAttrs } = resolveFinalAbilityScores(state || {});
     const spellcastingAbility = ability || SPELLCASTING_RULES[entry?.classId || ""]?.ability || "int";
@@ -7430,6 +7569,10 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     selectionLabel = "Magias concedidas",
     showInPicker = false,
   } = {}) {
+    allowedSpellIds = resolveSpellIdList(allowedSpellIds);
+    bonusSpellIds = resolveSpellIdList(bonusSpellIds);
+    grantedSpellIds = resolveSpellIdList(grantedSpellIds);
+    seedSpellIds = resolveSpellIdList(seedSpellIds);
     const pb = proficiencyBonus(state?.nivel || 1);
     const { attrs: resolvedAttrs } = resolveFinalAbilityScores(state || {});
     const spellcastingAbility = ability || SPELLCASTING_RULES[entry?.classId || ""]?.ability || "int";
@@ -7511,6 +7654,8 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     grantedSpellIds = [],
     selectionLabel = "Magias raciais",
   } = {}) {
+    allowedSpellIds = resolveSpellIdList(allowedSpellIds);
+    grantedSpellIds = resolveSpellIdList(grantedSpellIds);
     const pb = proficiencyBonus(state?.nivel || 1);
     const { attrs: resolvedAttrs } = resolveFinalAbilityScores(state || {});
     const spellcastingAbility = ability || "int";
@@ -15285,6 +15430,7 @@ function getSelectedSubclassData() {
 
   function getEligibleSpellsForCasting(limits) {
     if (!limits) return [];
+    if (!isSpellCatalogLoaded()) return [];
     const allowedSpellIds = Array.isArray(limits.allowedSpellIds) && limits.allowedSpellIds.length
       ? new Set(limits.allowedSpellIds)
       : null;
@@ -15461,7 +15607,9 @@ function getSelectedSubclassData() {
       });
     }
 
-    ensureGrantedSpellSelections(sources);
+    if (isSpellCatalogLoaded()) {
+      ensureGrantedSpellSelections(sources);
+    }
 
     const context = {
       sources,
@@ -15471,7 +15619,9 @@ function getSelectedSubclassData() {
       pactSources,
       combineStandardSlots,
     };
-    syncSpellSourceSelections(context);
+    if (isSpellCatalogLoaded()) {
+      syncSpellSourceSelections(context);
+    }
 
     return context;
   }
@@ -16944,6 +17094,48 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
       return;
     }
 
+    if (!isSpellCatalogLoaded()) {
+      el.magicSection.style.display = "";
+      if (el.magicSlotsPanel) el.magicSlotsPanel.hidden = true;
+      if (el.magicSlotsGrid) el.magicSlotsGrid.innerHTML = "";
+      if (el.selectedSpellBook) {
+        el.selectedSpellBook.innerHTML = `
+          <div class="magic-level-overview">
+            <div class="magic-detail-head">
+              <div>
+                <p class="magic-panel-kicker">Visualização por nível</p>
+                <h3>Magias organizadas como na ficha</h3>
+              </div>
+              <p>Carregando catálogo de magias...</p>
+            </div>
+            <p class="magic-level-empty">O grimório será preenchido assim que as opções de magia estiverem disponíveis.</p>
+          </div>
+        `;
+      }
+      if (el.magicSourcesList) el.magicSourcesList.innerHTML = "";
+      el.magicSummary.textContent = spellCatalogLoadError
+        ? "Não foi possível carregar o catálogo de magias."
+        : "Carregando catálogo de magias...";
+      if (el.spellPickerHelp) {
+        el.spellPickerHelp.textContent = spellCatalogLoadError
+          ? "Tente trocar a classe ou recarregar a página para buscar o catálogo novamente."
+          : "As magias são carregadas apenas quando a ficha precisa de conjuração.";
+      }
+      if (!spellCatalogLoadError) {
+        loadSpellCatalog()
+          .then(() => {
+            renderMagicSection();
+            atualizarPreview();
+            syncPersonagemState({ source: "spell-catalog:magic-loaded", refresh: false });
+          })
+          .catch((error) => {
+            console.error("Erro ao carregar catálogo de magias:", error);
+            renderMagicSection();
+          });
+      }
+      return;
+    }
+
     el.magicSection.style.display = "";
     renderMagicSlotUsageInputs(context);
     renderMagicSourceCards(context);
@@ -16964,21 +17156,21 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
     const checkbox = event.target.closest("input[type=checkbox][data-source-key][data-kind]");
     if (!checkbox) return;
 
-  const state = collectState();
-  const context = buildSpellcastingContext(state);
-  const sourceMap = new Map(context.sources.map((entry) => [entry.sourceKey, entry]));
-  const visibleSourceKeys = listVisibleSpellPickerSourceKeys(context.sources);
-  const source = context.sources.find((entry) => entry.sourceKey === checkbox.getAttribute("data-source-key"));
-  if (!source) return;
+    const state = collectState();
+    const context = buildSpellcastingContext(state);
+    const sourceMap = new Map(context.sources.map((entry) => [entry.sourceKey, entry]));
+    const visibleSourceKeys = listVisibleSpellPickerSourceKeys(context.sources);
+    const source = context.sources.find((entry) => entry.sourceKey === checkbox.getAttribute("data-source-key"));
+    if (!source) return;
 
     const kind = checkbox.getAttribute("data-kind");
     const selection = getSpellSelectionForSource(source.sourceKey);
     const eligibleSpells = getEligibleSpellsForCasting(source.limits);
     const eligibleIds = new Set(eligibleSpells.filter((spell) => spell.restriction.allowed).map((spell) => spell.id));
     const selectionSanitized = enforceSpellSelectionLimitsForSource(source, eligibleIds, sourceMap);
-  const duplicateSourceKey = checkbox.checked
-    ? findSpellSelectedInSources(checkbox.value, kind, visibleSourceKeys, source.sourceKey)
-    : "";
+    const duplicateSourceKey = checkbox.checked
+      ? findSpellSelectedInSources(checkbox.value, kind, visibleSourceKeys, source.sourceKey)
+      : "";
     if (duplicateSourceKey) {
       const spellName = SPELL_BY_ID.get(checkbox.value)?.nome || "Essa magia";
       checkbox.checked = false;
@@ -17026,6 +17218,10 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
     }
 
     setStatus("");
+    const nextState = collectState();
+    const nextContext = buildSpellcastingContext(nextState);
+    renderSelectedSpellBook(nextContext, nextState);
+    renderMagicSection();
     renderWarlockInvocationChoices();
     commitCharacterStateMutation("spell-selection");
   }
