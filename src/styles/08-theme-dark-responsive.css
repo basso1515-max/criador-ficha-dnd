@@ -937,12 +937,14 @@ html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-scree
 html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .hp-roll-button,
 html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .magic-level-fieldbox,
 html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .magic-level-spell,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .spell-check-item,
 html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .magic-summary-field,
 html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .method-option,
 html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .multiclass-row,
 html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .skill-item,
 html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .spell-card,
 html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .spell-checklist,
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .spell-pickers .spell-check-group,
 html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .spell-pickers .row,
 html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .spellbook-entry,
 html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .spellbook-section {
@@ -972,6 +974,12 @@ html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-scree
   border-color: var(--editor-dark-border);
   background: var(--editor-dark-surface-strong);
   box-shadow: none;
+}
+
+html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .spell-check-item:has(input:checked) {
+  border-color: rgba(217, 167, 102, 0.46);
+  background: var(--editor-dark-surface-strong);
+  box-shadow: inset 3px 0 0 var(--accent);
 }
 
 html[data-theme="dark"] body:is([data-standalone-route="5e"], [data-active-screen="5.5e-2024"]) .asi-method-option.is-active,

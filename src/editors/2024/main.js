@@ -13118,25 +13118,16 @@ import {
 
   function buildMagicSelectionStatusText2024(context) {
     if (!context?.sources?.length) return "";
-    const sourceParts = context.sources.map((source) => {
-      const selectionMetrics = getSpellSelectionMetrics2024(source);
-      const parts = [
-        source.limits.cantripLimit ? `Truques ${selectionMetrics.selectedCantripChoices.length}/${source.limits.cantripLimit}` : "",
-        source.limits.spellLimit ? `${source.limits.selectionLabel} ${selectionMetrics.selectedSpellChoices.length}/${source.limits.spellLimit}` : "",
-        selectionMetrics.granted.cantrips.size ? `Truques fixos ${selectionMetrics.granted.cantrips.size}` : "",
-        selectionMetrics.granted.spells.size ? `Magias fixas ${selectionMetrics.granted.spells.size}` : "",
-      ].filter(Boolean);
-      return parts.length ? `${source.classLabel} (${parts.join(" • ")})` : source.classLabel;
-    });
+    const sourceParts = context.sources.map((source) => source.detailLabel || source.classLabel).filter(Boolean);
     const slotPool = getSheetSpellSlotPool2024(context);
     const parts = [
       `Fontes: ${sourceParts.join(" / ")}`,
-      slotPool ? `${slotPool.title}: ${formatSpellSlotTotals2024(slotPool.slotTotals)}` : "",
+      slotPool ? `${slotPool.title} calculados automaticamente` : "",
       context.standardSources.length && context.pactSources.length
-        ? `Pacto separado: ${context.pactSources.map((source) => `${source.classLabel} (${formatSpellSlotTotals2024(source.slotTotals)})`).join(" / ")}`
+        ? "Pacto separado nos cards abaixo"
         : "",
     ].filter(Boolean);
-    return parts.join(" • ");
+    return `${parts.join(" • ")}. Confira fixas, escolhas e espaços nos cards de cada fonte.`;
   }
 
   function buildMagicSourceCascadeMarkup2024(source, granted) {
@@ -13321,40 +13312,43 @@ import {
         .filter((group) => group.spells.length > 0);
 
       return `
-        <section class="edition-summary-card">
-          <h3>${escapeHtml(source.classLabel)}</h3>
-          <ul class="edition-summary-list">
-            <li>Atributo de conjuração: ${escapeHtml(source.abilityLabel)}.</li>
-            <li>${escapeHtml(source.limits.selectionLabel)}: ${escapeHtml(String(source.limits.spellLimit || 0))}.</li>
-            ${source.limits.cantripLimit ? `<li>Truques: ${escapeHtml(String(source.limits.cantripLimit))}.</li>` : ""}
-            ${granted.cantrips.size ? `<li>Truques fixos: ${escapeHtml(Array.from(granted.cantrips).map((spellId) => SPELL_BY_ID_2024.get(spellId)?.nome || labelFromSlug(spellId)).join(", "))}.</li>` : ""}
-            ${granted.spells.size ? `<li>Magias fixas: ${escapeHtml(Array.from(granted.spells).map((spellId) => SPELL_BY_ID_2024.get(spellId)?.nome || labelFromSlug(spellId)).join(", "))}.</li>` : ""}
-            ${source.limits.restrictedSchools.length ? `<li>Escolas principais: ${escapeHtml(source.limits.restrictedSchools.map((item) => ESCOLAS[item] || labelFromSlug(item)).join(", "))}.</li>` : ""}
-            ${source.usageNote
-              ? `<li>${escapeHtml(source.usageNote)}</li>`
-              : `<li>Espaços desta fonte: ${escapeHtml(formatSpellSlotTotals2024(source.slotTotals))}.</li>`}
-          </ul>
-          ${cascadeMarkup}
-          ${cantrips.length ? `
-            <div class="spell-check-group">
-              <h4>Truques</h4>
-              <div class="spell-checklist">
-                <div class="spell-check-group-list">
-                  ${sortMagicSpellPickerOptions2024(cantrips, source, "cantrip").map((spell) => buildSpellChecklistItemMarkup2024(spell, source, "cantrip", sourceMap)).join("")}
+        <section class="spell-source-card spell-source-card--2024">
+          <div class="spell-source-header">
+            <div class="spell-source-title">
+              <div>
+                <p class="magic-panel-kicker">${escapeHtml(source.listLabel || "Fonte")}</p>
+                <h4>${escapeHtml(source.detailLabel || source.classLabel)}</h4>
+                <p>${escapeHtml(`Atributo ${source.abilityLabel} • CD ${source.spellSaveDC} • Ataque ${formatSignedNumber(source.spellAttackBonus, "")}`)}</p>
+              </div>
+            </div>
+            ${cascadeMarkup}
+            ${source.limits.restrictedSchools.length
+              ? `<div class="spell-source-level-breakdown">${source.limits.restrictedSchools.map((item) => `<span class="spell-source-level-pill">${escapeHtml(ESCOLAS[item] || labelFromSlug(item))}</span>`).join("")}</div>`
+              : ""}
+            ${source.usageNote ? `<p class="note subtle spell-source-usage-note">${escapeHtml(source.usageNote)}</p>` : ""}
+          </div>
+          <div class="spell-pickers spell-pickers--2024">
+            ${cantrips.length ? `
+              <div class="spell-check-group">
+                <h4>Truques</h4>
+                <div class="spell-checklist">
+                  <div class="spell-check-group-list">
+                    ${sortMagicSpellPickerOptions2024(cantrips, source, "cantrip").map((spell) => buildSpellChecklistItemMarkup2024(spell, source, "cantrip", sourceMap)).join("")}
+                  </div>
                 </div>
               </div>
-            </div>
-          ` : ""}
-          ${spellGroups.map((group) => `
-            <div class="spell-check-group">
-              <h4>${escapeHtml(SPELL_LEVEL_LABELS_2024[group.level])}</h4>
-              <div class="spell-checklist">
-                ${group.spells.length
-                  ? `<div class="spell-check-group-list">${sortMagicSpellPickerOptions2024(group.spells, source, "spell").map((spell) => buildSpellChecklistItemMarkup2024(spell, source, "spell", sourceMap)).join("")}</div>`
-                  : '<div class="spell-check-empty">Nenhuma magia disponível para este nível.</div>'}
+            ` : ""}
+            ${spellGroups.map((group) => `
+              <div class="spell-check-group">
+                <h4>${escapeHtml(SPELL_LEVEL_LABELS_2024[group.level])}</h4>
+                <div class="spell-checklist">
+                  ${group.spells.length
+                    ? `<div class="spell-check-group-list">${sortMagicSpellPickerOptions2024(group.spells, source, "spell").map((spell) => buildSpellChecklistItemMarkup2024(spell, source, "spell", sourceMap)).join("")}</div>`
+                    : '<div class="spell-check-empty">Nenhuma magia disponível para este nível.</div>'}
+                </div>
               </div>
-            </div>
-          `).join("")}
+            `).join("")}
+          </div>
         </section>
       `;
     }).join("");
