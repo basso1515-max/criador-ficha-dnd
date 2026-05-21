@@ -92,6 +92,52 @@ async function main() {
   const current = await requestJson(baseUrl, "/api/account/current", { jar });
   assert(current.data.account?.email === email, "Sessão autenticada não carregou a conta.");
 
+  const rejectedUnexpectedField = await requestJson(baseUrl, "/api/account/current", {
+    method: "PATCH",
+    jar,
+    body: {
+      displayName: "Aventureira E2E",
+      email,
+      unexpected: "campo injetado",
+    },
+    expectedStatus: 400,
+  });
+  assert(rejectedUnexpectedField.statusCode === 400, "API deveria rejeitar campos inesperados.");
+
+  const rejectedXssCharacter = await requestJson(baseUrl, "/api/characters", {
+    method: "POST",
+    jar,
+    body: {
+      edition: "5e",
+      payload: {
+        name: "<img src=x onerror=alert(1)>",
+        summary: "Tentativa XSS",
+        snapshot: { version: 1, fields: [] },
+      },
+    },
+    expectedStatus: 400,
+  });
+  assert(rejectedXssCharacter.statusCode === 400, "API deveria rejeitar texto com markup/script.");
+
+  const rejectedLargeSnapshot = await requestJson(baseUrl, "/api/characters", {
+    method: "POST",
+    jar,
+    body: {
+      edition: "5e",
+      payload: {
+        name: "Carga Grande",
+        summary: "",
+        snapshot: {
+          version: 1,
+          fields: [],
+          notes: "x".repeat(510_000),
+        },
+      },
+    },
+    expectedStatus: 413,
+  });
+  assert(rejectedLargeSnapshot.statusCode === 413, "API deveria rejeitar snapshot grande demais.");
+
   const saved5e = await requestJson(baseUrl, "/api/characters", {
     method: "POST",
     jar,
@@ -263,6 +309,7 @@ async function main() {
   [
     "headers de segurança básicos",
     "bloqueio de escrita cross-site",
+    "validação estrita de payloads maliciosos",
     "cadastro e sessão",
     "salvamento e overwrite de personagem 5e",
     "migração duplicate e transfer para 5.5e",

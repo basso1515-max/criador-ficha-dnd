@@ -27,8 +27,16 @@ const MAX_PASSWORD_LENGTH = 256;
 const MAX_CHARACTER_NAME_LENGTH = 80;
 const MAX_CHARACTER_SUMMARY_LENGTH = 260;
 const MAX_SNAPSHOT_BYTES = 500_000;
+const MAX_SNAPSHOT_DEPTH = 18;
+const MAX_SNAPSHOT_ARRAY_LENGTH = 1_000;
+const MAX_SNAPSHOT_OBJECT_KEYS = 500;
+const MAX_SNAPSHOT_STRING_LENGTH = 20_000;
+const MAX_SNAPSHOT_NODES = 20_000;
 const MAX_LEGACY_MIGRATION_ACCOUNTS = 20;
 const PASSWORD_IMPORT_ALGOS = new Set(["sha256", "legacy-fallback", PASSWORD_ALGO]);
+const DANGEROUS_OBJECT_KEYS = new Set(["__proto__", "constructor", "prototype"]);
+const UNSAFE_TEXT_RE = /<\s*\/?\s*[a-z][^>]*>|on[a-z]+\s*=|(?:javascript|data)\s*:/i;
+const UNSAFE_CONTROL_CHARS_RE = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/;
 const SAFE_ID_RE = /^[a-z]+_[a-zA-Z0-9_-]{8,128}$/;
 const RATE_LIMITS = {
   loginIp: { limit: 30, windowMs: 15 * 60 * 1000 },
@@ -89,9 +97,11 @@ function readStore() {
 
 function writeStore(store) {
   ensureDataFile();
+  const accounts = Array.isArray(store?.accounts) ? store.accounts.map(normalizeAccountRecord).filter(Boolean) : [];
+  accounts.forEach(assertPersistableAccountRecord);
   writeFileSync(accountsFile, JSON.stringify({
     version: STORE_VERSION,
-    accounts: Array.isArray(store?.accounts) ? store.accounts : [],
+    accounts,
     sessions: Array.isArray(store?.sessions) ? store.sessions.map(normalizeSessionRecord).filter(Boolean) : [],
   }, null, 2));
 }
@@ -99,23 +109,23 @@ function writeStore(store) {
 function normalizeCharacters(characters) {
   const source = characters && typeof characters === "object" ? characters : {};
   return {
-    "5e": normalizeCharacterList(source["5e"]),
-    "5.5e-2024": normalizeCharacterList(source["5.5e-2024"]),
+    "5e": normalizeCharacterList(source["5e"], "5e"),
+    "5.5e-2024": normalizeCharacterList(source["5.5e-2024"], "5.5e-2024"),
   };
 }
 
-function normalizeCharacterList(characters) {
+function normalizeCharacterList(characters, edition) {
   return Array.isArray(characters)
-    ? characters.slice(0, ACCOUNT_LIMIT_PER_EDITION).map(normalizeCharacterRecord).filter(Boolean)
+    ? characters.slice(0, ACCOUNT_LIMIT_PER_EDITION).map((character) => normalizeCharacterRecord(character, edition)).filter(Boolean)
     : [];
 }
 
-function normalizeCharacterRecord(character) {
+function normalizeCharacterRecord(character, fallbackEdition = "") {
   if (!character || typeof character !== "object") return null;
   const now = new Date().toISOString();
   return {
     id: sanitizeRecordId(character.id, "character"),
-    edition: EDITIONS.includes(character.edition) ? character.edition : "",
+    edition: EDITIONS.includes(character.edition) ? character.edition : fallbackEdition,
     name: sanitizeCharacterName(character.name),
     summary: sanitizeCharacterSummary(character.summary),
     snapshot: sanitizeSnapshot(character.snapshot),
@@ -199,18 +209,13 @@ function readOptionalRecordId(value, prefix, label) {
 }
 
 function sanitizeSnapshot(snapshot, { strict = false } = {}) {
-  if (!snapshot || typeof snapshot !== "object" || Array.isArray(snapshot)) return {};
-
   try {
-    const json = JSON.stringify(snapshot);
-    if (json.length > MAX_SNAPSHOT_BYTES) {
-      if (strict) throw new HttpError(413, "Dados do personagem grandes demais.");
-      return {};
-    }
-    return JSON.parse(json);
+    return validateSnapshotInput(snapshot);
   } catch (error) {
-    if (error instanceof HttpError) throw error;
-    if (strict) throw new HttpError(400, "Dados do personagem inválidos.");
+    if (strict) {
+      if (error instanceof HttpError) throw error;
+      throw new HttpError(400, "Dados do personagem inválidos.");
+    }
     return {};
   }
 }
@@ -289,17 +294,15 @@ function toClientAccount(account) {
 }
 
 function assertDisplayNameInput(displayName) {
-  const name = String(displayName || "").trim();
-  if (!name) {
-    throw new HttpError(400, "Informe um nome para a conta.");
-  }
-  if (name.length > MAX_DISPLAY_NAME_LENGTH) {
-    throw new HttpError(400, `Use um nome com até ${MAX_DISPLAY_NAME_LENGTH} caracteres.`);
-  }
-  return name;
+  return assertStringField(displayName, "Nome da conta", {
+    maxLength: MAX_DISPLAY_NAME_LENGTH,
+  });
 }
 
 function assertEmailInput(email) {
+  if (typeof email !== "string") {
+    throw new HttpError(400, "Informe um e-mail válido.");
+  }
   const normalized = normalizeEmail(email);
   if (
     !normalized
@@ -308,6 +311,7 @@ function assertEmailInput(email) {
   ) {
     throw new HttpError(400, "Informe um e-mail válido.");
   }
+  assertNoUnsafeText(normalized, "E-mail");
   return normalized;
 }
 
@@ -326,20 +330,25 @@ function assertAccountInput({ displayName, email, password }, { creating = false
 }
 
 function assertPasswordCredentialInput(password) {
-  const value = String(password || "");
+  if (typeof password !== "string") {
+    throw new HttpError(400, "Informe a senha.");
+  }
+  const value = password;
   if (!value) {
     throw new HttpError(400, "Informe a senha.");
   }
   if (value.length > MAX_PASSWORD_LENGTH) {
     throw new HttpError(400, `Use uma senha com até ${MAX_PASSWORD_LENGTH} caracteres.`);
   }
+  return value;
 }
 
 function assertNewPasswordInput(password) {
-  assertPasswordCredentialInput(password);
-  if (String(password || "").length < MIN_NEW_PASSWORD_LENGTH) {
+  const value = assertPasswordCredentialInput(password);
+  if (value.length < MIN_NEW_PASSWORD_LENGTH) {
     throw new HttpError(400, `Use uma senha com pelo menos ${MIN_NEW_PASSWORD_LENGTH} caracteres.`);
   }
+  return value;
 }
 
 function assertPassword(account, password) {
@@ -385,6 +394,37 @@ function normalizeImportedAccountRecord(account) {
   }
 }
 
+function assertPersistableCharacterRecord(character) {
+  if (!character || typeof character !== "object") {
+    throw new HttpError(400, "Personagem inválido.");
+  }
+  if (!isSafeRecordId(character.id, "character") || !EDITIONS.includes(character.edition)) {
+    throw new HttpError(400, "Personagem inválido.");
+  }
+  assertStringField(character.name, "Nome do personagem", {
+    maxLength: MAX_CHARACTER_NAME_LENGTH,
+    required: false,
+  });
+  assertStringField(character.summary, "Resumo do personagem", {
+    maxLength: MAX_CHARACTER_SUMMARY_LENGTH,
+    required: false,
+  });
+  validateSnapshotInput(character.snapshot);
+}
+
+function assertPersistableAccountRecord(account) {
+  if (!account || typeof account !== "object" || !isSafeRecordId(account.id, "account")) {
+    throw new HttpError(400, "Conta inválida.");
+  }
+  assertDisplayNameInput(account.displayName);
+  assertEmailInput(account.email);
+  assertImportedPasswordRecord(account);
+  const characters = normalizeCharacters(account.characters);
+  EDITIONS.forEach((edition) => {
+    characters[edition].forEach(assertPersistableCharacterRecord);
+  });
+}
+
 function upgradePasswordRecordIfNeeded(account, password) {
   if ((account.passwordAlgo || "sha256") === PASSWORD_ALGO) return;
   Object.assign(account, makePasswordRecord(password));
@@ -410,6 +450,297 @@ function sanitizeCharacterName(name) {
 
 function sanitizeCharacterSummary(summary) {
   return String(summary || "").trim().slice(0, MAX_CHARACTER_SUMMARY_LENGTH);
+}
+
+function isPlainObject(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const prototype = Object.getPrototypeOf(value);
+  return prototype === Object.prototype || prototype === null;
+}
+
+function assertPlainObject(value, label) {
+  if (!isPlainObject(value)) {
+    throw new HttpError(400, `${label} inválido.`);
+  }
+  return value;
+}
+
+function assertSafeObjectKey(key, label) {
+  if (DANGEROUS_OBJECT_KEYS.has(key) || key.length > 160 || UNSAFE_CONTROL_CHARS_RE.test(key) || UNSAFE_TEXT_RE.test(key)) {
+    throw new HttpError(400, `${label} contém campos inválidos.`);
+  }
+}
+
+function assertAllowedKeys(object, allowedKeys, label) {
+  Object.keys(object).forEach((key) => {
+    assertSafeObjectKey(key, label);
+    if (!allowedKeys.has(key)) {
+      throw new HttpError(400, `${label} contém campos inesperados.`);
+    }
+  });
+}
+
+function assertRequestBody(body, allowedKeys, requiredKeys = [], label = "Requisição") {
+  const input = assertPlainObject(body, label);
+  const allowed = new Set(allowedKeys);
+  assertAllowedKeys(input, allowed, label);
+
+  requiredKeys.forEach((key) => {
+    if (!Object.hasOwn(input, key)) {
+      throw new HttpError(400, `${label} incompleta.`);
+    }
+  });
+
+  return input;
+}
+
+function assertNoUnsafeText(value, label) {
+  if (UNSAFE_CONTROL_CHARS_RE.test(value) || UNSAFE_TEXT_RE.test(value)) {
+    throw new HttpError(400, `${label} contém conteúdo não permitido.`);
+  }
+}
+
+function assertStringField(value, label, { maxLength, required = true, trim = true, allowUnsafe = false } = {}) {
+  if (typeof value !== "string") {
+    throw new HttpError(400, `${label} inválido.`);
+  }
+
+  const text = trim ? value.trim() : value;
+  if (required && !text) {
+    throw new HttpError(400, `${label} obrigatório.`);
+  }
+  if (maxLength && text.length > maxLength) {
+    throw new HttpError(400, `${label} deve ter até ${maxLength} caracteres.`);
+  }
+  if (!allowUnsafe) {
+    assertNoUnsafeText(text, label);
+  }
+  return text;
+}
+
+function validateRegisterBody(body) {
+  const input = assertRequestBody(body, ["displayName", "email", "password"], ["displayName", "email", "password"], "Cadastro");
+  return {
+    displayName: assertDisplayNameInput(input.displayName),
+    email: assertEmailInput(input.email),
+    password: assertNewPasswordInput(input.password),
+  };
+}
+
+function validateLoginBody(body) {
+  const input = assertRequestBody(body, ["email", "password"], ["email", "password"], "Login");
+  return {
+    email: assertEmailInput(input.email),
+    password: assertPasswordCredentialInput(input.password),
+  };
+}
+
+function validateLogoutBody(body) {
+  assertRequestBody(body, [], [], "Logout");
+}
+
+function validateAccountPatchBody(body) {
+  const input = assertRequestBody(body, ["displayName", "email", "currentPassword", "newPassword"], [], "Atualização da conta");
+  const output = {};
+
+  if (Object.hasOwn(input, "displayName")) {
+    output.displayName = assertDisplayNameInput(input.displayName);
+  }
+  if (Object.hasOwn(input, "email")) {
+    output.email = assertEmailInput(input.email);
+  }
+  if (Object.hasOwn(input, "currentPassword")) {
+    output.currentPassword = assertStringField(input.currentPassword, "Senha atual", {
+      maxLength: MAX_PASSWORD_LENGTH,
+      required: false,
+      trim: false,
+      allowUnsafe: true,
+    });
+  }
+  if (Object.hasOwn(input, "newPassword")) {
+    output.newPassword = assertStringField(input.newPassword, "Nova senha", {
+      maxLength: MAX_PASSWORD_LENGTH,
+      required: false,
+      trim: false,
+      allowUnsafe: true,
+    });
+    if (output.newPassword) output.newPassword = assertNewPasswordInput(output.newPassword);
+  }
+
+  return output;
+}
+
+function validateDeleteAccountBody(body) {
+  const input = assertRequestBody(body, ["password"], ["password"], "Exclusão da conta");
+  return {
+    password: assertPasswordCredentialInput(input.password),
+  };
+}
+
+function validateMigrationBody(body) {
+  const input = assertRequestBody(body, ["store"], ["store"], "Migração");
+  const store = assertPlainObject(input.store, "Migração");
+  assertAllowedKeys(store, new Set(["version", "accounts"]), "Migração");
+  if (!Array.isArray(store.accounts)) {
+    throw new HttpError(400, "Migração inválida.");
+  }
+  if (store.version !== undefined && !["number", "string"].includes(typeof store.version)) {
+    throw new HttpError(400, "Migração inválida.");
+  }
+  if (store.accounts.length > MAX_LEGACY_MIGRATION_ACCOUNTS) {
+    throw new HttpError(413, "Migração grande demais.");
+  }
+  return {
+    store: {
+      version: store.version,
+      accounts: store.accounts,
+    },
+  };
+}
+
+function validateCharacterPayload(payload) {
+  const input = assertRequestBody(payload, ["name", "summary", "snapshot"], ["name", "summary", "snapshot"], "Personagem");
+  const name = assertStringField(input.name, "Nome do personagem", {
+    maxLength: MAX_CHARACTER_NAME_LENGTH,
+    required: false,
+  }) || "Personagem sem nome";
+  const summary = assertStringField(input.summary, "Resumo do personagem", {
+    maxLength: MAX_CHARACTER_SUMMARY_LENGTH,
+    required: false,
+  });
+
+  return {
+    name,
+    summary,
+    snapshot: sanitizeSnapshot(input.snapshot, { strict: true }),
+  };
+}
+
+function validateCharacterSaveBody(body) {
+  if (body?.action !== undefined) {
+    throw new HttpError(400, "Ação de personagem inválida.");
+  }
+  const input = assertRequestBody(body, ["edition", "payload", "overwriteId"], ["edition", "payload"], "Salvamento do personagem");
+  return {
+    edition: assertEditionInput(input.edition),
+    payload: validateCharacterPayload(input.payload),
+    overwriteId: Object.hasOwn(input, "overwriteId")
+      ? readOptionalRecordId(input.overwriteId, "character", "Personagem")
+      : "",
+  };
+}
+
+function validateCharacterMigrationBody(body) {
+  const input = assertRequestBody(
+    body,
+    ["action", "sourceEdition", "targetEdition", "mode", "characterId", "payload"],
+    ["action", "sourceEdition", "targetEdition", "characterId", "payload"],
+    "Migração do personagem",
+  );
+  if (input.action !== "migrate-version") {
+    throw new HttpError(400, "Ação de personagem inválida.");
+  }
+
+  const sourceEdition = assertEditionInput(input.sourceEdition);
+  const targetEdition = assertEditionInput(input.targetEdition);
+  const mode = Object.hasOwn(input, "mode") ? assertMigrationModeInput(input.mode) : "duplicate";
+  const characterId = readOptionalRecordId(input.characterId, "character", "Personagem");
+  if (!characterId) throw new HttpError(400, "Personagem inválido.");
+
+  return {
+    sourceEdition,
+    targetEdition,
+    mode,
+    characterId,
+    payload: validateCharacterPayload(input.payload),
+  };
+}
+
+function validateCharacterDeleteBody(body) {
+  const input = assertRequestBody(body, ["edition", "characterId"], ["edition", "characterId"], "Exclusão do personagem");
+  const characterId = readOptionalRecordId(input.characterId, "character", "Personagem");
+  if (!characterId) throw new HttpError(400, "Personagem inválido.");
+  return {
+    edition: assertEditionInput(input.edition),
+    characterId,
+  };
+}
+
+function assertEditionInput(edition) {
+  if (typeof edition !== "string" || !EDITIONS.includes(edition)) {
+    throw new HttpError(400, "Edição inválida.");
+  }
+  return edition;
+}
+
+function assertMigrationModeInput(mode) {
+  if (typeof mode !== "string" || !["duplicate", "transfer"].includes(mode)) {
+    throw new HttpError(400, "Modo de migração inválido.");
+  }
+  return mode;
+}
+
+function validateSnapshotInput(snapshot) {
+  if (!isPlainObject(snapshot)) {
+    throw new HttpError(400, "Dados do personagem inválidos.");
+  }
+
+  let json = "";
+  try {
+    json = JSON.stringify(snapshot);
+  } catch {
+    throw new HttpError(400, "Dados do personagem inválidos.");
+  }
+  if (!json || json.length > MAX_SNAPSHOT_BYTES) {
+    throw new HttpError(413, "Dados do personagem grandes demais.");
+  }
+
+  const state = { nodes: 0 };
+  return cloneJsonValue(snapshot, "Dados do personagem", 0, state);
+}
+
+function cloneJsonValue(value, label, depth, state) {
+  state.nodes += 1;
+  if (state.nodes > MAX_SNAPSHOT_NODES) {
+    throw new HttpError(413, "Dados do personagem grandes demais.");
+  }
+  if (depth > MAX_SNAPSHOT_DEPTH) {
+    throw new HttpError(400, `${label} profundo demais.`);
+  }
+
+  if (value === null || typeof value === "boolean") return value;
+  if (typeof value === "number") {
+    if (!Number.isFinite(value)) {
+      throw new HttpError(400, `${label} inválido.`);
+    }
+    return value;
+  }
+  if (typeof value === "string") {
+    if (value.length > MAX_SNAPSHOT_STRING_LENGTH) {
+      throw new HttpError(400, `${label} contém texto longo demais.`);
+    }
+    assertNoUnsafeText(value, label);
+    return value;
+  }
+  if (Array.isArray(value)) {
+    if (value.length > MAX_SNAPSHOT_ARRAY_LENGTH) {
+      throw new HttpError(413, "Dados do personagem grandes demais.");
+    }
+    return value.map((item) => cloneJsonValue(item, label, depth + 1, state));
+  }
+  if (isPlainObject(value)) {
+    const keys = Object.keys(value);
+    if (keys.length > MAX_SNAPSHOT_OBJECT_KEYS) {
+      throw new HttpError(413, "Dados do personagem grandes demais.");
+    }
+    return keys.reduce((result, key) => {
+      assertSafeObjectKey(key, label);
+      result[key] = cloneJsonValue(value[key], label, depth + 1, state);
+      return result;
+    }, {});
+  }
+
+  throw new HttpError(400, `${label} inválido.`);
 }
 
 function getAccountById(store, accountId) {
@@ -630,9 +961,8 @@ async function handleApi(req, res, url) {
 
   if (method === "POST" && pathname === "/api/accounts/migrate") {
     assertRateLimit("migration-ip", getClientIp(req), RATE_LIMITS.migrationIp);
-    const incoming = Array.isArray(body?.store?.accounts)
-      ? body.store.accounts.slice(0, MAX_LEGACY_MIGRATION_ACCOUNTS).map(normalizeImportedAccountRecord).filter(Boolean)
-      : [];
+    const migrationBody = validateMigrationBody(body);
+    const incoming = migrationBody.store.accounts.map(normalizeImportedAccountRecord).filter(Boolean);
     if (!incoming.length) {
       sendJson(res, 200, { ok: true, imported: 0, skipped: 0 });
       return;
@@ -667,18 +997,18 @@ async function handleApi(req, res, url) {
 
   if (method === "POST" && pathname === "/api/accounts/register") {
     assertRateLimit("register-ip", getClientIp(req), RATE_LIMITS.registerIp);
-    assertAccountInput(body, { creating: true, newPassword: true });
+    const input = validateRegisterBody(body);
     const store = readStore();
-    const email = assertEmailInput(body.email);
+    const email = input.email;
     if (store.accounts.some((account) => account.email === email)) {
       throw new HttpError(409, "Já existe uma conta com este e-mail.");
     }
 
     const account = {
       id: makeId("account"),
-      displayName: assertDisplayNameInput(body.displayName),
+      displayName: input.displayName,
       email,
-      ...makePasswordRecord(body.password),
+      ...makePasswordRecord(input.password),
       createdAt: new Date().toISOString(),
       characters: normalizeCharacters(),
     };
@@ -691,17 +1021,17 @@ async function handleApi(req, res, url) {
   }
 
   if (method === "POST" && pathname === "/api/accounts/login") {
+    const input = validateLoginBody(body);
     assertRateLimit("login-ip", getClientIp(req), RATE_LIMITS.loginIp);
-    assertRateLimit("login-email", normalizeEmail(body.email), RATE_LIMITS.loginEmail);
-    assertAccountInput(body);
+    assertRateLimit("login-email", input.email, RATE_LIMITS.loginEmail);
     const store = readStore();
-    const account = store.accounts.find((item) => item.email === normalizeEmail(body.email));
+    const account = store.accounts.find((item) => item.email === input.email);
     if (!account) {
       throw new HttpError(401, "E-mail ou senha incorretos.");
     }
 
-    assertPassword(account, body.password);
-    upgradePasswordRecordIfNeeded(account, body.password);
+    assertPassword(account, input.password);
+    upgradePasswordRecordIfNeeded(account, input.password);
     createSession(store, account.id, req, res);
     writeStore(store);
     sendJson(res, 200, { account: toClientAccount(account) });
@@ -709,6 +1039,7 @@ async function handleApi(req, res, url) {
   }
 
   if (method === "POST" && pathname === "/api/accounts/logout") {
+    validateLogoutBody(body);
     const store = readStore();
     clearCurrentSession(store, req, res);
     writeStore(store);
@@ -717,19 +1048,20 @@ async function handleApi(req, res, url) {
   }
 
   if (method === "PATCH" && pathname === "/api/account/current") {
+    const input = validateAccountPatchBody(body);
     const store = readStore();
     const { account, session } = requireAuthenticatedAccount(store, req);
 
-    const nextName = String(body.displayName ?? account.displayName).trim();
-    const nextEmail = assertEmailInput(body.email ?? account.email);
+    const nextName = input.displayName ?? account.displayName;
+    const nextEmail = input.email ?? account.email;
     assertDisplayNameInput(nextName);
 
     const wantsEmailChange = nextEmail !== account.email;
-    const wantsPasswordChange = Boolean(body.newPassword);
+    const wantsPasswordChange = Boolean(input.newPassword);
     if (wantsEmailChange || wantsPasswordChange) {
-      assertPassword(account, body.currentPassword);
+      assertPassword(account, input.currentPassword || "");
     }
-    if (wantsPasswordChange) assertNewPasswordInput(body.newPassword);
+    if (wantsPasswordChange) assertNewPasswordInput(input.newPassword);
     if (wantsEmailChange && store.accounts.some((item) => item.id !== account.id && item.email === nextEmail)) {
       throw new HttpError(409, "Já existe uma conta com este e-mail.");
     }
@@ -737,7 +1069,7 @@ async function handleApi(req, res, url) {
     account.displayName = nextName;
     account.email = nextEmail;
     if (wantsPasswordChange) {
-      Object.assign(account, makePasswordRecord(body.newPassword));
+      Object.assign(account, makePasswordRecord(input.newPassword));
       store.sessions = (store.sessions || []).filter((item) => item.accountId !== account.id || item.id === session.id);
     }
 
@@ -747,9 +1079,10 @@ async function handleApi(req, res, url) {
   }
 
   if (method === "DELETE" && pathname === "/api/account/current") {
+    const input = validateDeleteAccountBody(body);
     const store = readStore();
     const { account } = requireAuthenticatedAccount(store, req);
-    assertPassword(account, body.password);
+    assertPassword(account, input.password);
     store.accounts = store.accounts.filter((item) => item.id !== account.id);
     store.sessions = (store.sessions || []).filter((session) => session.accountId !== account.id);
     clearSessionCookie(req, res);
@@ -762,20 +1095,18 @@ async function handleApi(req, res, url) {
     const store = readStore();
     const { account } = requireAuthenticatedAccount(store, req);
 
-    if (body.action === "migrate-version") {
-      const sourceEdition = String(body.sourceEdition || "");
-      const targetEdition = String(body.targetEdition || "");
-      const mode = String(body.mode || "duplicate");
+    if (body?.action === "migrate-version") {
+      const input = validateCharacterMigrationBody(body);
+      const sourceEdition = input.sourceEdition;
+      const targetEdition = input.targetEdition;
+      const mode = input.mode;
       if (sourceEdition !== "5e" || targetEdition !== "5.5e-2024") {
         throw new HttpError(400, "Esta migração só está disponível de D&D 5e para D&D 5.5e.");
-      }
-      if (!["duplicate", "transfer"].includes(mode)) {
-        throw new HttpError(400, "Modo de migração inválido.");
       }
 
       const sourceBucket = getEditionBucket(account, sourceEdition);
       const targetBucket = getEditionBucket(account, targetEdition);
-      const sourceId = readOptionalRecordId(body.characterId, "character", "Personagem");
+      const sourceId = input.characterId;
       if (!sourceId) throw new HttpError(400, "Personagem inválido.");
 
       const sourceIndex = sourceBucket.findIndex((item) => item.id === sourceId);
@@ -787,12 +1118,7 @@ async function handleApi(req, res, url) {
       }
 
       const now = new Date().toISOString();
-      const payload = body.payload || {};
-      const characterPayload = {
-        name: sanitizeCharacterName(payload.name),
-        summary: sanitizeCharacterSummary(payload.summary),
-        snapshot: sanitizeSnapshot(payload.snapshot, { strict: true }),
-      };
+      const characterPayload = input.payload;
       const character = {
         id: makeId("character"),
         edition: targetEdition,
@@ -815,15 +1141,11 @@ async function handleApi(req, res, url) {
       return;
     }
 
-    const bucket = getEditionBucket(account, body.edition);
+    const input = validateCharacterSaveBody(body);
+    const bucket = getEditionBucket(account, input.edition);
     const now = new Date().toISOString();
-    const payload = body.payload || {};
-    const overwriteId = readOptionalRecordId(body.overwriteId, "character", "Personagem");
-    const characterPayload = {
-      name: sanitizeCharacterName(payload.name),
-      summary: sanitizeCharacterSummary(payload.summary),
-      snapshot: sanitizeSnapshot(payload.snapshot, { strict: true }),
-    };
+    const overwriteId = input.overwriteId;
+    const characterPayload = input.payload;
 
     let character;
     if (overwriteId) {
@@ -841,7 +1163,7 @@ async function handleApi(req, res, url) {
       }
       character = {
         id: makeId("character"),
-        edition: body.edition,
+        edition: input.edition,
         ...characterPayload,
         createdAt: now,
         updatedAt: now,
@@ -855,18 +1177,19 @@ async function handleApi(req, res, url) {
   }
 
   if (method === "DELETE" && pathname === "/api/characters") {
+    const input = validateCharacterDeleteBody(body);
     const store = readStore();
     const { account } = requireAuthenticatedAccount(store, req);
 
-    const bucket = getEditionBucket(account, body.edition);
-    const characterId = readOptionalRecordId(body.characterId, "character", "Personagem");
+    const bucket = getEditionBucket(account, input.edition);
+    const characterId = input.characterId;
     if (!characterId) throw new HttpError(400, "Personagem inválido.");
     const nextBucket = bucket.filter((character) => character.id !== characterId);
     if (nextBucket.length === bucket.length) {
       throw new HttpError(404, "Personagem salvo não encontrado.");
     }
 
-    account.characters[body.edition] = nextBucket;
+    account.characters[input.edition] = nextBucket;
     writeStore(store);
     sendJson(res, 200, { account: toClientAccount(account) });
     return;
