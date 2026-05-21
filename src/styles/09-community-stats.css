@@ -95,8 +95,8 @@
   background: var(--stats-accent, var(--accent));
 }
 
-.stats-tile--spell { --stats-accent: #2f6f73; }
 .stats-tile--class { --stats-accent: #8b2f4f; }
+.stats-tile--edition { --stats-accent: #2f6f73; }
 .stats-tile--weapon { --stats-accent: #6f7f32; }
 .stats-tile--total { --stats-accent: #8b5e34; }
 
@@ -207,6 +207,43 @@
   font-size: 17px;
 }
 
+.stats-index-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.stats-index-card {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  min-height: 110px;
+  align-content: center;
+  padding: 14px;
+  border: 1px solid rgba(90, 62, 36, 0.16);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.36);
+}
+
+.stats-index-card strong {
+  color: var(--accent);
+  font-family: var(--heading-font);
+  font-size: 32px;
+  line-height: 1;
+}
+
+.stats-index-card span {
+  color: var(--text);
+  font-family: var(--ui-font);
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.stats-index-card small {
+  color: var(--muted);
+  font-family: var(--ui-font);
+}
+
 .stats-privacy-band {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
@@ -255,6 +292,11 @@ html[data-theme="dark"] .stats-bar-track {
   background: rgba(255, 246, 224, 0.1);
 }
 
+html[data-theme="dark"] .stats-index-card {
+  border-color: rgba(232, 201, 153, 0.16);
+  background: rgba(255, 246, 224, 0.06);
+}
+
 html[data-theme="dark"] .stats-privacy-band strong {
   color: #83c8c8;
 }
@@ -292,5 +334,9 @@ html[data-theme="dark"] .stats-privacy-band strong {
 
   .stats-tile {
     min-height: 128px;
+  }
+
+  .stats-index-grid {
+    grid-template-columns: 1fr;
   }
 }

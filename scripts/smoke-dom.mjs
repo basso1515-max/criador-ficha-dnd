@@ -21,7 +21,7 @@ const smokePages = [
   {
     name: "estatisticas",
     path: "/estatisticas.html",
-    selectors: ["#statsTopSpell", "#statsClassesList", ".stats-privacy-band"],
+    selectors: ["#statsTopClass", "#statsTopEdition", "#statsGlobalIndexes", ".stats-privacy-band"],
   },
   {
     name: "conta",

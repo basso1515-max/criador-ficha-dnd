@@ -37,7 +37,7 @@ export async function recordCommunityCharacterCreated(redis, character, date = n
     );
   }
 
-  event.levelOneSpellIds.forEach((spellId) => {
+  event.spellIds.forEach((spellId) => {
     operations.push(
       redis.hincrby(keys.spellsAll, spellId, 1),
       redis.hincrby(keys.spellsMonth, spellId, 1),

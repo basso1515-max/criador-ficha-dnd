@@ -61,7 +61,7 @@ export function extractCommunityStatsEvent(character, date = new Date()) {
   const fields = readPresetFields(snapshot);
   const primaryClass = findClassForEdition(edition, readPrimaryClassValue(fields, character));
   const level = readCharacterLevel(fields);
-  const levelOneSpellIds = extractLevelOneSpellIds(edition, snapshot);
+  const spellIds = extractSelectedSpellIds(edition, snapshot);
   const startingWeaponIds = extractStartingWeaponIds(edition, snapshot);
   const createdAt = date.toISOString();
 
@@ -74,7 +74,7 @@ export function extractCommunityStatsEvent(character, date = new Date()) {
     classLabel: primaryClass?.label || "",
     level: level || 0,
     levelBucket: getLevelBucket(level),
-    levelOneSpellIds,
+    spellIds,
     startingWeaponIds,
   };
 }
@@ -85,9 +85,9 @@ export function buildCommunityAnalyticsPayload(event) {
     edition: event.edition,
     primary_class: event.classId || "unknown",
     level_bucket: event.levelBucket || "unknown",
-    has_level_1_spell: event.levelOneSpellIds.length > 0,
-    level_1_spell_count: event.levelOneSpellIds.length,
-    first_level_1_spell: event.levelOneSpellIds[0] || "none",
+    has_spell: event.spellIds.length > 0,
+    spell_count: event.spellIds.length,
+    first_spell: event.spellIds[0] || "none",
     has_starting_weapon: event.startingWeaponIds.length > 0,
     starting_weapon_count: event.startingWeaponIds.length,
     first_starting_weapon: event.startingWeaponIds[0] || "none",
@@ -145,7 +145,7 @@ export function addCommunityStatsEventToState(inputState, event) {
     incrementNestedCounter(state.monthlyClasses, event.month, classKey);
   }
 
-  event.levelOneSpellIds.forEach((spellId) => {
+  event.spellIds.forEach((spellId) => {
     incrementCounter(state.spells, spellId);
     incrementNestedCounter(state.monthlySpells, event.month, spellId);
   });
@@ -171,11 +171,16 @@ export function buildCommunityStatsResponse(counters = {}, date = new Date()) {
   const weaponCounts = normalizeCounterMap(counters.weaponsAll);
   const weaponMonthCounts = normalizeCounterMap(counters.weaponsMonth);
 
-  const warlocks2024Key = makeClassCounterKey("5.5e-2024", "bruxo");
   const topSpellThisMonth = topCounter(spellMonthCounts, labelSpell);
+  const topEditionThisMonth = topCounter(editionMonthCounts, labelEdition);
   const topWeaponAllTime = topCounter(weaponCounts, labelWeapon);
   const topWeaponThisMonth = topCounter(weaponMonthCounts, labelWeapon);
   const topClassThisMonth = topCounter(classMonthCounts, labelClassCounter);
+  const globalIndexes = buildGlobalIndexes({
+    total,
+    monthTotal,
+    editionCounts,
+  });
 
   return {
     ok: true,
@@ -189,21 +194,20 @@ export function buildCommunityStatsResponse(counters = {}, date = new Date()) {
       month: monthTotal,
     },
     highlights: {
-      firstLevelSpellThisMonth: topSpellThisMonth,
-      warlocks2024: {
-        count: toCount(classCounts[warlocks2024Key]),
-        monthCount: toCount(classMonthCounts[warlocks2024Key]),
-        label: "Bruxos na D&D 5.5e (2024)",
-      },
+      topClassThisMonth,
+      topEditionThisMonth,
+      topSpellThisMonth,
       topStartingWeapon: topWeaponAllTime,
       topStartingWeaponThisMonth: topWeaponThisMonth,
-      topClassThisMonth,
+    },
+    indexes: {
+      global: globalIndexes,
     },
     charts: {
       editionsAllTime: counterToRows(editionCounts, labelEdition),
       editionsThisMonth: counterToRows(editionMonthCounts, labelEdition),
       classesThisMonth: counterToRows(classMonthCounts, labelClassCounter, 8),
-      levelOneSpellsThisMonth: counterToRows(spellMonthCounts, labelSpell, 8),
+      spellsThisMonth: counterToRows(spellMonthCounts, labelSpell, 8),
       startingWeaponsAllTime: counterToRows(weaponCounts, labelWeapon, 8),
       startingWeaponsThisMonth: counterToRows(weaponMonthCounts, labelWeapon, 8),
     },
@@ -362,17 +366,18 @@ function findClassForEdition(edition, value) {
   return CATALOGS[edition]?.classes.byLookup.get(normalizeLookupKey(value)) || null;
 }
 
-function extractLevelOneSpellIds(edition, snapshotData) {
+function extractSelectedSpellIds(edition, snapshotData) {
   const spellCatalog = CATALOGS[edition]?.spells;
   const selection = snapshotData?.extra?.selectedSpellsBySource;
   if (!spellCatalog || !selection || typeof selection !== "object") return [];
 
   const ids = new Set();
   Object.values(selection).forEach((sourceSelection) => {
+    const cantrips = Array.isArray(sourceSelection?.cantrips) ? sourceSelection.cantrips : [];
     const spells = Array.isArray(sourceSelection?.spells) ? sourceSelection.spells : [];
-    spells.forEach((spellId) => {
+    [...cantrips, ...spells].forEach((spellId) => {
       const spell = spellCatalog.byId.get(String(spellId || ""));
-      if (spell?.level === 1) ids.add(spell.id);
+      if (spell) ids.add(spell.id);
     });
   });
 
@@ -494,6 +499,29 @@ function counterToRows(counter, labeler, limit = 10) {
 
 function topCounter(counter, labeler) {
   return counterToRows(counter, labeler, 1)[0] || null;
+}
+
+function buildGlobalIndexes({ total, monthTotal, editionCounts }) {
+  return [
+    {
+      id: "all-time",
+      label: "Total geral",
+      count: total,
+      detail: "personagens criados",
+    },
+    ...EDITIONS.map((edition) => ({
+      id: edition,
+      label: labelEdition(edition),
+      count: toCount(editionCounts[edition]),
+      detail: "desde o início",
+    })),
+    {
+      id: "current-month",
+      label: "Criados este mês",
+      count: monthTotal,
+      detail: "ritmo da comunidade",
+    },
+  ];
 }
 
 function labelEdition(id) {

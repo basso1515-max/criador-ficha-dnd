@@ -1,10 +1,10 @@
 const REFRESH_INTERVAL_MS = 60_000;
 
 const el = {
-  topSpell: document.getElementById("statsTopSpell"),
-  topSpellMeta: document.getElementById("statsTopSpellMeta"),
-  warlocks2024: document.getElementById("statsWarlocks2024"),
-  warlocks2024Meta: document.getElementById("statsWarlocks2024Meta"),
+  topClass: document.getElementById("statsTopClass"),
+  topClassMeta: document.getElementById("statsTopClassMeta"),
+  topEdition: document.getElementById("statsTopEdition"),
+  topEditionMeta: document.getElementById("statsTopEditionMeta"),
   topWeapon: document.getElementById("statsTopWeapon"),
   topWeaponMeta: document.getElementById("statsTopWeaponMeta"),
   total: document.getElementById("statsTotal"),
@@ -14,7 +14,7 @@ const el = {
   classesList: document.getElementById("statsClassesList"),
   spellsList: document.getElementById("statsSpellsList"),
   weaponsList: document.getElementById("statsWeaponsList"),
-  editionsList: document.getElementById("statsEditionsList"),
+  globalIndexes: document.getElementById("statsGlobalIndexes"),
   privacyText: document.getElementById("statsPrivacyText"),
   status: document.getElementById("statsStatus"),
 };
@@ -44,36 +44,63 @@ function renderStats(stats) {
   const highlights = stats.highlights || {};
   const totals = stats.totals || {};
 
-  renderHighlight(el.topSpell, el.topSpellMeta, highlights.firstLevelSpellThisMonth, "Sem dados ainda", "Escolhas deste mês");
-  renderHighlight(el.topWeapon, el.topWeaponMeta, highlights.topStartingWeapon, "Sem dados ainda", "Escolhas no histórico");
+  renderHighlight(el.topClass, el.topClassMeta, highlights.topClassThisMonth, "Sem dados ainda", "personagens este mês");
+  renderHighlight(el.topEdition, el.topEditionMeta, highlights.topEditionThisMonth, "Sem dados ainda", "personagens este mês");
+  renderHighlight(el.topWeapon, el.topWeaponMeta, highlights.topStartingWeapon, "Sem dados ainda", "personagens no histórico");
 
-  if (el.warlocks2024) el.warlocks2024.textContent = formatNumber(highlights.warlocks2024?.count || 0);
-  if (el.warlocks2024Meta) {
-    el.warlocks2024Meta.textContent = `${formatNumber(highlights.warlocks2024?.monthCount || 0)} este mês`;
-  }
-
-  if (el.total) el.total.textContent = formatNumber(totals.allTime || 0);
-  if (el.totalMeta) el.totalMeta.textContent = `${formatNumber(totals.month || 0)} neste mês`;
+  if (el.total) el.total.textContent = formatNumber(totals.month || 0);
+  if (el.totalMeta) el.totalMeta.textContent = `${formatNumber(totals.allTime || 0)} no histórico`;
   if (el.monthLabel) el.monthLabel.textContent = formatMonth(stats.month);
   if (el.updatedAt) el.updatedAt.textContent = stats.updatedAt ? `Atualizado ${formatDate(stats.updatedAt)}` : "Aguardando dados";
   if (el.privacyText && stats.privacy?.summary) el.privacyText.textContent = stats.privacy.summary;
 
   renderBarList(el.classesList, stats.charts?.classesThisMonth, "Ainda não há classes suficientes neste mês.");
-  renderBarList(el.spellsList, stats.charts?.levelOneSpellsThisMonth, "Ainda não há magias de 1º círculo suficientes neste mês.");
+  renderBarList(el.spellsList, stats.charts?.spellsThisMonth, "Ainda não há magias suficientes neste mês.");
   renderBarList(el.weaponsList, stats.charts?.startingWeaponsAllTime, "Ainda não há armas iniciais suficientes.");
-  renderBarList(el.editionsList, stats.charts?.editionsAllTime, "Ainda não há personagens salvos.");
+  renderIndexGrid(el.globalIndexes, stats.indexes?.global);
 }
 
 function renderEmptyState() {
   renderBarList(el.classesList, [], "A taverna está sem dados por enquanto.");
   renderBarList(el.spellsList, [], "A taverna está sem dados por enquanto.");
   renderBarList(el.weaponsList, [], "A taverna está sem dados por enquanto.");
-  renderBarList(el.editionsList, [], "A taverna está sem dados por enquanto.");
+  renderIndexGrid(el.globalIndexes, []);
 }
 
 function renderHighlight(valueNode, metaNode, item, emptyLabel, suffix) {
   if (valueNode) valueNode.textContent = item?.label || emptyLabel;
   if (metaNode) metaNode.textContent = item ? `${formatNumber(item.count)} ${suffix}` : "Aguardando personagens salvos";
+}
+
+function renderIndexGrid(container, rows = []) {
+  if (!container) return;
+  container.textContent = "";
+
+  const items = Array.isArray(rows) ? rows : [];
+  if (!items.length) {
+    const empty = document.createElement("p");
+    empty.className = "stats-empty";
+    empty.textContent = "A taverna está sem dados por enquanto.";
+    container.appendChild(empty);
+    return;
+  }
+
+  items.forEach((item) => {
+    const card = document.createElement("div");
+    card.className = "stats-index-card";
+
+    const value = document.createElement("strong");
+    value.textContent = formatNumber(item.count || 0);
+
+    const label = document.createElement("span");
+    label.textContent = item.label || "Índice";
+
+    const detail = document.createElement("small");
+    detail.textContent = item.detail || "";
+
+    card.append(value, label, detail);
+    container.appendChild(card);
+  });
 }
 
 function renderBarList(container, rows = [], emptyMessage = "Sem dados.") {

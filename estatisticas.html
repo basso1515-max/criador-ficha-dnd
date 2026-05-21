@@ -40,16 +40,16 @@
 
     <main class="container stats-dashboard">
       <section class="stats-quick-grid" aria-label="Destaques da comunidade">
-        <article class="stats-tile stats-tile--spell">
-          <span class="stats-tile-label">Magia de 1º círculo do mês</span>
-          <strong id="statsTopSpell">Carregando...</strong>
-          <small id="statsTopSpellMeta">-</small>
+        <article class="stats-tile stats-tile--class">
+          <span class="stats-tile-label">Classe em destaque</span>
+          <strong id="statsTopClass">Carregando...</strong>
+          <small id="statsTopClassMeta">-</small>
         </article>
 
-        <article class="stats-tile stats-tile--class">
-          <span class="stats-tile-label">Bruxos na nova edição</span>
-          <strong id="statsWarlocks2024">0</strong>
-          <small id="statsWarlocks2024Meta">-</small>
+        <article class="stats-tile stats-tile--edition">
+          <span class="stats-tile-label">Edição preferida do mês</span>
+          <strong id="statsTopEdition">Carregando...</strong>
+          <small id="statsTopEditionMeta">-</small>
         </article>
 
         <article class="stats-tile stats-tile--weapon">
@@ -59,7 +59,7 @@
         </article>
 
         <article class="stats-tile stats-tile--total">
-          <span class="stats-tile-label">Personagens criados</span>
+          <span class="stats-tile-label">Movimento do mês</span>
           <strong id="statsTotal">0</strong>
           <small id="statsTotalMeta">-</small>
         </article>
@@ -70,7 +70,7 @@
           <div class="stats-panel-heading">
             <div>
               <span>Este mês</span>
-              <h2>Classes em destaque</h2>
+              <h2>Panorama por classe</h2>
             </div>
             <small id="statsMonthLabel">-</small>
           </div>
@@ -81,7 +81,7 @@
           <div class="stats-panel-heading">
             <div>
               <span>Conjuração</span>
-              <h2>Magias de 1º círculo</h2>
+              <h2>Magia em destaque do mês</h2>
             </div>
             <small>Top mensal</small>
           </div>
@@ -102,12 +102,12 @@
         <article class="stats-panel">
           <div class="stats-panel-heading">
             <div>
-              <span>Edições</span>
-              <h2>Distribuição geral</h2>
+              <span>Índices</span>
+              <h2>Globais da comunidade</h2>
             </div>
             <small id="statsUpdatedAt">-</small>
           </div>
-          <div id="statsEditionsList" class="stats-bar-list"></div>
+          <div id="statsGlobalIndexes" class="stats-index-grid"></div>
         </article>
       </section>
 
