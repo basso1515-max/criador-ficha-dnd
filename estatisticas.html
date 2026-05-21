@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Taverna de Estatísticas - Criador de ficha D&D</title>
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <script src="./src/theme-boot.js"></script>
+  <link rel="stylesheet" href="./src/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=EB+Garamond:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Libre+Baskerville:wght@400;700&family=Uncial+Antiqua&display=swap" rel="stylesheet">
+  <script type="module" defer src="./src/analytics.js"></script>
+  <script type="module" defer src="./src/theme.js"></script>
+  <script type="module" defer src="./src/community-stats-page.js"></script>
+</head>
+
+<body data-active-screen="stats">
+  <section class="stats-page-shell">
+    <header class="container stats-page-header">
+      <div class="version-toolbar stats-toolbar">
+        <div class="version-toolbar-actions">
+          <a href="./index.html" class="ghost-button">Início</a>
+          <a href="./5e.html" class="secondary-button">Editor 5e</a>
+          <a href="./5.5e-2024.html" class="secondary-button">Editor 5.5e</a>
+          <a href="./minha-conta.html" class="secondary-button">Minha conta</a>
+          <button type="button" class="theme-toggle editor-theme-toggle" data-theme-toggle aria-label="Alternar tema"></button>
+        </div>
+      </div>
+
+      <div class="stats-heading-grid">
+        <img class="stats-emblem" src="./favicon.png" alt="" />
+        <div class="stats-heading-copy">
+          <p class="version-kicker">Estatísticas globais</p>
+          <h1>Taverna de Estatísticas</h1>
+          <p>
+            Um painel público com curiosidades anônimas dos personagens salvos pela comunidade.
+          </p>
+        </div>
+      </div>
+    </header>
+
+    <main class="container stats-dashboard">
+      <section class="stats-quick-grid" aria-label="Destaques da comunidade">
+        <article class="stats-tile stats-tile--spell">
+          <span class="stats-tile-label">Magia de 1º círculo do mês</span>
+          <strong id="statsTopSpell">Carregando...</strong>
+          <small id="statsTopSpellMeta">-</small>
+        </article>
+
+        <article class="stats-tile stats-tile--class">
+          <span class="stats-tile-label">Bruxos na nova edição</span>
+          <strong id="statsWarlocks2024">0</strong>
+          <small id="statsWarlocks2024Meta">-</small>
+        </article>
+
+        <article class="stats-tile stats-tile--weapon">
+          <span class="stats-tile-label">Arma inicial preferida</span>
+          <strong id="statsTopWeapon">Carregando...</strong>
+          <small id="statsTopWeaponMeta">-</small>
+        </article>
+
+        <article class="stats-tile stats-tile--total">
+          <span class="stats-tile-label">Personagens criados</span>
+          <strong id="statsTotal">0</strong>
+          <small id="statsTotalMeta">-</small>
+        </article>
+      </section>
+
+      <section class="stats-content-grid">
+        <article class="stats-panel">
+          <div class="stats-panel-heading">
+            <div>
+              <span>Este mês</span>
+              <h2>Classes em destaque</h2>
+            </div>
+            <small id="statsMonthLabel">-</small>
+          </div>
+          <div id="statsClassesList" class="stats-bar-list"></div>
+        </article>
+
+        <article class="stats-panel">
+          <div class="stats-panel-heading">
+            <div>
+              <span>Conjuração</span>
+              <h2>Magias de 1º círculo</h2>
+            </div>
+            <small>Top mensal</small>
+          </div>
+          <div id="statsSpellsList" class="stats-bar-list"></div>
+        </article>
+
+        <article class="stats-panel">
+          <div class="stats-panel-heading">
+            <div>
+              <span>Equipamento</span>
+              <h2>Armas iniciais</h2>
+            </div>
+            <small>Histórico</small>
+          </div>
+          <div id="statsWeaponsList" class="stats-bar-list"></div>
+        </article>
+
+        <article class="stats-panel">
+          <div class="stats-panel-heading">
+            <div>
+              <span>Edições</span>
+              <h2>Distribuição geral</h2>
+            </div>
+            <small id="statsUpdatedAt">-</small>
+          </div>
+          <div id="statsEditionsList" class="stats-bar-list"></div>
+        </article>
+      </section>
+
+      <section class="stats-privacy-band" aria-label="Privacidade">
+        <strong>Coleta anônima</strong>
+        <p id="statsPrivacyText">
+          A Taverna usa apenas agregados de categorias reconhecidas. Dados pessoais e textos livres não entram nos rankings.
+        </p>
+        <p id="statsStatus" aria-live="polite"></p>
+      </section>
+    </main>
+  </section>
+</body>
+</html>

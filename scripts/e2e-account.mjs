@@ -163,6 +163,7 @@ async function main() {
   assert(sourceCharacter.snapshot?.dados?.fields?.nome === "Lyra da Névoa", "Snapshot salvo deveria guardar os dados dentro de dados.");
   assert(saved5e.data.account.characters["5e"][0]?.snapshot?.schemaVersion === 1, "Conta deveria retornar personagem com snapshot versionado.");
   assert(saved5e.data.account.characters["5e"].length === 1, "Conta deveria ter 1 personagem 5e.");
+  assert(saved5e.data.communityStatsEvent?.edition === "5e", "Criação 5e deveria retornar evento anônimo de estatísticas.");
 
   const overwritten = await requestJson(baseUrl, "/api/characters", {
     method: "POST",
@@ -188,6 +189,7 @@ async function main() {
   assert(overwritten.data.character.snapshot?.schemaVersion === 1, "Overwrite deveria manter snapshot versionado.");
   assert(overwritten.data.character.snapshot?.dados?.fields?.nivel === 4, "Overwrite deveria atualizar dados dentro do snapshot versionado.");
   assert(overwritten.data.account.characters["5e"].length === 1, "Overwrite criou personagem duplicado.");
+  assert(overwritten.data.communityStatsEvent === null, "Overwrite não deveria contar nova criação nas estatísticas.");
 
   const migratedDuplicate = await requestJson(baseUrl, "/api/characters", {
     method: "POST",
@@ -215,6 +217,7 @@ async function main() {
   assert(migratedDuplicate.data.sourceRemoved === false, "Migração duplicada não deveria remover a origem.");
   assert(migratedDuplicate.data.account.characters["5e"].length === 1, "Migração duplicada removeu a origem.");
   assert(migratedDuplicate.data.account.characters["5.5e-2024"].length === 1, "Migração duplicada não criou destino 2024.");
+  assert(migratedDuplicate.data.communityStatsEvent?.edition === "5.5e-2024", "Migração duplicada deveria contar criação 2024.");
 
   const migratedTransfer = await requestJson(baseUrl, "/api/characters", {
     method: "POST",
@@ -239,6 +242,17 @@ async function main() {
   assert(migratedTransfer.data.sourceRemoved === true, "Migração transferida deveria remover a origem.");
   assert(migratedTransfer.data.account.characters["5e"].length === 0, "Migração transferida não removeu personagem 5e.");
   assert(migratedTransfer.data.account.characters["5.5e-2024"].length === 2, "Migração transferida não criou segundo destino.");
+  assert(migratedTransfer.data.communityStatsEvent?.edition === "5.5e-2024", "Migração transferida deveria contar criação 2024.");
+
+  const communityStats = await requestJson(baseUrl, "/api/community-stats", { jar });
+  const editionsAllTime = Object.fromEntries(
+    communityStats.data.charts.editionsAllTime.map((row) => [row.id, row.count]),
+  );
+  assert(communityStats.data.totals.allTime === 3, "Estatísticas deveriam contar 3 personagens criados.");
+  assert(communityStats.data.totals.month === 3, "Estatísticas mensais deveriam contar 3 personagens criados.");
+  assert(editionsAllTime["5e"] === 1, "Estatísticas deveriam contar 1 criação 5e.");
+  assert(editionsAllTime["5.5e-2024"] === 2, "Estatísticas deveriam contar 2 criações 2024.");
+  assert(communityStats.data.privacy?.mode === "anonymous-aggregates", "Endpoint de estatísticas deve declarar agregação anônima.");
 
   const deletedCharacter = await requestJson(baseUrl, "/api/characters", {
     method: "DELETE",
@@ -320,6 +334,7 @@ async function main() {
     "cadastro e sessão",
     "salvamento e overwrite de personagem 5e",
     "migração duplicate e transfer para 5.5e",
+    "estatísticas públicas anônimas",
     "exclusão de personagem",
     "atualização de perfil e senha",
     "logout, login e exclusão de conta",

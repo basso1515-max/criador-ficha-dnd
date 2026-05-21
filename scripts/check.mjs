@@ -36,6 +36,7 @@ import {
 const root = process.cwd();
 const requiredFiles = [
   "index.html",
+  "estatisticas.html",
   "conta.html",
   "minha-conta.html",
   "usuario.html",
@@ -46,6 +47,8 @@ const requiredFiles = [
   "src/editors/5e/main.js",
   "src/editors/2024/main.js",
   "src/style.css",
+  "src/community-stats-page.js",
+  "src/shared/community-stats.js",
   "assets/pdf/5e/ficha5e.pdf",
   "assets/pdf/5e/pdf-map.json",
   "assets/pdf/5.5e/ficha5.5e.pdf",

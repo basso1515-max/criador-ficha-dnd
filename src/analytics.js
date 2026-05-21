@@ -79,5 +79,27 @@ function injectSpeedInsights() {
   });
 }
 
+function sanitizeAnalyticsProperties(properties = {}) {
+  return Object.entries(properties || {}).reduce((result, [key, value]) => {
+    if (!/^[a-zA-Z0-9_:-]{1,64}$/.test(String(key || ""))) return result;
+    if (["string", "number", "boolean"].includes(typeof value) || value === null) {
+      result[key] = value;
+    }
+    return result;
+  }, {});
+}
+
+export function trackVercelEvent(name, properties = {}) {
+  if (!name || typeof window === "undefined" || typeof window.va !== "function") return;
+  window.va("event", {
+    name,
+    data: sanitizeAnalyticsProperties(properties),
+  });
+}
+
+export function trackCommunityCharacterCreated(properties = {}) {
+  trackVercelEvent("character_created", properties);
+}
+
 injectAnalytics();
 injectSpeedInsights();

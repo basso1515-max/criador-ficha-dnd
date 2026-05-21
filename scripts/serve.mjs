@@ -2,6 +2,14 @@ import { createHash, randomBytes, randomUUID, scryptSync, timingSafeEqual } from
 import { createReadStream, existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { createServer } from "node:http";
 import path from "node:path";
+import {
+  addCommunityStatsEventToState,
+  buildCommunityAnalyticsPayload,
+  buildCommunityStatsResponseFromState,
+  createCommunityStatsState,
+  extractCommunityStatsEvent,
+  normalizeCommunityStatsState,
+} from "../src/shared/community-stats.js";
 import { normalizeStoredCharacterSnapshot } from "../src/shared/character-schema.js";
 
 const root = process.cwd();
@@ -67,6 +75,7 @@ function createEmptyStore() {
     version: STORE_VERSION,
     accounts: [],
     sessions: [],
+    communityStats: createCommunityStatsState(),
   };
 }
 
@@ -90,6 +99,7 @@ function readStore() {
       sessions: Array.isArray(parsed.sessions)
         ? parsed.sessions.map(normalizeSessionRecord).filter((session) => session && accountIds.has(session.accountId))
         : [],
+      communityStats: normalizeCommunityStatsState(parsed.communityStats),
     };
   } catch {
     return createEmptyStore();
@@ -104,7 +114,15 @@ function writeStore(store) {
     version: STORE_VERSION,
     accounts,
     sessions: Array.isArray(store?.sessions) ? store.sessions.map(normalizeSessionRecord).filter(Boolean) : [],
+    communityStats: normalizeCommunityStatsState(store?.communityStats),
   }, null, 2));
+}
+
+function recordLocalCommunityCharacterCreated(store, character) {
+  const event = extractCommunityStatsEvent(character);
+  if (!event) return null;
+  store.communityStats = addCommunityStatsEventToState(store.communityStats, event);
+  return buildCommunityAnalyticsPayload(event);
 }
 
 function normalizeCharacters(characters) {
@@ -997,6 +1015,12 @@ async function handleApi(req, res, url) {
     return;
   }
 
+  if (method === "GET" && pathname === "/api/community-stats") {
+    const store = readStore();
+    sendJson(res, 200, buildCommunityStatsResponseFromState(store.communityStats));
+    return;
+  }
+
   if (method === "POST" && pathname === "/api/accounts/register") {
     assertRateLimit("register-ip", getClientIp(req), RATE_LIMITS.registerIp);
     const input = validateRegisterBody(body);
@@ -1134,11 +1158,13 @@ async function handleApi(req, res, url) {
         sourceBucket.splice(sourceIndex, 1);
       }
 
+      const communityStatsEvent = recordLocalCommunityCharacterCreated(store, character);
       writeStore(store);
       sendJson(res, 200, {
         account: toClientAccount(account),
         character,
         sourceRemoved: mode === "transfer",
+        communityStatsEvent,
       });
       return;
     }
@@ -1173,8 +1199,11 @@ async function handleApi(req, res, url) {
       bucket.push(character);
     }
 
+    const communityStatsEvent = overwriteId
+      ? null
+      : recordLocalCommunityCharacterCreated(store, character);
     writeStore(store);
-    sendJson(res, 200, { account: toClientAccount(account), character });
+    sendJson(res, 200, { account: toClientAccount(account), character, communityStatsEvent });
     return;
   }
 

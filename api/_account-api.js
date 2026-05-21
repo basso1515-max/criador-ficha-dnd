@@ -1,5 +1,6 @@
 import { createHash, randomBytes, randomUUID, scryptSync, timingSafeEqual } from "node:crypto";
 import { Redis } from "@upstash/redis";
+import { recordCommunityCharacterCreated } from "./_community-stats-store.js";
 import { normalizeStoredCharacterSnapshot } from "../src/shared/character-schema.js";
 
 const STORE_PREFIX = "dnd-sheet";
@@ -707,6 +708,19 @@ async function saveAccount(redis, account, { previousEmail = "" } = {}) {
   return normalized;
 }
 
+async function recordCommunityCharacterCreatedSafe(redis, character) {
+  try {
+    return await recordCommunityCharacterCreated(redis, character);
+  } catch (error) {
+    console.error(JSON.stringify({
+      level: "error",
+      msg: "community_stats_record_failed",
+      error: error?.message || "Erro ao registrar estatisticas.",
+    }));
+    return null;
+  }
+}
+
 async function reserveEmail(redis, email, accountId) {
   const normalizedEmail = assertEmailInput(email);
   if (!isSafeRecordId(accountId, "account")) {
@@ -1131,10 +1145,12 @@ async function handleAccountApiInternal(req, res, pathname) {
       }
 
       await saveAccount(redis, account);
+      const communityStatsEvent = await recordCommunityCharacterCreatedSafe(redis, character);
       sendJson(res, 200, {
         account: toClientAccount(account),
         character,
         sourceRemoved: mode === "transfer",
+        communityStatsEvent,
       });
       return;
     }
@@ -1170,7 +1186,10 @@ async function handleAccountApiInternal(req, res, pathname) {
     }
 
     await saveAccount(redis, account);
-    sendJson(res, 200, { account: toClientAccount(account), character });
+    const communityStatsEvent = overwriteId
+      ? null
+      : await recordCommunityCharacterCreatedSafe(redis, character);
+    sendJson(res, 200, { account: toClientAccount(account), character, communityStatsEvent });
     return;
   }
 

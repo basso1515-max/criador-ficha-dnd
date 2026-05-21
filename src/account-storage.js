@@ -2,6 +2,7 @@ import {
   migrateCharacterSnapshot,
   normalizeStoredCharacterSnapshot,
 } from "./shared/character-schema.js";
+import { trackCommunityCharacterCreated } from "./analytics.js";
 
 export const ACCOUNT_LIMIT_PER_EDITION = 10;
 
@@ -409,6 +410,9 @@ export async function saveCharacterForCurrentUser(edition, payload, { overwriteI
   });
 
   currentAccount = normalizeClientAccount(data.account);
+  if (data.communityStatsEvent) {
+    trackCommunityCharacterCreated(data.communityStatsEvent);
+  }
   return normalizeCharacterRecord(data.character, edition) || { ...data.character };
 }
 
@@ -443,6 +447,9 @@ export async function migrateCharacterVersionForCurrentUser({
   });
 
   currentAccount = normalizeClientAccount(data.account);
+  if (data.communityStatsEvent) {
+    trackCommunityCharacterCreated(data.communityStatsEvent);
+  }
   return {
     character: normalizeCharacterRecord(data.character, targetEdition) || { ...data.character },
     sourceRemoved: Boolean(data.sourceRemoved),

@@ -19,6 +19,11 @@ const smokePages = [
     selectors: ["#versionHomeScreen", "#homeAccountToggle"],
   },
   {
+    name: "estatisticas",
+    path: "/estatisticas.html",
+    selectors: ["#statsTopSpell", "#statsClassesList", ".stats-privacy-band"],
+  },
+  {
     name: "conta",
     path: "/conta.html",
     selectors: ["#accountLoginForm", "#accountRegisterForm", "#accountCurrentPanel"],
