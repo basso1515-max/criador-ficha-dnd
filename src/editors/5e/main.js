@@ -24,6 +24,7 @@ import { buildRandomCharacterNameForRace } from "../../data/character-name-rando
 import { captureFormPreset, restoreFormPreset, syncUnitToggleButtons } from "../../user-area.js";
 import { createLevelUpAssistant } from "../../level-up-assistant.js";
 import { fitPdfTextToField as fitSharedPdfTextToField } from "../../shared/pdf-layout.js";
+import { initializeEditorA11y } from "../../shared/a11y.js";
 import { escapeHtml as escapeHtmlBase, normalizePt } from "../../shared/text-utils.js";
 import { createFloatingSubmitButtonController } from "../floating-submit-ui.js";
 import { initializeUnitToggleGroups as initializeEditorUnitToggleGroups } from "../unit-toggle-ui.js";
@@ -709,6 +710,9 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
   let lastValidPointBuyValues = Object.fromEntries(ABILITIES.map((ability) => [ability.key, 8]));
   let selectedPortraitImage = null;
   let selectedSymbolImage = null;
+  let editorA11y = null;
+  let isInitialA11yReady = false;
+  let lastA11yAbilityAnnouncement = "";
   const magicChecklistScrollState = new Map();
   const knownSpellDistributionCache = new Map();
   let skillSelectionState = {
@@ -858,6 +862,47 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     populateSelect(el.classe, CLASS_LIST.map((cls) => cls.nome), "Selecione...");
     populateSelect(el.antecedente, BACKGROUNDS.map((bg) => bg.nome), "Selecione...");
     initializeCustomSelectFields();
+    editorA11y = initializeEditorA11y(document, {
+      idPrefix: "editor-5e",
+      liveRegionIds: [
+        "classeInfo",
+        "racaInfo",
+        "antecedenteInfo",
+        "attrMethodInfo",
+        "skillsRuleHint",
+        "skillsRuleWarning",
+        "asiWarning",
+        "asiSourceDescription",
+        "featChoicesSummary",
+        "featChoicesInfo",
+        "featDetailChoicesSummary",
+        "featDetailChoicesInfo",
+        "subclassDetailChoicesSummary",
+        "subclassDetailChoicesInfo",
+        "subclassProficiencyChoicesSummary",
+        "subclassProficiencyChoicesInfo",
+        "warlockInvocationsSummary",
+        "warlockInvocationsInfo",
+        "featureChoicesSummary",
+        "featureChoicesInfo",
+        "artificerInfusionsSummary",
+        "artificerInfusionsInfo",
+        "companionChoicesSummary",
+        "companionChoicesInfo",
+        "raceDetailChoicesSummary",
+        "raceDetailChoicesInfo",
+        "languageChoicesSummary",
+        "languageChoicesInfo",
+        "expertiseChoicesSummary",
+        "expertiseChoicesInfo",
+        "fightingStyleSummary",
+        "fightingStyleInfo",
+        "magicSummary",
+        "spellPickerHelp",
+        "hpRuleHint",
+        "status",
+      ],
+    });
     initializeMulticlassUi();
     initializeLevelUpAssistant();
     initializePointBuyControls();
@@ -995,6 +1040,8 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       el,
       on5eActivated: () => floatingSubmitButton.requestRecalc(),
     });
+    isInitialA11yReady = true;
+    editorA11y?.refresh();
   });
 
   function populateSelect(select, items, placeholder = null) {
@@ -2196,6 +2243,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     renderFeatChoices();
     renderLanguageChoices();
     commitCharacterStateMutation("race");
+    announceAbilityTotals5e("Atributos recalculados pela raça");
   }
 
   function onDistanceUnitChanged() {
@@ -2240,6 +2288,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     renderFeatChoices();
     renderLanguageChoices();
     commitCharacterStateMutation("subrace");
+    announceAbilityTotals5e("Atributos recalculados pela sub-raça");
   }
 
   function initializeCustomSelectFields() {
@@ -10546,6 +10595,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       normalizeVisibleAsiSelections(3);
     }
     commitCharacterStateMutation("asi");
+    announceAbilityTotals5e("Atributos recalculados pelos bônus flexíveis");
   }
 
   function applyStatusTone(target, tone = "") {
@@ -14779,6 +14829,18 @@ function getSelectedSubclassData() {
       total: attrs,
       breakdowns,
     };
+  }
+
+  function announceAbilityTotals5e(reason) {
+    if (!isInitialA11yReady || !editorA11y) return;
+    const previewState = buildAbilityPreviewState5e(collectState({ skipAutoTextareaSync: true }));
+    const summary = ABILITIES
+      .map((ability) => `${ability.label} ${previewState.total?.[ability.key] ?? "-"}`)
+      .join(", ");
+    const message = `${reason}: ${summary}.`;
+    if (message === lastA11yAbilityAnnouncement) return;
+    lastA11yAbilityAnnouncement = message;
+    editorA11y.announce(message);
   }
 
   function buildAbilityPreviewCardHtml5e(abilityKey, breakdown, totalValue) {

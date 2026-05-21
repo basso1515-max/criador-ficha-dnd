@@ -891,8 +891,10 @@ const smokePages = [
 
         setClassLevel("bruxo", 17);
         setValue("#subclasse2024", "bruxo-infernal", ["change"]);
-        const warlockClassSpellCard2024 = () => Array.from(document.querySelectorAll("#magicSourcesList2024 .edition-summary-card"))
-          .find((card) => (card.querySelector("h3")?.textContent || "").startsWith("Bruxo"));
+        const magicSourceCards2024 = () => Array.from(document.querySelectorAll("#magicSourcesList2024 .spell-source-card--2024, #magicSourcesList2024 .edition-summary-card"));
+        const magicSourceTitle2024 = (card) => card?.querySelector("h3, h4")?.textContent || "";
+        const warlockClassSpellCard2024 = () => magicSourceCards2024()
+          .find((card) => magicSourceTitle2024(card).startsWith("Bruxo"));
         const initialEldritchBlastInput = warlockClassSpellCard2024()?.querySelector('.spell-check-item[data-spell-id="rajada-mistica"] input[type="checkbox"]');
         if (initialEldritchBlastInput?.checked) {
           initialEldritchBlastInput.checked = false;
@@ -915,8 +917,8 @@ const smokePages = [
         assert(agonizingDetailSelect, "Detalhe de truque da Rajada Agonizante não reconheceu Rajada Mística conhecida.");
         agonizingDetailSelect.value = "rajada-mistica";
         dispatch(agonizingDetailSelect, "change");
-        const warlockClassCardAfterInvocationDetail = Array.from(document.querySelectorAll("#magicSourcesList2024 .edition-summary-card"))
-          .find((card) => (card.querySelector("h3")?.textContent || "").startsWith("Bruxo"));
+        const warlockClassCardAfterInvocationDetail = magicSourceCards2024()
+          .find((card) => magicSourceTitle2024(card).startsWith("Bruxo"));
         const invocationAffectedCantripItem = warlockClassCardAfterInvocationDetail?.querySelector('.spell-check-item[data-spell-id="rajada-mistica"]');
         const invocationAffectedCantripInput = invocationAffectedCantripItem?.querySelector('input[type="checkbox"]');
         const invocationWarningText = invocationAffectedCantripItem?.getAttribute("data-spell-warning-label") || "";
@@ -928,15 +930,15 @@ const smokePages = [
         assert(tomeInvocationSelect, "Pacto do Tomo 2024 não apareceu nas Invocações Místicas.");
         tomeInvocationSelect.value = "pact-of-the-tome";
         dispatch(tomeInvocationSelect, "change");
-        const tomeCard = Array.from(document.querySelectorAll("#magicSourcesList2024 .edition-summary-card"))
+        const tomeCard = magicSourceCards2024()
           .find((card) => card.textContent.includes("Pacto do Tomo"));
         assert(tomeCard, "Fonte de magias do Pacto do Tomo não apareceu.");
         const tomeCantripInput = tomeCard.querySelector('.spell-check-item[data-spell-id="ataque-certeiro"] input[type="checkbox"]');
         assert(tomeCantripInput && !tomeCantripInput.disabled, "Ataque Certeiro não ficou disponível no Pacto do Tomo.");
         tomeCantripInput.checked = true;
         dispatch(tomeCantripInput, "change");
-        const warlockSpellCard = Array.from(document.querySelectorAll("#magicSourcesList2024 .edition-summary-card"))
-          .find((card) => (card.querySelector("h3")?.textContent || "").startsWith("Bruxo") && card.querySelector('.spell-check-item[data-spell-id="ataque-certeiro"]'));
+        const warlockSpellCard = magicSourceCards2024()
+          .find((card) => magicSourceTitle2024(card).startsWith("Bruxo") && card.querySelector('.spell-check-item[data-spell-id="ataque-certeiro"]'));
         const blockedCantripItem = warlockSpellCard?.querySelector('.spell-check-item[data-spell-id="ataque-certeiro"]');
         const blockedCantripInput = blockedCantripItem?.querySelector('input[type="checkbox"]');
         const warningText = blockedCantripItem?.getAttribute("data-spell-warning-label") || "";

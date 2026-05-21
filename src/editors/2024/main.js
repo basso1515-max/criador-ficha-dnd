@@ -29,6 +29,7 @@ import { createLevelUpAssistant } from "../../level-up-assistant.js";
 import { createMigrationReviewAssistant } from "../../migration-review-assistant.js";
 import { saveCharacterForCurrentUser } from "../../account-storage.js";
 import { fitPdfTextToField as fitSharedPdfTextToField } from "../../shared/pdf-layout.js";
+import { initializeEditorA11y } from "../../shared/a11y.js";
 import { escapeHtml, normalizePt, slugify } from "../../shared/text-utils.js";
 import { createFloatingSubmitButtonController } from "../floating-submit-ui.js";
 import {
@@ -402,6 +403,9 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
   let languageCustomSelectKeys2024 = [];
   let activeMagicHoverTarget2024 = null;
   let hitPointRollControlsSignature2024 = "";
+  let editorA11y2024 = null;
+  let isInitialA11yReady2024 = false;
+  let lastA11yAbilityAnnouncement2024 = "";
   const floatingSubmitButton2024 = createFloatingSubmitButtonController({
     barId: "floatingSubmitBar2024",
     previewPanelSelector: ".preview-panel-2024",
@@ -767,6 +771,39 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
     el.subraca.disabled = true;
     el.subclasse.disabled = true;
     initializeCustomSelectFields2024();
+    editorA11y2024 = initializeEditorA11y(document, {
+      idPrefix: "editor-2024",
+      liveRegionIds: [
+        "classInfo2024",
+        "raceInfo2024",
+        "backgroundInfo2024",
+        "alignmentInfo2024",
+        "divindadeInfo2024",
+        "attrMethodInfo2024",
+        "abilityScoreInfo2024",
+        "proficiencySummary2024",
+        "languagesRuleHint2024",
+        "languagesRuleWarning2024",
+        "skillsRuleHint2024",
+        "skillsRuleWarning2024",
+        "expertiseSummary2024",
+        "expertiseInfo2024",
+        "speciesInfo2024",
+        "featInfo2024",
+        "warlockInvocationsSummary2024",
+        "warlockInvocationsInfo2024",
+        "featureChoicesSummary2024",
+        "featureChoicesInfo2024",
+        "subclassDetailChoicesSummary2024",
+        "subclassDetailChoicesInfo2024",
+        "companionChoicesSummary2024",
+        "companionChoicesInfo2024",
+        "magicSummary2024",
+        "spellPickerHelp2024",
+        "hpRuleHint2024",
+        "status2024",
+      ],
+    });
     initializeMulticlassUi2024();
     initializeLevelUpAssistant2024();
 
@@ -845,6 +882,8 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
 
     renderAll();
     floatingSubmitButton2024.initialize();
+    isInitialA11yReady2024 = true;
+    editorA11y2024?.refresh();
   }
 
   function renderAll() {
@@ -854,7 +893,7 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
     updateInfoBoxes();
     updateNameRandomizerButtonsState2024();
     renderAbilityScoreInputs();
-    syncRecommendedStandardSetForClass2024();
+    const standardPresetChanged = syncRecommendedStandardSetForClass2024();
     renderAbilityChoices();
     renderSpeciesChoices();
     renderFeatureChoicePanels2024({
@@ -872,6 +911,10 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
     syncAlignmentInfo2024();
     renderMagicSection2024();
     updatePreview();
+    if (standardPresetChanged) {
+      const className = getSelectedClass()?.nome || "classe selecionada";
+      announceAbilityScores2024(`Conjunto padrão atualizado para ${className}`);
+    }
     if (!isDeferringHeavyUi2024()) floatingSubmitButton2024.requestRecalc();
   }
 
@@ -898,6 +941,7 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
 
   function onAbilityBonusChoicesChanged2024() {
     refreshAbilityDrivenCascades2024();
+    announceAbilityScores2024("Atributos recalculados pelos bônus da origem");
   }
 
   function onLevelChanged2024() {
@@ -5001,6 +5045,16 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
       .join(" • ");
   }
 
+  function announceAbilityScores2024(reason) {
+    if (!isInitialA11yReady2024 || !editorA11y2024) return;
+    const summary = formatAbilityScoreSummary(getEffectiveAbilityScores().scores || {});
+    if (!summary) return;
+    const message = `${reason}: ${summary}.`;
+    if (message === lastA11yAbilityAnnouncement2024) return;
+    lastA11yAbilityAnnouncement2024 = message;
+    editorA11y2024.announce(message);
+  }
+
   function buildAbilityPreviewCardHtml2024(ability, breakdown, totalValue) {
     const entries = Array.isArray(breakdown?.entries) ? breakdown.entries : [];
     const lines = [
@@ -7961,6 +8015,7 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
       lastStandardPresetClassId2024 = getSelectedClass()?.id || "";
       renderAbilityScoreInputs();
       applyBaseAbilityValues2024(nextValues);
+      announceAbilityScores2024("Método de atributos alterado para conjunto padrão");
       return;
     }
 
@@ -7970,6 +8025,7 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
       const nextValues = calculatePointBuyTotal2024(clamped) <= 27 ? clamped : lastValidPointBuyValues2024;
       renderAbilityScoreInputs();
       applyBaseAbilityValues2024(nextValues);
+      announceAbilityScores2024("Método de atributos alterado para compra de pontos");
       return;
     }
 
@@ -7978,6 +8034,7 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
       updateAbilityScoreInfo();
       renderFeatChoices();
       updatePreview();
+      announceAbilityScores2024("Método de atributos alterado para rolagem");
       return;
     }
 
@@ -7986,6 +8043,7 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
     updateAbilityScoreInfo();
     renderFeatChoices();
     updatePreview();
+    announceAbilityScores2024("Método de atributos alterado para livre");
   }
 
   function pickRandom2024(values = []) {
