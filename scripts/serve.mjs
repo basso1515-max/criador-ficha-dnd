@@ -2,6 +2,7 @@ import { createHash, randomBytes, randomUUID, scryptSync, timingSafeEqual } from
 import { createReadStream, existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { createServer } from "node:http";
 import path from "node:path";
+import { normalizeStoredCharacterSnapshot } from "../src/shared/character-schema.js";
 
 const root = process.cwd();
 const host = process.env.HOST || "127.0.0.1";
@@ -123,12 +124,13 @@ function normalizeCharacterList(characters, edition) {
 function normalizeCharacterRecord(character, fallbackEdition = "") {
   if (!character || typeof character !== "object") return null;
   const now = new Date().toISOString();
+  const edition = EDITIONS.includes(character.edition) ? character.edition : fallbackEdition;
   return {
     id: sanitizeRecordId(character.id, "character"),
-    edition: EDITIONS.includes(character.edition) ? character.edition : fallbackEdition,
+    edition,
     name: sanitizeCharacterName(character.name),
     summary: sanitizeCharacterSummary(character.summary),
-    snapshot: sanitizeSnapshot(character.snapshot),
+    snapshot: sanitizeSnapshot(normalizeStoredCharacterSnapshot(character.snapshot, { edition })),
     createdAt: sanitizeDateString(character.createdAt, now),
     updatedAt: sanitizeDateString(character.updatedAt, now),
   };
@@ -612,7 +614,7 @@ function validateCharacterPayload(payload) {
   return {
     name,
     summary,
-    snapshot: sanitizeSnapshot(input.snapshot, { strict: true }),
+    snapshot: sanitizeSnapshot(normalizeStoredCharacterSnapshot(input.snapshot), { strict: true }),
   };
 }
 

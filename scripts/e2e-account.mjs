@@ -159,6 +159,9 @@ async function main() {
   });
   const sourceCharacter = saved5e.data.character;
   assert(sourceCharacter?.id, "Salvamento 5e não retornou personagem.");
+  assert(sourceCharacter.snapshot?.schemaVersion === 1, "Snapshot salvo deveria registrar schemaVersion 1.");
+  assert(sourceCharacter.snapshot?.dados?.fields?.nome === "Lyra da Névoa", "Snapshot salvo deveria guardar os dados dentro de dados.");
+  assert(saved5e.data.account.characters["5e"][0]?.snapshot?.schemaVersion === 1, "Conta deveria retornar personagem com snapshot versionado.");
   assert(saved5e.data.account.characters["5e"].length === 1, "Conta deveria ter 1 personagem 5e.");
 
   const overwritten = await requestJson(baseUrl, "/api/characters", {
@@ -182,6 +185,8 @@ async function main() {
     },
   });
   assert(overwritten.data.character.name === "Lyra da Névoa Revisada", "Overwrite não atualizou o personagem.");
+  assert(overwritten.data.character.snapshot?.schemaVersion === 1, "Overwrite deveria manter snapshot versionado.");
+  assert(overwritten.data.character.snapshot?.dados?.fields?.nivel === 4, "Overwrite deveria atualizar dados dentro do snapshot versionado.");
   assert(overwritten.data.account.characters["5e"].length === 1, "Overwrite criou personagem duplicado.");
 
   const migratedDuplicate = await requestJson(baseUrl, "/api/characters", {
@@ -205,6 +210,8 @@ async function main() {
     },
   });
   const duplicateTarget = migratedDuplicate.data.character;
+  assert(duplicateTarget.snapshot?.schemaVersion === 1, "Migração duplicada deveria salvar snapshot versionado.");
+  assert(duplicateTarget.snapshot?.dados?.migratedFrom === sourceCharacter.id, "Migração duplicada deveria preservar dados migrados.");
   assert(migratedDuplicate.data.sourceRemoved === false, "Migração duplicada não deveria remover a origem.");
   assert(migratedDuplicate.data.account.characters["5e"].length === 1, "Migração duplicada removeu a origem.");
   assert(migratedDuplicate.data.account.characters["5.5e-2024"].length === 1, "Migração duplicada não criou destino 2024.");

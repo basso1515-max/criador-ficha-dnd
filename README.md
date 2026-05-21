@@ -180,6 +180,17 @@ server-data/accounts.json
 
 Esse arquivo é ignorado pelo Git.
 
+Os personagens são persistidos com versionamento de snapshot:
+
+```json
+{
+  "schemaVersion": 1,
+  "dados": {}
+}
+```
+
+Ao carregar uma ficha, o app passa o snapshot por `src/shared/character-schema.js`, que migra formatos antigos antes de entregar os dados ao editor. Novas mudanças de formato devem adicionar uma migração nesse módulo.
+
 Para rodar uma instância isolada sem tocar nos dados locais padrão, use:
 
 ```powershell

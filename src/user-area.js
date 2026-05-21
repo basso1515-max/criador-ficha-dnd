@@ -9,6 +9,7 @@ import {
   registerAccount,
   saveCharacterForCurrentUser,
 } from "./account-storage.js";
+import { migrateCharacterSnapshot } from "./shared/character-schema.js";
 
 const IGNORED_INPUT_TYPES = new Set(["button", "file", "image", "reset", "submit"]);
 const CHECKABLE_INPUT_TYPES = new Set(["checkbox", "radio"]);
@@ -279,7 +280,7 @@ export function initializeUserArea({
       return false;
     }
 
-    restore?.(snapshot);
+    restore?.(migrateCharacterSnapshot(snapshot, { edition }));
     state.selectedCharacterId = "";
     state.showSavedPanel = false;
     clearPendingEditorDraft();

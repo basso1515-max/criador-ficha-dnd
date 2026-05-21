@@ -3,6 +3,7 @@ import { RACAS as RACES_2024, SUBRACAS as SUBRACES_2024 } from "./data/5.5e/raca
 import { ANTECEDENTES as BACKGROUNDS_2024 } from "./data/5.5e/antecedentes.js";
 import { SUBCLASSES as SUBCLASSES_2024 } from "./data/5.5e/subclasses.js";
 import { ANTECEDENTES as BACKGROUNDS_2014 } from "./data/5e/antecedentes.js";
+import { migrateCharacterSnapshot } from "./shared/character-schema.js";
 
 const ABILITIES = ["for", "des", "con", "int", "sab", "car"];
 const LEGACY_BACKGROUND_ID_2024 = "antecedente-legado";
@@ -117,7 +118,7 @@ export function build5eTo2024MigrationPayload(character, { mode = "duplicate" } 
     savedAt: new Date().toISOString(),
     fields,
     extra: {
-      multiclassRowIds: getMigratedMulticlassRowIds(character.snapshot),
+      multiclassRowIds: getMigratedMulticlassRowIds(source.snapshot),
       selectedSpellsBySource: {},
       migrationReport: report,
     },
@@ -388,9 +389,10 @@ function buildMigrationSummary(sourceSummary, report) {
 }
 
 function createSnapshotReader(snapshot) {
-  const fields = Array.isArray(snapshot?.fields) ? snapshot.fields : [];
+  const migratedSnapshot = migrateCharacterSnapshot(snapshot);
+  const fields = Array.isArray(migratedSnapshot?.fields) ? migratedSnapshot.fields : [];
   return {
-    snapshot,
+    snapshot: migratedSnapshot,
     valueById(id) {
       const field = fields.find((item) => item?.id === id);
       return String(field?.value ?? "");

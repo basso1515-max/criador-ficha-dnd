@@ -1,3 +1,8 @@
+import {
+  migrateCharacterSnapshot,
+  normalizeStoredCharacterSnapshot,
+} from "./shared/character-schema.js";
+
 export const ACCOUNT_LIMIT_PER_EDITION = 10;
 
 const LEGACY_STORE_KEY = "dnd_sheet_accounts_v1";
@@ -74,21 +79,22 @@ function disableLegacyMigrationRetry() {
 function normalizeCharacters(characters) {
   const source = characters && typeof characters === "object" ? characters : {};
   return {
-    "5e": Array.isArray(source["5e"]) ? source["5e"].map(normalizeCharacterRecord).filter(Boolean) : [],
+    "5e": Array.isArray(source["5e"]) ? source["5e"].map((character) => normalizeCharacterRecord(character, "5e")).filter(Boolean) : [],
     "5.5e-2024": Array.isArray(source["5.5e-2024"])
-      ? source["5.5e-2024"].map(normalizeCharacterRecord).filter(Boolean)
+      ? source["5.5e-2024"].map((character) => normalizeCharacterRecord(character, "5.5e-2024")).filter(Boolean)
       : [],
   };
 }
 
-function normalizeCharacterRecord(character) {
+function normalizeCharacterRecord(character, fallbackEdition = "") {
   if (!character || typeof character !== "object") return null;
+  const edition = EDITIONS.includes(character.edition) ? character.edition : fallbackEdition;
   return {
     id: String(character.id || ""),
-    edition: EDITIONS.includes(character.edition) ? character.edition : "",
+    edition,
     name: sanitizeCharacterName(character.name),
     summary: sanitizeCharacterSummary(character.summary),
-    snapshot: character.snapshot && typeof character.snapshot === "object" ? character.snapshot : {},
+    snapshot: migrateCharacterSnapshot(character.snapshot, { edition }),
     createdAt: String(character.createdAt || new Date().toISOString()),
     updatedAt: String(character.updatedAt || new Date().toISOString()),
   };
@@ -390,7 +396,7 @@ export async function saveCharacterForCurrentUser(edition, payload, { overwriteI
   const sanitizedPayload = {
     name: sanitizeCharacterName(payload?.name),
     summary: sanitizeCharacterSummary(payload?.summary),
-    snapshot: payload?.snapshot || {},
+    snapshot: normalizeStoredCharacterSnapshot(payload?.snapshot || {}, { edition }),
   };
 
   const data = await requestApi("/api/characters", {
@@ -403,7 +409,7 @@ export async function saveCharacterForCurrentUser(edition, payload, { overwriteI
   });
 
   currentAccount = normalizeClientAccount(data.account);
-  return { ...data.character };
+  return normalizeCharacterRecord(data.character, edition) || { ...data.character };
 }
 
 export async function migrateCharacterVersionForCurrentUser({
@@ -421,7 +427,7 @@ export async function migrateCharacterVersionForCurrentUser({
   const sanitizedPayload = {
     name: sanitizeCharacterName(payload?.name),
     summary: sanitizeCharacterSummary(payload?.summary),
-    snapshot: payload?.snapshot || {},
+    snapshot: normalizeStoredCharacterSnapshot(payload?.snapshot || {}, { edition: targetEdition }),
   };
 
   const data = await requestApi("/api/characters", {
@@ -437,7 +443,10 @@ export async function migrateCharacterVersionForCurrentUser({
   });
 
   currentAccount = normalizeClientAccount(data.account);
-  return { character: { ...data.character }, sourceRemoved: Boolean(data.sourceRemoved) };
+  return {
+    character: normalizeCharacterRecord(data.character, targetEdition) || { ...data.character },
+    sourceRemoved: Boolean(data.sourceRemoved),
+  };
 }
 
 export async function deleteCharacterForCurrentUser(edition, characterId) {

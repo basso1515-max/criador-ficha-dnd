@@ -1,5 +1,6 @@
 import { createHash, randomBytes, randomUUID, scryptSync, timingSafeEqual } from "node:crypto";
 import { Redis } from "@upstash/redis";
+import { normalizeStoredCharacterSnapshot } from "../src/shared/character-schema.js";
 
 const STORE_PREFIX = "dnd-sheet";
 const ACCOUNT_LIMIT_PER_EDITION = 10;
@@ -83,12 +84,13 @@ function normalizeCharacterList(characters, edition) {
 function normalizeCharacterRecord(character, fallbackEdition = "") {
   if (!character || typeof character !== "object") return null;
   const now = new Date().toISOString();
+  const edition = EDITIONS.includes(character.edition) ? character.edition : fallbackEdition;
   return {
     id: sanitizeRecordId(character.id, "character"),
-    edition: EDITIONS.includes(character.edition) ? character.edition : fallbackEdition,
+    edition,
     name: sanitizeCharacterName(character.name),
     summary: sanitizeCharacterSummary(character.summary),
-    snapshot: sanitizeSnapshot(character.snapshot),
+    snapshot: sanitizeSnapshot(normalizeStoredCharacterSnapshot(character.snapshot, { edition })),
     createdAt: sanitizeDateString(character.createdAt, now),
     updatedAt: sanitizeDateString(character.updatedAt, now),
   };
@@ -552,7 +554,7 @@ function validateCharacterPayload(payload) {
   return {
     name,
     summary,
-    snapshot: sanitizeSnapshot(input.snapshot, { strict: true }),
+    snapshot: sanitizeSnapshot(normalizeStoredCharacterSnapshot(input.snapshot), { strict: true }),
   };
 }
 
