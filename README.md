@@ -145,10 +145,25 @@ npm run test:e2e
 Executa um teste de fluxo real da API local: cadastro, sessão, salvamento, overwrite, migração 5e para 5.5e, exclusão de personagem, troca de senha e exclusão de conta.
 
 ```powershell
+npm run test:pdf
+```
+
+Executa os E2Es de exportação para PDF nas duas edições. O teste 5e cobre Artífice com Armadura Resistente; o teste 2024 cobre maestrias de arma e magias concedidas do Druida do Círculo da Terra.
+
+Também é possível rodar cada edição separadamente:
+
+```powershell
+npm run test:pdf:5e
+npm run test:pdf:2024
+```
+
+```powershell
 npm test
 ```
 
-Roda a bateria principal: validação estrutural, smoke DOM e E2E de conta/API.
+Roda a bateria principal: validação estrutural, smoke DOM, E2E de conta/API e E2E de PDF das duas edições.
+
+Os testes de DOM/PDF usam Chrome ou Edge em modo headless. Se o executável não for encontrado automaticamente, defina `CHROME_PATH` conforme o exemplo em `.env.example`.
 
 ```powershell
 npm run serve:watchdog
@@ -214,11 +229,25 @@ KV_REST_API_TOKEN
 
 ## Deploy Na Vercel
 
-Depois de conectar um Redis persistente ao projeto:
+Antes de publicar, conecte um Redis persistente ao projeto e configure as variáveis `UPSTASH_REDIS_REST_URL` e `UPSTASH_REDIS_REST_TOKEN` no ambiente da Vercel. Depois, valide localmente:
 
 ```powershell
 vercel env pull .env.local --yes
 vercel dev
+npm test
+npm audit --omit=dev
+```
+
+Para criar um preview manual:
+
+```powershell
+vercel deploy
+```
+
+Depois de validar o preview, publique em produção:
+
+```powershell
+vercel deploy --prod
 ```
 
 As telas consomem estas rotas:
@@ -229,6 +258,7 @@ As telas consomem estas rotas:
 - `/api/accounts/logout`
 - `/api/accounts/migrate`
 - `/api/characters`
+- `/api/community-stats`
 
 ## Segurança
 
@@ -251,15 +281,14 @@ Veja também:
 
 ## Status Do Projeto
 
-O projeto já é funcional para uso local e testes fechados. A parte 5e está mais madura; a parte 5.5e/2024 já tem bastante coisa pronta, mas ainda é o principal território de evolução.
+O projeto já é funcional para uso local, testes fechados e preparação de deploy com Redis persistente. A parte 5e está mais madura; a parte 5.5e/2024 já cobre criação, migração, maestrias, magias e exportação para PDF, mas ainda é o principal território de evolução.
 
 Próximos pontos naturais:
 
 - revisar cobertura e atribuição de conteúdo SRD;
-- ampliar testes end-to-end de conta, migração e PDF;
-- melhorar documentação de deploy;
+- ampliar QA visual em desktop e mobile;
 - quebrar arquivos grandes em módulos menores;
-- fazer uma rodada forte de QA visual em desktop e mobile.
+- definir licença do código e política final de uso de dados antes de distribuição pública.
 
 ## Nota Sobre Conteúdo E Marcas
 

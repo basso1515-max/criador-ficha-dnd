@@ -9,7 +9,9 @@ Este projeto pode rodar localmente sem muita cerimônia, mas publicação públi
 - Defina `UPSTASH_REDIS_REST_URL` e `UPSTASH_REDIS_REST_TOKEN` somente no painel da Vercel ou no provedor de deploy.
 - Não publique `.env.local`, dumps de Redis, `server-data/`, logs ou arquivos gerados em `out/`.
 - Rode `npm audit --omit=dev` antes do deploy.
-- Rode `npm run check`, `npm run smoke:dom` e `npm run test:e2e` antes de promover uma versão.
+- Rode `npm test` antes de promover uma versão. Ele cobre validação estrutural, smoke DOM, conta/API e exportação PDF 5e/2024.
+- Se precisar isolar falhas, rode `npm run check`, `npm run smoke:dom`, `npm run test:e2e`, `npm run test:pdf:5e` e `npm run test:pdf:2024`.
+- Garanta que Chrome ou Edge esteja disponível para os testes headless; se necessário, defina `CHROME_PATH`.
 
 ## Segredos
 
@@ -50,4 +52,12 @@ Este projeto pode rodar localmente sem muita cerimônia, mas publicação públi
 
 - Ative logs da Vercel para erros de API.
 - Acompanhe falhas de cadastro/login/salvamento depois de cada deploy.
+- Confira `/api/community-stats` depois de publicar, pois ele depende do mesmo Redis persistente usado pelas contas.
 - Se o app receber usuários externos, considere alertas simples para erro 5xx e limite de Redis.
+
+## Promocao De Deploy
+
+- Use `vercel deploy` para gerar um preview manual quando não estiver usando Git Integration.
+- Valide o preview com criação de conta, salvamento de personagem, geração de PDF e estatísticas públicas.
+- Promova para produção com `vercel deploy --prod` ou promova um preview já validado com `vercel promote`.
+- Em caso de regressão em produção, use `vercel rollback` e investigue a falha antes de novo deploy.
