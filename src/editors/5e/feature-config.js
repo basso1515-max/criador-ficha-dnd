@@ -588,6 +588,18 @@ export const ARTIFICER_INFUSION_TARGET_OPTIONS = {
     { value: "item-replicado-aliado", label: "Item replicado para aliado", summary: "Item criado e entregue a outro personagem." },
   ],
 };
+export const ARTIFICER_INFUSION_DAMAGE_TYPE_OPTIONS = [
+  { value: "acido", label: "Ácido", summary: "Resistência a dano ácido." },
+  { value: "frio", label: "Frio", summary: "Resistência a dano de frio." },
+  { value: "fogo", label: "Fogo", summary: "Resistência a dano de fogo." },
+  { value: "forca", label: "Força", summary: "Resistência a dano de força." },
+  { value: "eletrico", label: "Elétrico", summary: "Resistência a dano elétrico." },
+  { value: "necrotico", label: "Necrótico", summary: "Resistência a dano necrótico." },
+  { value: "veneno", label: "Veneno", summary: "Resistência a dano venenoso." },
+  { value: "psiquico", label: "Psíquico", summary: "Resistência a dano psíquico." },
+  { value: "radiante", label: "Radiante", summary: "Resistência a dano radiante." },
+  { value: "trovejante", label: "Trovejante", summary: "Resistência a dano trovejante." },
+];
 export const ARTIFICER_INFUSION_CATALOG = [
   {
     id: "enhanced-arcane-focus",
@@ -683,7 +695,15 @@ export const ARTIFICER_INFUSION_CATALOG = [
     minLevel: 6,
     targetGroups: ["armor"],
     summary: "Armadura concede resistência a um tipo de dano escolhido ao infundir.",
-    description: "Use o item alvo para registrar a armadura; anote o tipo de dano nas observações se precisar.",
+    description: "Registre a armadura infundida e selecione o tipo de dano resistido pela infusão.",
+    configuration: {
+      id: "damage-type",
+      label: "Tipo de dano",
+      summaryLabel: "Resistência",
+      required: true,
+      description: "Escolha o tipo de dano resistido pela armadura enquanto a infusão estiver ativa.",
+      options: ARTIFICER_INFUSION_DAMAGE_TYPE_OPTIONS,
+    },
   },
   {
     id: "spell-refueling-ring",

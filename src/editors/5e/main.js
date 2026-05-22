@@ -4143,6 +4143,10 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     return `${entry?.uid || "artifice"}:artificer-infusion:target:${slotIndex}`;
   }
 
+  function buildArtificerInfusionConfigurationSlotKey(entry, slotIndex, configuration) {
+    return `${entry?.uid || "artifice"}:artificer-infusion:configuration:${slotIndex}:${configuration?.id || "detail"}`;
+  }
+
   function getCurrentArtificerInfusionSelectionMap(attrName) {
     const selections = new Map();
     if (!el.artificerInfusionsContainer) return selections;
@@ -4164,6 +4168,10 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     return getCurrentArtificerInfusionSelectionMap("data-artificer-infusion-target-slot-key");
   }
 
+  function getCurrentArtificerConfigurationSelectionMap() {
+    return getCurrentArtificerInfusionSelectionMap("data-artificer-infusion-configuration-slot-key");
+  }
+
   function getArtificerInfusionById(infusionId) {
     return ARTIFICER_INFUSION_CATALOG.find((infusion) => infusion.id === infusionId) || null;
   }
@@ -4183,6 +4191,14 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     return groups
       .flatMap((group) => ARTIFICER_INFUSION_TARGET_OPTIONS[group] || [])
       .filter((option, index, list) => list.findIndex((item) => item.value === option.value) === index);
+  }
+
+  function getArtificerInfusionConfiguration(infusion) {
+    return infusion?.configuration && typeof infusion.configuration === "object" ? infusion.configuration : null;
+  }
+
+  function getArtificerInfusionConfigurationOptions(configuration) {
+    return Array.isArray(configuration?.options) ? configuration.options : [];
   }
 
   function getSelectedKnownArtificerInfusionsForEntry(entry, knownSelections = getCurrentArtificerKnownSelectionMap()) {
@@ -4214,6 +4230,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     const knownSelections = getCurrentArtificerKnownSelectionMap();
     const activeSelections = getCurrentArtificerActiveSelectionMap();
     const targetSelections = getCurrentArtificerTargetSelectionMap();
+    const configurationSelections = getCurrentArtificerConfigurationSelectionMap();
     const sources = entries.map((entry) => ({
       entry,
       entryUid: entry.uid,
@@ -4244,7 +4261,13 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
         const targetOptions = getArtificerInfusionTargetOptions(infusion);
         const targetValue = String(targetSelections.get(targetSlotKey) || "").trim();
         const target = targetOptions.find((option) => option.value === targetValue) || null;
-        if (infusion && target) {
+        const configuration = getArtificerInfusionConfiguration(infusion);
+        const configurationSlotKey = configuration ? buildArtificerInfusionConfigurationSlotKey(source.entry, slotIndex, configuration) : "";
+        const configurationOptions = getArtificerInfusionConfigurationOptions(configuration);
+        const configurationValue = configuration ? String(configurationSelections.get(configurationSlotKey) || "").trim() : "";
+        const configurationOption = configurationOptions.find((option) => option.value === configurationValue) || null;
+        const configurationComplete = !configuration?.required || configurationOption;
+        if (infusion && target && configurationComplete) {
           activeConfigured += 1;
           activeEntries.push({
             source,
@@ -4257,7 +4280,13 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
             infusion,
             targetValue,
             target,
+            configuration,
+            configurationSlotKey,
+            configurationValue: configurationOption ? configurationValue : "",
+            configurationOption,
           });
+        } else if (infusion && target && configuration?.required && !configurationOption) {
+          pending.push(`Escolha ${configuration.label || "a configuração"} de ${infusion.label} (${source.classLabel}).`);
         } else if (infusion && !target) {
           pending.push(`Escolha o item alvo de ${infusion.label} (${source.classLabel}).`);
         }
@@ -4311,6 +4340,35 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     };
   }
 
+  function describeArtificerInfusionConfigurationOption(select, value, label) {
+    const infusionId = select?.getAttribute("data-artificer-infusion-configuration-for") || "";
+    const configurationId = select?.getAttribute("data-artificer-infusion-configuration-id") || "";
+    const infusion = getArtificerInfusionById(infusionId);
+    const configuration = getArtificerInfusionConfiguration(infusion);
+    const option = getArtificerInfusionConfigurationOptions(configuration).find((item) => item.value === value) || null;
+    if (!configuration || !option || (configurationId && configuration.id !== configurationId)) {
+      return { summary: "", lines: [], body: "", search: label || value || "" };
+    }
+
+    return {
+      group: infusion?.label || configuration.label || "Configuração",
+      summary: option.summary || "",
+      lines: [
+        infusion?.label ? `Infusão ativa: ${infusion.label}` : "",
+        configuration.summaryLabel ? `${configuration.summaryLabel}: ${option.label}` : `${configuration.label || "Opção"}: ${option.label}`,
+      ].filter(Boolean),
+      body: configuration.description || infusion?.description || "",
+      search: [
+        label,
+        option.label,
+        option.summary,
+        configuration.label,
+        configuration.description,
+        infusion?.label,
+      ].filter(Boolean).join(" "),
+    };
+  }
+
   function initializeArtificerInfusionFields() {
     cleanupArtificerInfusionFields();
     if (!el.artificerInfusionsContainer) return;
@@ -4335,7 +4393,9 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
         placeholder: fieldRoot.getAttribute("data-artificer-infusion-placeholder") || "Selecione...",
         describeOption: kind === "target"
           ? (value, label) => describeArtificerInfusionTargetOption(select, value, label)
-          : (value, label) => describeArtificerInfusionOption(select, value, label),
+          : kind === "configuration"
+            ? (value, label) => describeArtificerInfusionConfigurationOption(select, value, label)
+            : (value, label) => describeArtificerInfusionOption(select, value, label),
         onCommit: () => onArtificerInfusionChanged({ target: select }),
         showSuggestionSummary: true,
       });
@@ -4403,7 +4463,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     }).join("");
   }
 
-  function renderArtificerInfusionActiveFields(source, knownSelections, activeSelections, targetSelections) {
+  function renderArtificerInfusionActiveFields(source, knownSelections, activeSelections, targetSelections, configurationSelections = new Map()) {
     const knownEntries = getSelectedKnownArtificerInfusionsForEntry(source.entry, knownSelections);
     const knownOptions = knownEntries.map((entry) => entry.infusion);
     const activeSelectedValues = new Set();
@@ -4422,6 +4482,12 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       const targetOptions = getArtificerInfusionTargetOptions(selectedInfusion);
       const selectedTarget = targetOptions.some((option) => option.value === targetSelections.get(targetSlotKey))
         ? String(targetSelections.get(targetSlotKey) || "")
+        : "";
+      const configuration = getArtificerInfusionConfiguration(selectedInfusion);
+      const configurationSlotKey = configuration ? buildArtificerInfusionConfigurationSlotKey(source.entry, slotIndex, configuration) : "";
+      const configurationOptions = getArtificerInfusionConfigurationOptions(configuration);
+      const selectedConfiguration = configurationOptions.some((option) => option.value === configurationSelections.get(configurationSlotKey))
+        ? String(configurationSelections.get(configurationSlotKey) || "")
         : "";
       const usedValues = new Set(Array.from(activeSelectedValues).filter((value) => value !== selectedValue));
 
@@ -4451,6 +4517,16 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
               disabled: !selectedInfusion,
               attrs: `data-artificer-infusion-target-slot-key="${escapeHtml(targetSlotKey)}" data-artificer-infusion-target-for="${escapeHtml(selectedValue)}" data-artificer-infusion-entry-uid="${escapeHtml(source.entryUid)}"`,
             })}
+            ${configuration ? renderArtificerInfusionSelectField({
+              slotKey: configurationSlotKey,
+              kind: "configuration",
+              label: configuration.label || "Configuração",
+              placeholder: configurationOptions.length ? "Selecione..." : "Sem opções disponíveis",
+              selectedValue: selectedConfiguration,
+              options: configurationOptions,
+              disabled: !selectedInfusion || !configurationOptions.length,
+              attrs: `data-artificer-infusion-configuration-slot-key="${escapeHtml(configurationSlotKey)}" data-artificer-infusion-configuration-for="${escapeHtml(selectedValue)}" data-artificer-infusion-configuration-id="${escapeHtml(configuration.id || "detail")}" data-artificer-infusion-entry-uid="${escapeHtml(source.entryUid)}"`,
+            }) : ""}
           </div>
         </div>
       `;
@@ -4464,13 +4540,18 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     const knownCount = selectionState?.knownEntries?.length || 0;
     const activeCount = selectionState?.activeEntries?.length || 0;
     const pendingCount = selectionState?.pending?.length || 0;
-    const activeLabels = (selectionState?.activeEntries || []).map((entry) => `${entry.infusion.label} em ${entry.target.label}`);
+    const activeLabels = (selectionState?.activeEntries || []).map((entry) => {
+      const configurationLabel = entry.configurationOption
+        ? ` (${entry.configuration?.summaryLabel || entry.configuration?.label || "Configuração"}: ${entry.configurationOption.label})`
+        : "";
+      return `${entry.infusion.label} em ${entry.target.label}${configurationLabel}`;
+    });
     const steps = [
       { label: "Nível", value: sources.length ? sources.map((source) => `${source.classLabel} ${source.level}`).join(" • ") : "aguardando", body: "O nível de Artífice define quantas infusões são conhecidas e quantas podem ficar ativas." },
       { label: "Catálogo", value: `${ARTIFICER_INFUSION_CATALOG.length} opções`, body: "O catálogo filtra pré-requisitos de nível e inclui infusões base e opções de Replicar Item Mágico." },
       { label: "Conhecidas", value: `${knownCount}/${knownTotal}`, body: "Infusões conhecidas são a lista preparada do Artífice; escolhas duplicadas são bloqueadas." },
-      { label: "Ativas", value: `${activeCount}/${activeTotal}`, body: "Infusões ativas precisam escolher uma infusão conhecida e um item alvo válido." },
-      { label: "Ficha/PDF", value: activeLabels.length ? formatList(activeLabels) : "aguardando", body: "As infusões ativas e seus itens alvo entram no preview e nos campos automáticos do PDF." },
+      { label: "Ativas", value: `${activeCount}/${activeTotal}`, body: "Infusões ativas precisam escolher uma infusão conhecida, um item alvo válido e qualquer detalhe exigido." },
+      { label: "Ficha/PDF", value: activeLabels.length ? formatList(activeLabels) : "aguardando", body: "As infusões ativas, seus itens alvo e configurações entram no preview e nos campos automáticos do PDF." },
     ];
 
     return `
@@ -4502,8 +4583,8 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
             ${renderArtificerInfusionKnownFields(source, maps.knownSelections)}
           </div>
           <div class="feat-choice-side">
-            <strong>Ativas e item alvo</strong>
-            ${renderArtificerInfusionActiveFields(source, maps.knownSelections, maps.activeSelections, maps.targetSelections)}
+            <strong>Ativas e detalhes</strong>
+            ${renderArtificerInfusionActiveFields(source, maps.knownSelections, maps.activeSelections, maps.targetSelections, maps.configurationSelections)}
           </div>
         </div>
       </article>
@@ -4517,6 +4598,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     const knownSelections = getCurrentArtificerKnownSelectionMap();
     const activeSelections = getCurrentArtificerActiveSelectionMap();
     const targetSelections = getCurrentArtificerTargetSelectionMap();
+    const configurationSelections = getCurrentArtificerConfigurationSelectionMap();
     cleanupArtificerInfusionFields();
     if (!entries.length) {
       el.artificerInfusionsPanel.hidden = true;
@@ -4532,7 +4614,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     el.artificerInfusionsPanel.hidden = false;
     el.artificerInfusionsSummary.textContent = `Conhecidas ${selectionState.knownEntries.length}/${knownTotal} • Ativas ${selectionState.activeEntries.length}/${activeTotal}.`;
     el.artificerInfusionsContainer.innerHTML = selectionState.sources
-      .map((source) => renderArtificerInfusionEntryCard(source, { knownSelections, activeSelections, targetSelections }))
+      .map((source) => renderArtificerInfusionEntryCard(source, { knownSelections, activeSelections, targetSelections, configurationSelections }))
       .join("");
     if (el.artificerInfusionsInfo) {
       el.artificerInfusionsInfo.innerHTML = getArtificerInfusionCascadeMarkup(selectionState);
@@ -4584,7 +4666,10 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
         lines.push(`Conhecidas: ${formatList(known.map((entry) => entry.infusion.label))}.`);
       }
       active.forEach((entry) => {
-        lines.push(`${entry.infusion.label} -> ${entry.target.label}: ${entry.infusion.summary || "Infusão ativa registrada."}`);
+        const configurationText = entry.configurationOption
+          ? ` (${entry.configuration?.summaryLabel || entry.configuration?.label || "Configuração"}: ${entry.configurationOption.label})`
+          : "";
+        lines.push(`${entry.infusion.label} -> ${entry.target.label}${configurationText}: ${entry.infusion.summary || "Infusão ativa registrada."}`);
       });
     });
 
@@ -11359,6 +11444,12 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     renderArtificerInfusions();
 
     Array.from(el.artificerInfusionsContainer.querySelectorAll("select[data-artificer-infusion-target-slot-key]")).forEach((select) => {
+      if (select.disabled || (!overwrite && select.value)) return;
+      const selectedValue = pickRandom(listOptionValues(select));
+      if (selectedValue) select.value = selectedValue;
+    });
+
+    Array.from(el.artificerInfusionsContainer.querySelectorAll("select[data-artificer-infusion-configuration-slot-key]")).forEach((select) => {
       if (select.disabled || (!overwrite && select.value)) return;
       const selectedValue = pickRandom(listOptionValues(select));
       if (selectedValue) select.value = selectedValue;

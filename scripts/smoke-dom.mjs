@@ -218,6 +218,14 @@ const smokePages = [
         const infusionKnownSelects = () => Array.from(document.querySelectorAll("#artificerInfusionsContainer select[data-artificer-infusion-known-slot-key]"));
         const infusionActiveSelects = () => Array.from(document.querySelectorAll("#artificerInfusionsContainer select[data-artificer-infusion-active-slot-key]"));
         const infusionTargetSelects = () => Array.from(document.querySelectorAll("#artificerInfusionsContainer select[data-artificer-infusion-target-slot-key]"));
+        const infusionConfigurationSelects = () => Array.from(document.querySelectorAll("#artificerInfusionsContainer select[data-artificer-infusion-configuration-slot-key]"));
+        const infusionConfigurationSelectForSlot = (slotIndex, infusionValue = "") => infusionConfigurationSelects()
+          .find((select) => {
+            const slotKey = select.getAttribute("data-artificer-infusion-configuration-slot-key") || "";
+            const configuredInfusion = select.getAttribute("data-artificer-infusion-configuration-for") || "";
+            return slotKey.includes(":artificer-infusion:configuration:" + slotIndex + ":")
+              && (!infusionValue || configuredInfusion === infusionValue);
+          });
         const chooseKnownInfusion = (slotIndex, value) => {
           const select = infusionKnownSelects()[slotIndex];
           assert(select, "Slot de infusão conhecida ausente: " + slotIndex);
@@ -240,6 +248,14 @@ const smokePages = [
           target.value = targetValue;
           dispatch(target, "change");
         };
+        const chooseInfusionConfiguration = (slotIndex, infusionValue, configurationValue) => {
+          const select = infusionConfigurationSelectForSlot(slotIndex, infusionValue);
+          assert(select, "Slot de configuração de infusão ausente: " + infusionValue + " slot " + slotIndex);
+          const option = Array.from(select.options).find((item) => item.value === configurationValue && !item.disabled);
+          assert(option, "Configuração indisponível para " + infusionValue + ": " + configurationValue);
+          select.value = configurationValue;
+          dispatch(select, "change");
+        };
 
         setClassLevel("Artífice", 2);
         assert(!document.querySelector("#artificerInfusionsPanel")?.hidden, "Painel de infusões de Artifice nao abriu no nível 2.");
@@ -257,6 +273,29 @@ const smokePages = [
         assert(infusionSummary.includes("Conhecidas 4/4") && infusionSummary.includes("Ativas 2/2"), "Resumo de infusões não fechou 4/4 e 2/2: " + infusionSummary);
         const infusionPreview = document.querySelector("#preview")?.textContent || "";
         assert(infusionPreview.includes("Artífice - Infusões") && infusionPreview.includes("Defesa Aprimorada") && infusionPreview.includes("Cota de escamas"), "Preview/PDF automático 5e não recebeu infusões ativas com alvo.");
+
+        setClassLevel("Artífice", 6);
+        assert(infusionKnownSelects().length === 6, "Artífice nível 6 não exibiu 6 infusões conhecidas.");
+        assert(infusionActiveSelects().length === 3, "Artífice nível 6 não exibiu 3 infusões ativas.");
+        chooseKnownInfusion(4, "resistant-armor");
+        chooseActiveInfusion(2, "resistant-armor", "cota-de-escamas");
+        const resistantArmorPendingSummary = document.querySelector("#artificerInfusionsSummary")?.textContent || "";
+        assert(resistantArmorPendingSummary.includes("Ativas 2/3"), "Armadura Resistente sem tipo de dano não deveria contar como ativa completa: " + resistantArmorPendingSummary);
+        const resistantArmorPendingPreview = document.querySelector("#preview")?.textContent || "";
+        assert(textIncludes(resistantArmorPendingPreview, "Escolha Tipo de dano de Armadura Resistente"), "Preview não cobrou tipo de dano da Armadura Resistente.");
+        assert(infusionConfigurationSelectForSlot(2, "resistant-armor"), "Armadura Resistente não exibiu seletor de tipo de dano.");
+        chooseInfusionConfiguration(2, "resistant-armor", "fogo");
+        const resistantArmorSummary = document.querySelector("#artificerInfusionsSummary")?.textContent || "";
+        assert(resistantArmorSummary.includes("Ativas 3/3"), "Resumo de Armadura Resistente não fechou 3/3 após tipo de dano: " + resistantArmorSummary);
+        const resistantArmorConfigurationSelect = infusionConfigurationSelectForSlot(2, "resistant-armor");
+        assert(resistantArmorConfigurationSelect?.value === "fogo", "Tipo de dano da Armadura Resistente não persistiu após rerender.");
+        const resistantArmorPreview = document.querySelector("#preview")?.textContent || "";
+        assert(
+          textIncludes(resistantArmorPreview, "Armadura Resistente")
+            && textIncludes(resistantArmorPreview, "Cota de escamas")
+            && textIncludes(resistantArmorPreview, "Resistência: Fogo"),
+          "Preview/PDF automático 5e não recebeu Armadura Resistente com tipo de dano."
+        );
 
         setClassLevel("Artífice", 3);
         setValue("#arquetipo", "artifice-armeiro", ["change"]);
