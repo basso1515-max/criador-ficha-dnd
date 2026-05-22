@@ -363,10 +363,18 @@ function fillDruidLand2024PdfFixtureScript() {
 }
 
 async function navigate(cdp, url) {
-  const loaded = cdp.waitForEvent("Page.domContentEventFired", PAGE_TIMEOUT_MS);
-  await cdp.send("Page.navigate", { url });
-  await loaded;
-  await waitForFunction(cdp, "document.readyState !== 'loading'");
+  const response = await cdp.send("Page.navigate", { url });
+  if (response.errorText) {
+    throw new Error(`Falha ao navegar para ${url}: ${response.errorText}`);
+  }
+
+  const safeUrl = JSON.stringify(url);
+  await waitForFunction(
+    cdp,
+    `location.href === ${safeUrl} && document.readyState !== "loading"`,
+    PAGE_TIMEOUT_MS,
+    `Pagina nao carregou: ${url}`
+  );
 }
 
 async function waitForSelector(cdp, selector) {
