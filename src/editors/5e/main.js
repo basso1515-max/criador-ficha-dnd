@@ -1042,6 +1042,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     });
     isInitialA11yReady = true;
     editorA11y?.refresh();
+    exposeTestHooks5e();
   });
 
   function populateSelect(select, items, placeholder = null) {
@@ -18681,6 +18682,60 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
     `;
 
     floatingSubmitButton.requestRecalc();
+  }
+
+  function exposeTestHooks5e() {
+    if (window.__DND_SHEET_ENABLE_TEST_HOOKS__ !== true) return;
+
+    window.__DND_SHEET_5E_TEST_HOOKS__ = Object.freeze({
+      getComputedFicha() {
+        return computeFicha(collectState());
+      },
+
+      async generatePdfBase64(overrides = {}) {
+        if (!window.PDFLib) throw new Error("pdf-lib nao carregou.");
+
+        try {
+          await pdfMapLoadPromise;
+        } catch {}
+
+        const state = overrides.state || collectState();
+        if (!state.nome) throw new Error("Informe o nome do personagem.");
+
+        const templateBytes = await loadTemplatePdfBytes(state);
+        const pdfDoc = await PDFLib.PDFDocument.load(templateBytes);
+        const form = pdfDoc.getForm();
+        const ficha = computeFicha(state);
+        const pdfMap = overrides.pdfMap || activePdfMap;
+        let font = null;
+
+        try {
+          font = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
+        } catch {}
+
+        await applyFichaToPdf({ pdfDoc, form, ficha, pdfMap, font });
+
+        try {
+          if (font) form.updateFieldAppearances(font);
+          else form.updateFieldAppearances();
+        } catch {
+          try { form.updateFieldAppearances(); } catch {}
+        }
+
+        if (overrides.flatten ?? state.options.flatten) {
+          form.flatten({ updateFieldAppearances: false });
+        }
+
+        return {
+          base64: await pdfDoc.saveAsBase64({ updateFieldAppearances: false }),
+          ficha: {
+            nome: ficha.texto.nome,
+            classeENivel: ficha.texto.classeENivel,
+            caracteristicasETalentos: ficha.texto.caracteristicasETalentos,
+          },
+        };
+      },
+    });
   }
 
   function writeErrorScreen(tab, err) {
