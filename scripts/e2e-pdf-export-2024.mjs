@@ -96,14 +96,32 @@ async function main() {
   assert(generated?.fieldTexts, "Hook de PDF nao retornou o snapshot dos campos.");
   assert(generated.byteLength > 10_000_000, "PDF 2024 gerado parece pequeno demais.");
 
-  const fieldTexts = generated.fieldTexts;
-  const allText = Object.values(fieldTexts).join("\n");
+  const allText = getPdfSnapshotText(generated);
 
   assertIncludes(allText, "Teste PDF 2024", "nome do personagem");
   assertIncludes(allText, "Barbaro", "classe");
   assertIncludes(allText, "4", "nivel");
   assertIncludes(allText, "Maestria em Arma", "secao de maestrias");
   formState.masteryLabels.forEach((label) => assertIncludes(allText, label, `maestria ${label}`));
+
+  const spellcasterState = await evaluate(cdp, fillDruidLand2024PdfFixtureScript());
+  assert(spellcasterState.previewHasLandTerrain, "Preview nao registrou o terreno Arido do Circulo da Terra.");
+  ["Nublar", "Maos Flamejantes", "Raio de Fogo", "Bola de Fogo"].forEach((spellName) => {
+    assert(spellcasterState.grantedSpellText.includes(normalize(spellName)), `Magia concedida ausente no editor: ${spellName}`);
+  });
+
+  const spellcasterPdf = await evaluate(cdp, "window.__DND_SHEET_2024_TEST_HOOKS__.generatePdfSnapshot({ flatten: false })", 45_000);
+  assert(spellcasterPdf?.fieldTexts, "Hook de PDF do conjurador nao retornou o snapshot dos campos.");
+  assert(spellcasterPdf.byteLength > 10_000_000, "PDF 2024 do conjurador parece pequeno demais.");
+
+  const spellcasterText = getPdfSnapshotText(spellcasterPdf);
+  assertIncludes(spellcasterText, "Teste PDF Druida 2024", "nome do conjurador");
+  assertIncludes(spellcasterText, "Druida", "classe do conjurador");
+  assertIncludes(spellcasterText, "Sabedoria", "atributo de conjuracao");
+  assertIncludes(spellcasterText, "Nublar", "magia concedida Nublar");
+  assertIncludes(spellcasterText, "Maos Flamejantes", "magia concedida Maos Flamejantes");
+  assertIncludes(spellcasterText, "Raio de Fogo", "magia concedida Raio de Fogo");
+  assertIncludes(spellcasterText, "Bola de Fogo", "magia concedida Bola de Fogo");
 
   if (consoleProblems.length) {
     throw new Error(`Erros no console:\n${consoleProblems.map((item) => `- ${item}`).join("\n")}`);
@@ -114,8 +132,9 @@ async function main() {
     "hook de teste 2024 habilitado somente por flag",
     "fixture de Barbaro nivel 4 preenchida no editor 2024",
     "Maestria em Arma exige tres escolhas unicas",
+    "fixture de Druida da Terra nivel 5 preenche magias concedidas",
     "PDF gerado em memoria pelo mesmo motor do editor",
-    "campos finais do PDF contem nome, classe, nivel e maestrias",
+    "campos finais do PDF contem nome, classe, nivel, maestrias e magias",
   ].forEach((line) => console.log(`OK: ${line}`));
 
   cdp.close();
@@ -127,6 +146,10 @@ function assertIncludes(haystack, needle, label) {
   if (!normalize(haystack).includes(normalize(needle))) {
     throw new Error(`PDF nao contem ${label}: ${needle}`);
   }
+}
+
+function getPdfSnapshotText(snapshot) {
+  return Object.values(snapshot?.fieldTexts || {}).join("\n");
 }
 
 function fillBarbarian2024PdfFixtureScript() {
@@ -234,6 +257,106 @@ function fillBarbarian2024PdfFixtureScript() {
         previewHasWeaponMastery: normalize(document.querySelector("#preview2024")?.textContent || "").includes("maestria em arma"),
         masteryLabels: chosenMasteries.map((item) => item.label),
         masteryValues: chosenMasteries.map((item) => item.value),
+      };
+    })();
+  `;
+}
+
+function fillDruidLand2024PdfFixtureScript() {
+  return String.raw`
+    (async () => {
+      const assert = (condition, message) => {
+        if (!condition) throw new Error(message);
+      };
+      const normalize = (value) => String(value || "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase();
+      const dispatch = (node, type) => node.dispatchEvent(new Event(type, { bubbles: true }));
+      const waitForCondition = async (predicate, message, timeoutMs = 12000) => {
+        const start = Date.now();
+        while (Date.now() - start < timeoutMs) {
+          if (predicate()) return;
+          await new Promise((resolve) => setTimeout(resolve, 50));
+        }
+        throw new Error(message);
+      };
+      const setValue = (selector, value, events = ["input", "change"]) => {
+        const node = document.querySelector(selector);
+        assert(node, "Campo ausente: " + selector);
+        node.value = String(value);
+        events.forEach((eventName) => dispatch(node, eventName));
+        return node;
+      };
+      const chooseSelectByText = (selector, text) => {
+        const select = document.querySelector(selector);
+        assert(select, "Select ausente: " + selector);
+        const wanted = normalize(text);
+        const option = Array.from(select.options)
+          .find((item) => normalize(item.textContent).includes(wanted) || normalize(item.value).includes(wanted));
+        assert(option, "Opcao ausente em " + selector + ": " + text);
+        select.value = option.value;
+        dispatch(select, "change");
+        return option.value;
+      };
+      const ensurePdfLib = async () => {
+        if (window.PDFLib) return;
+        await new Promise((resolve, reject) => {
+          const script = document.createElement("script");
+          script.src = "/node_modules/pdf-lib/dist/pdf-lib.min.js";
+          script.onload = resolve;
+          script.onerror = () => reject(new Error("pdf-lib local nao carregou."));
+          document.head.appendChild(script);
+        });
+      };
+
+      await ensurePdfLib();
+      await waitForCondition(() => window.__DND_SHEET_2024_TEST_HOOKS__, "Hook de teste nao ficou pronto.");
+
+      setValue("#nome2024", "Teste PDF Druida 2024");
+      chooseSelectByText("#classe2024", "druida");
+      setValue("#nivel2024", "5");
+      chooseSelectByText("#subclasse2024", "terra");
+      chooseSelectByText("#antecedente2024", "sabio");
+      chooseSelectByText("#raca2024", "humano");
+      setValue("#appearance2024", "Viajante coberto por poeira vermelha e simbolos druidicos.");
+      setValue("#notes2024", "Personagem usado para validar exportacao PDF 2024 com magias concedidas.");
+
+      ["for", "des", "con", "int", "sab", "car"].forEach((ability) => {
+        const input = document.querySelector('[name="base-' + ability + '"]');
+        if (!input) return;
+        input.value = ability === "sab" ? "18" : ability === "con" ? "14" : "10";
+        dispatch(input, "input");
+      });
+
+      await waitForCondition(() => {
+        const panel = document.querySelector("#subclassDetailChoicesPanel2024");
+        return panel && !panel.hidden && document.querySelector('#subclassDetailChoicesContainer2024 select[data-subclass-detail-slot-key]');
+      }, "Painel de detalhes do Circulo da Terra nao abriu.");
+
+      const terrainSelect = document.querySelector('#subclassDetailChoicesContainer2024 select[data-subclass-detail-slot-key]');
+      terrainSelect.value = "arido";
+      dispatch(terrainSelect, "change");
+
+      await waitForCondition(() => {
+        const text = normalize(document.querySelector("#magicSourcesList2024")?.textContent || "");
+        return text.includes("nublar")
+          && text.includes("maos flamejantes")
+          && text.includes("raio de fogo")
+          && text.includes("bola de fogo");
+      }, "Magias concedidas do Circulo da Terra Arido nao apareceram.");
+
+      await waitForCondition(() => {
+        const loadingText = [
+          "#featureChoicesSummary2024",
+          "#magicSummary2024",
+        ].map((selector) => document.querySelector(selector)?.textContent || "").join(" ");
+        return !loadingText.includes("Carregando");
+      }, "Catalogos lazy 2024 nao terminaram de carregar.");
+
+      return {
+        previewHasLandTerrain: normalize(document.querySelector("#preview2024")?.textContent || "").includes("arido"),
+        grantedSpellText: normalize(document.querySelector("#magicSourcesList2024")?.textContent || ""),
       };
     })();
   `;
