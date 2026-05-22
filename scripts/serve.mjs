@@ -1,4 +1,4 @@
-import { createHash, randomBytes, randomUUID, scryptSync, timingSafeEqual } from "node:crypto";
+import { createHash, createHmac, randomBytes, randomUUID, scryptSync, timingSafeEqual } from "node:crypto";
 import { createReadStream, existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { createServer } from "node:http";
 import path from "node:path";
@@ -11,6 +11,11 @@ import {
   normalizeCommunityStatsState,
 } from "../src/shared/community-stats.js";
 import { normalizeStoredCharacterSnapshot } from "../src/shared/character-schema.js";
+import {
+  MAX_PASSWORD_LENGTH,
+  MIN_NEW_PASSWORD_LENGTH,
+  isBlockedNewPassword,
+} from "../src/shared/password-policy.js";
 
 const root = process.cwd();
 const host = process.env.HOST || "127.0.0.1";
@@ -26,13 +31,19 @@ const EDITIONS = ["5e", "5.5e-2024"];
 const COOKIE_NAME = "dnd_sheet_session";
 const SESSION_TTL_SECONDS = 60 * 60 * 24 * 30;
 const SESSION_TTL_MS = SESSION_TTL_SECONDS * 1000;
-const PASSWORD_ALGO = "scrypt-v1";
-const SCRYPT_OPTIONS = { N: 16384, r: 8, p: 1, maxmem: 64 * 1024 * 1024 };
+const PASSWORD_ALGO_SCRYPT_V1 = "scrypt-v1";
+const PASSWORD_ALGO_SCRYPT_V2 = "scrypt-v2";
+const PASSWORD_ALGO_SCRYPT_V2_PEPPER = "scrypt-v2-pepper";
+const PASSWORD_ALGO = getPasswordPepper() ? PASSWORD_ALGO_SCRYPT_V2_PEPPER : PASSWORD_ALGO_SCRYPT_V2;
+const DUMMY_PASSWORD_SALT = randomBytes(32).toString("hex");
+const SCRYPT_OPTIONS_BY_ALGO = {
+  [PASSWORD_ALGO_SCRYPT_V1]: { N: 16384, r: 8, p: 1, maxmem: 64 * 1024 * 1024 },
+  [PASSWORD_ALGO_SCRYPT_V2]: { N: 65536, r: 8, p: 2, maxmem: 128 * 1024 * 1024 },
+  [PASSWORD_ALGO_SCRYPT_V2_PEPPER]: { N: 65536, r: 8, p: 2, maxmem: 128 * 1024 * 1024 },
+};
 const MAX_BODY_BYTES = 2 * 1024 * 1024;
 const MAX_DISPLAY_NAME_LENGTH = 80;
 const MAX_EMAIL_LENGTH = 254;
-const MIN_NEW_PASSWORD_LENGTH = 8;
-const MAX_PASSWORD_LENGTH = 256;
 const MAX_CHARACTER_NAME_LENGTH = 80;
 const MAX_CHARACTER_SUMMARY_LENGTH = 260;
 const MAX_SNAPSHOT_BYTES = 500_000;
@@ -42,7 +53,13 @@ const MAX_SNAPSHOT_OBJECT_KEYS = 500;
 const MAX_SNAPSHOT_STRING_LENGTH = 20_000;
 const MAX_SNAPSHOT_NODES = 20_000;
 const MAX_LEGACY_MIGRATION_ACCOUNTS = 20;
-const PASSWORD_IMPORT_ALGOS = new Set(["sha256", "legacy-fallback", PASSWORD_ALGO]);
+const PASSWORD_IMPORT_ALGOS = new Set([
+  "sha256",
+  "legacy-fallback",
+  PASSWORD_ALGO_SCRYPT_V1,
+  PASSWORD_ALGO_SCRYPT_V2,
+  PASSWORD_ALGO_SCRYPT_V2_PEPPER,
+]);
 const DANGEROUS_OBJECT_KEYS = new Set(["__proto__", "constructor", "prototype"]);
 const UNSAFE_TEXT_RE = /<\s*\/?\s*[a-z][^>]*>|on[a-z]+\s*=|(?:javascript|data)\s*:/i;
 const UNSAFE_CONTROL_CHARS_RE = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/;
@@ -245,7 +262,7 @@ function makeId(prefix) {
 }
 
 function makeSalt() {
-  return randomBytes(16).toString("hex");
+  return randomBytes(32).toString("hex");
 }
 
 function hashPasswordSha256(password, salt) {
@@ -262,16 +279,28 @@ function hashPasswordLegacyFallback(password, salt) {
   return `fallback-${(hash >>> 0).toString(16)}`;
 }
 
-function hashPasswordScrypt(password, salt) {
-  return scryptSync(String(password || ""), String(salt || ""), 64, SCRYPT_OPTIONS).toString("hex");
+function getPasswordPepper() {
+  return String(process.env.ACCOUNT_PASSWORD_PEPPER || "");
+}
+
+function hashPasswordScrypt(password, salt, algorithm) {
+  const options = SCRYPT_OPTIONS_BY_ALGO[algorithm] || SCRYPT_OPTIONS_BY_ALGO[PASSWORD_ALGO_SCRYPT_V1];
+  const derivedHash = scryptSync(String(password || ""), String(salt || ""), 64, options).toString("hex");
+  if (algorithm !== PASSWORD_ALGO_SCRYPT_V2_PEPPER) return derivedHash;
+
+  const pepper = getPasswordPepper();
+  if (!pepper) {
+    throw new HttpError(500, "Configuração de segurança de senha incompleta.");
+  }
+  return createHmac("sha256", pepper).update(derivedHash).digest("hex");
 }
 
 function hashPassword(password, salt, algorithm = PASSWORD_ALGO) {
   if (algorithm === "legacy-fallback") {
     return hashPasswordLegacyFallback(password, salt);
   }
-  return algorithm === PASSWORD_ALGO
-    ? hashPasswordScrypt(password, salt)
+  return algorithm.startsWith("scrypt-")
+    ? hashPasswordScrypt(password, salt, algorithm)
     : hashPasswordSha256(password, salt);
 }
 
@@ -282,6 +311,10 @@ function makePasswordRecord(password) {
     passwordSalt,
     passwordHash: hashPassword(password, passwordSalt, PASSWORD_ALGO),
   };
+}
+
+function runDummyPasswordHash(password) {
+  hashPassword(password, DUMMY_PASSWORD_SALT, PASSWORD_ALGO);
 }
 
 function hashSessionToken(token) {
@@ -363,10 +396,13 @@ function assertPasswordCredentialInput(password) {
   return value;
 }
 
-function assertNewPasswordInput(password) {
+function assertNewPasswordInput(password, expectedValues = []) {
   const value = assertPasswordCredentialInput(password);
   if (value.length < MIN_NEW_PASSWORD_LENGTH) {
     throw new HttpError(400, `Use uma senha com pelo menos ${MIN_NEW_PASSWORD_LENGTH} caracteres.`);
+  }
+  if (isBlockedNewPassword(value, expectedValues)) {
+    throw new HttpError(400, "Escolha uma senha menos comum e diferente dos dados da conta.");
   }
   return value;
 }
@@ -540,10 +576,12 @@ function assertStringField(value, label, { maxLength, required = true, trim = tr
 
 function validateRegisterBody(body) {
   const input = assertRequestBody(body, ["displayName", "email", "password"], ["displayName", "email", "password"], "Cadastro");
+  const displayName = assertDisplayNameInput(input.displayName);
+  const email = assertEmailInput(input.email);
   return {
-    displayName: assertDisplayNameInput(input.displayName),
-    email: assertEmailInput(input.email),
-    password: assertNewPasswordInput(input.password),
+    displayName,
+    email,
+    password: assertNewPasswordInput(input.password, [displayName, email]),
   };
 }
 
@@ -1053,6 +1091,7 @@ async function handleApi(req, res, url) {
     const store = readStore();
     const account = store.accounts.find((item) => item.email === input.email);
     if (!account) {
+      runDummyPasswordHash(input.password);
       throw new HttpError(401, "E-mail ou senha incorretos.");
     }
 
@@ -1076,7 +1115,7 @@ async function handleApi(req, res, url) {
   if (method === "PATCH" && pathname === "/api/account/current") {
     const input = validateAccountPatchBody(body);
     const store = readStore();
-    const { account, session } = requireAuthenticatedAccount(store, req);
+    const { account } = requireAuthenticatedAccount(store, req);
 
     const nextName = input.displayName ?? account.displayName;
     const nextEmail = input.email ?? account.email;
@@ -1087,18 +1126,23 @@ async function handleApi(req, res, url) {
     if (wantsEmailChange || wantsPasswordChange) {
       assertPassword(account, input.currentPassword || "");
     }
-    if (wantsPasswordChange) assertNewPasswordInput(input.newPassword);
+    if (wantsPasswordChange) assertNewPasswordInput(input.newPassword, [account.displayName, account.email, nextName, nextEmail]);
     if (wantsEmailChange && store.accounts.some((item) => item.id !== account.id && item.email === nextEmail)) {
       throw new HttpError(409, "Já existe uma conta com este e-mail.");
     }
 
     account.displayName = nextName;
     account.email = nextEmail;
+    let shouldRotateSession = false;
     if (wantsPasswordChange) {
       Object.assign(account, makePasswordRecord(input.newPassword));
-      store.sessions = (store.sessions || []).filter((item) => item.accountId !== account.id || item.id === session.id);
+      store.sessions = (store.sessions || []).filter((item) => item.accountId !== account.id);
+      shouldRotateSession = true;
     }
 
+    if (shouldRotateSession) {
+      createSession(store, account.id, req, res);
+    }
     writeStore(store);
     sendJson(res, 200, { account: toClientAccount(account) });
     return;

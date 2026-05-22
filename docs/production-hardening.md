@@ -7,6 +7,7 @@ Este projeto pode rodar localmente sem muita cerimônia, mas publicação públi
 - Configure HTTPS no domínio final.
 - Use Upstash Redis persistente em produção.
 - Defina `UPSTASH_REDIS_REST_URL` e `UPSTASH_REDIS_REST_TOKEN` somente no painel da Vercel ou no provedor de deploy.
+- Defina `ACCOUNT_PASSWORD_PEPPER` como um segredo longo e aleatório antes de criar contas reais, se quiser uma camada extra para hashes de senha.
 - Não publique `.env.local`, dumps de Redis, `server-data/`, logs ou arquivos gerados em `out/`.
 - Rode `npm audit --omit=dev` antes do deploy.
 - Rode `npm test` antes de promover uma versão. Ele cobre validação estrutural, smoke DOM, conta/API e exportação PDF 5e/2024.
@@ -16,6 +17,7 @@ Este projeto pode rodar localmente sem muita cerimônia, mas publicação públi
 ## Segredos
 
 - Se qualquer token local já foi compartilhado, rotacione no Upstash/Vercel.
+- Se `ACCOUNT_PASSWORD_PEPPER` vazar, rotacione o segredo e force redefinição de senha para contas criadas com pepper.
 - Revogue tokens antigos depois de confirmar que a produção usa os novos.
 - Mantenha `.env.example` atualizado com nomes de variáveis, nunca com valores reais.
 - Evite colar tokens em issues, commits, prints ou conversas públicas.
@@ -31,6 +33,7 @@ Este projeto pode rodar localmente sem muita cerimônia, mas publicação públi
 
 - Confirme que os cookies de sessão estão com `HttpOnly`, `SameSite=Lax` e `Secure` em HTTPS.
 - Mantenha rate limit ativo para cadastro, login e migração.
+- Mantenha a política de senha nova em 15+ caracteres e bloqueio de senhas comuns.
 - Verifique se rotas sensíveis rejeitam origem cross-site.
 - Mantenha `Cache-Control: no-store` em respostas da API.
 - Revise headers de produção no `vercel.json` após mudanças grandes.

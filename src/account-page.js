@@ -7,6 +7,7 @@ import {
   logoutAccount,
   registerAccount,
 } from "./account-storage.js";
+import { MIN_NEW_PASSWORD_LENGTH } from "./shared/password-policy.js";
 
 const el = {
   currentPanel: document.getElementById("accountCurrentPanel"),
@@ -100,15 +101,15 @@ function getPasswordStrength(password) {
   }
 
   let score = 0;
-  if (value.length >= 8) score += 1;
-  if (value.length >= 12) score += 1;
+  if (value.length >= MIN_NEW_PASSWORD_LENGTH) score += 2;
+  if (value.length >= 20) score += 1;
   if (/[a-z]/.test(value)) score += 1;
   if (/[A-Z]/.test(value)) score += 1;
   if (/\d/.test(value)) score += 1;
   if (/[^A-Za-z0-9]/.test(value)) score += 1;
 
   if (score <= 2) {
-    return { width: 34, className: "is-weak", label: "Força da senha: fraca." };
+    return { width: 34, className: "is-weak", label: `Força da senha: fraca. Use pelo menos ${MIN_NEW_PASSWORD_LENGTH} caracteres.` };
   }
   if (score <= 4) {
     return { width: 62, className: "is-medium", label: "Força da senha: média." };

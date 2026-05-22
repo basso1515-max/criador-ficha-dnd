@@ -66,8 +66,8 @@ async function main() {
 
   const jar = new CookieJar();
   const email = `e2e-${Date.now()}@example.test`;
-  const password = "SenhaE2E!123";
-  const nextPassword = "SenhaE2E!456";
+  const password = "SenhaE2E!123456";
+  const nextPassword = "SenhaE2E!456789";
 
   await assertSecurityHeaders(baseUrl);
   await assertCrossSiteWriteBlocked(baseUrl);
@@ -75,6 +75,30 @@ async function main() {
   const anonymous = await requestJson(baseUrl, "/api/account/current", { jar });
   assert(anonymous.statusCode === 200, "Consulta inicial de conta falhou.");
   assert(anonymous.data.account === null, "Sessão anônima deveria retornar account null.");
+
+  const rejectedShortPassword = await requestJson(baseUrl, "/api/accounts/register", {
+    method: "POST",
+    jar: new CookieJar(),
+    body: {
+      displayName: "Senha Curta",
+      email: `short-${Date.now()}@example.test`,
+      password: "SenhaE2E!123",
+    },
+    expectedStatus: 400,
+  });
+  assert(rejectedShortPassword.statusCode === 400, "Cadastro deveria rejeitar senha com menos de 15 caracteres.");
+
+  const rejectedCommonPassword = await requestJson(baseUrl, "/api/accounts/register", {
+    method: "POST",
+    jar: new CookieJar(),
+    body: {
+      displayName: "Senha Trivial",
+      email: `trivial-${Date.now()}@example.test`,
+      password: "aaaaaaaaaaaaaaa",
+    },
+    expectedStatus: 400,
+  });
+  assert(rejectedCommonPassword.statusCode === 400, "Cadastro deveria rejeitar senha trivial.");
 
   const registered = await requestJson(baseUrl, "/api/accounts/register", {
     method: "POST",
@@ -330,6 +354,7 @@ async function main() {
   [
     "headers de segurança básicos",
     "bloqueio de escrita cross-site",
+    "política de senha nova",
     "validação estrita de payloads maliciosos",
     "cadastro e sessão",
     "salvamento e overwrite de personagem 5e",
@@ -364,7 +389,7 @@ async function assertCrossSiteWriteBlocked(baseUrl) {
     body: {
       displayName: "Cross Site",
       email: "cross-site@example.test",
-      password: "SenhaE2E!123",
+      password: "SenhaE2E!123456",
     },
     expectedStatus: 403,
     headers: {

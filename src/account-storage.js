@@ -2,6 +2,11 @@ import {
   migrateCharacterSnapshot,
   normalizeStoredCharacterSnapshot,
 } from "./shared/character-schema.js";
+import {
+  MAX_PASSWORD_LENGTH,
+  MIN_NEW_PASSWORD_LENGTH,
+  isBlockedNewPassword,
+} from "./shared/password-policy.js";
 import { trackCommunityCharacterCreated } from "./analytics.js";
 
 export const ACCOUNT_LIMIT_PER_EDITION = 10;
@@ -13,8 +18,6 @@ const STORE_VERSION = 1;
 const EDITIONS = ["5e", "5.5e-2024"];
 const MAX_DISPLAY_NAME_LENGTH = 80;
 const MAX_EMAIL_LENGTH = 254;
-const MIN_NEW_PASSWORD_LENGTH = 8;
-const MAX_PASSWORD_LENGTH = 256;
 const MAX_CHARACTER_NAME_LENGTH = 80;
 const MAX_CHARACTER_SUMMARY_LENGTH = 260;
 
@@ -164,13 +167,14 @@ function assertEmailInput(email) {
 }
 
 function assertAccountInput({ displayName, email, password }, { creating = false, passwordRequired = true, newPassword = false } = {}) {
+  const expectedValues = [];
   if (creating) {
-    assertDisplayNameInput(displayName);
+    expectedValues.push(assertDisplayNameInput(displayName));
   }
-  assertEmailInput(email);
+  expectedValues.push(assertEmailInput(email));
   if (passwordRequired) {
     if (newPassword) {
-      assertNewPasswordInput(password);
+      assertNewPasswordInput(password, expectedValues);
     } else {
       assertPasswordCredentialInput(password);
     }
@@ -187,10 +191,13 @@ function assertPasswordCredentialInput(password) {
   }
 }
 
-function assertNewPasswordInput(password) {
+function assertNewPasswordInput(password, expectedValues = []) {
   assertPasswordCredentialInput(password);
   if (String(password || "").length < MIN_NEW_PASSWORD_LENGTH) {
     throw new Error(`Use uma senha com pelo menos ${MIN_NEW_PASSWORD_LENGTH} caracteres.`);
+  }
+  if (isBlockedNewPassword(password, expectedValues)) {
+    throw new Error("Escolha uma senha menos comum e diferente dos dados da conta.");
   }
 }
 
@@ -481,7 +488,7 @@ export async function updateCurrentAccount({ displayName, email, currentPassword
   const nextName = String(displayName ?? currentAccount.displayName).trim();
   const nextEmail = assertEmailInput(email ?? currentAccount.email);
   assertDisplayNameInput(nextName);
-  if (newPassword) assertNewPasswordInput(newPassword);
+  if (newPassword) assertNewPasswordInput(newPassword, [currentAccount.displayName, currentAccount.email, nextName, nextEmail]);
 
   const data = await requestApi("/api/account/current", {
     method: "PATCH",
