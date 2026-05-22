@@ -1,4 +1,4 @@
-export const MIN_NEW_PASSWORD_LENGTH = 5;
+export const MIN_NEW_PASSWORD_LENGTH = 6;
 export const MAX_PASSWORD_LENGTH = 256;
 
 const COMMON_PASSWORD_BLOCKLIST = new Set([

@@ -16,6 +16,20 @@ import {
   MIN_NEW_PASSWORD_LENGTH,
   isBlockedNewPassword,
 } from "../src/shared/password-policy.js";
+import {
+  OAUTH_PROVIDER_IDS,
+  OAUTH_STATE_COOKIE_NAME,
+  OAUTH_STATE_TTL_SECONDS,
+  OAuthProviderError,
+  buildOAuthAuthorizationUrl,
+  decodeOAuthStatePayload,
+  encodeOAuthStatePayload,
+  exchangeOAuthCodeForProfile,
+  getOAuthProviderLabel,
+  getOAuthProviderStatuses,
+  makeOAuthStatePayload,
+  normalizeOAuthProvider,
+} from "../api/_oauth.js";
 
 const root = process.cwd();
 const host = process.env.HOST || "127.0.0.1";
@@ -180,8 +194,36 @@ function normalizeAccountRecord(account) {
     passwordAlgo: sanitizePasswordAlgo(account.passwordAlgo),
     passwordSalt: sanitizePasswordSecret(account.passwordSalt),
     passwordHash: sanitizePasswordSecret(account.passwordHash),
+    passwordSet: account.passwordSet !== false,
+    authProviders: normalizeAuthProviders(account.authProviders),
     createdAt: sanitizeDateString(account.createdAt, new Date().toISOString()),
     characters: normalizeCharacters(account.characters),
+  };
+}
+
+function normalizeAuthProviders(providers) {
+  const seen = new Set();
+  return Array.isArray(providers)
+    ? providers.map(normalizeAuthProviderRecord).filter((provider) => {
+      if (!provider) return false;
+      const key = `${provider.provider}:${provider.providerAccountId}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    : [];
+}
+
+function normalizeAuthProviderRecord(provider) {
+  if (!provider || typeof provider !== "object") return null;
+  const providerId = normalizeOAuthProvider(provider.provider);
+  const providerAccountId = String(provider.providerAccountId || "").trim().slice(0, 256);
+  if (!providerId || !providerAccountId) return null;
+  return {
+    provider: providerId,
+    providerAccountId,
+    email: normalizeEmail(provider.email || ""),
+    linkedAt: sanitizeDateString(provider.linkedAt, new Date().toISOString()),
   };
 }
 
@@ -341,6 +383,11 @@ function toClientAccount(account) {
     id: account.id,
     displayName: account.displayName,
     email: account.email,
+    passwordSet: account.passwordSet !== false,
+    authProviders: normalizeAuthProviders(account.authProviders).map((provider) => ({
+      provider: provider.provider,
+      label: getOAuthProviderLabel(provider.provider),
+    })),
     createdAt: account.createdAt,
     characters: normalizeCharacters(account.characters),
   };
@@ -468,6 +515,18 @@ function assertPersistableCharacterRecord(character) {
   validateSnapshotInput(character.snapshot);
 }
 
+function assertPersistableAuthProviders(providers) {
+  normalizeAuthProviders(providers).forEach((provider) => {
+    if (!OAUTH_PROVIDER_IDS.includes(provider.provider)) {
+      throw new HttpError(400, "Provedor de login inválido.");
+    }
+    assertStringField(provider.providerAccountId, "Identificador do login social", {
+      maxLength: 256,
+    });
+    if (provider.email) assertEmailInput(provider.email);
+  });
+}
+
 function assertPersistableAccountRecord(account) {
   if (!account || typeof account !== "object" || !isSafeRecordId(account.id, "account")) {
     throw new HttpError(400, "Conta inválida.");
@@ -475,6 +534,7 @@ function assertPersistableAccountRecord(account) {
   assertDisplayNameInput(account.displayName);
   assertEmailInput(account.email);
   assertImportedPasswordRecord(account);
+  assertPersistableAuthProviders(account.authProviders);
   const characters = normalizeCharacters(account.characters);
   EDITIONS.forEach((edition) => {
     characters[edition].forEach(assertPersistableCharacterRecord);
@@ -629,9 +689,16 @@ function validateAccountPatchBody(body) {
 }
 
 function validateDeleteAccountBody(body) {
-  const input = assertRequestBody(body, ["password"], ["password"], "Exclusão da conta");
+  const input = assertRequestBody(body, ["password"], [], "Exclusão da conta");
   return {
-    password: assertPasswordCredentialInput(input.password),
+    password: Object.hasOwn(input, "password")
+      ? assertStringField(input.password, "Senha atual", {
+        maxLength: MAX_PASSWORD_LENGTH,
+        required: false,
+        trim: false,
+        allowUnsafe: true,
+      })
+      : "",
   };
 }
 
@@ -807,6 +874,10 @@ function getAccountById(store, accountId) {
 }
 
 function getSessionToken(req) {
+  return getCookieValue(req, COOKIE_NAME);
+}
+
+function getCookieValue(req, cookieName) {
   const cookieHeader = String(req.headers.cookie || "");
   return cookieHeader
     .split(";")
@@ -817,7 +888,7 @@ function getSessionToken(req) {
       if (separator < 0) return [part, ""];
       return [part.slice(0, separator), decodeURIComponent(part.slice(separator + 1))];
     })
-    .find(([name]) => name === COOKIE_NAME)?.[1] || "";
+    .find(([name]) => name === cookieName)?.[1] || "";
 }
 
 function isSecureRequest(req) {
@@ -837,15 +908,38 @@ function serializeCookie(name, value, { maxAge = SESSION_TTL_SECONDS, secure = f
   return parts.join("; ");
 }
 
+function appendSetCookie(res, cookie) {
+  const existing = res.getHeader("Set-Cookie");
+  if (!existing) {
+    res.setHeader("Set-Cookie", cookie);
+    return;
+  }
+  res.setHeader("Set-Cookie", Array.isArray(existing) ? [...existing, cookie] : [existing, cookie]);
+}
+
 function setSessionCookie(req, res, token) {
-  res.setHeader("Set-Cookie", serializeCookie(COOKIE_NAME, token, {
+  appendSetCookie(res, serializeCookie(COOKIE_NAME, token, {
     maxAge: SESSION_TTL_SECONDS,
     secure: isSecureRequest(req),
   }));
 }
 
 function clearSessionCookie(req, res) {
-  res.setHeader("Set-Cookie", serializeCookie(COOKIE_NAME, "", {
+  appendSetCookie(res, serializeCookie(COOKIE_NAME, "", {
+    maxAge: 0,
+    secure: isSecureRequest(req),
+  }));
+}
+
+function setOAuthStateCookie(req, res, payload) {
+  appendSetCookie(res, serializeCookie(OAUTH_STATE_COOKIE_NAME, encodeOAuthStatePayload(payload), {
+    maxAge: OAUTH_STATE_TTL_SECONDS,
+    secure: isSecureRequest(req),
+  }));
+}
+
+function clearOAuthStateCookie(req, res) {
+  appendSetCookie(res, serializeCookie(OAUTH_STATE_COOKIE_NAME, "", {
     maxAge: 0,
     secure: isSecureRequest(req),
   }));
@@ -974,6 +1068,11 @@ function sendText(res, statusCode, message, headers = {}) {
   res.end(message);
 }
 
+function sendRedirect(res, location, statusCode = 302) {
+  res.writeHead(statusCode, { Location: location });
+  res.end();
+}
+
 function readJsonBody(req) {
   const contentLength = Number(req.headers["content-length"] || 0);
   const hasDeclaredBody = contentLength > 0 || Boolean(req.headers["transfer-encoding"]);
@@ -1011,9 +1110,204 @@ function readJsonBody(req) {
   });
 }
 
+function readFormBody(req) {
+  return new Promise((resolve, reject) => {
+    let body = "";
+    req.setEncoding("utf8");
+    req.on("data", (chunk) => {
+      body += chunk;
+      if (Buffer.byteLength(body, "utf8") > MAX_BODY_BYTES) {
+        reject(new HttpError(413, "Requisição grande demais."));
+        req.destroy();
+      }
+    });
+    req.on("end", () => {
+      resolve(Object.fromEntries(new URLSearchParams(body)));
+    });
+    req.on("error", reject);
+  });
+}
+
+function getRequestOrigin(req) {
+  const hostHeader = req?.headers?.host || `${host}:${port}`;
+  const forwardedProto = String(req?.headers?.["x-forwarded-proto"] || "").split(",")[0].trim().toLowerCase();
+  const protocol = forwardedProto || (req?.socket?.encrypted ? "https" : "http");
+  return `${protocol}://${hostHeader}`;
+}
+
+function getOAuthRedirectUri(req) {
+  return `${getRequestOrigin(req)}/api/accounts/oauth/callback`;
+}
+
+function getSafeReturnToFromValue(value) {
+  const candidate = String(value || "").trim();
+  if (!candidate) return "";
+
+  try {
+    const url = new URL(candidate, "http://local.invalid");
+    const allowedPages = new Set(["index.html", "5e.html", "5.5e-2024.html", "conta.html", "minha-conta.html", "usuario.html"]);
+    const page = url.pathname.split("/").pop();
+    if (url.origin !== "http://local.invalid" || !allowedPages.has(page)) return "";
+    return `${page}${url.search || ""}${url.hash || ""}`;
+  } catch {
+    return "";
+  }
+}
+
+function buildLocalRedirect(returnTo, fallback = "/minha-conta.html") {
+  const safeReturnTo = getSafeReturnToFromValue(returnTo);
+  return safeReturnTo ? `/${safeReturnTo}` : fallback;
+}
+
+function buildOAuthAccountRedirect({ provider = "", error = "", fallbackReturnTo = "" } = {}) {
+  const params = new URLSearchParams();
+  if (provider) params.set("provider", provider);
+  if (error) params.set("oauthError", error);
+  if (fallbackReturnTo) params.set("returnTo", fallbackReturnTo);
+  const query = params.toString();
+  return `/conta.html${query ? `?${query}` : ""}`;
+}
+
+function readOAuthState(req) {
+  return decodeOAuthStatePayload(getCookieValue(req, OAUTH_STATE_COOKIE_NAME));
+}
+
+function getAccountByOAuthProvider(store, provider, providerAccountId) {
+  const providerId = normalizeOAuthProvider(provider);
+  if (!providerId || !providerAccountId) return null;
+  return store.accounts.find((account) => (
+    normalizeAuthProviders(account.authProviders)
+      .some((item) => item.provider === providerId && item.providerAccountId === providerAccountId)
+  )) || null;
+}
+
+function upsertOAuthAccount(store, profile) {
+  const provider = normalizeOAuthProvider(profile.provider);
+  const providerAccountId = String(profile.providerAccountId || "").trim();
+  const email = assertEmailInput(profile.email);
+  if (!provider || !providerAccountId) {
+    throw new HttpError(400, "Login social inválido.");
+  }
+
+  let account = getAccountByOAuthProvider(store, provider, providerAccountId);
+  if (!account) {
+    account = store.accounts.find((item) => item.email === email) || null;
+  }
+
+  if (!account) {
+    account = {
+      id: makeId("account"),
+      displayName: sanitizeDisplayName(profile.displayName) || email.split("@")[0],
+      email,
+      ...makePasswordRecord(randomBytes(32).toString("hex")),
+      passwordSet: false,
+      authProviders: [],
+      createdAt: new Date().toISOString(),
+      characters: normalizeCharacters(),
+    };
+    store.accounts.push(account);
+  }
+
+  const providers = normalizeAuthProviders(account.authProviders);
+  const existing = providers.find((item) => item.provider === provider && item.providerAccountId === providerAccountId);
+  if (existing) {
+    existing.email = email;
+  } else {
+    providers.push({
+      provider,
+      providerAccountId,
+      email,
+      linkedAt: new Date().toISOString(),
+    });
+  }
+  account.authProviders = providers;
+  if (!account.displayName) {
+    account.displayName = sanitizeDisplayName(profile.displayName) || email.split("@")[0];
+  }
+
+  return account;
+}
+
+async function handleOAuthStart(req, res, url) {
+  const provider = normalizeOAuthProvider(url.searchParams.get("provider"));
+  const returnTo = getSafeReturnToFromValue(url.searchParams.get("returnTo"));
+  if (!provider) {
+    sendRedirect(res, buildOAuthAccountRedirect({ error: "provider-invalid", fallbackReturnTo: returnTo }));
+    return;
+  }
+
+  const statePayload = makeOAuthStatePayload({ provider, returnTo });
+  let authorizationUrl = "";
+  try {
+    authorizationUrl = buildOAuthAuthorizationUrl({
+      provider,
+      redirectUri: getOAuthRedirectUri(req),
+      state: statePayload.state,
+      nonce: statePayload.nonce,
+    });
+  } catch (error) {
+    const errorCode = error instanceof OAuthProviderError ? error.code : "provider-unconfigured";
+    sendRedirect(res, buildOAuthAccountRedirect({ provider, error: errorCode, fallbackReturnTo: returnTo }));
+    return;
+  }
+
+  setOAuthStateCookie(req, res, statePayload);
+  sendRedirect(res, authorizationUrl);
+}
+
+async function handleOAuthCallback(req, res, url) {
+  const method = req.method || "GET";
+  const input = method === "POST" ? await readFormBody(req) : Object.fromEntries(url.searchParams);
+  const statePayload = readOAuthState(req);
+  const provider = normalizeOAuthProvider(statePayload?.provider);
+  const returnTo = getSafeReturnToFromValue(statePayload?.returnTo);
+  clearOAuthStateCookie(req, res);
+
+  if (!statePayload || !provider || String(input.state || "") !== statePayload.state) {
+    sendRedirect(res, buildOAuthAccountRedirect({ provider, error: "state-invalid", fallbackReturnTo: returnTo }));
+    return;
+  }
+  if (input.error) {
+    sendRedirect(res, buildOAuthAccountRedirect({ provider, error: "provider-denied", fallbackReturnTo: returnTo }));
+    return;
+  }
+
+  try {
+    const profile = await exchangeOAuthCodeForProfile({
+      provider,
+      code: input.code,
+      redirectUri: getOAuthRedirectUri(req),
+      nonce: statePayload.nonce,
+      rawUser: input.user,
+    });
+    const store = readStore();
+    const account = upsertOAuthAccount(store, profile);
+    createSession(store, account.id, req, res);
+    writeStore(store);
+    sendRedirect(res, buildLocalRedirect(returnTo, "/minha-conta.html?auth=oauth"));
+  } catch (error) {
+    const errorCode = error instanceof OAuthProviderError ? error.code : "callback-failed";
+    sendRedirect(res, buildOAuthAccountRedirect({ provider, error: errorCode, fallbackReturnTo: returnTo }));
+  }
+}
+
 async function handleApi(req, res, url) {
   const method = req.method || "GET";
   const pathname = url.pathname;
+
+  if (method === "GET" && pathname === "/api/accounts/oauth/providers") {
+    sendJson(res, 200, { providers: getOAuthProviderStatuses() });
+    return;
+  }
+  if (method === "GET" && pathname === "/api/accounts/oauth/start") {
+    await handleOAuthStart(req, res, url);
+    return;
+  }
+  if (["GET", "POST"].includes(method) && pathname === "/api/accounts/oauth/callback") {
+    await handleOAuthCallback(req, res, url);
+    return;
+  }
+
   assertSameOrigin(req);
   const body = ["POST", "PATCH", "DELETE"].includes(method) ? await readJsonBody(req) : {};
 
@@ -1123,7 +1417,7 @@ async function handleApi(req, res, url) {
 
     const wantsEmailChange = nextEmail !== account.email;
     const wantsPasswordChange = Boolean(input.newPassword);
-    if (wantsEmailChange || wantsPasswordChange) {
+    if (wantsEmailChange || (wantsPasswordChange && account.passwordSet !== false)) {
       assertPassword(account, input.currentPassword || "");
     }
     if (wantsPasswordChange) assertNewPasswordInput(input.newPassword, [account.displayName, account.email, nextName, nextEmail]);
@@ -1136,6 +1430,7 @@ async function handleApi(req, res, url) {
     let shouldRotateSession = false;
     if (wantsPasswordChange) {
       Object.assign(account, makePasswordRecord(input.newPassword));
+      account.passwordSet = true;
       store.sessions = (store.sessions || []).filter((item) => item.accountId !== account.id);
       shouldRotateSession = true;
     }
@@ -1152,7 +1447,9 @@ async function handleApi(req, res, url) {
     const input = validateDeleteAccountBody(body);
     const store = readStore();
     const { account } = requireAuthenticatedAccount(store, req);
-    assertPassword(account, input.password);
+    if (account.passwordSet !== false) {
+      assertPassword(account, input.password);
+    }
     store.accounts = store.accounts.filter((item) => item.id !== account.id);
     store.sessions = (store.sessions || []).filter((session) => session.accountId !== account.id);
     clearSessionCookie(req, res);

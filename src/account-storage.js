@@ -124,6 +124,13 @@ function normalizeClientAccount(account) {
     id: String(account.id || ""),
     displayName: String(account.displayName || "").trim(),
     email: normalizeEmail(account.email || ""),
+    passwordSet: account.passwordSet !== false,
+    authProviders: Array.isArray(account.authProviders)
+      ? account.authProviders.map((provider) => ({
+        provider: String(provider?.provider || ""),
+        label: String(provider?.label || provider?.provider || ""),
+      })).filter((provider) => provider.provider)
+      : [],
     createdAt: String(account.createdAt || ""),
     characters: normalizeCharacters(account.characters),
   };
@@ -139,6 +146,8 @@ function toPublicUser(account) {
     id: account.id,
     displayName: account.displayName,
     email: account.email,
+    passwordSet: account.passwordSet !== false,
+    authProviders: Array.isArray(account.authProviders) ? [...account.authProviders] : [],
     createdAt: account.createdAt,
   };
 }
@@ -490,14 +499,16 @@ export async function updateCurrentAccount({ displayName, email, currentPassword
   assertDisplayNameInput(nextName);
   if (newPassword) assertNewPasswordInput(newPassword, [currentAccount.displayName, currentAccount.email, nextName, nextEmail]);
 
+  const body = {
+    displayName: nextName,
+    email: nextEmail,
+  };
+  if (currentPassword !== null && currentPassword !== undefined) body.currentPassword = currentPassword;
+  if (newPassword !== null && newPassword !== undefined) body.newPassword = newPassword;
+
   const data = await requestApi("/api/account/current", {
     method: "PATCH",
-    body: {
-      displayName: nextName,
-      email: nextEmail,
-      currentPassword,
-      newPassword,
-    },
+    body,
   });
   currentAccount = normalizeClientAccount(data.account);
   return toPublicUser(currentAccount);

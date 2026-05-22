@@ -59,6 +59,23 @@
           <p>Acesse os personagens salvos no servidor.</p>
         </div>
 
+        <div class="account-social-login" aria-label="Login social">
+          <a href="./api/accounts/oauth/start?provider=google" class="account-social-button is-google" data-oauth-provider="google">
+            <span aria-hidden="true">G</span>
+            Continuar com Google
+          </a>
+          <a href="./api/accounts/oauth/start?provider=apple" class="account-social-button is-apple" data-oauth-provider="apple">
+            <span aria-hidden="true">A</span>
+            Continuar com Apple
+          </a>
+          <a href="./api/accounts/oauth/start?provider=facebook" class="account-social-button is-facebook" data-oauth-provider="facebook">
+            <span aria-hidden="true">f</span>
+            Continuar com Facebook
+          </a>
+        </div>
+
+        <div class="account-login-divider"><span>ou use e-mail</span></div>
+
         <label class="row">
           <span>E-mail</span>
           <input name="email" type="email" autocomplete="email" maxlength="254" required />
@@ -91,7 +108,7 @@
 
         <label class="row">
           <span>Senha</span>
-          <input id="accountRegisterPassword" name="password" type="password" autocomplete="new-password" minlength="15" maxlength="256" required />
+          <input id="accountRegisterPassword" name="password" type="password" autocomplete="new-password" minlength="6" maxlength="256" required />
         </label>
 
         <div class="account-password-feedback" aria-live="polite">
@@ -103,7 +120,7 @@
 
         <label class="row">
           <span>Confirmar senha</span>
-          <input name="confirmPassword" type="password" autocomplete="new-password" minlength="15" maxlength="256" required />
+          <input name="confirmPassword" type="password" autocomplete="new-password" minlength="6" maxlength="256" required />
         </label>
 
         <button type="submit" class="primary account-submit-button">Criar conta</button>

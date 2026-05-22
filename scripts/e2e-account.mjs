@@ -82,11 +82,11 @@ async function main() {
     body: {
       displayName: "Senha Curta",
       email: `short-${Date.now()}@example.test`,
-      password: "SenhaE2E!123",
+      password: "Abc1!",
     },
     expectedStatus: 400,
   });
-  assert(rejectedShortPassword.statusCode === 400, "Cadastro deveria rejeitar senha com menos de 15 caracteres.");
+  assert(rejectedShortPassword.statusCode === 400, "Cadastro deveria rejeitar senha com menos de 6 caracteres.");
 
   const rejectedCommonPassword = await requestJson(baseUrl, "/api/accounts/register", {
     method: "POST",

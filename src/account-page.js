@@ -23,6 +23,7 @@ const el = {
   registerPassword: document.getElementById("accountRegisterPassword"),
   registerPasswordStrengthBar: document.getElementById("accountRegisterPasswordStrengthBar"),
   registerPasswordStrengthText: document.getElementById("accountRegisterPasswordStrengthText"),
+  oauthLinks: Array.from(document.querySelectorAll("[data-oauth-provider]")),
   status: document.getElementById("accountPageStatus"),
 };
 
@@ -30,6 +31,19 @@ const returnTo = getSafeReturnTo();
 const LOGIN_SUCCESS_PAGE = "./minha-conta.html";
 const REGISTER_SUCCESS_PAGE = "./index.html";
 const PASSWORD_STRENGTH_CLASSES = ["is-empty", "is-weak", "is-medium", "is-strong", "is-very-strong"];
+const OAUTH_ERROR_MESSAGES = {
+  "provider-invalid": "Escolha um provedor de login válido.",
+  "provider-unconfigured": "Este login social ainda não foi configurado no servidor.",
+  "provider-denied": "O login social foi cancelado ou não autorizado.",
+  "state-invalid": "Não foi possível confirmar a sessão de login social. Tente novamente.",
+  "code-missing": "O provedor não retornou a autorização de login.",
+  "email-missing": "O provedor não retornou um e-mail. Autorize o e-mail ou use outro método.",
+  "email-unverified": "O provedor não confirmou um e-mail verificado para esta conta.",
+  "exchange-failed": "Não foi possível validar o login social com o provedor.",
+  "token-invalid": "A resposta de login social não pôde ser validada.",
+  "token-expired": "A resposta de login social expirou. Tente novamente.",
+  "callback-failed": "Não foi possível concluir o login social.",
+};
 
 function setStatus(message, tone = "info") {
   if (!el.status) return;
@@ -54,6 +68,7 @@ function renderAccountPage() {
     el.continueLink.href = returnTo || "./minha-conta.html";
     el.continueLink.textContent = returnTo ? "Continuar" : "Minha página";
   }
+  updateOAuthLinks();
 }
 
 function getSafeReturnTo() {
@@ -92,6 +107,53 @@ function getAuthRedirectMessage(actionLabel, fallbackMessage) {
   return returnTo
     ? `${actionLabel}. Voltando ao editor.`
     : fallbackMessage;
+}
+
+function updateOAuthLinks() {
+  el.oauthLinks.forEach((link) => {
+    const provider = link.getAttribute("data-oauth-provider") || "";
+    const url = new URL("./api/accounts/oauth/start", window.location.href);
+    url.searchParams.set("provider", provider);
+    if (returnTo) url.searchParams.set("returnTo", returnTo);
+    link.href = `${url.pathname}${url.search}`;
+  });
+}
+
+function renderOAuthStatusFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const errorCode = params.get("oauthError");
+  if (!errorCode) return;
+
+  const provider = params.get("provider");
+  const providerLabel = provider
+    ? provider.charAt(0).toUpperCase() + provider.slice(1)
+    : "Login social";
+  const message = OAUTH_ERROR_MESSAGES[errorCode] || OAUTH_ERROR_MESSAGES["callback-failed"];
+  setStatus(`${providerLabel}: ${message}`, "warning");
+}
+
+async function updateOAuthProviderAvailability() {
+  if (!el.oauthLinks.length) return;
+
+  try {
+    const response = await fetch("./api/accounts/oauth/providers", {
+      credentials: "same-origin",
+      headers: { Accept: "application/json" },
+    });
+    if (!response.ok) return;
+    const data = await response.json();
+    const providers = new Map((data.providers || []).map((provider) => [provider.id, provider]));
+    el.oauthLinks.forEach((link) => {
+      const provider = providers.get(link.getAttribute("data-oauth-provider"));
+      if (!provider) return;
+      link.classList.toggle("is-unconfigured", !provider.configured);
+      link.title = provider.configured
+        ? ""
+        : "Configure as credenciais deste provedor no servidor para ativar este login.";
+    });
+  } catch {
+    // A página continua funcional: o backend também informa erro ao clicar.
+  }
 }
 
 function getPasswordStrength(password) {
@@ -188,4 +250,6 @@ el.logoutButton?.addEventListener("click", async () => {
 
 await hydrateAccountStorage();
 renderAccountPage();
+renderOAuthStatusFromUrl();
+await updateOAuthProviderAvailability();
 updateRegisterPasswordStrength();

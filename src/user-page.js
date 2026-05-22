@@ -121,10 +121,38 @@ function renderUserPage() {
     el.profileForm.elements.displayName.value = user.displayName || "";
     el.profileForm.elements.email.value = user.email || "";
   }
+  renderAccountSecurityState(user);
 
   if (el.empty) el.empty.hidden = characters.length > 0;
   if (el.list) {
     el.list.innerHTML = characters.map(renderCharacterCard).join("");
+  }
+}
+
+function renderAccountSecurityState(user) {
+  const hasPassword = user?.passwordSet !== false;
+  const profileEmail = el.profileForm?.elements.email;
+  const profileCurrentPassword = el.profileForm?.elements.currentPassword;
+  const passwordCurrentPassword = el.passwordForm?.elements.currentPassword;
+  const deletePassword = el.deleteForm?.elements.password;
+
+  if (profileEmail) {
+    profileEmail.disabled = !hasPassword;
+    profileEmail.title = hasPassword ? "" : "Defina uma senha antes de trocar o e-mail da conta.";
+  }
+  if (profileCurrentPassword) {
+    profileCurrentPassword.disabled = !hasPassword;
+    profileCurrentPassword.placeholder = hasPassword ? "" : "Não necessário para alterar só o nome";
+  }
+  if (passwordCurrentPassword) {
+    passwordCurrentPassword.required = hasPassword;
+    passwordCurrentPassword.disabled = !hasPassword;
+    passwordCurrentPassword.placeholder = hasPassword ? "" : "Não necessário para definir a primeira senha";
+  }
+  if (deletePassword) {
+    deletePassword.required = hasPassword;
+    deletePassword.disabled = !hasPassword;
+    deletePassword.placeholder = hasPassword ? "" : "Não necessário para conta social";
   }
 }
 
@@ -286,7 +314,8 @@ document.addEventListener("keydown", (event) => {
 });
 
 el.deleteConfirm?.addEventListener("click", async () => {
-  if (!pendingDeletePassword) {
+  const user = getCurrentUser();
+  if (user?.passwordSet !== false && !pendingDeletePassword) {
     setDeleteModalOpen(false);
     setStatus("Informe a senha atual para excluir a conta.", "warning");
     return;

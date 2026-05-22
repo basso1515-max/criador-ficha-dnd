@@ -7,13 +7,14 @@ O Criador de Ficha D&D salva os dados necessários para conta e personagens:
 - nome de exibição;
 - e-mail;
 - senha em formato de hash;
+- provedor de login social usado, quando aplicável;
 - personagens salvos;
 - escolhas e textos preenchidos na ficha;
 - datas de criação e atualização dos registros.
 
 ## Como Os Dados São Usados
 
-Os dados são usados para permitir login, manter sessão, listar personagens salvos, carregar fichas existentes, migrar personagens entre edições e excluir conta ou personagens quando solicitado.
+Os dados são usados para permitir login, manter sessão, listar personagens salvos, carregar fichas existentes, migrar personagens entre edições e excluir conta ou personagens quando solicitado. Em logins sociais, o provedor confirma a identidade e o e-mail da conta.
 
 ## PDFs Gerados
 

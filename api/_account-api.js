@@ -7,6 +7,20 @@ import {
   MIN_NEW_PASSWORD_LENGTH,
   isBlockedNewPassword,
 } from "../src/shared/password-policy.js";
+import {
+  OAUTH_PROVIDER_IDS,
+  OAUTH_STATE_COOKIE_NAME,
+  OAUTH_STATE_TTL_SECONDS,
+  OAuthProviderError,
+  buildOAuthAuthorizationUrl,
+  decodeOAuthStatePayload,
+  encodeOAuthStatePayload,
+  exchangeOAuthCodeForProfile,
+  getOAuthProviderLabel,
+  getOAuthProviderStatuses,
+  makeOAuthStatePayload,
+  normalizeOAuthProvider,
+} from "./_oauth.js";
 
 const STORE_PREFIX = "dnd-sheet";
 const ACCOUNT_LIMIT_PER_EDITION = 10;
@@ -81,6 +95,12 @@ function keySession(tokenHash) {
   return `${STORE_PREFIX}:session:${tokenHash}`;
 }
 
+function keyOAuthProvider(provider, providerAccountId) {
+  const providerId = normalizeOAuthProvider(provider);
+  const subjectHash = createHash("sha256").update(String(providerAccountId || "")).digest("hex");
+  return `${STORE_PREFIX}:oauth:${providerId}:${subjectHash}`;
+}
+
 function keyAccountSessions(accountId) {
   return `${STORE_PREFIX}:account-sessions:${accountId}`;
 }
@@ -123,8 +143,36 @@ function normalizeAccountRecord(account) {
     passwordAlgo: sanitizePasswordAlgo(account.passwordAlgo),
     passwordSalt: sanitizePasswordSecret(account.passwordSalt),
     passwordHash: sanitizePasswordSecret(account.passwordHash),
+    passwordSet: account.passwordSet !== false,
+    authProviders: normalizeAuthProviders(account.authProviders),
     createdAt: sanitizeDateString(account.createdAt, new Date().toISOString()),
     characters: normalizeCharacters(account.characters),
+  };
+}
+
+function normalizeAuthProviders(providers) {
+  const seen = new Set();
+  return Array.isArray(providers)
+    ? providers.map(normalizeAuthProviderRecord).filter((provider) => {
+      if (!provider) return false;
+      const key = `${provider.provider}:${provider.providerAccountId}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    : [];
+}
+
+function normalizeAuthProviderRecord(provider) {
+  if (!provider || typeof provider !== "object") return null;
+  const providerId = normalizeOAuthProvider(provider.provider);
+  const providerAccountId = String(provider.providerAccountId || "").trim().slice(0, 256);
+  if (!providerId || !providerAccountId) return null;
+  return {
+    provider: providerId,
+    providerAccountId,
+    email: normalizeEmail(provider.email || ""),
+    linkedAt: sanitizeDateString(provider.linkedAt, new Date().toISOString()),
   };
 }
 
@@ -263,6 +311,11 @@ function toClientAccount(account) {
     id: account.id,
     displayName: account.displayName,
     email: account.email,
+    passwordSet: account.passwordSet !== false,
+    authProviders: normalizeAuthProviders(account.authProviders).map((provider) => ({
+      provider: provider.provider,
+      label: getOAuthProviderLabel(provider.provider),
+    })),
     createdAt: account.createdAt,
     characters: normalizeCharacters(account.characters),
   };
@@ -390,6 +443,18 @@ function assertPersistableCharacterRecord(character) {
   validateSnapshotInput(character.snapshot);
 }
 
+function assertPersistableAuthProviders(providers) {
+  normalizeAuthProviders(providers).forEach((provider) => {
+    if (!OAUTH_PROVIDER_IDS.includes(provider.provider)) {
+      throw new HttpError(400, "Provedor de login invalido.");
+    }
+    assertStringField(provider.providerAccountId, "Identificador do login social", {
+      maxLength: 256,
+    });
+    if (provider.email) assertEmailInput(provider.email);
+  });
+}
+
 function assertPersistableAccountRecord(account) {
   if (!account || typeof account !== "object" || !isSafeRecordId(account.id, "account")) {
     throw new HttpError(400, "Conta invalida.");
@@ -397,6 +462,7 @@ function assertPersistableAccountRecord(account) {
   assertDisplayNameInput(account.displayName);
   assertEmailInput(account.email);
   assertImportedPasswordRecord(account);
+  assertPersistableAuthProviders(account.authProviders);
   const characters = normalizeCharacters(account.characters);
   EDITIONS.forEach((edition) => {
     characters[edition].forEach(assertPersistableCharacterRecord);
@@ -552,9 +618,16 @@ function validateAccountPatchBody(body) {
 }
 
 function validateDeleteAccountBody(body) {
-  const input = assertRequestBody(body, ["password"], ["password"], "Exclusao da conta");
+  const input = assertRequestBody(body, ["password"], [], "Exclusao da conta");
   return {
-    password: assertPasswordCredentialInput(input.password),
+    password: Object.hasOwn(input, "password")
+      ? assertStringField(input.password, "Senha atual", {
+        maxLength: MAX_PASSWORD_LENGTH,
+        required: false,
+        trim: false,
+        allowUnsafe: true,
+      })
+      : "",
   };
 }
 
@@ -735,11 +808,21 @@ async function getAccountByEmail(redis, email) {
   return accountId ? await getAccountById(redis, accountId) : null;
 }
 
+async function getAccountByOAuthProvider(redis, provider, providerAccountId) {
+  const providerId = normalizeOAuthProvider(provider);
+  if (!providerId || !providerAccountId) return null;
+  const accountId = await redis.get(keyOAuthProvider(providerId, providerAccountId));
+  return accountId ? await getAccountById(redis, accountId) : null;
+}
+
 async function saveAccount(redis, account, { previousEmail = "" } = {}) {
   const normalized = normalizeAccountRecord(account);
   assertPersistableAccountRecord(normalized);
   await redis.set(keyAccount(normalized.id), normalized);
   await redis.set(keyEmail(normalized.email), normalized.id);
+  for (const provider of normalizeAuthProviders(normalized.authProviders)) {
+    await redis.set(keyOAuthProvider(provider.provider, provider.providerAccountId), normalized.id);
+  }
   if (previousEmail && normalizeEmail(previousEmail) !== normalized.email) {
     await redis.del(keyEmail(previousEmail));
   }
@@ -769,6 +852,10 @@ async function reserveEmail(redis, email, accountId) {
 }
 
 function getSessionToken(req) {
+  return getCookieValue(req, COOKIE_NAME);
+}
+
+function getCookieValue(req, cookieName) {
   const cookieHeader = String(req.headers.cookie || "");
   return cookieHeader
     .split(";")
@@ -779,7 +866,7 @@ function getSessionToken(req) {
       if (separator < 0) return [part, ""];
       return [part.slice(0, separator), decodeURIComponent(part.slice(separator + 1))];
     })
-    .find(([name]) => name === COOKIE_NAME)?.[1] || "";
+    .find(([name]) => name === cookieName)?.[1] || "";
 }
 
 function isSecureRequest(req) {
@@ -799,15 +886,38 @@ function serializeCookie(name, value, { maxAge = SESSION_TTL_SECONDS, secure = f
   return parts.join("; ");
 }
 
+function appendSetCookie(res, cookie) {
+  const existing = res.getHeader?.("Set-Cookie");
+  if (!existing) {
+    res.setHeader("Set-Cookie", cookie);
+    return;
+  }
+  res.setHeader("Set-Cookie", Array.isArray(existing) ? [...existing, cookie] : [existing, cookie]);
+}
+
 function setSessionCookie(req, res, token) {
-  res.setHeader("Set-Cookie", serializeCookie(COOKIE_NAME, token, {
+  appendSetCookie(res, serializeCookie(COOKIE_NAME, token, {
     maxAge: SESSION_TTL_SECONDS,
     secure: isSecureRequest(req),
   }));
 }
 
 function clearSessionCookie(req, res) {
-  res.setHeader("Set-Cookie", serializeCookie(COOKIE_NAME, "", {
+  appendSetCookie(res, serializeCookie(COOKIE_NAME, "", {
+    maxAge: 0,
+    secure: isSecureRequest(req),
+  }));
+}
+
+function setOAuthStateCookie(req, res, payload) {
+  appendSetCookie(res, serializeCookie(OAUTH_STATE_COOKIE_NAME, encodeOAuthStatePayload(payload), {
+    maxAge: OAUTH_STATE_TTL_SECONDS,
+    secure: isSecureRequest(req),
+  }));
+}
+
+function clearOAuthStateCookie(req, res) {
+  appendSetCookie(res, serializeCookie(OAUTH_STATE_COOKIE_NAME, "", {
     maxAge: 0,
     secure: isSecureRequest(req),
   }));
@@ -936,6 +1046,12 @@ function sendJson(res, statusCode, payload = {}) {
   res.end(JSON.stringify(payload));
 }
 
+function sendRedirect(res, location, statusCode = 302) {
+  res.statusCode = statusCode;
+  res.setHeader("Location", location);
+  res.end();
+}
+
 async function readJsonBody(req) {
   const contentLength = Number(req.headers["content-length"] || 0);
   const hasDeclaredBody = contentLength > 0 || Boolean(req.headers["transfer-encoding"]);
@@ -999,9 +1115,214 @@ async function readJsonBody(req) {
   });
 }
 
-async function handleAccountApiInternal(req, res, pathname) {
-  const redis = getRedis();
+async function readFormBody(req) {
+  if (req.body !== undefined) {
+    if (!req.body) return {};
+    if (typeof req.body === "string") return Object.fromEntries(new URLSearchParams(req.body));
+    if (typeof req.body === "object") return req.body;
+  }
+
+  return await new Promise((resolve, reject) => {
+    let body = "";
+    req.setEncoding?.("utf8");
+    req.on("data", (chunk) => {
+      body += chunk;
+      if (Buffer.byteLength(body, "utf8") > MAX_BODY_BYTES) {
+        reject(new HttpError(413, "Requisicao grande demais."));
+        req.destroy();
+      }
+    });
+    req.on("end", () => {
+      resolve(Object.fromEntries(new URLSearchParams(body)));
+    });
+    req.on("error", reject);
+  });
+}
+
+function getRequestOrigin(req) {
+  const host = req.headers.host || "localhost";
+  const forwardedProto = String(req.headers["x-forwarded-proto"] || "").split(",")[0].trim().toLowerCase();
+  const protocol = forwardedProto || (req.socket?.encrypted ? "https" : "http");
+  return `${protocol}://${host}`;
+}
+
+function getRequestUrl(req) {
+  return new URL(req.url || "/", getRequestOrigin(req));
+}
+
+function getOAuthRedirectUri(req) {
+  return `${getRequestOrigin(req)}/api/accounts/oauth/callback`;
+}
+
+function getSafeReturnToFromValue(value) {
+  const candidate = String(value || "").trim();
+  if (!candidate) return "";
+
+  try {
+    const url = new URL(candidate, getRequestOrigin({ headers: { host: "local.invalid" } }));
+    const allowedPages = new Set(["index.html", "5e.html", "5.5e-2024.html", "conta.html", "minha-conta.html", "usuario.html"]);
+    const page = url.pathname.split("/").pop();
+    if (url.origin !== "http://local.invalid" || !allowedPages.has(page)) return "";
+    return `${page}${url.search || ""}${url.hash || ""}`;
+  } catch {
+    return "";
+  }
+}
+
+function buildLocalRedirect(returnTo, fallback = "/minha-conta.html") {
+  const safeReturnTo = getSafeReturnToFromValue(returnTo);
+  return safeReturnTo ? `/${safeReturnTo}` : fallback;
+}
+
+function buildOAuthAccountRedirect({ provider = "", error = "", fallbackReturnTo = "" } = {}) {
+  const params = new URLSearchParams();
+  if (provider) params.set("provider", provider);
+  if (error) params.set("oauthError", error);
+  if (fallbackReturnTo) params.set("returnTo", fallbackReturnTo);
+  const query = params.toString();
+  return `/conta.html${query ? `?${query}` : ""}`;
+}
+
+function readOAuthState(req) {
+  return decodeOAuthStatePayload(getCookieValue(req, OAUTH_STATE_COOKIE_NAME));
+}
+
+async function upsertOAuthAccount(redis, profile) {
+  const provider = normalizeOAuthProvider(profile.provider);
+  const providerAccountId = String(profile.providerAccountId || "").trim();
+  const email = assertEmailInput(profile.email);
+  if (!provider || !providerAccountId) {
+    throw new HttpError(400, "Login social invalido.");
+  }
+
+  let account = await getAccountByOAuthProvider(redis, provider, providerAccountId);
+  if (!account) {
+    account = await getAccountByEmail(redis, email);
+  }
+
+  if (!account) {
+    account = {
+      id: makeId("account"),
+      displayName: sanitizeDisplayName(profile.displayName) || email.split("@")[0],
+      email,
+      ...makePasswordRecord(randomBytes(32).toString("hex")),
+      passwordSet: false,
+      authProviders: [],
+      createdAt: new Date().toISOString(),
+      characters: normalizeCharacters(),
+    };
+
+    const reserved = await reserveEmail(redis, email, account.id);
+    if (!reserved) {
+      account = await getAccountByEmail(redis, email);
+    }
+  }
+
+  if (!account) {
+    throw new HttpError(409, "Ja existe uma conta com este e-mail.");
+  }
+
+  const providers = normalizeAuthProviders(account.authProviders);
+  const existing = providers.find((item) => item.provider === provider && item.providerAccountId === providerAccountId);
+  if (existing) {
+    existing.email = email;
+  } else {
+    providers.push({
+      provider,
+      providerAccountId,
+      email,
+      linkedAt: new Date().toISOString(),
+    });
+  }
+  account.authProviders = providers;
+  if (!account.displayName) {
+    account.displayName = sanitizeDisplayName(profile.displayName) || email.split("@")[0];
+  }
+
+  return await saveAccount(redis, account);
+}
+
+async function handleOAuthStart(req, res) {
+  const url = getRequestUrl(req);
+  const provider = normalizeOAuthProvider(url.searchParams.get("provider"));
+  const returnTo = getSafeReturnToFromValue(url.searchParams.get("returnTo"));
+  if (!provider) {
+    sendRedirect(res, buildOAuthAccountRedirect({ error: "provider-invalid", fallbackReturnTo: returnTo }));
+    return;
+  }
+
+  const statePayload = makeOAuthStatePayload({ provider, returnTo });
+  let authorizationUrl = "";
+  try {
+    authorizationUrl = buildOAuthAuthorizationUrl({
+      provider,
+      redirectUri: getOAuthRedirectUri(req),
+      state: statePayload.state,
+      nonce: statePayload.nonce,
+    });
+  } catch (error) {
+    const errorCode = error instanceof OAuthProviderError ? error.code : "provider-unconfigured";
+    sendRedirect(res, buildOAuthAccountRedirect({ provider, error: errorCode, fallbackReturnTo: returnTo }));
+    return;
+  }
+
+  setOAuthStateCookie(req, res, statePayload);
+  sendRedirect(res, authorizationUrl);
+}
+
+async function handleOAuthCallback(req, res) {
   const method = req.method || "GET";
+  const url = getRequestUrl(req);
+  const input = method === "POST" ? await readFormBody(req) : Object.fromEntries(url.searchParams);
+  const statePayload = readOAuthState(req);
+  const provider = normalizeOAuthProvider(statePayload?.provider);
+  const returnTo = getSafeReturnToFromValue(statePayload?.returnTo);
+  clearOAuthStateCookie(req, res);
+
+  if (!statePayload || !provider || String(input.state || "") !== statePayload.state) {
+    sendRedirect(res, buildOAuthAccountRedirect({ provider, error: "state-invalid", fallbackReturnTo: returnTo }));
+    return;
+  }
+  if (input.error) {
+    sendRedirect(res, buildOAuthAccountRedirect({ provider, error: "provider-denied", fallbackReturnTo: returnTo }));
+    return;
+  }
+
+  try {
+    const redis = getRedis();
+    const profile = await exchangeOAuthCodeForProfile({
+      provider,
+      code: input.code,
+      redirectUri: getOAuthRedirectUri(req),
+      nonce: statePayload.nonce,
+      rawUser: input.user,
+    });
+    const account = await upsertOAuthAccount(redis, profile);
+    await createSession(redis, account.id, req, res);
+    sendRedirect(res, buildLocalRedirect(returnTo, "/minha-conta.html?auth=oauth"));
+  } catch (error) {
+    const errorCode = error instanceof OAuthProviderError ? error.code : "callback-failed";
+    sendRedirect(res, buildOAuthAccountRedirect({ provider, error: errorCode, fallbackReturnTo: returnTo }));
+  }
+}
+
+async function handleAccountApiInternal(req, res, pathname) {
+  const method = req.method || "GET";
+
+  if (method === "GET" && pathname === "/api/accounts/oauth/providers") {
+    sendJson(res, 200, { providers: getOAuthProviderStatuses() });
+    return;
+  }
+  if (method === "GET" && pathname === "/api/accounts/oauth/start") {
+    await handleOAuthStart(req, res);
+    return;
+  }
+  if (["GET", "POST"].includes(method) && pathname === "/api/accounts/oauth/callback") {
+    await handleOAuthCallback(req, res);
+    return;
+  }
+
+  const redis = getRedis();
   assertSameOrigin(req);
   const body = ["POST", "PATCH", "DELETE"].includes(method) ? await readJsonBody(req) : {};
 
@@ -1105,7 +1426,7 @@ async function handleAccountApiInternal(req, res, pathname) {
 
     const wantsEmailChange = nextEmail !== account.email;
     const wantsPasswordChange = Boolean(input.newPassword);
-    if (wantsEmailChange || wantsPasswordChange) {
+    if (wantsEmailChange || (wantsPasswordChange && account.passwordSet !== false)) {
       assertPassword(account, input.currentPassword || "");
     }
     if (wantsPasswordChange) assertNewPasswordInput(input.newPassword, [account.displayName, account.email, nextName, nextEmail]);
@@ -1125,6 +1446,7 @@ async function handleAccountApiInternal(req, res, pathname) {
     let shouldRotateSession = false;
     if (wantsPasswordChange) {
       Object.assign(account, makePasswordRecord(input.newPassword));
+      account.passwordSet = true;
       await clearAccountSessions(redis, account.id);
       shouldRotateSession = true;
     }
@@ -1140,7 +1462,9 @@ async function handleAccountApiInternal(req, res, pathname) {
   if (method === "DELETE" && pathname === "/api/account/current") {
     const input = validateDeleteAccountBody(body);
     const { account } = await requireAuthenticatedAccount(redis, req);
-    assertPassword(account, input.password);
+    if (account.passwordSet !== false) {
+      assertPassword(account, input.password);
+    }
     await clearAccountSessions(redis, account.id);
     await redis.del(keyAccount(account.id), keyEmail(account.email), keyAccountSessions(account.id));
     clearSessionCookie(req, res);

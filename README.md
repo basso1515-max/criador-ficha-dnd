@@ -227,6 +227,31 @@ KV_REST_API_URL
 KV_REST_API_TOKEN
 ```
 
+### Login Social
+
+O app também oferece login com Google, Apple e Facebook via OAuth. Configure, no painel de cada provedor, a URL de callback:
+
+```text
+http://127.0.0.1:8000/api/accounts/oauth/callback
+https://seu-dominio.example/api/accounts/oauth/callback
+```
+
+Variáveis aceitas:
+
+```text
+GOOGLE_OAUTH_CLIENT_ID
+GOOGLE_OAUTH_CLIENT_SECRET
+FACEBOOK_OAUTH_CLIENT_ID
+FACEBOOK_OAUTH_CLIENT_SECRET
+FACEBOOK_GRAPH_VERSION
+APPLE_OAUTH_CLIENT_ID
+APPLE_OAUTH_TEAM_ID
+APPLE_OAUTH_KEY_ID
+APPLE_OAUTH_PRIVATE_KEY
+```
+
+Para Apple, `APPLE_OAUTH_CLIENT_ID` é o Services ID. A chave privada pode ficar em uma linha usando `\n` para quebras de linha.
+
 ## Deploy Na Vercel
 
 Antes de publicar, conecte um Redis persistente ao projeto e configure as variáveis `UPSTASH_REDIS_REST_URL` e `UPSTASH_REDIS_REST_TOKEN` no ambiente da Vercel. Depois, valide localmente:
@@ -257,6 +282,9 @@ As telas consomem estas rotas:
 - `/api/accounts/register`
 - `/api/accounts/logout`
 - `/api/accounts/migrate`
+- `/api/accounts/oauth/start`
+- `/api/accounts/oauth/callback`
+- `/api/accounts/oauth/providers`
 - `/api/characters`
 - `/api/community-stats`
 
