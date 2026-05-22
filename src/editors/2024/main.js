@@ -884,6 +884,7 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
     floatingSubmitButton2024.initialize();
     isInitialA11yReady2024 = true;
     editorA11y2024?.refresh();
+    exposeTestHooks2024();
   }
 
   function renderAll() {
@@ -14205,6 +14206,76 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
       }
       setStatus2024(error?.message || "Não foi possível gerar a ficha 5.5e.", "warning");
     }
+  }
+
+  function exposeTestHooks2024() {
+    if (window.__DND_SHEET_ENABLE_TEST_HOOKS__ !== true) return;
+
+    const summarizePdfState = (pdfState) => ({
+      nome: pdfState.personagem?.nome || "",
+      classe: pdfState.personagem?.classe || "",
+      nivel: pdfState.personagem?.nivel || "",
+      caracteristicas2024: pdfState.caracteristicas2024 || {},
+    });
+
+    const readPdfTextFields = (form) => {
+      const values = {};
+      form.getFields().forEach((field) => {
+        try {
+          if (typeof field.getText === "function") {
+            values[field.getName()] = field.getText() || "";
+          }
+        } catch {}
+      });
+      return values;
+    };
+
+    const buildGeneratedPdf = async (overrides = {}) => {
+      if (!window.PDFLib) throw new Error("pdf-lib não carregou.");
+
+      const pdfMap = overrides.pdfMap || await loadPdfMap2024();
+      const templateUrl = overrides.templateUrl || pdfMap?.meta?.template || DEFAULT_TEMPLATE_URL_2024;
+      const templateResponse = await fetch(templateUrl, { cache: "no-store" });
+      if (!templateResponse.ok) {
+        throw new Error(`Não consegui carregar o template ${templateUrl} (HTTP ${templateResponse.status}).`);
+      }
+
+      const templateBytes = await templateResponse.arrayBuffer();
+      const pdfDoc = await window.PDFLib.PDFDocument.load(templateBytes);
+      const form = pdfDoc.getForm();
+      const pdfState = overrides.pdfState || buildPdfExportState2024();
+      const font = await pdfDoc.embedFont(window.PDFLib.StandardFonts.Helvetica);
+      applyPdfExportState2024({ form, pdfMap, pdfState, font });
+      form.updateFieldAppearances(font);
+
+      if (overrides.flatten) {
+        form.flatten({ updateFieldAppearances: false });
+      }
+
+      return { form, pdfDoc, pdfState };
+    };
+
+    window.__DND_SHEET_2024_TEST_HOOKS__ = Object.freeze({
+      getPdfExportState() {
+        return buildPdfExportState2024();
+      },
+      async generatePdfSnapshot(overrides = {}) {
+        const { form, pdfDoc, pdfState } = await buildGeneratedPdf(overrides);
+        const pdfBytes = await pdfDoc.save({ updateFieldAppearances: false });
+        return {
+          byteLength: pdfBytes.byteLength,
+          fieldTexts: readPdfTextFields(form),
+          pdfState: summarizePdfState(pdfState),
+        };
+      },
+      async generatePdfBase64(overrides = {}) {
+        const { pdfDoc, pdfState } = await buildGeneratedPdf(overrides);
+        return {
+          base64: await pdfDoc.saveAsBase64({ updateFieldAppearances: false }),
+          pdfState: summarizePdfState(pdfState),
+        };
+      },
+    });
   }
 
   function summarizeEquipmentRule(scope, rules, selections) {
