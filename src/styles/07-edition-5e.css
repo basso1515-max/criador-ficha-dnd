@@ -508,90 +508,158 @@ body[data-active-screen="5.5e-2024"] .d20-num {
   font-family: 'Libre Baskerville', Georgia, serif;
 }
 
-body[data-active-screen="5.5e-2024"] button:not(.secondary-button):not(.ghost-button):not(.unit-toggle-btn):not(.floating-quick-button):not(.d20-submit-button):not(.hp-roll-button):not(.hp-roll-all-button):not(.level-up-close):not(.level-up-tab):not(.level-up-method-card):not(.level-up-next) {
+body[data-active-screen="5.5e-2024"] button:not(.secondary-button):not(.ghost-button):not(.unit-toggle-btn):not(.floating-quick-button):not(.d20-submit-button):not(.hp-roll-button):not(.hp-roll-all-button):not(.level-up-open-button):not(.level-up-close):not(.level-up-tab):not(.level-up-method-card):not(.level-up-next) {
   border-color: #8b1823;
   background: linear-gradient(180deg, #c8333f, #911a26);
   color: #fff;
 }
 
 html:not([data-theme="dark"]) body[data-active-screen="5.5e-2024"] .level-up-dialog {
-  border-color: rgba(159, 38, 51, 0.44);
+  border-color: rgba(44, 85, 79, 0.26);
   border-radius: 18px;
   background:
-    linear-gradient(150deg, rgba(255, 251, 242, 0.98), rgba(244, 228, 196, 0.96)),
-    radial-gradient(circle at 100% 0%, rgba(199, 52, 66, 0.2), transparent 42%);
-  box-shadow: 0 34px 92px rgba(55, 12, 18, 0.48);
+    radial-gradient(circle at 4% 0%, rgba(180, 35, 47, 0.08), transparent 30%),
+    radial-gradient(circle at 100% 8%, rgba(45, 90, 82, 0.15), transparent 38%),
+    linear-gradient(150deg, #fffdfa 0%, #f5f8f5 48%, #e9f0ed 100%);
+  box-shadow: 0 34px 92px rgba(23, 36, 34, 0.34);
 }
 
 html:not([data-theme="dark"]) body[data-active-screen="5.5e-2024"] .level-up-header {
   background:
-    radial-gradient(circle at 12% 4%, rgba(255, 222, 142, 0.42), transparent 30%),
-    linear-gradient(135deg, #721722, #b72d3a 54%, #e0a541);
-  color: #fff8e8;
+    radial-gradient(circle at 12% 4%, rgba(255, 255, 255, 0.16), transparent 28%),
+    linear-gradient(135deg, #1e2b2b 0%, #2d5a52 58%, #a51f2a 100%);
+  color: #f8fffb;
 }
 
 html:not([data-theme="dark"]) body[data-active-screen="5.5e-2024"] .level-up-dialog .level-up-header h2 {
-  color: #fff8e8;
+  color: #f8fffb;
 }
 
 html:not([data-theme="dark"]) body[data-active-screen="5.5e-2024"] .level-up-kicker {
-  color: #ffe3a3;
+  color: #cde7df;
 }
 
 html:not([data-theme="dark"]) body[data-active-screen="5.5e-2024"] .level-up-subtitle {
-  color: rgba(255, 248, 232, 0.9);
+  color: rgba(248, 255, 251, 0.84);
 }
 
 html:not([data-theme="dark"]) body[data-active-screen="5.5e-2024"] .level-up-tabs,
 html:not([data-theme="dark"]) body[data-active-screen="5.5e-2024"] .level-up-footer {
   background:
-    linear-gradient(90deg, rgba(255, 246, 224, 0.92), rgba(246, 225, 184, 0.9));
+    linear-gradient(90deg, rgba(255, 255, 255, 0.94), rgba(239, 247, 243, 0.92));
+}
+
+html:not([data-theme="dark"]) body[data-active-screen="5.5e-2024"] .level-up-backdrop {
+  background:
+    radial-gradient(circle at 16% 10%, rgba(180, 35, 47, 0.22), transparent 34%),
+    radial-gradient(circle at 86% 14%, rgba(45, 90, 82, 0.3), transparent 34%),
+    rgba(19, 25, 24, 0.72);
+}
+
+html:not([data-theme="dark"]) body[data-active-screen="5.5e-2024"] .level-up-open-button {
+  border-color: rgba(45, 90, 82, 0.28);
+  background:
+    radial-gradient(circle at 16% 12%, rgba(255, 255, 255, 0.18), transparent 30%),
+    linear-gradient(135deg, #b4232f 0%, #7f1723 44%, #254f48 100%);
+  color: #fff;
+  box-shadow: 0 12px 26px rgba(31, 61, 56, 0.2);
+}
+
+html:not([data-theme="dark"]) body[data-active-screen="5.5e-2024"] .level-up-open-button span {
+  background: rgba(255, 255, 255, 0.18);
+  color: #f7fffb;
+}
+
+html:not([data-theme="dark"]) body[data-active-screen="5.5e-2024"] .level-up-content {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.24), rgba(238, 246, 242, 0.34));
 }
 
 html:not([data-theme="dark"]) body[data-active-screen="5.5e-2024"] .level-up-dialog .level-up-close,
 html:not([data-theme="dark"]) body[data-active-screen="5.5e-2024"] .level-up-dialog .level-up-tab,
 html:not([data-theme="dark"]) body[data-active-screen="5.5e-2024"] .level-up-dialog .level-up-method-card {
-  border-color: rgba(95, 50, 25, 0.16) !important;
-  background: rgba(255, 255, 255, 0.62) !important;
-  color: #5d3924 !important;
+  border-color: rgba(36, 33, 29, 0.12);
+  background: rgba(255, 255, 255, 0.78);
+  color: #26312f;
 }
 
 html:not([data-theme="dark"]) body[data-active-screen="5.5e-2024"] .level-up-dialog .level-up-tab.is-active {
-  border-color: rgba(142, 47, 34, 0.42) !important;
-  background: linear-gradient(180deg, #9b3e2d, #5a231d) !important;
-  color: #fff7dc !important;
+  border-color: rgba(45, 90, 82, 0.48);
+  background: linear-gradient(180deg, #31665d, #1f4540);
+  color: #f8fffb;
 }
 
 html:not([data-theme="dark"]) body[data-active-screen="5.5e-2024"] .level-up-dialog .level-up-method-card {
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.76), rgba(255, 248, 226, 0.72)) !important;
+    linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(244, 249, 246, 0.84));
 }
 
 html:not([data-theme="dark"]) body[data-active-screen="5.5e-2024"] .level-up-dialog .level-up-method-card.is-active {
-  border-color: rgba(142, 47, 34, 0.44);
-  box-shadow: 0 0 0 3px rgba(142, 47, 34, 0.1), 0 16px 34px rgba(67, 39, 22, 0.12);
+  border-color: rgba(45, 90, 82, 0.46);
+  box-shadow: 0 0 0 3px rgba(45, 90, 82, 0.1), 0 16px 34px rgba(23, 36, 34, 0.12);
 }
 
 html:not([data-theme="dark"]) body[data-active-screen="5.5e-2024"] .level-up-dialog .level-up-method-card .level-up-method-copy {
-  color: #6f5538;
+  color: #59645f;
 }
 
 html:not([data-theme="dark"]) body[data-active-screen="5.5e-2024"] .level-up-dialog .level-up-method-card strong {
-  color: #4b2c1d;
+  color: #222c2a;
 }
 
 html:not([data-theme="dark"]) body[data-active-screen="5.5e-2024"] .level-up-dialog .level-up-next {
-  border-color: rgba(95, 50, 25, 0.2) !important;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(232, 218, 188, 0.9)) !important;
-  color: #6b5138 !important;
+  border-color: rgba(45, 90, 82, 0.2);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(231, 240, 235, 0.95));
+  color: #31524d;
 }
 
 html:not([data-theme="dark"]) body[data-active-screen="5.5e-2024"] .level-up-dialog .level-up-next.is-ready:not(:disabled) {
-  border-color: #8b2d21 !important;
+  border-color: rgba(180, 35, 47, 0.58);
   background:
-    radial-gradient(circle at 18% 10%, rgba(255, 235, 169, 0.32), transparent 30%),
-    linear-gradient(180deg, #b84431, #6f281f) !important;
-  color: #fff8dc !important;
+    radial-gradient(circle at 18% 10%, rgba(255, 255, 255, 0.18), transparent 30%),
+    linear-gradient(180deg, #c8333f, #871a25);
+  color: #fff;
+  box-shadow: 0 12px 24px rgba(135, 26, 37, 0.2);
+}
+
+html:not([data-theme="dark"]) body[data-active-screen="5.5e-2024"] .level-up-badge,
+html:not([data-theme="dark"]) body[data-active-screen="5.5e-2024"] .level-up-option-detail {
+  border-color: rgba(45, 90, 82, 0.16);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(240, 247, 243, 0.78));
+}
+
+html:not([data-theme="dark"]) body[data-active-screen="5.5e-2024"] .level-up-badge small,
+html:not([data-theme="dark"]) body[data-active-screen="5.5e-2024"] .level-up-status {
+  color: #52625d;
+}
+
+html:not([data-theme="dark"]) body[data-active-screen="5.5e-2024"] .level-up-badge strong,
+html:not([data-theme="dark"]) body[data-active-screen="5.5e-2024"] .level-up-option-detail strong {
+  color: #222c2a;
+}
+
+html:not([data-theme="dark"]) body[data-active-screen="5.5e-2024"] .level-up-hover-trigger {
+  border-color: rgba(45, 90, 82, 0.2);
+  background: rgba(247, 252, 249, 0.96);
+  color: #a51f2a;
+  box-shadow: 0 8px 18px rgba(23, 36, 34, 0.12);
+}
+
+html:not([data-theme="dark"]) body[data-active-screen="5.5e-2024"] .level-up-hover-card {
+  border-color: rgba(45, 90, 82, 0.18);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.99), rgba(239, 247, 243, 0.98));
+  color: #222c2a;
+  box-shadow: 0 18px 42px rgba(23, 36, 34, 0.2);
+}
+
+html:not([data-theme="dark"]) body[data-active-screen="5.5e-2024"] .level-up-hover-card strong {
+  color: #a51f2a;
+}
+
+html:not([data-theme="dark"]) body[data-active-screen="5.5e-2024"] .level-up-hover-card p {
+  color: #52625d;
 }
 
 .native-select-hidden {
