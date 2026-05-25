@@ -76,6 +76,7 @@ body {
 
 body[data-active-screen="home"],
 body[data-active-screen="account"],
+body[data-active-screen="legal"],
 body[data-active-screen="user-page"],
 body[data-active-screen="stats"],
 body[data-active-screen="5.5e-2024"] {
@@ -138,6 +139,21 @@ fieldset,
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
+}
+
+.version-home-legal-links {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  color: var(--muted);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.version-home-legal-links a {
+  color: var(--accent);
+  text-underline-offset: 3px;
 }
 
 .home-stats-button {

@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Política de privacidade | Criador de ficha D&D</title>
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <script src="./src/theme-boot.js"></script>
+  <link rel="stylesheet" href="./src/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=EB+Garamond:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Libre+Baskerville:wght@400;700&family=Uncial+Antiqua&display=swap" rel="stylesheet">
+  <script type="module" defer src="./src/analytics.js"></script>
+  <script type="module" defer src="./src/theme.js"></script>
+</head>
+
+<body data-active-screen="legal">
+  <main class="account-page-shell">
+    <header class="container account-page-header">
+      <div class="version-toolbar">
+        <div class="version-toolbar-actions">
+          <a href="./index.html" class="ghost-button">Voltar para a seleção</a>
+          <a href="./conta.html" class="secondary-button">Entrar ou criar conta</a>
+          <a href="./termos.html" class="secondary-button">Termos de uso</a>
+          <button type="button" class="theme-toggle toolbar-theme-toggle" data-theme-toggle aria-label="Alternar tema"></button>
+        </div>
+      </div>
+
+      <div class="account-page-intro">
+        <p class="version-kicker">Privacidade</p>
+        <h1>Política de privacidade</h1>
+        <p>Como o Criador de Ficha D&D trata os dados usados para contas, login social, personagens salvos, preferências locais e métricas básicas de uso.</p>
+        <p class="legal-page-meta">Última atualização: 25 de maio de 2026.</p>
+      </div>
+    </header>
+
+    <section class="container legal-page-panel" aria-label="Política de privacidade">
+      <section class="legal-section">
+        <h2>Resumo</h2>
+        <p>O Criador de Ficha D&D é um projeto pessoal, gratuito e não oficial para criação e organização de fichas de personagens. A conta serve para salvar personagens no servidor, manter sessão entre acessos e permitir login por e-mail ou por provedores sociais configurados, como Google e Facebook.</p>
+        <p>Esta política foi escrita para explicar, em linguagem direta, quais dados são coletados, por que eles são usados, onde podem ser armazenados e como você pode pedir acesso, correção ou exclusão.</p>
+      </section>
+
+      <section class="legal-section">
+        <h2>Responsável e contato</h2>
+        <p>O responsável pelo projeto é o mantenedor do Criador de Ficha D&D. Para assuntos de privacidade, exclusão de dados, remoção de conteúdo ou dúvidas sobre estes termos, use o contato: <a href="mailto:basso1515@gmail.com">basso1515@gmail.com</a>.</p>
+        <p>Como é um projeto pessoal e gratuito, o atendimento pode não ser imediato, mas solicitações de privacidade e remoção de dados serão tratadas com prioridade razoável.</p>
+      </section>
+
+      <section class="legal-section">
+        <h2>Dados de conta</h2>
+        <p>Quando você cria uma conta por e-mail e senha, o app salva os dados necessários para autenticação e uso do serviço:</p>
+        <ul class="legal-list">
+          <li>nome de exibição;</li>
+          <li>e-mail;</li>
+          <li>senha protegida por hash e sal, sem guardar a senha em texto puro;</li>
+          <li>datas de criação e atualização da conta;</li>
+          <li>sessões ativas associadas à conta;</li>
+          <li>personagens salvos e seus dados de ficha.</li>
+        </ul>
+      </section>
+
+      <section class="legal-section">
+        <h2>Login social</h2>
+        <p>Se você escolher login social, o provedor usado pode confirmar sua identidade e retornar informações básicas, como e-mail, nome público e identificador da conta naquele provedor. O app usa esses dados somente para criar ou vincular sua conta no Criador de Ficha D&D e manter o registro do provedor usado.</p>
+        <p>As permissões solicitadas são limitadas ao necessário para autenticação. No Google, o app usa escopos de identificação, e-mail e perfil básico. No Facebook, o app usa e-mail e perfil público básico. O app não pede acesso a publicações, lista de amigos, mensagens, anúncios ou gerenciamento de páginas.</p>
+      </section>
+
+      <section class="legal-section">
+        <h2>Personagens e PDFs</h2>
+        <p>Os personagens salvos podem incluir nome, edição usada, escolhas de classe, espécie/raça, antecedente, atributos, perícias, magias, equipamentos, textos livres preenchidos pelo usuário e outras informações necessárias para reconstruir a ficha.</p>
+        <p>Os PDFs são gerados a partir dos dados preenchidos na ficha. O app salva os dados estruturados do personagem, não uma cópia automática de cada PDF exportado.</p>
+      </section>
+
+      <section class="legal-section">
+        <h2>Preferências locais</h2>
+        <p>Algumas preferências podem ficar apenas no seu navegador, por meio de <code>localStorage</code> ou <code>sessionStorage</code>, como tema claro/escuro, unidades de medida e dados antigos usados em migração local. Esses dados não são enviados ao servidor, exceto quando você decide migrar ou salvar personagens na conta.</p>
+      </section>
+
+      <section class="legal-section">
+        <h2>Cookies</h2>
+        <p>O app usa cookies de sessão para manter você conectado. Esses cookies são configurados com proteções como <code>HttpOnly</code>, <code>SameSite=Lax</code> e, em ambiente HTTPS, <code>Secure</code>. O objetivo é autenticação e segurança da sessão.</p>
+        <p>Também pode existir um cookie temporário durante o fluxo de login social para validar o retorno do provedor e reduzir risco de fraude no OAuth.</p>
+      </section>
+
+      <section class="legal-section">
+        <h2>Métricas e desempenho</h2>
+        <p>Em produção, o projeto pode usar Vercel Web Analytics e Vercel Speed Insights para entender uso geral, erros de carregamento e desempenho das páginas. Esses recursos ajudam a melhorar estabilidade e experiência sem exigir que o app construa perfis publicitários próprios.</p>
+        <p>O app também pode registrar eventos agregados de criação de personagem para estatísticas da comunidade, sem publicar e-mail ou dados privados da conta.</p>
+      </section>
+
+      <section class="legal-section">
+        <h2>Finalidades do tratamento</h2>
+        <p>Os dados são usados para:</p>
+        <ul class="legal-list">
+          <li>criar e autenticar contas;</li>
+          <li>manter sessões seguras;</li>
+          <li>salvar, listar, editar, migrar e excluir personagens;</li>
+          <li>permitir login social quando escolhido pelo usuário;</li>
+          <li>prevenir abuso, spam, tentativas excessivas de login e uso indevido;</li>
+          <li>melhorar desempenho, estabilidade e usabilidade do projeto;</li>
+          <li>cumprir pedidos de exclusão, segurança ou obrigações legais aplicáveis.</li>
+        </ul>
+      </section>
+
+      <section class="legal-section">
+        <h2>Serviços de infraestrutura</h2>
+        <p>Os dados podem ser processados por serviços usados para manter o app funcionando, como Vercel para hospedagem, funções serverless, analytics e desempenho; Upstash Redis para armazenamento de contas, sessões e personagens; Google, Facebook/Meta ou Apple quando você escolhe login social pelo respectivo provedor.</p>
+        <p>Esses serviços têm suas próprias políticas de privacidade e podem processar dados em outros países. Ao usar o app, você reconhece que essa infraestrutura é necessária para oferecer o serviço online.</p>
+      </section>
+
+      <section class="legal-section">
+        <h2>Compartilhamento</h2>
+        <p>O app não vende dados pessoais. Dados podem ser compartilhados apenas quando necessário para hospedagem, autenticação, segurança, suporte, cumprimento de lei ou proteção do projeto e de seus usuários.</p>
+      </section>
+
+      <section class="legal-section" id="exclusao-de-dados">
+        <h2>Exclusão de dados</h2>
+        <p>Você pode excluir a própria conta na área de conta. A exclusão remove a conta, sessões e personagens salvos associados. Se tiver dificuldade para acessar a conta, envie um pedido pelo contato informado nesta política.</p>
+        <p>Após a exclusão, alguns registros técnicos mínimos podem permanecer por período limitado quando necessários para segurança, prevenção de abuso, auditoria operacional, backups temporários ou cumprimento de obrigação legal.</p>
+      </section>
+
+      <section class="legal-section">
+        <h2>Direitos de privacidade</h2>
+        <p>Quando aplicável, você pode solicitar confirmação de tratamento, acesso, correção, eliminação, portabilidade quando tecnicamente viável, informação sobre compartilhamento e revogação de consentimento. Para exercer esses direitos, envie um e-mail com informações suficientes para localizar sua conta.</p>
+        <p>O projeto busca seguir os princípios de finalidade, necessidade, transparência e segurança previstos na LGPD, na medida compatível com sua natureza pessoal e gratuita.</p>
+      </section>
+
+      <section class="legal-section">
+        <h2>Segurança</h2>
+        <p>O projeto aplica controles como hash de senha, cookie de sessão <code>HttpOnly</code>, validação de origem, limites básicos de tentativa, armazenamento de segredos em variáveis de ambiente e uso de HTTPS em produção.</p>
+        <p>Nenhum sistema é totalmente imune a falhas. Evite reutilizar senhas importantes, não inclua dados sensíveis em campos livres da ficha e avise pelo contato se perceber comportamento suspeito.</p>
+      </section>
+
+      <section class="legal-section">
+        <h2>Crianças e adolescentes</h2>
+        <p>O app é voltado a jogadores de RPG e não foi projetado para coletar intencionalmente dados de crianças. Se um responsável identificar uso indevido por menor de idade, pode pedir remoção da conta pelo contato desta política.</p>
+      </section>
+
+      <section class="legal-section">
+        <h2>Alterações</h2>
+        <p>Esta política pode ser atualizada conforme o projeto evoluir, novos provedores de login forem habilitados ou a infraestrutura mudar. A data de atualização no topo da página indica a versão mais recente.</p>
+      </section>
+
+      <section class="legal-section">
+        <h2>Links relacionados</h2>
+        <p>Leia também os <a href="./termos.html">Termos de uso</a>. Para referência externa, consulte a <a href="https://www.gov.br/anpd/pt-br/assuntos/titular-de-dados-1/titular-de-dados" target="_blank" rel="noopener noreferrer">orientação da ANPD sobre titulares de dados</a>.</p>
+      </section>
+    </section>
+  </main>
+</body>
+</html>

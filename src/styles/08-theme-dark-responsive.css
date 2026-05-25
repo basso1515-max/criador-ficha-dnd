@@ -156,6 +156,8 @@ html[data-theme="dark"] .account-edition-panel,
 html[data-theme="dark"] .account-empty-note,
 html[data-theme="dark"] .account-form-panel,
 html[data-theme="dark"] .account-form-heading span,
+html[data-theme="dark"] .legal-page-panel,
+html[data-theme="dark"] .legal-section code,
 html[data-theme="dark"] .account-social-button,
 html[data-theme="dark"] .account-password-meter,
 html[data-theme="dark"] .danger-confirm-row,
@@ -193,6 +195,7 @@ html[data-theme="dark"] .account-social-button:focus-visible {
 
 html[data-theme="dark"] .account-current-panel,
 html[data-theme="dark"] .account-section-panel,
+html[data-theme="dark"] .legal-page-panel,
 html[data-theme="dark"] .user-page-character-item,
 html[data-theme="dark"] .account-character-item {
   background:
