@@ -3,6 +3,10 @@ import { Redis } from "@upstash/redis";
 import { recordCommunityCharacterCreated } from "./_community-stats-store.js";
 import { normalizeStoredCharacterSnapshot } from "../src/shared/character-schema.js";
 import {
+  deriveCommunityStatsSnapshotPayload,
+  readCommunityStatsSnapshotPayload,
+} from "../src/shared/community-stats.js";
+import {
   MAX_PASSWORD_LENGTH,
   MIN_NEW_PASSWORD_LENGTH,
   isBlockedNewPassword,
@@ -76,7 +80,7 @@ function getRedis() {
   const token = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
 
   if (!url || !token) {
-    throw new HttpError(500, "Storage Redis nao configurado. Conecte Upstash Redis ao projeto na Vercel e puxe as variaveis de ambiente.");
+    throw new HttpError(500, "Storage Redis não configurado. Conecte Upstash Redis ao projeto na Vercel e puxe as variáveis de ambiente.");
   }
 
   redisClient = new Redis({ url, token });
@@ -123,12 +127,13 @@ function normalizeCharacterRecord(character, fallbackEdition = "") {
   if (!character || typeof character !== "object") return null;
   const now = new Date().toISOString();
   const edition = EDITIONS.includes(character.edition) ? character.edition : fallbackEdition;
+  const summary = sanitizeCharacterSummary(character.summary);
   return {
     id: sanitizeRecordId(character.id, "character"),
     edition,
     name: sanitizeCharacterName(character.name),
-    summary: sanitizeCharacterSummary(character.summary),
-    snapshot: sanitizeSnapshot(normalizeStoredCharacterSnapshot(character.snapshot, { edition })),
+    summary,
+    snapshot: sanitizeSnapshot(normalizeCharacterSnapshotForStorage(character.snapshot, { edition, summary })),
     createdAt: sanitizeDateString(character.createdAt, now),
     updatedAt: sanitizeDateString(character.updatedAt, now),
   };
@@ -212,7 +217,7 @@ function readOptionalRecordId(value, prefix, label) {
   const text = String(value || "").trim();
   if (!text) return "";
   if (!isSafeRecordId(text, prefix)) {
-    throw new HttpError(400, `${label} invalido.`);
+    throw new HttpError(400, `${label} inválido.`);
   }
   return text;
 }
@@ -223,10 +228,16 @@ function sanitizeSnapshot(snapshot, { strict = false } = {}) {
   } catch (error) {
     if (strict) {
       if (error instanceof HttpError) throw error;
-      throw new HttpError(400, "Dados do personagem invalidos.");
+      throw new HttpError(400, "Dados do personagem inválidos.");
     }
     return {};
   }
+}
+
+function normalizeCharacterSnapshotForStorage(snapshot, { edition = "", summary = "" } = {}) {
+  const communityStats = readCommunityStatsSnapshotPayload(snapshot, edition)
+    || deriveCommunityStatsSnapshotPayload({ edition, summary, snapshot });
+  return normalizeStoredCharacterSnapshot(snapshot, { communityStats });
 }
 
 function makeId(prefix) {
@@ -262,7 +273,7 @@ function hashPasswordScrypt(password, salt, algorithm) {
 
   const pepper = getPasswordPepper();
   if (!pepper) {
-    throw new HttpError(500, "Configuracao de seguranca de senha incompleta.");
+    throw new HttpError(500, "Configuração de segurança de senha incompleta.");
   }
   return createHmac("sha256", pepper).update(derivedHash).digest("hex");
 }
@@ -329,7 +340,7 @@ function assertDisplayNameInput(displayName) {
 
 function assertEmailInput(email) {
   if (typeof email !== "string") {
-    throw new HttpError(400, "Informe um e-mail valido.");
+    throw new HttpError(400, "Informe um e-mail válido.");
   }
   const normalized = normalizeEmail(email);
   if (
@@ -337,7 +348,7 @@ function assertEmailInput(email) {
     || normalized.length > MAX_EMAIL_LENGTH
     || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized)
   ) {
-    throw new HttpError(400, "Informe um e-mail valido.");
+    throw new HttpError(400, "Informe um e-mail válido.");
   }
   assertNoUnsafeText(normalized, "E-mail");
   return normalized;
@@ -366,7 +377,7 @@ function assertPasswordCredentialInput(password) {
     throw new HttpError(400, "Informe a senha.");
   }
   if (value.length > MAX_PASSWORD_LENGTH) {
-    throw new HttpError(400, `Use uma senha com ate ${MAX_PASSWORD_LENGTH} caracteres.`);
+    throw new HttpError(400, `Use uma senha com até ${MAX_PASSWORD_LENGTH} caracteres.`);
   }
   return value;
 }
@@ -395,19 +406,19 @@ function assertPassword(account, password) {
 
 function assertImportedPasswordRecord(account) {
   if (!PASSWORD_IMPORT_ALGOS.has(account.passwordAlgo)) {
-    throw new HttpError(400, "Registro de senha legado invalido.");
+    throw new HttpError(400, "Registro de senha legado inválido.");
   }
   if (!account.passwordSalt || account.passwordSalt.length > 256) {
-    throw new HttpError(400, "Registro de senha legado invalido.");
+    throw new HttpError(400, "Registro de senha legado inválido.");
   }
   if (account.passwordAlgo === "legacy-fallback") {
     if (!String(account.passwordHash || "").startsWith("fallback-")) {
-      throw new HttpError(400, "Registro de senha legado invalido.");
+      throw new HttpError(400, "Registro de senha legado inválido.");
     }
     return;
   }
   if (!/^[a-f0-9]{32,256}$/i.test(String(account.passwordHash || ""))) {
-    throw new HttpError(400, "Registro de senha legado invalido.");
+    throw new HttpError(400, "Registro de senha legado inválido.");
   }
 }
 
@@ -427,10 +438,10 @@ function normalizeImportedAccountRecord(account) {
 
 function assertPersistableCharacterRecord(character) {
   if (!character || typeof character !== "object") {
-    throw new HttpError(400, "Personagem invalido.");
+    throw new HttpError(400, "Personagem inválido.");
   }
   if (!isSafeRecordId(character.id, "character") || !EDITIONS.includes(character.edition)) {
-    throw new HttpError(400, "Personagem invalido.");
+    throw new HttpError(400, "Personagem inválido.");
   }
   assertStringField(character.name, "Nome do personagem", {
     maxLength: MAX_CHARACTER_NAME_LENGTH,
@@ -446,7 +457,7 @@ function assertPersistableCharacterRecord(character) {
 function assertPersistableAuthProviders(providers) {
   normalizeAuthProviders(providers).forEach((provider) => {
     if (!OAUTH_PROVIDER_IDS.includes(provider.provider)) {
-      throw new HttpError(400, "Provedor de login invalido.");
+      throw new HttpError(400, "Provedor de login inválido.");
     }
     assertStringField(provider.providerAccountId, "Identificador do login social", {
       maxLength: 256,
@@ -457,7 +468,7 @@ function assertPersistableAuthProviders(providers) {
 
 function assertPersistableAccountRecord(account) {
   if (!account || typeof account !== "object" || !isSafeRecordId(account.id, "account")) {
-    throw new HttpError(400, "Conta invalida.");
+    throw new HttpError(400, "Conta inválida.");
   }
   assertDisplayNameInput(account.displayName);
   assertEmailInput(account.email);
@@ -477,7 +488,7 @@ function upgradePasswordRecordIfNeeded(account, password) {
 
 function getEditionBucket(account, edition) {
   if (!EDITIONS.includes(edition)) {
-    throw new HttpError(400, "Edicao invalida.");
+    throw new HttpError(400, "Edição inválida.");
   }
   if (!account.characters || typeof account.characters !== "object") {
     account.characters = normalizeCharacters();
@@ -505,14 +516,14 @@ function isPlainObject(value) {
 
 function assertPlainObject(value, label) {
   if (!isPlainObject(value)) {
-    throw new HttpError(400, `${label} invalido.`);
+    throw new HttpError(400, `${label} inválido.`);
   }
   return value;
 }
 
 function assertSafeObjectKey(key, label) {
   if (DANGEROUS_OBJECT_KEYS.has(key) || key.length > 160 || UNSAFE_CONTROL_CHARS_RE.test(key) || UNSAFE_TEXT_RE.test(key)) {
-    throw new HttpError(400, `${label} contem campos invalidos.`);
+    throw new HttpError(400, `${label} contém campos inválidos.`);
   }
 }
 
@@ -520,12 +531,12 @@ function assertAllowedKeys(object, allowedKeys, label) {
   Object.keys(object).forEach((key) => {
     assertSafeObjectKey(key, label);
     if (!allowedKeys.has(key)) {
-      throw new HttpError(400, `${label} contem campos inesperados.`);
+      throw new HttpError(400, `${label} contém campos inesperados.`);
     }
   });
 }
 
-function assertRequestBody(body, allowedKeys, requiredKeys = [], label = "Requisicao") {
+function assertRequestBody(body, allowedKeys, requiredKeys = [], label = "Requisição") {
   const input = assertPlainObject(body, label);
   const allowed = new Set(allowedKeys);
   assertAllowedKeys(input, allowed, label);
@@ -541,21 +552,21 @@ function assertRequestBody(body, allowedKeys, requiredKeys = [], label = "Requis
 
 function assertNoUnsafeText(value, label) {
   if (UNSAFE_CONTROL_CHARS_RE.test(value) || UNSAFE_TEXT_RE.test(value)) {
-    throw new HttpError(400, `${label} contem conteudo nao permitido.`);
+    throw new HttpError(400, `${label} contém conteúdo não permitido.`);
   }
 }
 
 function assertStringField(value, label, { maxLength, required = true, trim = true, allowUnsafe = false } = {}) {
   if (typeof value !== "string") {
-    throw new HttpError(400, `${label} invalido.`);
+    throw new HttpError(400, `${label} inválido.`);
   }
 
   const text = trim ? value.trim() : value;
   if (required && !text) {
-    throw new HttpError(400, `${label} obrigatorio.`);
+    throw new HttpError(400, `${label} obrigatório.`);
   }
   if (maxLength && text.length > maxLength) {
-    throw new HttpError(400, `${label} deve ter ate ${maxLength} caracteres.`);
+    throw new HttpError(400, `${label} deve ter até ${maxLength} caracteres.`);
   }
   if (!allowUnsafe) {
     assertNoUnsafeText(text, label);
@@ -587,7 +598,7 @@ function validateLogoutBody(body) {
 }
 
 function validateAccountPatchBody(body) {
-  const input = assertRequestBody(body, ["displayName", "email", "currentPassword", "newPassword"], [], "Atualizacao da conta");
+  const input = assertRequestBody(body, ["displayName", "email", "currentPassword", "newPassword"], [], "Atualização da conta");
   const output = {};
 
   if (Object.hasOwn(input, "displayName")) {
@@ -618,7 +629,7 @@ function validateAccountPatchBody(body) {
 }
 
 function validateDeleteAccountBody(body) {
-  const input = assertRequestBody(body, ["password"], [], "Exclusao da conta");
+  const input = assertRequestBody(body, ["password"], [], "Exclusão da conta");
   return {
     password: Object.hasOwn(input, "password")
       ? assertStringField(input.password, "Senha atual", {
@@ -632,17 +643,17 @@ function validateDeleteAccountBody(body) {
 }
 
 function validateMigrationBody(body) {
-  const input = assertRequestBody(body, ["store"], ["store"], "Migracao");
-  const store = assertPlainObject(input.store, "Migracao");
-  assertAllowedKeys(store, new Set(["version", "accounts"]), "Migracao");
+  const input = assertRequestBody(body, ["store"], ["store"], "Migração");
+  const store = assertPlainObject(input.store, "Migração");
+  assertAllowedKeys(store, new Set(["version", "accounts"]), "Migração");
   if (!Array.isArray(store.accounts)) {
-    throw new HttpError(400, "Migracao invalida.");
+    throw new HttpError(400, "Migração inválida.");
   }
   if (store.version !== undefined && !["number", "string"].includes(typeof store.version)) {
-    throw new HttpError(400, "Migracao invalida.");
+    throw new HttpError(400, "Migração inválida.");
   }
   if (store.accounts.length > MAX_LEGACY_MIGRATION_ACCOUNTS) {
-    throw new HttpError(413, "Migracao grande demais.");
+    throw new HttpError(413, "Migração grande demais.");
   }
   return {
     store: {
@@ -652,7 +663,7 @@ function validateMigrationBody(body) {
   };
 }
 
-function validateCharacterPayload(payload) {
+function validateCharacterPayload(payload, { edition = "" } = {}) {
   const input = assertRequestBody(payload, ["name", "summary", "snapshot"], ["name", "summary", "snapshot"], "Personagem");
   const name = assertStringField(input.name, "Nome do personagem", {
     maxLength: MAX_CHARACTER_NAME_LENGTH,
@@ -666,18 +677,19 @@ function validateCharacterPayload(payload) {
   return {
     name,
     summary,
-    snapshot: sanitizeSnapshot(normalizeStoredCharacterSnapshot(input.snapshot), { strict: true }),
+    snapshot: sanitizeSnapshot(normalizeCharacterSnapshotForStorage(input.snapshot, { edition, summary }), { strict: true }),
   };
 }
 
 function validateCharacterSaveBody(body) {
   if (body?.action !== undefined) {
-    throw new HttpError(400, "Acao de personagem invalida.");
+    throw new HttpError(400, "Ação de personagem inválida.");
   }
   const input = assertRequestBody(body, ["edition", "payload", "overwriteId"], ["edition", "payload"], "Salvamento do personagem");
+  const edition = assertEditionInput(input.edition);
   return {
-    edition: assertEditionInput(input.edition),
-    payload: validateCharacterPayload(input.payload),
+    edition,
+    payload: validateCharacterPayload(input.payload, { edition }),
     overwriteId: Object.hasOwn(input, "overwriteId")
       ? readOptionalRecordId(input.overwriteId, "character", "Personagem")
       : "",
@@ -689,31 +701,31 @@ function validateCharacterMigrationBody(body) {
     body,
     ["action", "sourceEdition", "targetEdition", "mode", "characterId", "payload"],
     ["action", "sourceEdition", "targetEdition", "characterId", "payload"],
-    "Migracao do personagem",
+    "Migração do personagem",
   );
   if (input.action !== "migrate-version") {
-    throw new HttpError(400, "Acao de personagem invalida.");
+    throw new HttpError(400, "Ação de personagem inválida.");
   }
 
   const sourceEdition = assertEditionInput(input.sourceEdition);
   const targetEdition = assertEditionInput(input.targetEdition);
   const mode = Object.hasOwn(input, "mode") ? assertMigrationModeInput(input.mode) : "duplicate";
   const characterId = readOptionalRecordId(input.characterId, "character", "Personagem");
-  if (!characterId) throw new HttpError(400, "Personagem invalido.");
+  if (!characterId) throw new HttpError(400, "Personagem inválido.");
 
   return {
     sourceEdition,
     targetEdition,
     mode,
     characterId,
-    payload: validateCharacterPayload(input.payload),
+    payload: validateCharacterPayload(input.payload, { edition: targetEdition }),
   };
 }
 
 function validateCharacterDeleteBody(body) {
-  const input = assertRequestBody(body, ["edition", "characterId"], ["edition", "characterId"], "Exclusao do personagem");
+  const input = assertRequestBody(body, ["edition", "characterId"], ["edition", "characterId"], "Exclusão do personagem");
   const characterId = readOptionalRecordId(input.characterId, "character", "Personagem");
-  if (!characterId) throw new HttpError(400, "Personagem invalido.");
+  if (!characterId) throw new HttpError(400, "Personagem inválido.");
   return {
     edition: assertEditionInput(input.edition),
     characterId,
@@ -722,28 +734,28 @@ function validateCharacterDeleteBody(body) {
 
 function assertEditionInput(edition) {
   if (typeof edition !== "string" || !EDITIONS.includes(edition)) {
-    throw new HttpError(400, "Edicao invalida.");
+    throw new HttpError(400, "Edição inválida.");
   }
   return edition;
 }
 
 function assertMigrationModeInput(mode) {
   if (typeof mode !== "string" || !["duplicate", "transfer"].includes(mode)) {
-    throw new HttpError(400, "Modo de migracao invalido.");
+    throw new HttpError(400, "Modo de migração inválido.");
   }
   return mode;
 }
 
 function validateSnapshotInput(snapshot) {
   if (!isPlainObject(snapshot)) {
-    throw new HttpError(400, "Dados do personagem invalidos.");
+    throw new HttpError(400, "Dados do personagem inválidos.");
   }
 
   let json = "";
   try {
     json = JSON.stringify(snapshot);
   } catch {
-    throw new HttpError(400, "Dados do personagem invalidos.");
+    throw new HttpError(400, "Dados do personagem inválidos.");
   }
   if (!json || json.length > MAX_SNAPSHOT_BYTES) {
     throw new HttpError(413, "Dados do personagem grandes demais.");
@@ -765,13 +777,13 @@ function cloneJsonValue(value, label, depth, state) {
   if (value === null || typeof value === "boolean") return value;
   if (typeof value === "number") {
     if (!Number.isFinite(value)) {
-      throw new HttpError(400, `${label} invalido.`);
+      throw new HttpError(400, `${label} inválido.`);
     }
     return value;
   }
   if (typeof value === "string") {
     if (value.length > MAX_SNAPSHOT_STRING_LENGTH) {
-      throw new HttpError(400, `${label} contem texto longo demais.`);
+      throw new HttpError(400, `${label} contém texto longo demais.`);
     }
     assertNoUnsafeText(value, label);
     return value;
@@ -794,7 +806,7 @@ function cloneJsonValue(value, label, depth, state) {
     }, {});
   }
 
-  throw new HttpError(400, `${label} invalido.`);
+  throw new HttpError(400, `${label} inválido.`);
 }
 
 async function getAccountById(redis, accountId) {
@@ -836,7 +848,7 @@ async function recordCommunityCharacterCreatedSafe(redis, character) {
     console.error(JSON.stringify({
       level: "error",
       msg: "community_stats_record_failed",
-      error: error?.message || "Erro ao registrar estatisticas.",
+      error: error?.message || "Erro ao registrar estatísticas.",
     }));
     return null;
   }
@@ -845,7 +857,7 @@ async function recordCommunityCharacterCreatedSafe(redis, character) {
 async function reserveEmail(redis, email, accountId) {
   const normalizedEmail = assertEmailInput(email);
   if (!isSafeRecordId(accountId, "account")) {
-    throw new HttpError(400, "Identificador da conta invalido.");
+    throw new HttpError(400, "Identificador da conta inválido.");
   }
   const result = await redis.set(keyEmail(normalizedEmail), accountId, { nx: true });
   return result !== null;
@@ -988,7 +1000,7 @@ function assertSameOrigin(req) {
 
   const fetchSite = String(req.headers["sec-fetch-site"] || "").toLowerCase();
   if (fetchSite === "cross-site") {
-    throw new HttpError(403, "Origem da requisicao nao autorizada.");
+    throw new HttpError(403, "Origem da requisição não autorizada.");
   }
 
   const origin = req.headers.origin;
@@ -997,11 +1009,11 @@ function assertSameOrigin(req) {
   try {
     const originUrl = new URL(origin);
     if (originUrl.host !== req.headers.host) {
-      throw new HttpError(403, "Origem da requisicao nao autorizada.");
+      throw new HttpError(403, "Origem da requisição não autorizada.");
     }
   } catch (error) {
     if (error instanceof HttpError) throw error;
-    throw new HttpError(403, "Origem da requisicao nao autorizada.");
+    throw new HttpError(403, "Origem da requisição não autorizada.");
   }
 }
 
@@ -1058,7 +1070,7 @@ async function readJsonBody(req) {
   const contentType = String(req.headers["content-type"] || "").toLowerCase();
 
   if (contentLength > MAX_BODY_BYTES) {
-    throw new HttpError(413, "Requisicao grande demais.");
+    throw new HttpError(413, "Requisição grande demais.");
   }
   if (hasDeclaredBody && !contentType.includes("application/json")) {
     throw new HttpError(415, "Envie os dados como JSON.");
@@ -1068,23 +1080,23 @@ async function readJsonBody(req) {
     if (!req.body) return {};
     if (typeof req.body === "string") {
       if (Buffer.byteLength(req.body, "utf8") > MAX_BODY_BYTES) {
-        throw new HttpError(413, "Requisicao grande demais.");
+        throw new HttpError(413, "Requisição grande demais.");
       }
       try {
         return JSON.parse(req.body);
       } catch {
-        throw new HttpError(400, "JSON invalido.");
+        throw new HttpError(400, "JSON inválido.");
       }
     }
     if (typeof req.body === "object") {
       try {
         const serializedBody = JSON.stringify(req.body);
         if (serializedBody && Buffer.byteLength(serializedBody, "utf8") > MAX_BODY_BYTES) {
-          throw new HttpError(413, "Requisicao grande demais.");
+          throw new HttpError(413, "Requisição grande demais.");
         }
       } catch (error) {
         if (error instanceof HttpError) throw error;
-        throw new HttpError(400, "JSON invalido.");
+        throw new HttpError(400, "JSON inválido.");
       }
       return req.body;
     }
@@ -1096,7 +1108,7 @@ async function readJsonBody(req) {
     req.on("data", (chunk) => {
       body += chunk;
       if (Buffer.byteLength(body, "utf8") > MAX_BODY_BYTES) {
-        reject(new HttpError(413, "Requisicao grande demais."));
+        reject(new HttpError(413, "Requisição grande demais."));
         req.destroy();
       }
     });
@@ -1108,7 +1120,7 @@ async function readJsonBody(req) {
       try {
         resolve(JSON.parse(body));
       } catch {
-        reject(new HttpError(400, "JSON invalido."));
+        reject(new HttpError(400, "JSON inválido."));
       }
     });
     req.on("error", reject);
@@ -1128,7 +1140,7 @@ async function readFormBody(req) {
     req.on("data", (chunk) => {
       body += chunk;
       if (Buffer.byteLength(body, "utf8") > MAX_BODY_BYTES) {
-        reject(new HttpError(413, "Requisicao grande demais."));
+        reject(new HttpError(413, "Requisição grande demais."));
         req.destroy();
       }
     });
@@ -1219,7 +1231,7 @@ async function upsertOAuthAccount(redis, profile) {
   }
 
   if (!account) {
-    throw new HttpError(409, "Ja existe uma conta com este e-mail.");
+    throw new HttpError(409, "Já existe uma conta com este e-mail.");
   }
 
   const providers = normalizeAuthProviders(account.authProviders);
@@ -1381,7 +1393,7 @@ async function handleAccountApiInternal(req, res, pathname) {
 
     const reserved = await reserveEmail(redis, email, account.id);
     if (!reserved) {
-      throw new HttpError(409, "Ja existe uma conta com este e-mail.");
+      throw new HttpError(409, "Já existe uma conta com este e-mail.");
     }
 
     await saveAccount(redis, account);
@@ -1436,7 +1448,7 @@ async function handleAccountApiInternal(req, res, pathname) {
       if (!reserved) {
         const ownerId = await redis.get(keyEmail(nextEmail));
         if (ownerId !== account.id) {
-          throw new HttpError(409, "Ja existe uma conta com este e-mail.");
+          throw new HttpError(409, "Já existe uma conta com este e-mail.");
         }
       }
     }
@@ -1481,20 +1493,20 @@ async function handleAccountApiInternal(req, res, pathname) {
       const targetEdition = input.targetEdition;
       const mode = input.mode;
       if (sourceEdition !== "5e" || targetEdition !== "5.5e-2024") {
-        throw new HttpError(400, "Esta migracao so esta disponivel de D&D 5e para D&D 5.5e.");
+        throw new HttpError(400, "Esta migração só está disponível de D&D 5e para D&D 5.5e.");
       }
 
       const sourceBucket = getEditionBucket(account, sourceEdition);
       const targetBucket = getEditionBucket(account, targetEdition);
       const sourceId = input.characterId;
-      if (!sourceId) throw new HttpError(400, "Personagem invalido.");
+      if (!sourceId) throw new HttpError(400, "Personagem inválido.");
 
       const sourceIndex = sourceBucket.findIndex((item) => item.id === sourceId);
       if (sourceIndex < 0) {
-        throw new HttpError(404, "Personagem salvo nao encontrado.");
+        throw new HttpError(404, "Personagem salvo não encontrado.");
       }
       if (targetBucket.length >= ACCOUNT_LIMIT_PER_EDITION) {
-        throw new HttpError(400, `Limite de ${ACCOUNT_LIMIT_PER_EDITION} personagens salvos na edicao 5.5e atingido.`);
+        throw new HttpError(400, `Limite de ${ACCOUNT_LIMIT_PER_EDITION} personagens salvos na edição 5.5e atingido.`);
       }
 
       const now = new Date().toISOString();
@@ -1533,7 +1545,7 @@ async function handleAccountApiInternal(req, res, pathname) {
     if (overwriteId) {
       character = bucket.find((item) => item.id === overwriteId);
       if (!character) {
-        throw new HttpError(404, "Personagem salvo nao encontrado.");
+        throw new HttpError(404, "Personagem salvo não encontrado.");
       }
       character.name = characterPayload.name;
       character.summary = characterPayload.summary;
@@ -1541,7 +1553,7 @@ async function handleAccountApiInternal(req, res, pathname) {
       character.updatedAt = now;
     } else {
       if (bucket.length >= ACCOUNT_LIMIT_PER_EDITION) {
-        throw new HttpError(400, `Limite de ${ACCOUNT_LIMIT_PER_EDITION} personagens salvos nesta edicao atingido.`);
+        throw new HttpError(400, `Limite de ${ACCOUNT_LIMIT_PER_EDITION} personagens salvos nesta edição atingido.`);
       }
       character = {
         id: makeId("character"),
@@ -1566,10 +1578,10 @@ async function handleAccountApiInternal(req, res, pathname) {
     const { account } = await requireAuthenticatedAccount(redis, req);
     const bucket = getEditionBucket(account, input.edition);
     const characterId = input.characterId;
-    if (!characterId) throw new HttpError(400, "Personagem invalido.");
+    if (!characterId) throw new HttpError(400, "Personagem inválido.");
     const nextBucket = bucket.filter((character) => character.id !== characterId);
     if (nextBucket.length === bucket.length) {
-      throw new HttpError(404, "Personagem salvo nao encontrado.");
+      throw new HttpError(404, "Personagem salvo não encontrado.");
     }
 
     account.characters[input.edition] = nextBucket;
@@ -1578,7 +1590,7 @@ async function handleAccountApiInternal(req, res, pathname) {
     return;
   }
 
-  throw new HttpError(404, "Endpoint nao encontrado.");
+  throw new HttpError(404, "Endpoint não encontrado.");
 }
 
 export async function handleAccountApi(req, res, pathname) {

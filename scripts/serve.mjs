@@ -7,8 +7,10 @@ import {
   buildCommunityAnalyticsPayload,
   buildCommunityStatsResponseFromState,
   createCommunityStatsState,
+  deriveCommunityStatsSnapshotPayload,
   extractCommunityStatsEvent,
   normalizeCommunityStatsState,
+  readCommunityStatsSnapshotPayload,
 } from "../src/shared/community-stats.js";
 import { normalizeStoredCharacterSnapshot } from "../src/shared/character-schema.js";
 import {
@@ -174,12 +176,13 @@ function normalizeCharacterRecord(character, fallbackEdition = "") {
   if (!character || typeof character !== "object") return null;
   const now = new Date().toISOString();
   const edition = EDITIONS.includes(character.edition) ? character.edition : fallbackEdition;
+  const summary = sanitizeCharacterSummary(character.summary);
   return {
     id: sanitizeRecordId(character.id, "character"),
     edition,
     name: sanitizeCharacterName(character.name),
-    summary: sanitizeCharacterSummary(character.summary),
-    snapshot: sanitizeSnapshot(normalizeStoredCharacterSnapshot(character.snapshot, { edition })),
+    summary,
+    snapshot: sanitizeSnapshot(normalizeCharacterSnapshotForStorage(character.snapshot, { edition, summary })),
     createdAt: sanitizeDateString(character.createdAt, now),
     updatedAt: sanitizeDateString(character.updatedAt, now),
   };
@@ -297,6 +300,12 @@ function sanitizeSnapshot(snapshot, { strict = false } = {}) {
     }
     return {};
   }
+}
+
+function normalizeCharacterSnapshotForStorage(snapshot, { edition = "", summary = "" } = {}) {
+  const communityStats = readCommunityStatsSnapshotPayload(snapshot, edition)
+    || deriveCommunityStatsSnapshotPayload({ edition, summary, snapshot });
+  return normalizeStoredCharacterSnapshot(snapshot, { communityStats });
 }
 
 function makeId(prefix) {
@@ -723,7 +732,7 @@ function validateMigrationBody(body) {
   };
 }
 
-function validateCharacterPayload(payload) {
+function validateCharacterPayload(payload, { edition = "" } = {}) {
   const input = assertRequestBody(payload, ["name", "summary", "snapshot"], ["name", "summary", "snapshot"], "Personagem");
   const name = assertStringField(input.name, "Nome do personagem", {
     maxLength: MAX_CHARACTER_NAME_LENGTH,
@@ -737,7 +746,7 @@ function validateCharacterPayload(payload) {
   return {
     name,
     summary,
-    snapshot: sanitizeSnapshot(normalizeStoredCharacterSnapshot(input.snapshot), { strict: true }),
+    snapshot: sanitizeSnapshot(normalizeCharacterSnapshotForStorage(input.snapshot, { edition, summary }), { strict: true }),
   };
 }
 
@@ -746,9 +755,10 @@ function validateCharacterSaveBody(body) {
     throw new HttpError(400, "Ação de personagem inválida.");
   }
   const input = assertRequestBody(body, ["edition", "payload", "overwriteId"], ["edition", "payload"], "Salvamento do personagem");
+  const edition = assertEditionInput(input.edition);
   return {
-    edition: assertEditionInput(input.edition),
-    payload: validateCharacterPayload(input.payload),
+    edition,
+    payload: validateCharacterPayload(input.payload, { edition }),
     overwriteId: Object.hasOwn(input, "overwriteId")
       ? readOptionalRecordId(input.overwriteId, "character", "Personagem")
       : "",
@@ -777,7 +787,7 @@ function validateCharacterMigrationBody(body) {
     targetEdition,
     mode,
     characterId,
-    payload: validateCharacterPayload(input.payload),
+    payload: validateCharacterPayload(input.payload, { edition: targetEdition }),
   };
 }
 

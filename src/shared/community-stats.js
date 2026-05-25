@@ -57,26 +57,83 @@ export function extractCommunityStatsEvent(character, date = new Date()) {
   const edition = EDITIONS.includes(character?.edition) ? character.edition : "";
   if (!edition) return null;
 
-  const snapshot = getSnapshotData(character?.snapshot);
-  const fields = readPresetFields(snapshot);
-  const primaryClass = findClassForEdition(edition, readPrimaryClassValue(fields, character));
-  const level = readCharacterLevel(fields);
-  const spellIds = extractSelectedSpellIds(edition, snapshot);
-  const startingWeaponIds = extractStartingWeaponIds(edition, snapshot);
+  const statsPayload = readCommunityStatsSnapshotPayload(character?.snapshot, edition)
+    || deriveCommunityStatsSnapshotPayload(character);
+  if (!statsPayload) return null;
+
   const createdAt = date.toISOString();
 
   return {
     version: COMMUNITY_STATS_VERSION,
     createdAt,
     month: getCommunityStatsMonth(date),
+    edition: statsPayload.edition,
+    classId: statsPayload.classId,
+    classLabel: statsPayload.classLabel,
+    level: statsPayload.level,
+    levelBucket: statsPayload.levelBucket,
+    spellIds: [...statsPayload.spellIds],
+    startingWeaponIds: [...statsPayload.startingWeaponIds],
+  };
+}
+
+export function createCommunityStatsSnapshotPayload(input = {}, fallbackEdition = "") {
+  const edition = EDITIONS.includes(input?.edition)
+    ? input.edition
+    : (EDITIONS.includes(fallbackEdition) ? fallbackEdition : "");
+  if (!edition) return null;
+
+  const primaryClass = findClassForEdition(edition, input.classId)
+    || findClassForEdition(edition, input.classLabel);
+  const level = clampInt(input.level, 0, 20);
+
+  return {
+    version: COMMUNITY_STATS_VERSION,
     edition,
     classId: primaryClass?.id || "",
     classLabel: primaryClass?.label || "",
-    level: level || 0,
+    level,
     levelBucket: getLevelBucket(level),
-    spellIds,
-    startingWeaponIds,
+    spellIds: normalizeCatalogIds(input.spellIds, CATALOGS[edition]?.spells.byId),
+    startingWeaponIds: normalizeCatalogIds(input.startingWeaponIds, CATALOGS[edition]?.weapons.byId),
   };
+}
+
+export function readCommunityStatsSnapshotPayload(snapshot, fallbackEdition = "") {
+  if (!isPlainObject(snapshot)) return null;
+
+  const candidates = [
+    snapshot.communityStats,
+    snapshot.dados?.communityStats,
+    snapshot.data?.communityStats,
+  ];
+
+  for (const candidate of candidates) {
+    if (!isPlainObject(candidate)) continue;
+    const payload = createCommunityStatsSnapshotPayload(candidate, fallbackEdition);
+    if (payload) return payload;
+  }
+
+  return null;
+}
+
+export function deriveCommunityStatsSnapshotPayload(character) {
+  const edition = EDITIONS.includes(character?.edition) ? character.edition : "";
+  if (!edition) return null;
+
+  const snapshot = getSnapshotData(character?.snapshot);
+  const fields = readPresetFields(snapshot);
+  const primaryClass = findClassForEdition(edition, readPrimaryClassValue(fields, character));
+  const level = readCharacterLevel(fields);
+
+  return createCommunityStatsSnapshotPayload({
+    edition,
+    classId: primaryClass?.id || "",
+    classLabel: primaryClass?.label || "",
+    level,
+    spellIds: extractSelectedSpellIds(edition, snapshot),
+    startingWeaponIds: extractStartingWeaponIds(edition, snapshot),
+  });
 }
 
 export function buildCommunityAnalyticsPayload(event) {
@@ -327,7 +384,15 @@ function getSnapshotData(snapshot) {
 }
 
 function readPresetFields(snapshotData) {
-  return Array.isArray(snapshotData?.fields) ? snapshotData.fields : [];
+  if (Array.isArray(snapshotData?.fields)) return snapshotData.fields;
+  if (isPlainObject(snapshotData?.fields)) {
+    return Object.entries(snapshotData.fields).map(([id, value]) => ({
+      id,
+      name: id,
+      value,
+    }));
+  }
+  return [];
 }
 
 function readPrimaryClassValue(fields, character) {
@@ -444,6 +509,18 @@ function buildWeaponAliases(label) {
   const aliases = [clean, normalizeLoosePlural(clean)];
   if (/s$/.test(clean)) aliases.push(clean.replace(/s$/i, ""));
   return aliases.filter(Boolean);
+}
+
+function normalizeCatalogIds(value, catalogById) {
+  if (!Array.isArray(value) || !(catalogById instanceof Map)) return [];
+  const ids = new Set();
+
+  value.forEach((rawId) => {
+    const item = catalogById.get(String(rawId || ""));
+    if (item?.id) ids.add(item.id);
+  });
+
+  return Array.from(ids).slice(0, MAX_EVENT_ITEMS);
 }
 
 function normalizeLoosePlural(value) {

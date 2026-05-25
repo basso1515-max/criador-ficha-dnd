@@ -574,12 +574,45 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
   let activeMigrationCharacter2024 = null;
   let migrationReviewAssistant2024 = null;
 
+  function collectCommunitySpellIds2024(selection = {}) {
+    const ids = new Set();
+    Object.values(selection || {}).forEach((sourceSelection) => {
+      const cantrips = Array.isArray(sourceSelection?.cantrips) ? sourceSelection.cantrips : [];
+      const spells = Array.isArray(sourceSelection?.spells) ? sourceSelection.spells : [];
+      [...cantrips, ...spells].forEach((spellId) => {
+        if (spellId) ids.add(String(spellId));
+      });
+    });
+    return Array.from(ids);
+  }
+
+  function buildCommunityStatsSnapshot2024() {
+    const classEntries = getResolvedClassEntries2024();
+    const primaryEntry = getPrimaryClassEntry2024(classEntries);
+    const weaponIds = Array.from(getSelectedWeaponCounts2024(getSelectedClass(), getSelectedBackground()).keys())
+      .map((weaponId) => String(weaponId || "").trim())
+      .filter((weaponId) => weaponId && WEAPON_BY_ID_2024.has(weaponId));
+    const selectedSpellsBySource = getSpellSelectionSnapshot2024();
+
+    return {
+      version: 1,
+      edition: "5.5e-2024",
+      classId: primaryEntry?.classData?.id || "",
+      classLabel: primaryEntry?.classData?.nome || "",
+      level: primaryEntry?.level || getSelectedLevel(),
+      spellIds: collectCommunitySpellIds2024(selectedSpellsBySource),
+      startingWeaponIds: Array.from(new Set(weaponIds)),
+    };
+  }
+
   function captureSavedCharacterPreset2024() {
+    const selectedSpellsBySource = getSpellSelectionSnapshot2024();
     const preset = {
       ...captureFormPreset(el.form),
+      communityStats: buildCommunityStatsSnapshot2024(),
       extra: {
         multiclassRowIds: getAdditionalMulticlassRows2024().map((row) => row.getAttribute("data-row-id") || ""),
-        selectedSpellsBySource: getSpellSelectionSnapshot2024(),
+        selectedSpellsBySource,
       },
     };
 

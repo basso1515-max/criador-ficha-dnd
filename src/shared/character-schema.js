@@ -6,11 +6,21 @@ const SNAPSHOT_MIGRATIONS = {
   0: migrateLegacySnapshotToV1,
 };
 
-export function normalizeStoredCharacterSnapshot(snapshot) {
-  return {
+export function normalizeStoredCharacterSnapshot(snapshot, { communityStats = null } = {}) {
+  const dados = migrateCharacterSnapshot(snapshot);
+  const snapshotCommunityStats = readSnapshotCommunityStats(snapshot);
+  const storedSnapshot = {
     schemaVersion: CHARACTER_SCHEMA_VERSION,
-    dados: migrateCharacterSnapshot(snapshot),
+    dados,
   };
+
+  if (isPlainObject(communityStats)) {
+    storedSnapshot.communityStats = cloneSnapshotObject(communityStats);
+  } else if (snapshotCommunityStats) {
+    storedSnapshot.communityStats = snapshotCommunityStats;
+  }
+
+  return storedSnapshot;
 }
 
 export function migrateCharacterSnapshot(snapshot) {
@@ -45,7 +55,8 @@ function runSnapshotMigrations(schemaVersion, snapshot) {
 }
 
 function migrateLegacySnapshotToV1(snapshot) {
-  return cloneSnapshotObject(snapshot);
+  const { communityStats, ...legacyShape } = snapshot || {};
+  return cloneSnapshotObject(legacyShape);
 }
 
 function extractVersionedSnapshotData(snapshot) {
@@ -55,7 +66,7 @@ function extractVersionedSnapshotData(snapshot) {
     }
   }
 
-  const { schemaVersion, ...legacyShape } = snapshot || {};
+  const { schemaVersion, communityStats, ...legacyShape } = snapshot || {};
   return cloneSnapshotObject(legacyShape);
 }
 
@@ -68,6 +79,11 @@ function readSchemaVersion(snapshot) {
     return Number(rawVersion);
   }
   return 0;
+}
+
+function readSnapshotCommunityStats(snapshot) {
+  if (!isPlainObject(snapshot?.communityStats)) return null;
+  return cloneSnapshotObject(snapshot.communityStats);
 }
 
 function cloneSnapshotObject(value) {

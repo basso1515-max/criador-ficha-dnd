@@ -6,6 +6,7 @@ import { createServer as createNetServer } from "node:net";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
+import { extractCommunityStatsEvent } from "../src/shared/community-stats.js";
 
 const HOST = "127.0.0.1";
 const SERVER_TIMEOUT_MS = 8_000;
@@ -69,6 +70,7 @@ async function main() {
   const password = "SenhaE2E!123456";
   const nextPassword = "SenhaE2E!456789";
 
+  assertCommunityStatsFallbackForOldSnapshots();
   await assertSecurityHeaders(baseUrl);
   await assertCrossSiteWriteBlocked(baseUrl);
 
@@ -169,13 +171,21 @@ async function main() {
       edition: "5e",
       payload: {
         name: "Lyra da Névoa",
-        summary: "Druida 3 - Círculo da Lua",
+        summary: "Guerreiro 1 - resumo divergente",
         snapshot: {
           edition: "5e",
+          communityStats: {
+            version: 1,
+            edition: "5e",
+            classId: "druida",
+            level: 3,
+            spellIds: ["orientacao"],
+            startingWeaponIds: ["bordao"],
+          },
           fields: {
             nome: "Lyra da Névoa",
-            classe: "druida",
-            nivel: 3,
+            classe: "guerreiro",
+            nivel: 1,
           },
         },
       },
@@ -185,9 +195,16 @@ async function main() {
   assert(sourceCharacter?.id, "Salvamento 5e não retornou personagem.");
   assert(sourceCharacter.snapshot?.schemaVersion === 1, "Snapshot salvo deveria registrar schemaVersion 1.");
   assert(sourceCharacter.snapshot?.dados?.fields?.nome === "Lyra da Névoa", "Snapshot salvo deveria guardar os dados dentro de dados.");
+  assert(sourceCharacter.snapshot?.dados?.communityStats === undefined, "Payload comunitário não deve entrar nos dados restauráveis da ficha.");
+  assert(sourceCharacter.snapshot?.communityStats?.classId === "druida", "Snapshot salvo deveria preservar classe comunitária estável.");
+  assert(sourceCharacter.snapshot?.communityStats?.levelBucket === "1-4", "Snapshot salvo deveria normalizar faixa de nível comunitária.");
+  assert(sourceCharacter.snapshot?.communityStats?.spellIds?.includes("orientacao"), "Snapshot salvo deveria preservar magias comunitárias estáveis.");
+  assert(sourceCharacter.snapshot?.communityStats?.startingWeaponIds?.includes("bordao"), "Snapshot salvo deveria preservar armas comunitárias estáveis.");
   assert(saved5e.data.account.characters["5e"][0]?.snapshot?.schemaVersion === 1, "Conta deveria retornar personagem com snapshot versionado.");
+  assert(saved5e.data.account.characters["5e"][0]?.snapshot?.communityStats?.classId === "druida", "Conta deveria retornar communityStats versionado.");
   assert(saved5e.data.account.characters["5e"].length === 1, "Conta deveria ter 1 personagem 5e.");
   assert(saved5e.data.communityStatsEvent?.edition === "5e", "Criação 5e deveria retornar evento anônimo de estatísticas.");
+  assert(saved5e.data.communityStatsEvent?.primary_class === "druida", "Evento comunitário deveria ler o payload estável antes das heurísticas.");
 
   const overwritten = await requestJson(baseUrl, "/api/characters", {
     method: "POST",
@@ -212,6 +229,7 @@ async function main() {
   assert(overwritten.data.character.name === "Lyra da Névoa Revisada", "Overwrite não atualizou o personagem.");
   assert(overwritten.data.character.snapshot?.schemaVersion === 1, "Overwrite deveria manter snapshot versionado.");
   assert(overwritten.data.character.snapshot?.dados?.fields?.nivel === 4, "Overwrite deveria atualizar dados dentro do snapshot versionado.");
+  assert(overwritten.data.character.snapshot?.communityStats?.classId === "druida", "Overwrite deveria derivar communityStats para payloads antigos.");
   assert(overwritten.data.account.characters["5e"].length === 1, "Overwrite criou personagem duplicado.");
   assert(overwritten.data.communityStatsEvent === null, "Overwrite não deveria contar nova criação nas estatísticas.");
 
@@ -276,6 +294,19 @@ async function main() {
   assert(communityStats.data.totals.month === 3, "Estatísticas mensais deveriam contar 3 personagens criados.");
   assert(editionsAllTime["5e"] === 1, "Estatísticas deveriam contar 1 criação 5e.");
   assert(editionsAllTime["5.5e-2024"] === 2, "Estatísticas deveriam contar 2 criações 2024.");
+  const classesThisMonth = Object.fromEntries(
+    communityStats.data.charts.classesThisMonth.map((row) => [row.id, row.count]),
+  );
+  const spellsThisMonth = Object.fromEntries(
+    communityStats.data.charts.spellsThisMonth.map((row) => [row.id, row.count]),
+  );
+  const weaponsAllTime = Object.fromEntries(
+    communityStats.data.charts.startingWeaponsAllTime.map((row) => [row.id, row.count]),
+  );
+  assert(classesThisMonth["5e:druida"] === 1, "Estatísticas deveriam usar classe estável do payload 5e.");
+  assert(!classesThisMonth["5e:guerreiro"], "Estatísticas não deveriam cair na classe divergente dos campos heurísticos.");
+  assert(spellsThisMonth.orientacao === 1, "Estatísticas deveriam contar magia estável do payload 5e.");
+  assert(weaponsAllTime.bordao === 1, "Estatísticas deveriam contar arma inicial estável do payload 5e.");
   assert(communityStats.data.privacy?.mode === "anonymous-aggregates", "Endpoint de estatísticas deve declarar agregação anônima.");
 
   const deletedCharacter = await requestJson(baseUrl, "/api/characters", {
@@ -366,6 +397,33 @@ async function main() {
   ].forEach((line) => console.log(`OK: ${line}`));
 
   terminateChild(server);
+}
+
+function assertCommunityStatsFallbackForOldSnapshots() {
+  const event = extractCommunityStatsEvent({
+    edition: "5e",
+    summary: "Druida 2 - save antigo",
+    snapshot: {
+      schemaVersion: 1,
+      dados: {
+        fields: [
+          { id: "nivel", name: "nivel", value: "2" },
+        ],
+        extra: {
+          selectedSpellsBySource: {
+            druida: {
+              cantrips: ["orientacao"],
+              spells: ["curar-ferimentos"],
+            },
+          },
+        },
+      },
+    },
+  }, new Date("2026-05-10T12:00:00.000Z"));
+
+  assert(event?.classId === "druida", "Fallback deveria extrair classe de snapshots antigos.");
+  assert(event?.level === 2, "Fallback deveria extrair nível de snapshots antigos.");
+  assert(event?.spellIds?.includes("curar-ferimentos"), "Fallback deveria extrair magias de snapshots antigos.");
 }
 
 async function assertSecurityHeaders(baseUrl) {

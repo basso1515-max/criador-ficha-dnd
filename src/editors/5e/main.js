@@ -737,13 +737,51 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
   const syncPersonagemState = characterStateController.sync;
   const withDeferredHeavyUi = characterStateController.withDeferred;
 
+  function collectCommunitySpellIds(selection = {}) {
+    const ids = new Set();
+    Object.values(selection || {}).forEach((sourceSelection) => {
+      const cantrips = Array.isArray(sourceSelection?.cantrips) ? sourceSelection.cantrips : [];
+      const spells = Array.isArray(sourceSelection?.spells) ? sourceSelection.spells : [];
+      [...cantrips, ...spells].forEach((spellId) => {
+        if (spellId) ids.add(String(spellId));
+      });
+    });
+    return Array.from(ids);
+  }
+
+  function collectCommunityWeaponIds(weapons = []) {
+    const ids = new Set();
+    weapons.forEach((weapon) => {
+      const id = String(weapon?.id || weapon?.datasetKey || "").trim();
+      if (id) ids.add(id);
+    });
+    return Array.from(ids);
+  }
+
+  function buildCommunityStatsSnapshot(state) {
+    const resolvedClassEntries = getResolvedClassEntries(state);
+    const primaryEntry = resolvedClassEntries[0] || null;
+    const equipmentLoadout = buildEquipmentLoadout(state, resolvedClassEntries);
+
+    return {
+      version: 1,
+      edition: "5e",
+      classId: primaryEntry?.classData?.id || "",
+      classLabel: primaryEntry?.classData?.nome || state?.classe || "",
+      level: state?.nivel || getTotalCharacterLevel(),
+      spellIds: collectCommunitySpellIds(state?.selectedSpellsBySource),
+      startingWeaponIds: collectCommunityWeaponIds(equipmentLoadout.weapons),
+    };
+  }
+
   function captureSavedCharacterPreset() {
-    collectState();
+    const state = collectState();
     return {
       ...captureFormPreset(el.form),
+      communityStats: buildCommunityStatsSnapshot(state),
       extra: {
         multiclassRowIds: getAdditionalMulticlassRows().map((row) => row.getAttribute("data-row-id") || ""),
-        selectedSpellsBySource: getSpellSelectionSnapshot(),
+        selectedSpellsBySource: state.selectedSpellsBySource,
       },
     };
   }

@@ -410,10 +410,12 @@ export async function saveCharacterForCurrentUser(edition, payload, { overwriteI
     throw new Error("Entre em uma conta para salvar personagens.");
   }
 
+  const name = sanitizeCharacterName(payload?.name);
+  const summary = sanitizeCharacterSummary(payload?.summary);
   const sanitizedPayload = {
-    name: sanitizeCharacterName(payload?.name),
-    summary: sanitizeCharacterSummary(payload?.summary),
-    snapshot: normalizeStoredCharacterSnapshot(payload?.snapshot || {}, { edition }),
+    name,
+    summary,
+    snapshot: normalizeStoredCharacterSnapshot(payload?.snapshot || {}),
   };
 
   const data = await requestApi("/api/characters", {
@@ -444,10 +446,12 @@ export async function migrateCharacterVersionForCurrentUser({
     throw new Error("Entre em uma conta para migrar personagens.");
   }
 
+  const name = sanitizeCharacterName(payload?.name);
+  const summary = sanitizeCharacterSummary(payload?.summary);
   const sanitizedPayload = {
-    name: sanitizeCharacterName(payload?.name),
-    summary: sanitizeCharacterSummary(payload?.summary),
-    snapshot: normalizeStoredCharacterSnapshot(payload?.snapshot || {}, { edition: targetEdition }),
+    name,
+    summary,
+    snapshot: normalizeStoredCharacterSnapshot(payload?.snapshot || {}),
   };
 
   const data = await requestApi("/api/characters", {
