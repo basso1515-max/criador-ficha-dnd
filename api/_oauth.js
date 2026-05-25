@@ -1,6 +1,6 @@
 import { createHmac, createPublicKey, createSign, createVerify, randomBytes } from "node:crypto";
 
-export const OAUTH_PROVIDERS = ["google", "apple", "facebook"];
+export const OAUTH_PROVIDERS = ["google", "facebook"];
 export const OAUTH_PROVIDER_IDS = OAUTH_PROVIDERS;
 export const OAUTH_STATE_COOKIE_NAME = "dnd_sheet_oauth_state";
 export const OAUTH_STATE_TTL_SECONDS = 10 * 60;
@@ -12,7 +12,6 @@ const FACEBOOK_DEFAULT_FIELDS = "id,name,email";
 
 const PROVIDER_LABELS = {
   google: "Google",
-  apple: "Apple",
   facebook: "Facebook",
 };
 

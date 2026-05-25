@@ -445,10 +445,6 @@
   background: #4285f4;
 }
 
-.account-social-button.is-apple span {
-  background: #111111;
-}
-
 .account-social-button.is-facebook span {
   background: #1877f2;
   font-family: Georgia, serif;
