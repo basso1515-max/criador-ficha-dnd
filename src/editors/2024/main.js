@@ -32,6 +32,7 @@ import { fitPdfTextToField as fitSharedPdfTextToField } from "../../shared/pdf-l
 import { initializeEditorA11y } from "../../shared/a11y.js";
 import { escapeHtml, normalizePt, slugify } from "../../shared/text-utils.js";
 import { createFloatingSubmitButtonController } from "../floating-submit-ui.js";
+import { installMobileDropdownKeyboardGate } from "../mobile-dropdown-keyboard.js";
 import {
   initializeUnitToggleGroups as initializeEditorUnitToggleGroups2024,
   syncUnitToggleGroupStates as syncEditorUnitToggleGroupStates2024,
@@ -1967,6 +1968,11 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
     const field = { key, input, select, suggestions, hoverCard, placeholder, describeOption, onCommit, showSuggestionSummary };
     if (!input || !select || !suggestions || !hoverCard) return field;
 
+    installMobileDropdownKeyboardGate({
+      input,
+      suggestions,
+      open: () => renderCustomSelectSuggestions2024(field, "", { allowEmpty: true }),
+    });
     input.addEventListener("input", () => onCustomSelectInput2024(field));
     input.addEventListener("focus", () => renderCustomSelectSuggestions2024(field, "", { allowEmpty: true }));
     input.addEventListener("click", () => renderCustomSelectSuggestions2024(field, "", { allowEmpty: true }));
@@ -6382,6 +6388,11 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
     suggestions.className = "dropdown-suggestions equipment-item-suggestions";
     suggestions.dataset.shoppingItemSuggestions = String(index);
     suggestions.hidden = true;
+    installMobileDropdownKeyboardGate({
+      input: itemInput,
+      suggestions,
+      open: () => renderEquipmentShoppingSuggestions2024(row, "", { allowEmpty: true }),
+    });
     attachDropdownSuggestionContainerTouchBlur2024(suggestions, itemInput);
 
     const hoverCard = document.createElement("div");

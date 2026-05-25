@@ -27,6 +27,7 @@ import { fitPdfTextToField as fitSharedPdfTextToField } from "../../shared/pdf-l
 import { initializeEditorA11y } from "../../shared/a11y.js";
 import { escapeHtml as escapeHtmlBase, normalizePt } from "../../shared/text-utils.js";
 import { createFloatingSubmitButtonController } from "../floating-submit-ui.js";
+import { installMobileDropdownKeyboardGate } from "../mobile-dropdown-keyboard.js";
 import { initializeUnitToggleGroups as initializeEditorUnitToggleGroups } from "../unit-toggle-ui.js";
 import { DEFAULT_PDF_MAP } from "./default-pdf-map.js";
 import {
@@ -2451,6 +2452,11 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
   function createCustomSelectField({ key, input, select, suggestions, hoverCard, placeholder, describeOption, onCommit, showSuggestionSummary = true }) {
     const field = { key, input, select, suggestions, hoverCard, placeholder, describeOption, onCommit, showSuggestionSummary };
 
+    installMobileDropdownKeyboardGate({
+      input,
+      suggestions,
+      open: () => renderCustomSelectSuggestions(field, "", { allowEmpty: true }),
+    });
     input.addEventListener("input", () => onCustomSelectInput(field));
     input.addEventListener("focus", () => renderCustomSelectSuggestions(field, "", { allowEmpty: true }));
     input.addEventListener("click", () => renderCustomSelectSuggestions(field, "", { allowEmpty: true }));

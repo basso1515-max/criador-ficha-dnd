@@ -1,3 +1,5 @@
+import { installMobileDropdownKeyboardGate } from "../mobile-dropdown-keyboard.js";
+
 function on(target, eventName, handler, options) {
   if (!target || typeof handler !== "function") return;
   target.addEventListener(eventName, handler, options);
@@ -12,6 +14,11 @@ function bindDropdownField({
   hideHoverCard,
   attachSuggestionBlur,
 }) {
+  installMobileDropdownKeyboardGate({
+    input,
+    suggestions,
+    open: () => onChanged?.({ showSuggestions: true, allowEmptySuggestions: true, showAllOnFocus: true }),
+  });
   on(input, "input", () => onChanged?.({ showSuggestions: true }));
   on(input, "focus", () => onChanged?.({ showSuggestions: true, allowEmptySuggestions: true, showAllOnFocus: true }));
   on(input, "click", () => onChanged?.({ showSuggestions: true, allowEmptySuggestions: true, showAllOnFocus: true }));
