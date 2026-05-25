@@ -1357,6 +1357,7 @@ async function assertPageLoaded(cdp, page) {
 }
 
 async function navigate(cdp, url) {
+  await clearSmokeEditorDrafts(cdp);
   const response = await cdp.send("Page.navigate", { url });
   if (response.errorText) {
     throw new Error(`Falha ao navegar para ${url}: ${response.errorText}`);
@@ -1369,6 +1370,25 @@ async function navigate(cdp, url) {
     PAGE_TIMEOUT_MS,
     `Pagina nao carregou: ${url}`
   );
+}
+
+async function clearSmokeEditorDrafts(cdp) {
+  try {
+    await evaluate(cdp, `
+      (() => {
+        try {
+          ["localStorage", "sessionStorage"].forEach((storageName) => {
+            const storage = window[storageName];
+            storage.removeItem("dnd_sheet_auto_editor_draft_v1:5e");
+            storage.removeItem("dnd_sheet_auto_editor_draft_v1:5.5e-2024");
+          });
+        } catch {}
+        return true;
+      })()
+    `);
+  } catch {
+    // The first navigation starts from about:blank, where app storage is unavailable.
+  }
 }
 
 async function waitForSelector(cdp, selector) {

@@ -15,6 +15,8 @@ const IGNORED_INPUT_TYPES = new Set(["button", "file", "image", "reset", "submit
 const CHECKABLE_INPUT_TYPES = new Set(["checkbox", "radio"]);
 const PENDING_EDITOR_DRAFT_KEY = "dnd_sheet_pending_editor_draft_v1";
 const PENDING_EDITOR_DRAFT_TTL_MS = 1000 * 60 * 60 * 12;
+const AUTO_EDITOR_DRAFT_KEY_PREFIX = "dnd_sheet_auto_editor_draft_v1";
+const AUTO_EDITOR_DRAFT_TTL_MS = 1000 * 60 * 60 * 24;
 const SAVE_BUTTON_CONTENT = new WeakMap();
 
 export function captureFormPreset(form) {
@@ -98,6 +100,16 @@ export function initializeUserArea({
     snapshot: capture?.() || captureFormPreset(form),
   });
   const closeMobileMenu = setupMobileMenu(elements);
+  let autoDraft = { clear() {} };
+  const startAutoDraft = () => {
+    autoDraft = setupAutoEditorDraft({
+      edition,
+      form,
+      buildPayload,
+      getSelectedCharacterId: () => state.selectedCharacterId,
+      getReturnTo: getCurrentReturnTarget,
+    });
+  };
 
   const render = () => {
     renderUserArea({ edition, elements, saveButtons, state });
@@ -132,8 +144,9 @@ export function initializeUserArea({
   hydrateAccountStorage().then(() => {
     render();
     if (!restorePendingEditorDraft()) {
-      loadRequestedCharacter();
+      if (!restoreAutoEditorDraft()) loadRequestedCharacter();
     }
+    startAutoDraft();
   });
 
   elements.loginForm?.addEventListener("submit", async (event) => {
@@ -179,6 +192,7 @@ export function initializeUserArea({
     await logoutAccount();
     state.selectedCharacterId = "";
     state.showSavedPanel = false;
+    autoDraft.clear();
     closeMobileMenu();
     render();
     notify("Você saiu da conta.", "info");
@@ -202,6 +216,7 @@ export function initializeUserArea({
     try {
       const saved = await saveCharacterForCurrentUser(edition, buildPayload());
       state.selectedCharacterId = saved.id;
+      autoDraft.clear();
       closeMobileMenu();
       render();
       notify(`Personagem salvo: ${saved.name}.`, "success");
@@ -228,6 +243,7 @@ export function initializeUserArea({
     }
 
     if (action === "load") {
+      autoDraft.clear();
       restore?.(character.snapshot);
       state.selectedCharacterId = character.id;
       state.showSavedPanel = true;
@@ -243,6 +259,7 @@ export function initializeUserArea({
         const saved = await saveCharacterForCurrentUser(edition, buildPayload(), { overwriteId: character.id });
         state.selectedCharacterId = saved.id;
         state.showSavedPanel = true;
+        autoDraft.clear();
         render();
         notify(`Personagem atualizado: ${saved.name}.`, "success");
       } catch (error) {
@@ -258,6 +275,7 @@ export function initializeUserArea({
         if (state.selectedCharacterId === character.id) {
           state.selectedCharacterId = "";
           state.showSavedPanel = false;
+          autoDraft.clear();
         }
         render();
         notify("Personagem excluído.", "success");
@@ -286,6 +304,30 @@ export function initializeUserArea({
     clearPendingEditorDraft();
     render();
     notify("Rascunho restaurado. Revise e salve o personagem na sua conta.", "success");
+    return true;
+  }
+
+  function restoreAutoEditorDraft() {
+    const draft = readAutoEditorDraft(edition, getCurrentReturnTarget());
+    if (!draft) return false;
+
+    const snapshot = draft.payload?.snapshot || draft.snapshot;
+    if (!snapshot || typeof snapshot !== "object") {
+      clearAutoEditorDraft(edition);
+      return false;
+    }
+
+    restore?.(migrateCharacterSnapshot(snapshot, { edition }));
+
+    const selectedCharacterId = String(draft.selectedCharacterId || "");
+    const linkedCharacter = selectedCharacterId
+      ? listCharactersForCurrentUser(edition).find((character) => character.id === selectedCharacterId)
+      : null;
+
+    state.selectedCharacterId = linkedCharacter ? selectedCharacterId : "";
+    state.showSavedPanel = Boolean(linkedCharacter);
+    render();
+    notify("Rascunho temporário restaurado. Continue de onde parou e salve quando terminar.", "success");
     return true;
   }
 }
@@ -474,6 +516,151 @@ function clearPendingEditorDraft() {
       storage.removeItem(PENDING_EDITOR_DRAFT_KEY);
     } catch {}
   });
+}
+
+function setupAutoEditorDraft({
+  edition,
+  form,
+  buildPayload,
+  getSelectedCharacterId,
+  getReturnTo,
+}) {
+  let saveTimer = 0;
+  let dirty = false;
+
+  const saveNow = () => {
+    window.clearTimeout(saveTimer);
+    saveTimer = 0;
+    if (!dirty) return;
+    dirty = false;
+    saveAutoEditorDraft(edition, {
+      returnTo: getReturnTo?.() || getCurrentReturnTarget(),
+      selectedCharacterId: getSelectedCharacterId?.() || "",
+      payload: buildPayload?.(),
+    });
+  };
+
+  const scheduleSave = () => {
+    dirty = true;
+    window.clearTimeout(saveTimer);
+    saveTimer = window.setTimeout(saveNow, 700);
+  };
+  const scheduleDelayedSaveForChoice = (event) => {
+    const target = event.target;
+    if (!target?.closest?.(".dropdown-suggestion, .unit-toggle-btn, .method-option, .asi-method-option, .beta-radio-option, .skill-item")) {
+      return;
+    }
+    window.setTimeout(scheduleSave, 0);
+  };
+
+  form?.addEventListener("input", scheduleSave, true);
+  form?.addEventListener("change", scheduleSave, true);
+  form?.addEventListener("click", scheduleDelayedSaveForChoice, true);
+  form?.addEventListener("pointerup", scheduleDelayedSaveForChoice, true);
+  document.addEventListener("character-state:changed", scheduleSave);
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") saveNow();
+  });
+  window.addEventListener("pagehide", saveNow);
+  window.addEventListener("beforeunload", saveNow);
+
+  return {
+    clear() {
+      dirty = false;
+      window.clearTimeout(saveTimer);
+      saveTimer = 0;
+      clearAutoEditorDraft(edition);
+    },
+  };
+}
+
+function saveAutoEditorDraft(edition, draft) {
+  const storage = getWritableAutoDraftStorage();
+  if (!storage || !edition || !draft?.payload?.snapshot) return false;
+
+  try {
+    storage.setItem(getAutoEditorDraftKey(edition), JSON.stringify({
+      version: 1,
+      edition,
+      returnTo: draft.returnTo || "",
+      selectedCharacterId: draft.selectedCharacterId || "",
+      savedAt: Date.now(),
+      payload: draft.payload,
+    }));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function readAutoEditorDraft(edition, returnTo) {
+  const key = getAutoEditorDraftKey(edition);
+  for (const storage of getAutoDraftStorageCandidates()) {
+    try {
+      const raw = storage.getItem(key);
+      if (!raw) continue;
+
+      const draft = JSON.parse(raw);
+      if (!draft || draft.version !== 1 || draft.edition !== edition) {
+        storage.removeItem(key);
+        continue;
+      }
+
+      const savedAt = Number(draft.savedAt || 0);
+      if (!savedAt || Date.now() - savedAt > AUTO_EDITOR_DRAFT_TTL_MS) {
+        storage.removeItem(key);
+        continue;
+      }
+
+      if (draft.returnTo && draft.returnTo !== returnTo) return null;
+      return draft;
+    } catch {
+      try {
+        storage.removeItem(key);
+      } catch {}
+    }
+  }
+  return null;
+}
+
+function clearAutoEditorDraft(edition) {
+  const key = getAutoEditorDraftKey(edition);
+  getAutoDraftStorageCandidates().forEach((storage) => {
+    try {
+      storage.removeItem(key);
+    } catch {}
+  });
+}
+
+function getAutoEditorDraftKey(edition) {
+  return `${AUTO_EDITOR_DRAFT_KEY_PREFIX}:${edition || "default"}`;
+}
+
+function getWritableAutoDraftStorage() {
+  return getAutoDraftStorageCandidates().find((storage) => {
+    try {
+      const testKey = `${AUTO_EDITOR_DRAFT_KEY_PREFIX}_test`;
+      storage.setItem(testKey, "1");
+      storage.removeItem(testKey);
+      return true;
+    } catch {
+      return false;
+    }
+  }) || null;
+}
+
+function getAutoDraftStorageCandidates() {
+  if (typeof window === "undefined") return [];
+  return ["localStorage", "sessionStorage"]
+    .map((name) => {
+      try {
+        return window[name];
+      } catch {
+        return null;
+      }
+    })
+    .filter(Boolean);
 }
 
 function getDraftStorageEntry() {
