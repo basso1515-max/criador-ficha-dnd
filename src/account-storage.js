@@ -577,6 +577,24 @@ export async function changePasswordForCurrentUser({ currentPassword, newPasswor
   return await updateCurrentAccount({ currentPassword, newPassword });
 }
 
+export async function unlinkAuthProviderForCurrentUser({ provider, currentPassword } = {}) {
+  await ensureServerReady();
+  if (!currentAccount) {
+    throw new Error("Entre em uma conta para alterar logins sociais.");
+  }
+
+  const providerId = String(provider || "").trim().toLowerCase();
+  const data = await requestApi("/api/account/current/auth-providers", {
+    method: "DELETE",
+    body: {
+      provider: providerId,
+      currentPassword: String(currentPassword || ""),
+    },
+  });
+  currentAccount = normalizeClientAccount(data.account);
+  return toPublicUser(currentAccount);
+}
+
 export async function deleteCurrentAccount({ password } = {}) {
   await ensureServerReady();
   if (!currentAccount) {

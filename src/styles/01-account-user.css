@@ -1064,6 +1064,64 @@
   border-radius: 14px;
 }
 
+.user-social-provider-panel {
+  min-height: 0;
+}
+
+.user-social-provider-list {
+  display: grid;
+  gap: 10px;
+}
+
+.user-social-provider-item,
+.user-social-provider-empty {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid rgba(90, 62, 36, 0.16);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.42);
+}
+
+.user-social-provider-empty {
+  align-items: flex-start;
+}
+
+.user-social-provider-item > div,
+.user-social-provider-empty {
+  display: grid;
+  gap: 3px;
+}
+
+.user-social-provider-item strong,
+.user-social-provider-empty strong {
+  color: var(--accent);
+  font-size: 18px;
+}
+
+.user-social-provider-item span,
+.user-social-provider-empty span,
+.user-social-provider-hint {
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+.user-social-provider-item .ghost-button {
+  flex: 0 0 auto;
+}
+
+.user-social-provider-item .ghost-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.user-social-provider-password-row[hidden] {
+  display: none;
+}
+
 .danger-panel {
   border-color: rgba(139, 47, 32, 0.28);
   background:
@@ -1244,6 +1302,16 @@
   .user-settings-links {
     justify-content: flex-start;
   }
+
+  .user-social-provider-item,
+  .user-social-provider-empty {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .user-social-provider-item .ghost-button {
+    width: fit-content;
+  }
 }
 
 @media (max-width: 620px) {
@@ -1280,7 +1348,8 @@
   .user-page-quick-actions .secondary-button,
   .user-page-quick-actions .ghost-button,
   .user-page-session-actions .ghost-button,
-  .user-settings-links .ghost-button {
+  .user-settings-links .ghost-button,
+  .user-social-provider-item .ghost-button {
     width: 100%;
   }
 }

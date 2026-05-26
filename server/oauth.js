@@ -1,12 +1,10 @@
-import { createHmac, createPublicKey, createSign, createVerify, randomBytes } from "node:crypto";
+import { createHmac, randomBytes } from "node:crypto";
 
 export const OAUTH_PROVIDERS = ["google", "facebook"];
 export const OAUTH_PROVIDER_IDS = OAUTH_PROVIDERS;
 export const OAUTH_STATE_COOKIE_NAME = "dnd_sheet_oauth_state";
 export const OAUTH_STATE_TTL_SECONDS = 10 * 60;
 
-const APPLE_ISSUER = "https://appleid.apple.com";
-const APPLE_KEYS_URL = "https://appleid.apple.com/auth/keys";
 const FACEBOOK_DEFAULT_GRAPH_VERSION = "v24.0";
 const FACEBOOK_DEFAULT_FIELDS = "id,name,email";
 
@@ -14,8 +12,6 @@ const PROVIDER_LABELS = {
   google: "Google",
   facebook: "Facebook",
 };
-
-let appleKeysCache = null;
 
 export class OAuthProviderError extends Error {
   constructor(code, message, statusCode = 400) {
@@ -51,7 +47,6 @@ export function makeOAuthStatePayload({ provider, returnTo = "" } = {}) {
     provider: normalizedProvider,
     returnTo: String(returnTo || ""),
     state: base64UrlEncode(randomBytes(24)),
-    nonce: base64UrlEncode(randomBytes(24)),
     createdAt: Date.now(),
   };
 }
@@ -72,7 +67,6 @@ export function decodeOAuthStatePayload(value) {
     return {
       provider,
       state,
-      nonce: String(payload.nonce || ""),
       returnTo: String(payload.returnTo || ""),
       createdAt,
     };
@@ -117,29 +111,10 @@ export function getOAuthProviderConfig(provider) {
     };
   }
 
-  if (id === "apple") {
-    const clientId = readEnv("APPLE_OAUTH_CLIENT_ID", "APPLE_CLIENT_ID", "APPLE_SERVICE_ID");
-    const teamId = readEnv("APPLE_OAUTH_TEAM_ID", "APPLE_TEAM_ID");
-    const keyId = readEnv("APPLE_OAUTH_KEY_ID", "APPLE_KEY_ID");
-    const privateKey = normalizePrivateKey(readEnv("APPLE_OAUTH_PRIVATE_KEY", "APPLE_PRIVATE_KEY"));
-    if (!clientId || !teamId || !keyId || !privateKey) return null;
-    return {
-      id,
-      label: "Apple",
-      clientId,
-      teamId,
-      keyId,
-      privateKey,
-      authorizationUrl: "https://appleid.apple.com/auth/authorize",
-      tokenUrl: "https://appleid.apple.com/auth/token",
-      scope: "name email",
-    };
-  }
-
   return null;
 }
 
-export function buildOAuthAuthorizationUrl({ provider, redirectUri, state, nonce } = {}) {
+export function buildOAuthAuthorizationUrl({ provider, redirectUri, state } = {}) {
   const config = getOAuthProviderConfig(provider);
   if (!config) {
     throw new OAuthProviderError("provider-unconfigured", `${getOAuthProviderLabel(provider)} ainda não está configurado no servidor.`);
@@ -155,15 +130,11 @@ export function buildOAuthAuthorizationUrl({ provider, redirectUri, state, nonce
   if (config.id === "google") {
     url.searchParams.set("prompt", "select_account");
   }
-  if (config.id === "apple") {
-    url.searchParams.set("nonce", nonce);
-    url.searchParams.set("response_mode", "form_post");
-  }
 
   return url.toString();
 }
 
-export async function exchangeOAuthCodeForProfile({ provider, code, redirectUri, nonce = "", rawUser = "" } = {}) {
+export async function exchangeOAuthCodeForProfile({ provider, code, redirectUri } = {}) {
   const config = getOAuthProviderConfig(provider);
   if (!config) {
     throw new OAuthProviderError("provider-unconfigured", `${getOAuthProviderLabel(provider)} ainda não está configurado no servidor.`);
@@ -175,7 +146,6 @@ export async function exchangeOAuthCodeForProfile({ provider, code, redirectUri,
 
   if (config.id === "google") return await exchangeGoogleCode(config, authorizationCode, redirectUri);
   if (config.id === "facebook") return await exchangeFacebookCode(config, authorizationCode, redirectUri);
-  if (config.id === "apple") return await exchangeAppleCode(config, authorizationCode, redirectUri, nonce, rawUser);
 
   throw new OAuthProviderError("provider-invalid", "Provedor de login inválido.");
 }
@@ -244,101 +214,6 @@ async function exchangeFacebookCode(config, code, redirectUri) {
   };
 }
 
-async function exchangeAppleCode(config, code, redirectUri, nonce, rawUser) {
-  const token = await postForm(config.tokenUrl, {
-    client_id: config.clientId,
-    client_secret: createAppleClientSecret(config),
-    code,
-    grant_type: "authorization_code",
-    redirect_uri: redirectUri,
-  });
-
-  const claims = await verifyAppleIdToken(String(token.id_token || ""), config.clientId);
-  if (nonce && claims.nonce && claims.nonce !== nonce) {
-    throw new OAuthProviderError("nonce-mismatch", "Resposta de login da Apple inválida.");
-  }
-
-  const email = normalizeEmail(claims.email);
-  const emailVerified = claims.email_verified === true || claims.email_verified === "true";
-  if (!email || !emailVerified) {
-    throw new OAuthProviderError("email-unverified", "A Apple não confirmou um e-mail verificado para esta conta.");
-  }
-
-  const appleUser = parseAppleUser(rawUser);
-  const displayName = [
-    appleUser?.name?.firstName,
-    appleUser?.name?.lastName,
-  ].filter(Boolean).join(" ").trim();
-
-  return {
-    provider: "apple",
-    providerAccountId: String(claims.sub || ""),
-    email,
-    emailVerified,
-    displayName: displayName || email.split("@")[0] || "Apple",
-  };
-}
-
-function createAppleClientSecret(config) {
-  const now = Math.floor(Date.now() / 1000);
-  const header = base64UrlEncode(JSON.stringify({ alg: "ES256", kid: config.keyId }));
-  const payload = base64UrlEncode(JSON.stringify({
-    iss: config.teamId,
-    iat: now,
-    exp: now + 60 * 60,
-    aud: APPLE_ISSUER,
-    sub: config.clientId,
-  }));
-  const input = `${header}.${payload}`;
-  const signature = createSign("sha256").update(input).sign(config.privateKey);
-  return `${input}.${derToJose(signature, 64)}`;
-}
-
-async function verifyAppleIdToken(idToken, clientId) {
-  const parts = String(idToken || "").split(".");
-  if (parts.length !== 3) {
-    throw new OAuthProviderError("token-invalid", "A Apple retornou um token inválido.");
-  }
-
-  const header = decodeJwtPart(parts[0]);
-  const claims = decodeJwtPart(parts[1]);
-  if (header.alg !== "RS256" || !header.kid) {
-    throw new OAuthProviderError("token-invalid", "A Apple retornou um token sem assinatura reconhecida.");
-  }
-  if (claims.iss !== APPLE_ISSUER || claims.aud !== clientId) {
-    throw new OAuthProviderError("token-invalid", "A Apple retornou um token de outro aplicativo.");
-  }
-  const now = Math.floor(Date.now() / 1000);
-  if (Number(claims.exp || 0) <= now) {
-    throw new OAuthProviderError("token-expired", "A resposta de login da Apple expirou.");
-  }
-
-  const jwks = await getAppleKeys();
-  const jwk = (jwks.keys || []).find((key) => key.kid === header.kid);
-  if (!jwk) {
-    throw new OAuthProviderError("token-invalid", "Não foi possível validar a chave de assinatura da Apple.");
-  }
-
-  const verifier = createVerify("RSA-SHA256");
-  verifier.update(`${parts[0]}.${parts[1]}`);
-  const ok = verifier.verify(createPublicKey({ key: jwk, format: "jwk" }), base64UrlToBuffer(parts[2]));
-  if (!ok) {
-    throw new OAuthProviderError("token-invalid", "A assinatura do login da Apple é inválida.");
-  }
-
-  return claims;
-}
-
-async function getAppleKeys() {
-  if (appleKeysCache && appleKeysCache.expiresAt > Date.now()) return appleKeysCache.value;
-  const keys = await fetchJson(APPLE_KEYS_URL);
-  appleKeysCache = {
-    expiresAt: Date.now() + 60 * 60 * 1000,
-    value: keys,
-  };
-  return keys;
-}
-
 async function postForm(url, body) {
   return await fetchJson(url, {
     method: "POST",
@@ -365,73 +240,12 @@ async function fetchJson(url, options = {}) {
   return payload;
 }
 
-function decodeJwtPart(part) {
-  try {
-    return JSON.parse(base64UrlDecode(part));
-  } catch {
-    throw new OAuthProviderError("token-invalid", "Token de login social inválido.");
-  }
-}
-
-function derToJose(signature, partLength) {
-  const bytes = Buffer.from(signature);
-  let offset = 0;
-  if (bytes[offset++] !== 0x30) throw new OAuthProviderError("token-signing-failed", "Não foi possível assinar o login da Apple.");
-  const sequenceLength = readDerLength(bytes, offset);
-  offset = sequenceLength.offset;
-  if (bytes[offset++] !== 0x02) throw new OAuthProviderError("token-signing-failed", "Não foi possível assinar o login da Apple.");
-  const rLength = readDerLength(bytes, offset);
-  offset = rLength.offset;
-  const r = bytes.subarray(offset, offset + rLength.length);
-  offset += rLength.length;
-  if (bytes[offset++] !== 0x02) throw new OAuthProviderError("token-signing-failed", "Não foi possível assinar o login da Apple.");
-  const sLength = readDerLength(bytes, offset);
-  offset = sLength.offset;
-  const s = bytes.subarray(offset, offset + sLength.length);
-  return base64UrlEncode(Buffer.concat([normalizeEcdsaPart(r, partLength / 2), normalizeEcdsaPart(s, partLength / 2)]));
-}
-
-function readDerLength(bytes, offset) {
-  const first = bytes[offset++];
-  if (first < 0x80) return { length: first, offset };
-  const byteLength = first & 0x7f;
-  let length = 0;
-  for (let index = 0; index < byteLength; index += 1) {
-    length = (length << 8) + bytes[offset++];
-  }
-  return { length, offset };
-}
-
-function normalizeEcdsaPart(part, length) {
-  let bytes = Buffer.from(part);
-  while (bytes.length > length && bytes[0] === 0) bytes = bytes.subarray(1);
-  if (bytes.length > length) {
-    throw new OAuthProviderError("token-signing-failed", "Não foi possível assinar o login da Apple.");
-  }
-  if (bytes.length === length) return bytes;
-  return Buffer.concat([Buffer.alloc(length - bytes.length), bytes]);
-}
-
-function parseAppleUser(rawUser) {
-  if (!rawUser) return null;
-  if (typeof rawUser === "object") return rawUser;
-  try {
-    return JSON.parse(String(rawUser || ""));
-  } catch {
-    return null;
-  }
-}
-
 function readEnv(...names) {
   for (const name of names) {
     const value = String(process.env[name] || "").trim();
     if (value) return value;
   }
   return "";
-}
-
-function normalizePrivateKey(value) {
-  return String(value || "").replace(/\\n/g, "\n").trim();
 }
 
 function sanitizeFacebookGraphVersion(value) {

@@ -119,6 +119,23 @@
             </div>
           </div>
 
+          <section class="account-form-panel user-management-panel user-social-provider-panel" aria-labelledby="userSocialProviderTitle">
+            <div class="account-form-heading">
+              <span>Acesso social</span>
+              <h2 id="userSocialProviderTitle">Google e Facebook</h2>
+              <p>Revise os provedores vinculados e remova os acessos que não deseja manter.</p>
+            </div>
+
+            <div id="userSocialProviderList" class="user-social-provider-list" aria-live="polite"></div>
+
+            <label id="userSocialProviderPasswordRow" class="row user-social-provider-password-row">
+              <span>Senha atual para desvincular</span>
+              <input id="userSocialProviderPassword" name="currentPassword" type="password" autocomplete="current-password" maxlength="256" />
+            </label>
+
+            <p id="userSocialProviderHint" class="note subtle"></p>
+          </section>
+
           <div class="account-management-grid">
             <form id="userProfileForm" class="account-form-panel user-management-panel" method="post">
               <div class="account-form-heading">

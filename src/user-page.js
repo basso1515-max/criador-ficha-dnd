@@ -10,11 +10,13 @@ import {
   migrateCharacterVersionForCurrentUser,
   logoutAccount,
   requestEmailVerification,
+  unlinkAuthProviderForCurrentUser,
   updateCurrentAccount,
 } from "./account-storage.js";
 import { build5eTo2024MigrationPayload } from "./character-migration.js";
 
 const EDITION_ORDER = ["5e", "5.5e-2024"];
+const SOCIAL_PROVIDER_ORDER = ["google", "facebook"];
 
 const EDITION_META = {
   "5e": {
@@ -61,6 +63,10 @@ const el = {
   logout: document.getElementById("userPageLogout"),
   profileForm: document.getElementById("userProfileForm"),
   passwordForm: document.getElementById("userPasswordForm"),
+  socialProviderList: document.getElementById("userSocialProviderList"),
+  socialProviderPassword: document.getElementById("userSocialProviderPassword"),
+  socialProviderPasswordRow: document.getElementById("userSocialProviderPasswordRow"),
+  socialProviderHint: document.getElementById("userSocialProviderHint"),
   deleteForm: document.getElementById("userDeleteForm"),
   deleteModal: document.getElementById("deleteAccountModal"),
   deleteCancel: document.getElementById("deleteAccountCancel"),
@@ -160,6 +166,7 @@ function renderUserPage() {
     el.profileForm.elements.email.value = user.email || "";
   }
   renderAccountSecurityState(user);
+  renderSocialProviderState(user);
 
   if (el.empty) el.empty.hidden = characters.length > 0;
   if (el.list) {
@@ -200,6 +207,68 @@ function renderAccountSecurityState(user) {
     deletePassword.disabled = !hasPassword;
     deletePassword.placeholder = hasPassword ? "" : "Não necessário para conta social";
   }
+}
+
+function renderSocialProviderState(user) {
+  const providers = getSortedAuthProviders(user);
+  const hasPassword = user?.passwordSet !== false;
+
+  if (el.socialProviderPasswordRow) {
+    el.socialProviderPasswordRow.hidden = !hasPassword || providers.length === 0;
+  }
+  if (el.socialProviderPassword) {
+    el.socialProviderPassword.disabled = !hasPassword || providers.length === 0;
+    el.socialProviderPassword.required = hasPassword && providers.length > 0;
+    if (!hasPassword || providers.length === 0) el.socialProviderPassword.value = "";
+  }
+  if (el.socialProviderHint) {
+    if (!providers.length) {
+      el.socialProviderHint.textContent = "Nenhum provedor social vinculado a esta conta.";
+    } else if (hasPassword) {
+      el.socialProviderHint.textContent = "A senha atual confirma a desvinculação. Seu login por e-mail continua ativo.";
+    } else {
+      el.socialProviderHint.textContent = providers.length > 1
+        ? "Você pode remover um provedor enquanto outro login social permanecer vinculado."
+        : "Defina uma senha antes de remover o único login social da conta.";
+    }
+  }
+  if (!el.socialProviderList) return;
+
+  el.socialProviderList.innerHTML = providers.length
+    ? providers.map((provider) => renderSocialProviderItem(provider, { hasPassword, providerCount: providers.length })).join("")
+    : `
+      <div class="user-social-provider-empty">
+        <strong>Sem login social vinculado</strong>
+        <span>Google e Facebook continuam disponíveis na tela de login quando configurados.</span>
+      </div>
+    `;
+}
+
+function renderSocialProviderItem(provider, { hasPassword, providerCount }) {
+  const providerId = provider.provider;
+  const label = provider.label || getProviderFallbackLabel(providerId);
+  const canUnlink = hasPassword || providerCount > 1;
+  const supportText = canUnlink
+    ? hasPassword
+      ? "O acesso por e-mail e senha permanece ativo."
+      : "Outro provedor social permanece ativo."
+    : "Defina uma senha antes de remover este acesso.";
+
+  return `
+    <div class="user-social-provider-item">
+      <div>
+        <strong>${escapeHtml(label)}</strong>
+        <span>${escapeHtml(supportText)}</span>
+      </div>
+      <button
+        type="button"
+        class="ghost-button"
+        data-user-auth-provider-unlink="${escapeHtml(providerId)}"
+        data-user-auth-provider-label="${escapeHtml(label)}"
+        ${canUnlink ? "" : "disabled"}
+      >Desvincular</button>
+    </div>
+  `;
 }
 
 function renderCharacterCard(character) {
@@ -281,6 +350,32 @@ el.resendVerification?.addEventListener("click", async () => {
     setStatus("Enviamos um novo link de validação para seu e-mail.", "success");
   } catch (error) {
     setStatus(error?.message || "Não foi possível reenviar a validação.", "warning");
+  }
+});
+
+el.socialProviderList?.addEventListener("click", async (event) => {
+  const button = event.target.closest("[data-user-auth-provider-unlink]");
+  if (!button || button.disabled) return;
+
+  const provider = button.getAttribute("data-user-auth-provider-unlink") || "";
+  const label = button.getAttribute("data-user-auth-provider-label") || getProviderFallbackLabel(provider);
+  const user = getCurrentUser();
+  const currentPassword = user?.passwordSet !== false ? String(el.socialProviderPassword?.value || "") : "";
+
+  if (user?.passwordSet !== false && !currentPassword) {
+    setStatus("Informe a senha atual para desvincular o login social.", "warning");
+    el.socialProviderPassword?.focus();
+    return;
+  }
+  if (!window.confirm(`Desvincular ${label} desta conta?`)) return;
+
+  try {
+    await unlinkAuthProviderForCurrentUser({ provider, currentPassword });
+    if (el.socialProviderPassword) el.socialProviderPassword.value = "";
+    renderUserPage();
+    setStatus(`${label} desvinculado da conta.`, "success");
+  } catch (error) {
+    setStatus(error?.message || `Não foi possível desvincular ${label}.`, "warning");
   }
 });
 
@@ -515,7 +610,7 @@ function getAuthMethodLabel(user) {
   if (providers.length) {
     return providers.join(", ");
   }
-  return user?.passwordSet === false ? "Login social" : "E-mail e senha";
+  return user?.passwordSet === false ? "Definir senha" : "E-mail e senha";
 }
 
 function getSecurityStateLabel(user) {
@@ -531,9 +626,21 @@ function getSecurityStateLabel(user) {
 }
 
 function getProviderLabels(user) {
-  return (Array.isArray(user?.authProviders) ? user.authProviders : [])
+  return getSortedAuthProviders(user)
     .map((provider) => provider.label || provider.provider)
     .filter(Boolean);
+}
+
+function getSortedAuthProviders(user) {
+  return (Array.isArray(user?.authProviders) ? user.authProviders : [])
+    .filter((provider) => SOCIAL_PROVIDER_ORDER.includes(provider.provider))
+    .sort((left, right) => SOCIAL_PROVIDER_ORDER.indexOf(left.provider) - SOCIAL_PROVIDER_ORDER.indexOf(right.provider));
+}
+
+function getProviderFallbackLabel(provider) {
+  if (provider === "google") return "Google";
+  if (provider === "facebook") return "Facebook";
+  return "Login social";
 }
 
 function escapeHtml(value) {

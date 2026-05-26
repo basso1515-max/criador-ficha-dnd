@@ -771,6 +771,25 @@ function validateEmailVerificationConfirmBody(body) {
   };
 }
 
+function validateAuthProviderUnlinkBody(body) {
+  const input = assertRequestBody(body, ["provider", "currentPassword"], ["provider"], "Desvinculação de login social");
+  const provider = normalizeOAuthProvider(input.provider);
+  if (!provider) {
+    throw new HttpError(400, "Provedor de login inválido.");
+  }
+  return {
+    provider,
+    currentPassword: Object.hasOwn(input, "currentPassword")
+      ? assertStringField(input.currentPassword, "Senha atual", {
+        maxLength: MAX_PASSWORD_LENGTH,
+        required: false,
+        trim: false,
+        allowUnsafe: true,
+      })
+      : "",
+  };
+}
+
 function validateLogoutBody(body) {
   assertRequestBody(body, [], [], "Logout");
 }
@@ -1005,13 +1024,21 @@ async function getAccountByOAuthProvider(redis, provider, providerAccountId) {
   return accountId ? await getAccountById(redis, accountId) : null;
 }
 
-async function saveAccount(redis, account, { previousEmail = "" } = {}) {
+async function saveAccount(redis, account, { previousEmail = "", previousAuthProviders = [] } = {}) {
   const normalized = normalizeAccountRecord(account);
   assertPersistableAccountRecord(normalized);
+  const nextProviders = normalizeAuthProviders(normalized.authProviders);
   await redis.set(keyAccount(normalized.id), normalized);
   await redis.set(keyEmail(normalized.email), normalized.id);
-  for (const provider of normalizeAuthProviders(normalized.authProviders)) {
+  for (const provider of nextProviders) {
     await redis.set(keyOAuthProvider(provider.provider, provider.providerAccountId), normalized.id);
+  }
+  const nextProviderKeys = new Set(nextProviders.map((provider) => `${provider.provider}:${provider.providerAccountId}`));
+  const staleProviderKeys = normalizeAuthProviders(previousAuthProviders)
+    .filter((provider) => !nextProviderKeys.has(`${provider.provider}:${provider.providerAccountId}`))
+    .map((provider) => keyOAuthProvider(provider.provider, provider.providerAccountId));
+  if (staleProviderKeys.length) {
+    await redis.del(...staleProviderKeys);
   }
   if (previousEmail && normalizeEmail(previousEmail) !== normalized.email) {
     await redis.del(keyEmail(previousEmail));
@@ -1377,30 +1404,6 @@ async function readJsonBody(req) {
   });
 }
 
-async function readFormBody(req) {
-  if (req.body !== undefined) {
-    if (!req.body) return {};
-    if (typeof req.body === "string") return Object.fromEntries(new URLSearchParams(req.body));
-    if (typeof req.body === "object") return req.body;
-  }
-
-  return await new Promise((resolve, reject) => {
-    let body = "";
-    req.setEncoding?.("utf8");
-    req.on("data", (chunk) => {
-      body += chunk;
-      if (Buffer.byteLength(body, "utf8") > MAX_BODY_BYTES) {
-        reject(new HttpError(413, "Requisição grande demais."));
-        req.destroy();
-      }
-    });
-    req.on("end", () => {
-      resolve(Object.fromEntries(new URLSearchParams(body)));
-    });
-    req.on("error", reject);
-  });
-}
-
 function getRequestOrigin(req) {
   const host = req.headers.host || "localhost";
   const forwardedProto = String(req.headers["x-forwarded-proto"] || "").split(",")[0].trim().toLowerCase();
@@ -1524,7 +1527,6 @@ async function handleOAuthStart(req, res) {
       provider,
       redirectUri: getOAuthRedirectUri(req),
       state: statePayload.state,
-      nonce: statePayload.nonce,
     });
   } catch (error) {
     const errorCode = error instanceof OAuthProviderError ? error.code : "provider-unconfigured";
@@ -1537,9 +1539,8 @@ async function handleOAuthStart(req, res) {
 }
 
 async function handleOAuthCallback(req, res) {
-  const method = req.method || "GET";
   const url = getRequestUrl(req);
-  const input = method === "POST" ? await readFormBody(req) : Object.fromEntries(url.searchParams);
+  const input = Object.fromEntries(url.searchParams);
   const statePayload = readOAuthState(req);
   const provider = normalizeOAuthProvider(statePayload?.provider);
   const returnTo = getSafeReturnToFromValue(statePayload?.returnTo);
@@ -1560,8 +1561,6 @@ async function handleOAuthCallback(req, res) {
       provider,
       code: input.code,
       redirectUri: getOAuthRedirectUri(req),
-      nonce: statePayload.nonce,
-      rawUser: input.user,
     });
     const account = await upsertOAuthAccount(redis, profile);
     await createSession(redis, account.id, req, res);
@@ -1583,7 +1582,7 @@ async function handleAccountApiInternal(req, res, pathname) {
     await handleOAuthStart(req, res);
     return;
   }
-  if (["GET", "POST"].includes(method) && pathname === "/api/accounts/oauth/callback") {
+  if (method === "GET" && pathname === "/api/accounts/oauth/callback") {
     await handleOAuthCallback(req, res);
     return;
   }
@@ -1750,6 +1749,10 @@ async function handleAccountApiInternal(req, res, pathname) {
       runDummyPasswordHash(input.password);
       throw new HttpError(401, "E-mail ou senha incorretos.");
     }
+    if (account.passwordSet === false) {
+      runDummyPasswordHash(input.password);
+      throw new HttpError(401, "E-mail ou senha incorretos.");
+    }
 
     assertPassword(account, input.password);
     if (upgradePasswordRecordIfNeeded(account, input.password)) {
@@ -1764,6 +1767,30 @@ async function handleAccountApiInternal(req, res, pathname) {
     validateLogoutBody(body);
     await clearCurrentSession(redis, req, res);
     sendJson(res, 200, { ok: true });
+    return;
+  }
+
+  if (method === "DELETE" && pathname === "/api/account/current/auth-providers") {
+    const input = validateAuthProviderUnlinkBody(body);
+    const { account } = await requireAuthenticatedAccount(redis, req);
+    const previousProviders = normalizeAuthProviders(account.authProviders);
+    const providerToRemove = previousProviders.find((provider) => provider.provider === input.provider);
+    if (!providerToRemove) {
+      throw new HttpError(404, "Este login social não está vinculado à conta.");
+    }
+
+    if (account.passwordSet !== false) {
+      assertPassword(account, input.currentPassword || "");
+    }
+
+    const nextProviders = previousProviders.filter((provider) => provider.provider !== input.provider);
+    if (account.passwordSet === false && nextProviders.length === 0) {
+      throw new HttpError(400, "Defina uma senha antes de desvincular o único login social da conta.");
+    }
+
+    account.authProviders = nextProviders;
+    await saveAccount(redis, account, { previousAuthProviders: previousProviders });
+    sendJson(res, 200, { account: toClientAccount(account) });
     return;
   }
 
@@ -1828,7 +1855,9 @@ async function handleAccountApiInternal(req, res, pathname) {
       assertPassword(account, input.password);
     }
     await clearAccountSessions(redis, account.id);
-    await redis.del(keyAccount(account.id), keyEmail(account.email), keyAccountSessions(account.id));
+    const providerKeys = normalizeAuthProviders(account.authProviders)
+      .map((provider) => keyOAuthProvider(provider.provider, provider.providerAccountId));
+    await redis.del(keyAccount(account.id), keyEmail(account.email), keyAccountSessions(account.id), ...providerKeys);
     clearSessionCookie(req, res);
     sendJson(res, 200, { ok: true });
     return;

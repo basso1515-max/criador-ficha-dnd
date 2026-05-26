@@ -1,4 +1,5 @@
 import { spawn, spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
 import { mkdtemp, rm } from "node:fs/promises";
 import { request } from "node:http";
@@ -71,6 +72,8 @@ async function main() {
   const password = "SenhaE2E!123456";
   const nextPassword = "SenhaE2E!456789";
   const resetPassword = "SenhaE2E!789012";
+  const linkedEmail = `linked-${Date.now()}@example.test`;
+  const linkedPassword = "SenhaE2E!Social123456";
 
   assertCommunityStatsFallbackForOldSnapshots();
   await assertSecurityHeaders(baseUrl);
@@ -133,6 +136,19 @@ async function main() {
   const current = await requestJson(baseUrl, "/api/account/current", { jar });
   assert(current.data.account?.email === email, "Sessão autenticada não carregou a conta.");
   assert(current.data.account?.emailVerified === true, "Conta validada deveria carregar como confirmada.");
+
+  const rejectedUnlinkMissingProvider = await requestJson(baseUrl, "/api/account/current/auth-providers", {
+    method: "DELETE",
+    jar,
+    body: {
+      provider: "google",
+      currentPassword: password,
+    },
+    expectedStatus: 404,
+  });
+  assert(rejectedUnlinkMissingProvider.statusCode === 404, "Desvinculação deveria rejeitar provedor ausente.");
+
+  await assertSocialProviderUnlinkFlow(baseUrl, linkedEmail, linkedPassword);
 
   const rejectedUnexpectedField = await requestJson(baseUrl, "/api/account/current", {
     method: "PATCH",
@@ -437,6 +453,7 @@ async function main() {
     "validação estrita de payloads maliciosos",
     "cadastro e sessão",
     "validação de e-mail por link",
+    "desvinculação segura de login social",
     "salvamento e overwrite de personagem 5e",
     "migração duplicate e transfer para 5.5e",
     "estatísticas públicas anônimas",
@@ -474,6 +491,80 @@ function assertCommunityStatsFallbackForOldSnapshots() {
   assert(event?.classId === "druida", "Fallback deveria extrair classe de snapshots antigos.");
   assert(event?.level === 2, "Fallback deveria extrair nível de snapshots antigos.");
   assert(event?.spellIds?.includes("curar-ferimentos"), "Fallback deveria extrair magias de snapshots antigos.");
+}
+
+async function assertSocialProviderUnlinkFlow(baseUrl, email, password) {
+  const salt = `salt-${Date.now()}`;
+  const accountId = `account_social${Date.now()}`;
+  const migrated = await requestJson(baseUrl, "/api/accounts/migrate", {
+    method: "POST",
+    jar: new CookieJar(),
+    body: {
+      store: {
+        version: 1,
+        accounts: [{
+          id: accountId,
+          displayName: "Social Vinculada",
+          email,
+          passwordAlgo: "sha256",
+          passwordSalt: salt,
+          passwordHash: createHash("sha256").update(`${salt}:${password}`).digest("hex"),
+          passwordSet: true,
+          emailVerifiedAt: new Date().toISOString(),
+          authProviders: [{
+            provider: "google",
+            providerAccountId: `google-sub-${Date.now()}`,
+            email,
+            linkedAt: new Date().toISOString(),
+          }],
+          createdAt: new Date().toISOString(),
+          characters: {
+            "5e": [],
+            "5.5e-2024": [],
+          },
+        }],
+      },
+    },
+  });
+  assert(migrated.data.imported === 1, "Migração deveria preparar conta com login social.");
+
+  const jar = new CookieJar();
+  const login = await requestJson(baseUrl, "/api/accounts/login", {
+    method: "POST",
+    jar,
+    body: { email, password },
+  });
+  assert(login.data.account?.authProviders?.[0]?.provider === "google", "Conta migrada deveria carregar Google vinculado.");
+
+  const missingPassword = await requestJson(baseUrl, "/api/account/current/auth-providers", {
+    method: "DELETE",
+    jar,
+    body: { provider: "google" },
+    expectedStatus: 400,
+  });
+  assert(missingPassword.statusCode === 400, "Conta com senha deveria exigir senha atual para desvincular social.");
+
+  const wrongPassword = await requestJson(baseUrl, "/api/account/current/auth-providers", {
+    method: "DELETE",
+    jar,
+    body: {
+      provider: "google",
+      currentPassword: "SenhaErrada!123456",
+    },
+    expectedStatus: 401,
+  });
+  assert(wrongPassword.statusCode === 401, "Senha incorreta deveria bloquear desvinculação social.");
+
+  const unlinked = await requestJson(baseUrl, "/api/account/current/auth-providers", {
+    method: "DELETE",
+    jar,
+    body: {
+      provider: "google",
+      currentPassword: password,
+    },
+  });
+  assert(Array.isArray(unlinked.data.account?.authProviders), "Desvinculação deveria retornar conta atualizada.");
+  assert(unlinked.data.account.authProviders.length === 0, "Google deveria ter sido removido da conta.");
 }
 
 async function assertSecurityHeaders(baseUrl) {

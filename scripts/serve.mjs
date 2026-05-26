@@ -861,6 +861,25 @@ function validateEmailVerificationConfirmBody(body) {
   };
 }
 
+function validateAuthProviderUnlinkBody(body) {
+  const input = assertRequestBody(body, ["provider", "currentPassword"], ["provider"], "Desvinculação de login social");
+  const provider = normalizeOAuthProvider(input.provider);
+  if (!provider) {
+    throw new HttpError(400, "Provedor de login inválido.");
+  }
+  return {
+    provider,
+    currentPassword: Object.hasOwn(input, "currentPassword")
+      ? assertStringField(input.currentPassword, "Senha atual", {
+        maxLength: MAX_PASSWORD_LENGTH,
+        required: false,
+        trim: false,
+        allowUnsafe: true,
+      })
+      : "",
+  };
+}
+
 function validateLogoutBody(body) {
   assertRequestBody(body, [], [], "Logout");
 }
@@ -1393,24 +1412,6 @@ function readJsonBody(req) {
   });
 }
 
-function readFormBody(req) {
-  return new Promise((resolve, reject) => {
-    let body = "";
-    req.setEncoding("utf8");
-    req.on("data", (chunk) => {
-      body += chunk;
-      if (Buffer.byteLength(body, "utf8") > MAX_BODY_BYTES) {
-        reject(new HttpError(413, "Requisição grande demais."));
-        req.destroy();
-      }
-    });
-    req.on("end", () => {
-      resolve(Object.fromEntries(new URLSearchParams(body)));
-    });
-    req.on("error", reject);
-  });
-}
-
 function getRequestOrigin(req) {
   const hostHeader = req?.headers?.host || `${host}:${port}`;
   const forwardedProto = String(req?.headers?.["x-forwarded-proto"] || "").split(",")[0].trim().toLowerCase();
@@ -1530,7 +1531,6 @@ async function handleOAuthStart(req, res, url) {
       provider,
       redirectUri: getOAuthRedirectUri(req),
       state: statePayload.state,
-      nonce: statePayload.nonce,
     });
   } catch (error) {
     const errorCode = error instanceof OAuthProviderError ? error.code : "provider-unconfigured";
@@ -1543,8 +1543,7 @@ async function handleOAuthStart(req, res, url) {
 }
 
 async function handleOAuthCallback(req, res, url) {
-  const method = req.method || "GET";
-  const input = method === "POST" ? await readFormBody(req) : Object.fromEntries(url.searchParams);
+  const input = Object.fromEntries(url.searchParams);
   const statePayload = readOAuthState(req);
   const provider = normalizeOAuthProvider(statePayload?.provider);
   const returnTo = getSafeReturnToFromValue(statePayload?.returnTo);
@@ -1564,8 +1563,6 @@ async function handleOAuthCallback(req, res, url) {
       provider,
       code: input.code,
       redirectUri: getOAuthRedirectUri(req),
-      nonce: statePayload.nonce,
-      rawUser: input.user,
     });
     const store = readStore();
     const account = upsertOAuthAccount(store, profile);
@@ -1590,7 +1587,7 @@ async function handleApi(req, res, url) {
     await handleOAuthStart(req, res, url);
     return;
   }
-  if (["GET", "POST"].includes(method) && pathname === "/api/accounts/oauth/callback") {
+  if (method === "GET" && pathname === "/api/accounts/oauth/callback") {
     await handleOAuthCallback(req, res, url);
     return;
   }
@@ -1770,6 +1767,10 @@ async function handleApi(req, res, url) {
       runDummyPasswordHash(input.password);
       throw new HttpError(401, "E-mail ou senha incorretos.");
     }
+    if (account.passwordSet === false) {
+      runDummyPasswordHash(input.password);
+      throw new HttpError(401, "E-mail ou senha incorretos.");
+    }
 
     assertPassword(account, input.password);
     upgradePasswordRecordIfNeeded(account, input.password);
@@ -1785,6 +1786,31 @@ async function handleApi(req, res, url) {
     clearCurrentSession(store, req, res);
     writeStore(store);
     sendJson(res, 200, { ok: true });
+    return;
+  }
+
+  if (method === "DELETE" && pathname === "/api/account/current/auth-providers") {
+    const input = validateAuthProviderUnlinkBody(body);
+    const store = readStore();
+    const { account } = requireAuthenticatedAccount(store, req);
+    const previousProviders = normalizeAuthProviders(account.authProviders);
+    const providerToRemove = previousProviders.find((provider) => provider.provider === input.provider);
+    if (!providerToRemove) {
+      throw new HttpError(404, "Este login social não está vinculado à conta.");
+    }
+
+    if (account.passwordSet !== false) {
+      assertPassword(account, input.currentPassword || "");
+    }
+
+    const nextProviders = previousProviders.filter((provider) => provider.provider !== input.provider);
+    if (account.passwordSet === false && nextProviders.length === 0) {
+      throw new HttpError(400, "Defina uma senha antes de desvincular o único login social da conta.");
+    }
+
+    account.authProviders = nextProviders;
+    writeStore(store);
+    sendJson(res, 200, { account: toClientAccount(account) });
     return;
   }
 
