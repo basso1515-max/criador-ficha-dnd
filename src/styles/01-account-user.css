@@ -404,13 +404,16 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  min-height: 46px;
-  padding: 10px 12px;
+  justify-content: center;
+  min-height: 44px;
+  padding: 10px 14px;
   border: 1px solid rgba(43, 48, 59, 0.18);
-  border-radius: 8px;
+  border-radius: 6px;
   background: rgba(255, 255, 255, 0.74);
   color: #20242c;
-  font-weight: 800;
+  font-family: Roboto, Arial, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
   text-decoration: none;
   transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
 }
@@ -431,24 +434,34 @@
 .account-social-button span {
   display: grid;
   place-items: center;
-  width: 28px;
-  height: 28px;
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
-  color: #ffffff;
-  font-family: Inter, system-ui, sans-serif;
-  font-size: 16px;
-  font-weight: 900;
-  line-height: 1;
 }
 
-.account-social-button.is-google span {
-  background: #4285f4;
+.account-social-button svg {
+  display: block;
+  width: 18px;
+  height: 18px;
 }
 
-.account-social-button.is-facebook span {
+.account-social-button.is-google {
+  border-color: #747775;
+  background: #ffffff;
+  color: #1f1f1f;
+}
+
+.account-social-button.is-facebook {
+  border-color: #1877f2;
   background: #1877f2;
-  font-family: Georgia, serif;
-  font-size: 22px;
+  color: #ffffff;
+  font-family: Helvetica, Arial, sans-serif;
+  font-weight: 700;
+}
+
+.account-social-button.is-facebook .social-auth-icon {
+  color: #ffffff;
 }
 
 .account-social-button.is-unconfigured {

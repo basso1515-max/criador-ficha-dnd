@@ -193,6 +193,34 @@ html[data-theme="dark"] .account-social-button:focus-visible {
   background: rgba(255, 246, 224, 0.12);
 }
 
+html[data-theme="dark"] .account-social-button.is-google,
+html[data-theme="dark"] .home-social-button.is-google {
+  border-color: #8e918f;
+  background: #ffffff;
+  color: #1f1f1f;
+}
+
+html[data-theme="dark"] .account-social-button.is-google:hover,
+html[data-theme="dark"] .account-social-button.is-google:focus-visible,
+html[data-theme="dark"] .home-social-button.is-google:hover,
+html[data-theme="dark"] .home-social-button.is-google:focus-visible {
+  background: #ffffff;
+}
+
+html[data-theme="dark"] .account-social-button.is-facebook,
+html[data-theme="dark"] .home-social-button.is-facebook {
+  border-color: #1877f2;
+  background: #1877f2;
+  color: #ffffff;
+}
+
+html[data-theme="dark"] .account-social-button.is-facebook:hover,
+html[data-theme="dark"] .account-social-button.is-facebook:focus-visible,
+html[data-theme="dark"] .home-social-button.is-facebook:hover,
+html[data-theme="dark"] .home-social-button.is-facebook:focus-visible {
+  background: #1877f2;
+}
+
 html[data-theme="dark"] .account-current-panel,
 html[data-theme="dark"] .account-section-panel,
 html[data-theme="dark"] .legal-page-panel,

@@ -472,6 +472,56 @@ fieldset,
   color: var(--muted);
 }
 
+.home-popup-social-login {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 2px;
+}
+
+.home-social-button {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(116, 119, 117, 0.55);
+  border-radius: 50%;
+  text-decoration: none;
+  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+}
+
+.home-social-button:hover,
+.home-social-button:focus-visible {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 20px rgba(43, 48, 59, 0.14);
+}
+
+.home-social-button:focus-visible {
+  outline: 3px solid rgba(49, 115, 191, 0.24);
+  outline-offset: 2px;
+}
+
+.home-social-button svg {
+  display: block;
+  width: 20px;
+  height: 20px;
+}
+
+.home-social-button.is-google {
+  background: #ffffff;
+  color: #1f1f1f;
+}
+
+.home-social-button.is-facebook {
+  border-color: #1877f2;
+  background: #1877f2;
+  color: #ffffff;
+}
+
+.home-social-button.is-unconfigured {
+  opacity: 0.58;
+}
+
 .home-popup-primary,
 .home-popup-link {
   width: 100%;

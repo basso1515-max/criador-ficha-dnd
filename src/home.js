@@ -13,6 +13,7 @@ const el = {
   popup: document.getElementById("homeAccountPopup"),
   authPanel: document.getElementById("homeAuthPanel"),
   loginForm: document.getElementById("homeLoginForm"),
+  oauthLinks: Array.from(document.querySelectorAll("[data-home-oauth-provider]")),
   userPanel: document.getElementById("homeUserPanel"),
   accountName: document.getElementById("homeAccountName"),
   accountEmail: document.getElementById("homeAccountEmail"),
@@ -48,6 +49,43 @@ function renderHomeAccount() {
   if (el.accountEmail) el.accountEmail.textContent = user?.email || "";
   if (el.count5e) el.count5e.textContent = `${saves5e}/${ACCOUNT_LIMIT_PER_EDITION}`;
   if (el.count2024) el.count2024.textContent = `${saves2024}/${ACCOUNT_LIMIT_PER_EDITION}`;
+  updateHomeOAuthLinks();
+}
+
+function updateHomeOAuthLinks() {
+  el.oauthLinks.forEach((link) => {
+    const provider = link.getAttribute("data-home-oauth-provider") || "";
+    const url = new URL("./api/accounts/oauth/start", window.location.href);
+    url.searchParams.set("provider", provider);
+    url.searchParams.set("returnTo", "minha-conta.html");
+    link.href = `${url.pathname}${url.search}`;
+  });
+}
+
+async function updateHomeOAuthProviderAvailability() {
+  if (!el.oauthLinks.length) return;
+
+  try {
+    const response = await fetch("./api/accounts/oauth/providers", {
+      credentials: "same-origin",
+      headers: { Accept: "application/json" },
+    });
+    if (!response.ok) return;
+    const data = await response.json();
+    const providers = new Map((data.providers || []).map((provider) => [provider.id, provider]));
+
+    el.oauthLinks.forEach((link) => {
+      const provider = providers.get(link.getAttribute("data-home-oauth-provider"));
+      if (!provider) return;
+      link.classList.toggle("is-unconfigured", !provider.configured);
+      link.setAttribute("aria-disabled", provider.configured ? "false" : "true");
+      link.title = provider.configured
+        ? link.getAttribute("aria-label") || ""
+        : "Configure as credenciais deste provedor no servidor para ativar este login.";
+    });
+  } catch {
+    // O backend ainda valida o clique caso esta consulta falhe.
+  }
 }
 
 el.loginForm?.addEventListener("submit", async (event) => {
@@ -89,3 +127,4 @@ document.addEventListener("keydown", (event) => {
 
 await hydrateAccountStorage();
 renderHomeAccount();
+updateHomeOAuthProviderAvailability();
