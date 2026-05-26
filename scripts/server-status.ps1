@@ -1,5 +1,5 @@
 param(
-  [string]$TaskName = "CriadorFichaDndServer",
+  [string]$TaskName = "SheetifyServer",
   [string]$HostName = "127.0.0.1",
   [int]$Port = 8000
 )

@@ -2,7 +2,7 @@
 
 ## Quais Dados São Salvos
 
-O Criador de Ficha D&D salva os dados necessários para conta e personagens:
+O Sheetify salva os dados necessários para conta e personagens:
 
 - nome de exibição;
 - e-mail;

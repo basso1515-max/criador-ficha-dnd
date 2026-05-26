@@ -1,9 +1,9 @@
 {
-  "name": "criador-ficha-dnd",
+  "name": "sheetify",
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Gerador de ficha preenchível de D&D 5e em HTML/JS com exportação para PDF.",
+  "description": "Sheetify: gerador de ficha preenchível de D&D 5e em HTML/JS com exportação para PDF.",
   "scripts": {
     "check": "node scripts/check.mjs",
     "smoke:dom": "node scripts/smoke-dom.mjs",

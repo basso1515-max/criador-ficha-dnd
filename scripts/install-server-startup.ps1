@@ -1,5 +1,5 @@
 param(
-  [string]$TaskName = "CriadorFichaDndServer",
+  [string]$TaskName = "SheetifyServer",
   [string]$ProjectRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path,
   [string]$HostName = "127.0.0.1",
   [int]$Port = 8000
@@ -40,7 +40,7 @@ Register-ScheduledTask `
   -Trigger $trigger `
   -Principal $principal `
   -Settings $settings `
-  -Description "Mantem o servidor local do Criador de Ficha D&D ativo." `
+  -Description "Mantem o servidor local do Sheetify ativo." `
   -Force | Out-Null
 
 Start-ScheduledTask -TaskName $TaskName

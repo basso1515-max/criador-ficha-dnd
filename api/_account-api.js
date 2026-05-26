@@ -348,10 +348,14 @@ function escapeHtml(value) {
     .replaceAll("'", "&#39;");
 }
 
+function getAccountEmailAppName() {
+  return String(process.env.ACCOUNT_EMAIL_NAME || "Sheetify").trim() || "Sheetify";
+}
+
 async function sendAccountEmail({ to, subject, text, html, tag = "account" } = {}) {
   const apiKey = String(process.env.RESEND_API_KEY || "").trim();
   const from = String(process.env.ACCOUNT_EMAIL_FROM || process.env.RESEND_FROM_EMAIL || "").trim();
-  const appName = String(process.env.ACCOUNT_EMAIL_NAME || "Criador de ficha D&D").trim();
+  const appName = getAccountEmailAppName();
 
   if (!apiKey || !from) {
     console.warn(JSON.stringify({
@@ -400,8 +404,9 @@ async function sendAccountEmail({ to, subject, text, html, tag = "account" } = {
 
 function buildPasswordResetEmail(account, resetUrl) {
   const name = account.displayName || account.email;
+  const appName = getAccountEmailAppName();
   return {
-    subject: "Recuperação de senha do Criador de ficha D&D",
+    subject: `Recuperação de senha do ${appName}`,
     text: [
       `Olá, ${name}.`,
       "",
@@ -421,8 +426,9 @@ function buildPasswordResetEmail(account, resetUrl) {
 
 function buildVerificationEmail(account, verificationUrl) {
   const name = account.displayName || account.email;
+  const appName = getAccountEmailAppName();
   return {
-    subject: "Valide sua conta no Criador de ficha D&D",
+    subject: `Valide sua conta no ${appName}`,
     text: [
       `Olá, ${name}.`,
       "",
