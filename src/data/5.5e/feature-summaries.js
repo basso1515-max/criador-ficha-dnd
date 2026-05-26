@@ -191,7 +191,7 @@ export const FEATURE_SUMMARIES_2024 = {
       "Aura Expandida": "Sua Aura de Proteção aumenta para emanação de 9 m.",
       "Dádiva Épica": "Recebe uma Dádiva Épica ou outro talento elegível."
     },
-    "patrulheiro": {
+    "guardiao": {
       "Conjuração": "Prepara magias de Guardião usando Sabedoria, recupera espaços em descanso longo e pode usar foco druídico.",
       "Inimigo Favorito": "Sempre tem Marca do Predador preparada e pode conjurá-la sem espaço 2 vezes por descanso longo; usos aumentam para 3/4/5/6 nos níveis 5/9/13/17.",
       "Maestria em Arma": "Domina propriedades de maestria de 2 armas proficientes e pode trocá-las ao terminar descanso longo.",
@@ -379,7 +379,7 @@ export const FEATURE_SUMMARIES_2024 = {
       "Surto Controlado": "Uma vez por descanso longo, ao ativar um Surto de Magia Selvagem, escolhe o resultado da tabela, exceto efeitos que exigem uma rolagem adicional.",
       "Surto Domado": "Uma vez por descanso longo, ao ativar um Surto de Magia Selvagem, escolhe o resultado da tabela, exceto efeitos que exigem uma rolagem adicional."
     },
-    "patrulheiro-andarilho-feerico": {
+    "guardiao-andarilho-feerico": {
       "Glamour Transcendental": "Sempre que você realiza um teste de Carisma, recebe um bônus no teste igual ao seu modificador de Sabedoria (mínimo de +1)",
       "Golpes Terríveis": "Uma vez por turno, ao atingir uma criatura com uma arma, você pode causar 1d4 pontos de dano Psíquico adicional ao alvo",
       "Magias do Andarilho Feérico": "Sempre deixa preparadas magias feéricas ligadas a charme, deslocamento e confusão.",
@@ -387,7 +387,7 @@ export const FEATURE_SUMMARIES_2024 = {
       "Reforços Feéricos": "Pode conjurar a magia Convocar Feérico sem um componente Material",
       "Andarilho Nebuloso": "Pode conjurar Passo Nebuloso sem gastar um espaço de magia"
     },
-    "patrulheiro-cacador": {
+    "guardiao-cacador": {
       "Conhecimento do Caçador": "Enquanto uma criatura está marcada por Marca do Predador, sabe se ela tem Imunidades, Resistências ou Vulnerabilidades e quais são.",
       "Presa do Caçador": "Escolhe Colosso ou Rompedor de Horda; pode trocar a opção ao terminar descanso curto ou longo.",
       "Colosso": "Uma vez por turno, ao atingir com arma uma criatura ferida, a arma causa +1d8 de dano.",
@@ -398,13 +398,13 @@ export const FEATURE_SUMMARIES_2024 = {
       "Presa do Caçador Superior": "Uma vez por turno, ao causar dano a uma criatura marcada pela Marca do Predador, você também pode causar dano adicional dessa magia a uma criatura diferente à sua vista e a até 9 metros da primeira criatura",
       "Defesa Superior do Caçador": "Ao sofrer dano, pode executar uma Reação para receber Resistência a esse dano e a qualquer outro dano do mesmo tipo até o fim do turno atual."
     },
-    "patrulheiro-mestre-feras": {
+    "guardiao-mestre-feras": {
       "Companheiro Primal": "Ela pode se mover e usar a própria Reação, embora a única ação padrão que ela executa é Esquivar, a menos que você use uma Ação Bônus para comandá-la a executar, execute uma ação do bloco de estatísticas dela ou alguma outra ação",
       "Treinamento Excepcional": "Ao executar uma Ação Bônus para ordenar sua fera Companheira Primal, você também pode ordená-la executar a ação Ajudar, Correr, Desengajar ou Esquivar usando a Ação Bônus dela",
       "Fúria Bestial": "Ao ordenar sua fera Companheira Primal a executar a ação Golpe da Fera, ela pode usá-la duas vezes",
       "Compartilhar Magias": "Quando conjura uma magia que afeta você, seu Companheiro Primal também pode receber o efeito se estiver próximo."
     },
-    "patrulheiro-perseguidor": {
+    "guardiao-perseguidor": {
       "Magias do Vigilante das Sombras": "Sempre deixa preparadas magias sombrias voltadas a caça, infiltração e emboscada.",
       "Visão Umbrosa": "Ganha Visão no Escuro com um alcance de 18 metros. Se você já tem Visão no Escuro, o alcance aumenta em 18 metros",
       "Emboscador das Sombras": "Ao atacar e atingir uma criatura com uma arma, você pode causar 2d6 pontos de dano Psíquico adicional",

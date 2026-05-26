@@ -592,8 +592,8 @@ export const CLASSES = {
     subclasses: ["paladino-devocao", "paladino-gloria", "paladino-vinganca", "paladino-ancioes"],
   },
 
-  patrulheiro: {
-    id: "patrulheiro",
+  guardiao: {
+    id: "guardiao",
     nome: "Guardião",
     descricao: "Caçador dos ermos que combina armas, rastreamento e magia primal para eliminar ameaças do mundo selvagem.",
     dadoVida: 10,
@@ -639,6 +639,6 @@ export const CLASSES = {
       19: [feature("Dádiva Épica", "Recebe uma Dádiva Épica ou outro talento elegível.")],
       20: [feature("Matador de Inimigos Favoritos", "O dado de dano de Marca do Predador se torna d10 em vez de d6.")],
     },
-    subclasses: ["patrulheiro-andarilho-feerico", "patrulheiro-cacador", "patrulheiro-mestre-feras", "patrulheiro-perseguidor"],
+    subclasses: ["guardiao-andarilho-feerico", "guardiao-cacador", "guardiao-mestre-feras", "guardiao-perseguidor"],
   },
 };

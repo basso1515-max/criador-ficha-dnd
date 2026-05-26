@@ -41,7 +41,8 @@ export const CLASSES_IDS = {
   mago: "mago",  
   monge: "monge",
   paladino: "paladino",
-  patrulheiro: "patrulheiro",
+  guardiao: "guardiao",
+  patrulheiro: "guardiao",
   ladino: "ladino"
 };
 
@@ -55,7 +56,10 @@ const CLASS_TAG_TO_ID = {
   fighter: "guerreiro",
   monk: "monge",
   paladin: "paladino",
-  ranger: "patrulheiro",
+  guardiao: "guardiao",
+  "guardião": "guardiao",
+  patrulheiro: "guardiao",
+  ranger: "guardiao",
   rogue: "ladino",
   sorcerer: "feiticeiro",
   warlock: "bruxo",
@@ -1462,7 +1466,7 @@ export const MAGIAS = {
         "classes": [
           "artifice",
           "druida",
-          "patrulheiro"
+          "guardiao"
         ],
         "descricao": "Reage ao dano elemental que você recebe, concedendo resistência ao mesmo tipo de dano até o início do seu próximo turno. Além disso, seu próximo ataque corpo a corpo antes do fim do turno causa dano adicional do mesmo tipo.",
         "emNiveisSuperiores": "O dano adicional aumenta em 1d6 por nível acima do 1°.",
@@ -1494,7 +1498,7 @@ export const MAGIAS = {
         "duracao": "8 horas",
         "classes": [
           "artifice",
-          "patrulheiro",
+          "guardiao",
           "mago"
         ],
         "descricao": "Protege uma área de 6 m contra intrusão, emitindo alarme mental ou audível.",
@@ -1527,7 +1531,7 @@ export const MAGIAS = {
         "classes": [
           "artifice",
           "druida",
-          "patrulheiro"
+          "guardiao"
         ],
         "descricao": "Cria uma armadilha mágica que pode ser ativada por criaturas que entram na área; quando disparada, a armadilha restringe ou imobiliza o alvo conforme o efeito da magia, disparando uma condição de contenção até que o alvo se liberte ou a duração termine.",
         "emNiveisSuperiores": "",
@@ -1867,7 +1871,7 @@ export const MAGIAS = {
         "classes": [
           "clerigo",
           "druida",
-          "patrulheiro",
+          "guardiao",
           "paladino"
         ],
         "descricao": "Detecta venenos, doenças e criaturas venenosas dentro do alcance.",
@@ -1898,7 +1902,7 @@ export const MAGIAS = {
         "duracao": "Até 10 minutos",
         "classes": [
           "druida",
-          "patrulheiro"
+          "guardiao"
         ],
         "descricao": "Cria uma ligação com uma besta próxima, permitindo comunicação telepática e benefícios práticos, como coordenação melhorada entre a besta e você; efeitos exatos dependem da escolha e do contexto de uso.",
         "emNiveisSuperiores": "",
@@ -1929,7 +1933,7 @@ export const MAGIAS = {
         "classes": [
           "bardo",
           "druida",
-          "patrulheiro"
+          "guardiao"
         ],
         "descricao": "Permite comunicação verbal com bestas.",
         "emNiveisSuperiores": "",
@@ -1986,7 +1990,7 @@ export const MAGIAS = {
         "componentesDetalhe": "",
         "duracao": "Concentração, até 1 hora",
         "classes": [
-          "patrulheiro"
+          "guardiao"
         ],
         "descricao": "Marca um alvo causando +1d6 de dano adicional e facilitando rastreamento.",
         "emNiveisSuperiores": "Duração aumenta para 8h no nível 3 e 24h no nível 5.",
@@ -2198,7 +2202,7 @@ export const MAGIAS = {
         "componentesDetalhe": "",
         "duracao": "Até 1 minuto",
         "classes": [
-          "patrulheiro"
+          "guardiao"
         ],
         "descricao": "Ataque prende o alvo com vinhas causando dano contínuo.",
         "emNiveisSuperiores": "Aumenta em 1d6 por nível.",
@@ -2229,7 +2233,7 @@ export const MAGIAS = {
         "classes": [
           "druida",
           "feiticeiro",
-          "patrulheiro",
+          "guardiao",
           "mago"
         ],
         "descricao": "Cria área de neblina que obscurece visão completamente.",
@@ -2258,7 +2262,7 @@ export const MAGIAS = {
         "componentesDetalhe": "",
         "duracao": "Instantânea",
         "classes": [
-          "patrulheiro"
+          "guardiao"
         ],
         "descricao": "Ataque à distância causa dano adicional em área.",
         "emNiveisSuperiores": "Aumenta em 1d10 por nível.",
@@ -2323,7 +2327,7 @@ export const MAGIAS = {
         "classes": [
           "bardo",
           "druida",
-          "patrulheiro"
+          "guardiao"
         ],
         "descricao": "Convence uma besta com INT 4 ou menor de que você não é uma ameaça, deixando-a enfeitiçada.",
         "emNiveisSuperiores": "Afeta uma besta adicional por nível acima.",
@@ -2687,7 +2691,7 @@ export const MAGIAS = {
           "clerigo",
           "druida",
           "paladino",
-          "patrulheiro"
+          "guardiao"
         ],
         "descricao": "Uma criatura recupera 1d8 + modificador de conjuração em pontos de vida.",
         "emNiveisSuperiores": "Aumenta em 1d8 por nível acima.",
@@ -3417,7 +3421,7 @@ export const MAGIAS = {
         "duracao": "24 horas",
         "classes": [
           "druida",
-          "patrulheiro"
+          "guardiao"
         ],
         "descricao": "Cria até 10 frutas mágicas que curam 1 PV cada e alimentam uma criatura.",
         "emNiveisSuperiores": "",
@@ -3505,7 +3509,7 @@ export const MAGIAS = {
         "componentesDetalhe": "",
         "duracao": "Até 1 minuto",
         "classes": [
-          "patrulheiro"
+          "guardiao"
         ],
         "descricao": "Movimento sem provocar ataques de oportunidade e ataque com bônus de dano e mobilidade.",
         "emNiveisSuperiores": "",
@@ -3537,7 +3541,7 @@ export const MAGIAS = {
         "classes": [
           "bardo",
           "druida",
-          "patrulheiro",
+          "guardiao",
           "mago"
         ],
         "descricao": "Aumenta o deslocamento do alvo em 3 m.",
@@ -3659,7 +3663,7 @@ export const MAGIAS = {
         "classes": [
           "druida",
           "feiticeiro",
-          "patrulheiro",
+          "guardiao",
           "mago"
         ],
         "descricao": "Triplica a distância de salto do alvo.",
@@ -3756,7 +3760,7 @@ export const MAGIAS = {
         "duracao": "Concentração, até 1 hora",
         "classes": [
           "druida",
-          "patrulheiro"
+          "guardiao"
         ],
         "descricao": "Aliados a até 9m não deixam rastros em terreno mundano e recebem +10 em testes de Furtividade.",
         "emNiveisSuperiores": "-",
@@ -3787,7 +3791,7 @@ export const MAGIAS = {
         "classes": [
           "clerigo",
           "druida",
-          "patrulheiro",
+          "guardiao",
           "paladino"
         ],
         "descricao": "O alvo recebe vantagem em testes de resistência contra veneno, resistência a dano de veneno e um veneno ativo é neutralizado.",
@@ -3820,7 +3824,7 @@ export const MAGIAS = {
           "bardo",
           "clerigo",
           "druida",
-          "patrulheiro",
+          "guardiao",
           "paladino"
         ],
         "descricao": "Remove um dos seguintes efeitos do alvo: cegueira, surdez, doença ou paralisia.",
@@ -3915,7 +3919,7 @@ export const MAGIAS = {
         "classes": [
           "clerigo",
           "druida",
-          "patrulheiro"
+          "guardiao"
         ],
         "descricao": "Revela a presença e natureza de armadilhas em linha de visão, mas não sua localização exata.",
         "emNiveisSuperiores": "-",
@@ -3975,7 +3979,7 @@ export const MAGIAS = {
         "classes": [
           "bardo",
           "druida",
-          "patrulheiro"
+          "guardiao"
         ],
         "descricao": "Você descobre a direção e distância da criatura ou planta escolhida mais próxima a até 5 milhas.",
         "emNiveisSuperiores": "-",
@@ -4007,7 +4011,7 @@ export const MAGIAS = {
           "bardo",
           "clerigo",
           "druida",
-          "patrulheiro",
+          "guardiao",
           "mago",
           "paladino"
         ],
@@ -4166,7 +4170,7 @@ export const MAGIAS = {
         "duracao": "Concentração, até 1 minuto",
         "classes": [
           "druida",
-          "patrulheiro"
+          "guardiao"
         ],
         "descricao": "Um espírito aparece em um espaço a até 18m. Quando uma criatura entra na área do espírito ou começa seu turno nela, você pode fazer com que ela recupere 1d6 PV. Como ação bônus, você pode mover o espírito até 9m.",
         "emNiveisSuperiores": "A cura aumenta em 1d6 por nível acima.",
@@ -4198,7 +4202,7 @@ export const MAGIAS = {
         "duracao": "Concentração, até 1 hora",
         "classes": [
           "druida",
-          "patrulheiro"
+          "guardiao"
         ],
         "descricao": "Você invoca um espírito bestial que assume forma aérea, terrestre ou aquática. A criatura obedece seus comandos e age logo após seu turno.",
         "emNiveisSuperiores": "A besta recebe melhorias adicionais ao usar espaços maiores.",
@@ -4484,7 +4488,7 @@ export const MAGIAS = {
         "classes": [
           "bardo",
           "druida",
-          "patrulheiro"
+          "guardiao"
         ],
         "descricao": "Uma besta pequena leva uma mensagem de até 25 palavras até um destino conhecido.",
         "emNiveisSuperiores": "+48 horas por nível acima.",
@@ -4860,7 +4864,7 @@ export const MAGIAS = {
         "classes": [
           "druida",
           "feiticeiro",
-          "patrulheiro",
+          "guardiao",
           "mago"
         ],
         "descricao": "Cria uma linha de vento forte de 18m por 3m que empurra criaturas 4,5m. Extingue chamas desprotegidas. FOR nega. Como ação bônus, você pode mudar a direção do vento.",
@@ -5262,7 +5266,7 @@ export const MAGIAS = {
         "classes": [
           "bardo",
           "clerigo",
-          "patrulheiro"
+          "guardiao"
         ],
         "descricao": "Uma área de 6m de raio impede que qualquer som entre, saia ou passe por ela. Criaturas dentro são imunes a dano trovejante e não podem conjurar magias com componente verbal.",
         "emNiveisSuperiores": "-",
@@ -5572,7 +5576,7 @@ export const MAGIAS = {
         "componentesDetalhe": "-",
         "duracao": "8 horas",
         "classes": [
-          "patrulheiro"
+          "guardiao"
         ],
         "descricao": "Posiciona 4 flechas que disparam em criaturas que se aproximem, causando 1d6 de dano perfurante (DES metade).",
         "emNiveisSuperiores": "+4 flechas por nível acima.",
@@ -5603,7 +5607,7 @@ export const MAGIAS = {
         "duracao": "10 minutos",
         "classes": [
           "druida",
-          "patrulheiro"
+          "guardiao"
         ],
         "descricao": "Área de 6m de raio vira terreno difícil e causa 2d4 de dano perfurante a cada 1,5m percorrido. O terreno parece natural.",
         "emNiveisSuperiores": "-",
@@ -5761,7 +5765,7 @@ export const MAGIAS = {
         "duracao": "1 hora",
         "classes": [
           "druida",
-          "patrulheiro"
+          "guardiao"
         ],
         "descricao": "A CA do alvo não pode ser menor que 16.",
         "emNiveisSuperiores": "-",
@@ -5915,7 +5919,7 @@ export const MAGIAS = {
         "classes": [
           "druida",
           "feiticeiro",
-          "patrulheiro",
+          "guardiao",
           "mago",
           "artifice"
         ],
@@ -5952,7 +5956,7 @@ export const MAGIAS = {
         "classes": [
           "bardo",
           "mago",
-          "patrulheiro"
+          "guardiao"
         ],
         "descricao": "Você oculta um alvo contra magia de adivinhação. Uma criatura voluntária, objeto ou área de até 3 metros cúbicos que você tocar não pode ser alvo de magia de adivinhação nem percebido por sensores mágicos.",
         "emNiveisSuperiores": "-",
@@ -6148,7 +6152,7 @@ export const MAGIAS = {
           "clerigo",
           "druida",
           "feiticeiro",
-          "patrulheiro",
+          "guardiao",
           "mago"
         ],
         "descricao": "A criatura tocada ganha resistência a um tipo de dano elemental escolhido (ácido, frio, fogo, elétrico ou trovão).",
@@ -6305,7 +6309,7 @@ export const MAGIAS = {
         "duracao": "Concentração, até 1 hora",
         "classes": [
           "druida",
-          "patrulheiro"
+          "guardiao"
         ],
         "descricao": "Você percebe através dos sentidos de uma besta tocada, ficando cego e surdo quanto ao próprio corpo.",
         "emNiveisSuperiores": "-",
@@ -6337,7 +6341,7 @@ export const MAGIAS = {
         "duracao": "Concentração, até 1 hora",
         "classes": [
           "druida",
-          "patrulheiro"
+          "guardiao"
         ],
         "descricao": "Você invoca espíritos feéricos em forma de bestas que lutam ao seu lado. Escolha entre várias combinações de criaturas com diferentes ND, que obedecem seus comandos.",
         "emNiveisSuperiores": "A quantidade de criaturas aumenta (dobro no 5º nível, triplo no 7º, quádruplo no 9º).",
@@ -6367,7 +6371,7 @@ export const MAGIAS = {
         "componentesDetalhe": "Uma arma ou munição",
         "duracao": "Instantânea",
         "classes": [
-          "patrulheiro"
+          "guardiao"
         ],
         "descricao": "Você arremessa uma cópia mágica da arma em um cone de 18 metros. Criaturas na área sofrem 3d8 de dano do mesmo tipo da arma. Destreza reduz à metade.",
         "emNiveisSuperiores": "-",
@@ -6737,7 +6741,7 @@ export const MAGIAS = {
         "classes": [
           "clerigo",
           "druida",
-          "patrulheiro",
+          "guardiao",
           "paladino"
         ],
         "descricao": "Você traz de volta à vida uma criatura que morreu há até 1 minuto, com 1 ponto de vida.",
@@ -6957,7 +6961,7 @@ export const MAGIAS = {
           "clerigo",
           "druida",
           "feiticeiro",
-          "patrulheiro",
+          "guardiao",
           "paladino"
         ],
         "descricao": "Cria luz brilhante em um raio de 18 metros e luz baixa adicional de 18 metros.",
@@ -7110,7 +7114,7 @@ export const MAGIAS = {
         "duracao": "Concentração, até 1 minuto",
         "classes": [
           "druida",
-          "patrulheiro"
+          "guardiao"
         ],
         "descricao": "Cria uma parede de vento que bloqueia projéteis, gases e criaturas pequenas, causando 3d8 de dano.",
         "emNiveisSuperiores": "-",
@@ -7644,7 +7648,7 @@ export const MAGIAS = {
         "classes": [
           "clerigo",
           "druida",
-          "patrulheiro"
+          "guardiao"
         ],
         "descricao": "Até 10 criaturas podem andar sobre superfícies líquidas como se fossem sólidas.",
         "emNiveisSuperiores": "-",
@@ -7703,7 +7707,7 @@ export const MAGIAS = {
         "classes": [
           "bardo",
           "druida",
-          "patrulheiro"
+          "guardiao"
         ],
         "descricao": "Pode criar terreno extremamente difícil em área grande ou enriquecer plantas para dobrar produção por 1 ano.",
         "emNiveisSuperiores": "-",
@@ -7733,7 +7737,7 @@ export const MAGIAS = {
         "duracao": "10 minutos",
         "classes": [
           "druida",
-          "patrulheiro",
+          "guardiao",
           "bardo"
         ],
         "descricao": "Você pode se comunicar com plantas, que compartilham informações simples como eventos recentes na área.",
@@ -7763,7 +7767,7 @@ export const MAGIAS = {
         "componentesDetalhe": "-",
         "duracao": "Concentração, até 1 minuto",
         "classes": [
-          "patrulheiro"
+          "guardiao"
         ],
         "descricao": "Seu próximo ataque vira relâmpago causando 4d8 elétrico (metade no erro) e 2d8 em área.",
         "emNiveisSuperiores": "+1d8 em ambos danos por nível acima.",
@@ -7889,7 +7893,7 @@ export const MAGIAS = {
         "classes": [
           "clerigo",
           "druida",
-          "patrulheiro"
+          "guardiao"
         ],
         "descricao": "Você se funde com a pedra, tornando-se indetectável, podendo sair a qualquer momento.",
         "emNiveisSuperiores": "-",
@@ -7951,7 +7955,7 @@ export const MAGIAS = {
         "classes": [
           "druida",
           "feiticeiro",
-          "patrulheiro",
+          "guardiao",
           "mago"
         ],
         "descricao": "Até 10 criaturas podem respirar debaixo d'água.",
@@ -8167,7 +8171,7 @@ export const MAGIAS = {
           "bardo",
           "clerigo",
           "druida",
-          "patrulheiro"
+          "guardiao"
         ],
         "descricao": "O alvo ignora terreno difícil, não pode ser paralisado ou restringido e se move livremente sob a água.",
         "emNiveisSuperiores": "-",
@@ -8198,7 +8202,7 @@ export const MAGIAS = {
         "classes": [
           "druida",
           "feiticeiro",
-          "patrulheiro",
+          "guardiao",
           "mago"
         ],
         "descricao": "O alvo recebe resistência a dano físico não mágico.",
@@ -8321,7 +8325,7 @@ export const MAGIAS = {
           "bardo",
           "clerigo",
           "druida",
-          "patrulheiro",
+          "guardiao",
           "mago",
           "paladino"
         ],
@@ -8685,7 +8689,7 @@ export const MAGIAS = {
         "duracao": "Concentração, até 10 minutos",
         "classes": [
           "druida",
-          "patrulheiro"
+          "guardiao"
         ],
         "descricao": "Você invoca espíritos feéricos que assumem forma de criaturas e obedecem seus comandos.",
         "emNiveisSuperiores": "Aumenta a quantidade de criaturas invocadas.",
@@ -8774,7 +8778,7 @@ export const MAGIAS = {
         "duracao": "Concentração, até 1 minuto",
         "classes": [
           "druida",
-          "patrulheiro"
+          "guardiao"
         ],
         "descricao": "Uma vinha puxa criaturas em sua direção e pode repetir o efeito a cada turno.",
         "emNiveisSuperiores": "-",
@@ -9430,7 +9434,7 @@ export const MAGIAS = {
         "duracao": "Concentração, até 1 minuto",
         "classes": [
           "druida",
-          "patrulheiro"
+          "guardiao"
         ],
         "descricao": "Você assume forma primal: Fera Primitiva (mobilidade e dano) ou Grande Árvore (resistência e controle de terreno).",
         "emNiveisSuperiores": "-",
@@ -9738,7 +9742,7 @@ export const MAGIAS = {
           "bardo",
           "clerigo",
           "druida",
-          "patrulheiro",
+          "guardiao",
           "paladino"
         ],
         "descricao": "Você remove um efeito debilitante: um nível de exaustão, uma condição como petrificação ou enfeitiçamento, uma maldição, redução de atributos ou recupera todos os pontos de vida do alvo.",
@@ -9800,7 +9804,7 @@ export const MAGIAS = {
         "duracao": "Instantânea",
         "classes": [
           "druida",
-          "patrulheiro"
+          "guardiao"
         ],
         "descricao": "Você aprende informações sobre terreno, criaturas, construções e influências mágicas em uma área de até 3 milhas.",
         "emNiveisSuperiores": "-",
@@ -10078,7 +10082,7 @@ export const MAGIAS = {
         "duracao": "Instantânea",
         "classes": [
           "mago",
-          "patrulheiro"
+          "guardiao"
         ],
         "descricao": "Você ataca até cinco criaturas causando 6d10 de dano e pode se teletransportar após os ataques.",
         "emNiveisSuperiores": "-",
@@ -10171,7 +10175,7 @@ export const MAGIAS = {
         "componentesDetalhe": "uma arma Corpo a Corpo ou à Distância no valor de 1 ou mais PP",
         "duracao": "Instantânea",
         "classes": [
-          "patrulheiro"
+          "guardiao"
         ],
         "descricao": "Uma chuva de ataques causa 8d8 de dano em área ampla.",
         "emNiveisSuperiores": "-",
@@ -10259,7 +10263,7 @@ export const MAGIAS = {
         "duracao": "Concentração, até 1 minuto",
         "classes": [
           "druida",
-          "patrulheiro"
+          "guardiao"
         ],
         "descricao": "Você pode viajar instantaneamente entre árvores do mesmo tipo dentro do alcance.",
         "emNiveisSuperiores": "-",
@@ -10729,7 +10733,7 @@ export const MAGIAS = {
         "duracao": "Concentração, até 1 minuto",
         "classes": [
           "druida",
-          "patrulheiro"
+          "guardiao"
         ],
         "descricao": "Área de 18m controlada pela natureza: terreno difícil, dano por árvores, aprisionamento e ataques à distância.",
         "emNiveisSuperiores": "-",
@@ -11238,7 +11242,7 @@ export const MAGIAS = {
         "componentesDetalhe": "Uma aljava contendo pelo menos uma munição",
         "duracao": "Concentração, até 1 minuto",
         "classes": [
-          "patrulheiro"
+          "guardiao"
         ],
         "descricao": "Um recipiente de munição tocado passa a produzir munição infinita. Como ação bônus, você pode realizar dois ataques com arma à distância que utilize essa munição. Se deixar de usar o recipiente, a magia termina.",
         "emNiveisSuperiores": "-",
@@ -15767,7 +15771,7 @@ function patchSpell2024(spellId, patch) {
     patch: {
       nome: "Convocar Elemental",
       nivel: 4,
-      classes: ["druida", "patrulheiro", "mago"],
+      classes: ["druida", "guardiao", "mago"],
       fonte: "PHB24",
       pagina: 260
     }
@@ -15777,7 +15781,7 @@ function patchSpell2024(spellId, patch) {
     patch: {
       nome: "Convocar Feérico",
       nivel: 3,
-      classes: ["bruxo", "druida", "patrulheiro", "mago"],
+      classes: ["bruxo", "druida", "guardiao", "mago"],
       fonte: "PHB24",
       pagina: 262
     }

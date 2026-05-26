@@ -884,14 +884,14 @@ const smokePages = [
         dispatch(featMasterySelects[0], "change");
         assert((document.querySelector("#featureChoicesSummary2024")?.textContent || "").includes("4/4"), "Mestre das Armas não entrou no resumo de escolhas.");
 
-        setClassLevel("patrulheiro", 2);
+        setClassLevel("guardiao", 2);
         const rangerStyleFeatSlots = Array.from(document.querySelectorAll('#featChoices2024 article[data-feat-slot-type="style"] select[data-feat-choice-id]'));
         assert(rangerStyleFeatSlots.length === 1, "Guardião 2024 não abriu 1 slot de talento de Estilo de Luta no nível 2.");
         assert(Array.from(rangerStyleFeatSlots[0].options).some((option) => option.value === "arquearia"), "Arquearia não apareceu como talento de Estilo de Luta 2024.");
         assert(selectsForFeature("favored-enemy").length === 0, "Guardião 2024 abriu seletor legacy de Inimigo Favorito indevidamente.");
 
-        setClassLevel("patrulheiro", 7);
-        setValue("#subclasse2024", "patrulheiro-cacador", ["change"]);
+        setClassLevel("guardiao", 7);
+        setValue("#subclasse2024", "guardiao-cacador", ["change"]);
         const hunterPreySelects2024 = selectsForFeatureKind("subclass", "hunter-prey");
         const hunterDefenseSelects2024 = selectsForFeatureKind("subclass", "defensive-tactics");
         assert(hunterPreySelects2024.length === 1, "Presa do Caçador 2024 não abriu seletor.");
@@ -923,8 +923,8 @@ const smokePages = [
         chooseCompanion("wild-companion", "batedor-aereo");
         assert((document.querySelector("#preview2024")?.textContent || "").includes("Companheiro Selvagem"), "Preview 2024 não recebeu Companheiro Selvagem.");
 
-        setClassLevel("patrulheiro", 3);
-        setValue("#subclasse2024", "patrulheiro-mestre-feras", ["change"]);
+        setClassLevel("guardiao", 3);
+        setValue("#subclasse2024", "guardiao-mestre-feras", ["change"]);
         chooseCompanion("primal-companion", "fera-da-terra");
         assert((document.querySelector("#preview2024")?.textContent || "").includes("Companheiro Primal"), "Preview 2024 não recebeu Companheiro Primal.");
 

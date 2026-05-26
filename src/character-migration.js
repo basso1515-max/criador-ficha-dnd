@@ -62,6 +62,20 @@ const RACE_ALIASES = new Map([
   }],
 ]);
 
+const CLASS_ALIASES_2024 = new Map([
+  ["patrulheiro", "guardiao"],
+  ["ranger", "guardiao"],
+]);
+
+const SUBCLASS_ALIASES_2024 = new Map([
+  ["patrulheiro-andarilho-feerico", "guardiao-andarilho-feerico"],
+  ["patrulheiro-cacador", "guardiao-cacador"],
+  ["patrulheiro-mestre-feras", "guardiao-mestre-feras"],
+  ["patrulheiro-perseguidor", "guardiao-perseguidor"],
+  ["mestre das feras", "guardiao-mestre-feras"],
+  ["perseguidor obscuro", "guardiao-perseguidor"],
+]);
+
 const CLASS_BY_LABEL = makeNormalizedMap(Object.values(CLASSES_2024));
 const RACE_BY_LABEL = makeNormalizedMap(Object.values(RACES_2024));
 const BACKGROUND_BY_LABEL = makeNormalizedMap(Object.values(BACKGROUNDS_2024));
@@ -295,7 +309,8 @@ function copyNotes(character, source, fields, report, mode) {
 
 function resolveClass(sourceValue) {
   const text = normalizeText(sourceValue);
-  const exact = CLASS_BY_LABEL.get(text) || CLASS_BY_ID.get(String(sourceValue || ""));
+  const alias = CLASS_ALIASES_2024.get(text);
+  const exact = (alias && CLASS_BY_ID.get(alias)) || CLASS_BY_LABEL.get(text) || CLASS_BY_ID.get(String(sourceValue || ""));
   if (exact) return resolved(exact.id, exact.nome);
   return unresolved("Classe sem equivalente automático no cadastro 5.5e.");
 }
@@ -344,7 +359,8 @@ function resolveSubclass(sourceValue, classId, classLevel) {
   if (!value) return resolved("", "");
   if (classLevel < 3) return unresolved("No 5.5e, a subclasse é escolhida no nível 3.");
 
-  const direct = SUBCLASS_BY_ID.get(value);
+  const alias = SUBCLASS_ALIASES_2024.get(value) || SUBCLASS_ALIASES_2024.get(normalizeText(value));
+  const direct = SUBCLASS_BY_ID.get(alias || value);
   const byName = SUBCLASS_BY_LABEL.get(normalizeText(value));
   const candidate = direct || byName;
   if (!candidate) return unresolved("Subclasse sem equivalente automático no cadastro 5.5e.");

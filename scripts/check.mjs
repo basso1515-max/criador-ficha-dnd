@@ -893,7 +893,7 @@ function validateFeatureChoiceEngine2024() {
     "getFeatureChoiceCascadeMarkup2024",
     "data-feature-choice-hover-card",
     "EXPLICIT_WEAPON_MASTERY_CLASS_IDS_2024",
-    '["barbaro", "guerreiro", "ladino", "paladino", "patrulheiro"]',
+    '["barbaro", "guerreiro", "ladino", "paladino", "guardiao"]',
     "getWeaponMasteryChoiceOptions2024",
     "grantsSelectedWeaponMastery",
     "weapon-mastery",
@@ -1092,7 +1092,7 @@ function validateCompanionChoiceEngines() {
     "wild-companion",
     "primal-companion",
     "draconic-companion",
-    "patrulheiro-mestre-feras",
+    "guardiao-mestre-feras",
     "feiticeiro-draconico",
   ].forEach((marker) => {
     if (!script2024.includes(marker)) errors.push(`2024: motor de companheiros sem marcador ${marker}.`);

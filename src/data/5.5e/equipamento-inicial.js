@@ -178,7 +178,7 @@ export const CLASS_EQUIPMENT_RULES = {
     packageOption("a", "Pacote A", "Cota de malha, escudo, espada longa, 6 azagaias, símbolo sagrado, kit de sacerdote e 9 PO"),
     packageOption("b", "Pacote B", "150 PO")
   ),
-  patrulheiro: packageOptions(
+  guardiao: packageOptions(
     packageOption("a", "Pacote A", "Armadura de couro batido, cimitarra, espada curta, arco longo, 20 flechas, aljava, foco druídico (ramo de visco), kit de aventureiro e 7 PO"),
     packageOption("b", "Pacote B", "150 PO")
   ),

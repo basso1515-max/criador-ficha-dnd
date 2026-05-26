@@ -321,8 +321,8 @@ const SUBCLASS_LIST = [
   ),
 
   subclass(
-    "patrulheiro-andarilho-feerico",
-    "patrulheiro",
+    "guardiao-andarilho-feerico",
+    "guardiao",
     "Andarilho Feérico",
     3,
     "Une charme feérico, deslocamento sobrenatural e reforços encantados de Faéria.",
@@ -334,8 +334,8 @@ const SUBCLASS_LIST = [
     }
   ),
   subclass(
-    "patrulheiro-cacador",
-    "patrulheiro",
+    "guardiao-cacador",
+    "guardiao",
     "Caçador",
     3,
     "Especializa-se em técnicas puras de rastreamento, perseguição e eliminação de presas perigosas.",
@@ -350,8 +350,8 @@ const SUBCLASS_LIST = [
     }
   ),
   subclass(
-    "patrulheiro-mestre-feras",
-    "patrulheiro",
+    "guardiao-mestre-feras",
+    "guardiao",
     "Senhor das Feras",
     3,
     "Combate em dupla com uma fera primal ligada magicamente ao guardião.",
@@ -363,8 +363,8 @@ const SUBCLASS_LIST = [
     }
   ),
   subclass(
-    "patrulheiro-perseguidor",
-    "patrulheiro",
+    "guardiao-perseguidor",
+    "guardiao",
     "Vigilante das Sombras",
     3,
     "Patrulha a penumbra, abre emboscadas devastadoras e enxerga onde outros fracassam.",

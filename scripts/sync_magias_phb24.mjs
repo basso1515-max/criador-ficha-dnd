@@ -155,11 +155,12 @@ const CLASS_HEADER_TO_ID = {
   druida: "druida",
   feiticeiro: "feiticeiro",
   guerreiro: "guerreiro",
-  guardião: "patrulheiro",
+  guardiao: "guardiao",
+  guardião: "guardiao",
   mago: "mago",
   monge: "monge",
   paladino: "paladino",
-  patrulheiro: "patrulheiro",
+  patrulheiro: "guardiao",
   ladino: "ladino"
 };
 

@@ -159,6 +159,24 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
   const BACKGROUND_BY_ID = new Map(BACKGROUND_LIST.map((item) => [item.id, item]));
   const SUBCLASS_BY_ID = new Map(SUBCLASS_LIST.map((item) => [item.id, item]));
   const FEAT_BY_ID = new Map(FEAT_LIST.map((item) => [item.id, item]));
+  const LEGACY_CLASS_ID_ALIASES_2024 = new Map([
+    ["patrulheiro", "guardiao"],
+    ["ranger", "guardiao"],
+  ]);
+  const LEGACY_SUBCLASS_ID_ALIASES_2024 = new Map([
+    ["patrulheiro-andarilho-feerico", "guardiao-andarilho-feerico"],
+    ["patrulheiro-cacador", "guardiao-cacador"],
+    ["patrulheiro-mestre-feras", "guardiao-mestre-feras"],
+    ["patrulheiro-perseguidor", "guardiao-perseguidor"],
+  ]);
+  LEGACY_CLASS_ID_ALIASES_2024.forEach((canonicalId, legacyId) => {
+    const canonical = CLASS_BY_ID.get(canonicalId);
+    if (canonical) CLASS_BY_ID.set(legacyId, canonical);
+  });
+  LEGACY_SUBCLASS_ID_ALIASES_2024.forEach((canonicalId, legacyId) => {
+    const canonical = SUBCLASS_BY_ID.get(canonicalId);
+    if (canonical) SUBCLASS_BY_ID.set(legacyId, canonical);
+  });
   const SPELLCASTING_FEAT_CLASS_OPTIONS_2024 = ["clerigo", "druida", "mago"]
     .map((classId) => ({
       value: classId,
@@ -277,7 +295,7 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
   const FIGHTING_STYLE_SLOT_LEVELS = {
     guerreiro: [1],
     paladino: [2],
-    patrulheiro: [2],
+    guardiao: [2],
   };
   const SUBCLASS_FIGHTING_STYLE_SLOT_LEVELS = {
     "guerreiro-campeao": [7],
@@ -290,7 +308,7 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
     feiticeiro: 1,
     mago: 1,
     paladino: 1,
-    patrulheiro: 1,
+    guardiao: 1,
   };
   const SPELLCASTING_SUBCLASS_LEVELS = {
     "guerreiro-cavaleiro-arcano": 3,
@@ -304,7 +322,7 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
     feiticeiro: "car",
     mago: "int",
     paladino: "car",
-    patrulheiro: "sab",
+    guardiao: "sab",
   };
   const SPELLCASTING_ABILITY_BY_SUBCLASS = {
     "guerreiro-cavaleiro-arcano": "int",
@@ -320,7 +338,7 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
     "treinamento-com-armas-marciais": ["marcial"],
   };
   const FEAT_WEAPON_MASTERY_IDS_2024 = new Set(["mestre-de-armas"]);
-  const EXPLICIT_WEAPON_MASTERY_CLASS_IDS_2024 = new Set(["barbaro", "guerreiro", "ladino", "paladino", "patrulheiro"]);
+  const EXPLICIT_WEAPON_MASTERY_CLASS_IDS_2024 = new Set(["barbaro", "guerreiro", "ladino", "paladino", "guardiao"]);
   const FEAT_ABILITY_BONUS_RULES_2024 = {
     atleta: { type: "choice", amount: 1, options: ["for", "des"] },
     ator: { type: "choice", amount: 1, options: ["car"] },
@@ -649,27 +667,106 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
   }
 
   function restoreSavedCharacterPreset2024(preset) {
-    activeMigrationContext2024 = readMigrationContext2024(preset);
+    const canonicalPreset = canonicalizeSavedCharacterPreset2024(preset);
+    activeMigrationContext2024 = readMigrationContext2024(canonicalPreset);
 
     withDeferredHeavyUi2024(() => {
-      ensureMulticlassRowsForPreset2024(preset?.extra?.multiclassRowIds || []);
-      restoreSpellSelectionSnapshot2024(preset?.extra?.selectedSpellsBySource || {});
+      ensureMulticlassRowsForPreset2024(canonicalPreset?.extra?.multiclassRowIds || []);
+      restoreSpellSelectionSnapshot2024(canonicalPreset?.extra?.selectedSpellsBySource || {});
 
-      restoreFormPreset(el.form, preset);
+      restoreFormPreset(el.form, canonicalPreset);
       renderAll();
-      restoreFormPreset(el.form, preset);
+      restoreFormPreset(el.form, canonicalPreset);
       renderAll();
-      restoreFormPreset(el.form, preset);
+      restoreFormPreset(el.form, canonicalPreset);
       syncAllCustomSelectFields2024();
       syncUnitToggleButtons(document);
       updateAbilityScoreInfo();
       renderMagicSection2024();
     });
 
-    restoreFormPreset(el.form, preset);
+    restoreFormPreset(el.form, canonicalPreset);
     syncAllCustomSelectFields2024();
     syncUnitToggleButtons(document);
     updatePreview();
+  }
+
+  function canonicalizeSavedCharacterPreset2024(preset) {
+    if (!preset || typeof preset !== "object") return preset;
+    const extra = preset.extra && typeof preset.extra === "object"
+      ? {
+          ...preset.extra,
+          selectedSpellsBySource: canonicalizeSpellSelectionSnapshotKeys2024(preset.extra.selectedSpellsBySource || {}),
+        }
+      : preset.extra;
+
+    return {
+      ...preset,
+      fields: Array.isArray(preset.fields)
+        ? preset.fields.map(canonicalizePresetField2024)
+        : preset.fields,
+      communityStats: canonicalizeCommunityStatsSnapshot2024(preset.communityStats),
+      extra,
+    };
+  }
+
+  function canonicalizePresetField2024(field) {
+    if (!field || typeof field !== "object") return field;
+    if (isClassPresetField2024(field)) {
+      return { ...field, value: canonicalClassId2024(field.value) };
+    }
+    if (isSubclassPresetField2024(field)) {
+      return { ...field, value: canonicalSubclassId2024(field.value) };
+    }
+    return field;
+  }
+
+  function isClassPresetField2024(field) {
+    return field.id === "classe2024" || hasPresetDataAttribute2024(field, "data-multiclass-class");
+  }
+
+  function isSubclassPresetField2024(field) {
+    return field.id === "subclasse2024" || hasPresetDataAttribute2024(field, "data-multiclass-subclass");
+  }
+
+  function hasPresetDataAttribute2024(field, attributeName) {
+    return Object.prototype.hasOwnProperty.call(field?.data || {}, attributeName);
+  }
+
+  function canonicalizeCommunityStatsSnapshot2024(stats) {
+    if (!stats || typeof stats !== "object") return stats;
+    const classId = canonicalClassId2024(stats.classId) || normalizeClassId2024(stats.classLabel);
+    const classData = CLASS_BY_ID.get(classId);
+    return {
+      ...stats,
+      classId: classData?.id || classId,
+      classLabel: classData?.nome || stats.classLabel || "",
+    };
+  }
+
+  function canonicalizeSpellSelectionSnapshotKeys2024(snapshot = {}) {
+    if (!snapshot || typeof snapshot !== "object" || Array.isArray(snapshot)) return {};
+    const result = {};
+    Object.entries(snapshot).forEach(([sourceKey, selection]) => {
+      const canonicalKey = canonicalSpellSelectionSourceKey2024(sourceKey);
+      const current = result[canonicalKey] || {};
+      const safeSelection = selection && typeof selection === "object" ? selection : {};
+      result[canonicalKey] = {
+        ...safeSelection,
+        cantrips: uniqueValues2024([...(current.cantrips || []), ...(Array.isArray(safeSelection.cantrips) ? safeSelection.cantrips : [])]),
+        spells: uniqueValues2024([...(current.spells || []), ...(Array.isArray(safeSelection.spells) ? safeSelection.spells : [])]),
+      };
+    });
+    return result;
+  }
+
+  function canonicalSpellSelectionSourceKey2024(sourceKey) {
+    const classId = canonicalClassId2024(sourceKey);
+    return canonicalSubclassId2024(classId);
+  }
+
+  function uniqueValues2024(values = []) {
+    return Array.from(new Set((values || []).map((value) => String(value || "").trim()).filter(Boolean)));
   }
 
   function readMigrationContext2024(preset) {
@@ -1292,8 +1389,8 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
       const slipperyMind = level >= 15 ? " Mente Escorregadia: proficiência em salvaguardas de Sabedoria e Carisma." : "";
       return `Ataque Furtivo: ${sneakAttackDice}d6 uma vez por turno. Maestrias de arma: 2.${cunningStrike}${improvedCunningStrike}${deviousStrikes}${slipperyMind}`;
     },
-    patrulheiro(level) {
-      const prepared = getSpellcastingRuleCount2024("patrulheiro", "preparedByLevel", level);
+    guardiao(level) {
+      const prepared = getSpellcastingRuleCount2024("guardiao", "preparedByLevel", level);
       const favoredEnemy = RANGER_FAVORED_ENEMY_BY_LEVEL_2024[level] || 0;
       const roving = level >= 6 ? " Errante: +3 m, escalada e natação sem armadura pesada." : "";
       const tireless = level >= 10 ? " Incansável: 1d8 + SAB PV temporários; usos = mod. SAB, mínimo 1." : "";
@@ -5416,7 +5513,7 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
 
     if (text === "caracteristica de estilo de luta de guardiao" || text === "caracteristica de estilo de luta de patrulheiro") {
       const slotClassId = context.slot?.classId || context.cls?.id || "";
-      return { eligible: context.hasFightingStyle && slotClassId === "patrulheiro", resolved: true };
+      return { eligible: context.hasFightingStyle && slotClassId === "guardiao", resolved: true };
     }
 
     if (text.includes("treinamento com armadura leve")) {
@@ -9486,7 +9583,7 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
         }
       }
 
-      if (entry.classId === "patrulheiro" && entry.level >= 9) {
+      if (entry.classId === "guardiao" && entry.level >= 9) {
         const source = buildExpertiseChoiceSource2024(`${entry.uid}:expertise-9`, `Especialista de ${entry.classData.nome} (nível 9)`, 2);
         if (source) sources.push(source);
       }
@@ -9711,7 +9808,7 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
         });
       }
 
-      if (entry.classId === "patrulheiro" && entry.level >= 2) {
+      if (entry.classId === "guardiao" && entry.level >= 2) {
         definitions.push(
           {
             id: `${entry.uid}-ranger-language-1`,
@@ -9901,7 +9998,7 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
     }
 
     classEntries
-      .filter((entry) => entry.classId === "patrulheiro" && entry.level >= 2)
+      .filter((entry) => entry.classId === "guardiao" && entry.level >= 2)
       .forEach((entry) => {
         hintParts.push(`<strong>${escapeHtml(entry.classData.nome)}</strong>: Explorador Hábil libera 2 idiomas extras no nível 2.`);
       });
@@ -10196,8 +10293,27 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
     return SPELLCASTING_ABILITY_BY_SUBCLASS[subclass?.id] || SPELLCASTING_ABILITY_BY_CLASS[cls?.id] || "";
   }
 
+  function canonicalClassId2024(value) {
+    const raw = String(value || "").trim();
+    if (!raw) return "";
+    const normalized = normalizePt(raw).replaceAll(" ", "");
+    return LEGACY_CLASS_ID_ALIASES_2024.get(raw)
+      || LEGACY_CLASS_ID_ALIASES_2024.get(normalized)
+      || (CLASSES_2024?.[normalized] ? normalized : raw);
+  }
+
+  function canonicalSubclassId2024(value) {
+    const raw = String(value || "").trim();
+    if (!raw) return "";
+    const normalized = normalizePt(raw).replace(/\s+/g, "-");
+    return LEGACY_SUBCLASS_ID_ALIASES_2024.get(raw)
+      || LEGACY_SUBCLASS_ID_ALIASES_2024.get(normalized)
+      || (SUBCLASSES?.[normalized] ? normalized : raw);
+  }
+
   function normalizeClassId2024(value) {
-    return normalizePt(value).replaceAll(" ", "");
+    const normalized = normalizePt(value).replaceAll(" ", "");
+    return LEGACY_CLASS_ID_ALIASES_2024.get(normalized) || normalized;
   }
 
   function normalizeSchoolKey2024(value) {
@@ -11389,7 +11505,7 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
     const level = clampInt(entry.level, 1, 20);
     if (entry.classId === "barbaro") return BARBARIAN_PROGRESSION_2024.weaponMastery[level] || 0;
     if (entry.classId === "guerreiro") return FIGHTER_PROGRESSION_2024.weaponMastery[level] || 0;
-    if (["ladino", "paladino", "patrulheiro"].includes(entry.classId)) return 2;
+    if (["ladino", "paladino", "guardiao"].includes(entry.classId)) return 2;
     return Number.POSITIVE_INFINITY;
   }
 
@@ -11540,7 +11656,7 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
       if (entry.classId === "monge" && !isWearingArmor && !hasShield) {
         bonusFeet += getMonkUnarmoredMovementBonusFeet2024(entry.level);
       }
-      if (entry.classId === "patrulheiro" && entry.level >= 6 && !isWearingHeavyArmor) {
+      if (entry.classId === "guardiao" && entry.level >= 6 && !isWearingHeavyArmor) {
         bonusFeet += 10;
         hasRangerRoving = true;
       }
@@ -11738,8 +11854,8 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
           );
         }
       }
-      if (entry.classId === "patrulheiro") {
-        mergeGrantedSpellIdsIntoConfig2024(config, ["marca-do-cacador"], "Classe de Patrulheiro");
+      if (entry.classId === "guardiao") {
+        mergeGrantedSpellIdsIntoConfig2024(config, ["marca-do-cacador"], "Classe de Guardião");
       }
       if (entry.classId === "druida") {
         mergeGrantedSpellIdsIntoConfig2024(config, DRUID_DRUIDIC_GRANTED_SPELL_IDS_2024, "Classe de Druida");
