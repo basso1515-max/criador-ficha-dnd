@@ -31,7 +31,7 @@ import {
   getOAuthProviderStatuses,
   makeOAuthStatePayload,
   normalizeOAuthProvider,
-} from "../api/_oauth.js";
+} from "../server/oauth.js";
 
 const root = process.cwd();
 const host = process.env.HOST || "127.0.0.1";

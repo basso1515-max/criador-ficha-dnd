@@ -1,5 +1,5 @@
 import { Redis } from "@upstash/redis";
-import { readCommunityStats } from "./_community-stats-store.js";
+import { readCommunityStats } from "./community-stats-store.js";
 
 let redisClient = null;
 

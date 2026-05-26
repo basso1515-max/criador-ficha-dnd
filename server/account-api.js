@@ -1,6 +1,6 @@
 import { createHash, createHmac, randomBytes, randomUUID, scryptSync, timingSafeEqual } from "node:crypto";
 import { Redis } from "@upstash/redis";
-import { recordCommunityCharacterCreated } from "./_community-stats-store.js";
+import { recordCommunityCharacterCreated } from "./community-stats-store.js";
 import { normalizeStoredCharacterSnapshot } from "../src/shared/character-schema.js";
 import {
   deriveCommunityStatsSnapshotPayload,
@@ -24,7 +24,7 @@ import {
   getOAuthProviderStatuses,
   makeOAuthStatePayload,
   normalizeOAuthProvider,
-} from "./_oauth.js";
+} from "./oauth.js";
 
 const STORE_PREFIX = "dnd-sheet";
 const ACCOUNT_LIMIT_PER_EDITION = 10;
