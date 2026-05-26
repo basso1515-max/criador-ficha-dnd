@@ -144,7 +144,17 @@
               <span>Senha</span>
               <input name="password" type="password" autocomplete="current-password" required />
             </label>
+            <button id="homeForgotPasswordToggle" type="button" class="home-popup-link home-popup-link-button" aria-controls="homeForgotPasswordForm" aria-expanded="false">Esqueci minha senha</button>
             <button type="submit" class="primary home-popup-primary">Entrar</button>
+          </form>
+          <form id="homeForgotPasswordForm" class="home-popup-form home-forgot-password-form" method="post" hidden>
+            <h2>Recuperar senha</h2>
+            <p>Informe o e-mail da conta para receber um link de redefinição.</p>
+            <label class="row">
+              <span>E-mail</span>
+              <input id="homeForgotPasswordEmail" name="email" type="email" autocomplete="email" maxlength="254" required />
+            </label>
+            <button type="submit" class="secondary-button home-popup-primary">Enviar link</button>
           </form>
           <a href="./conta.html" class="home-popup-link">Criar conta ou registrar outro usuário</a>
         </div>

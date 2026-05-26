@@ -9,6 +9,7 @@ import {
   listCharactersForCurrentUser,
   migrateCharacterVersionForCurrentUser,
   logoutAccount,
+  requestEmailVerification,
   updateCurrentAccount,
 } from "./account-storage.js";
 import { build5eTo2024MigrationPayload } from "./character-migration.js";
@@ -48,6 +49,9 @@ const el = {
   capacity: document.getElementById("userPageCapacity"),
   authMethods: document.getElementById("userPageAuthMethods"),
   securityState: document.getElementById("userPageSecurityState"),
+  emailVerification: document.getElementById("userPageEmailVerification"),
+  emailVerificationText: document.getElementById("userPageEmailVerificationText"),
+  resendVerification: document.getElementById("userPageResendVerification"),
   createdAt: document.getElementById("userPageCreatedAt"),
   count5e: document.getElementById("userPageCount5e"),
   count2024: document.getElementById("userPageCount2024"),
@@ -139,6 +143,13 @@ function renderUserPage() {
   }
   if (el.authMethods) el.authMethods.textContent = getAuthMethodLabel(user);
   if (el.securityState) el.securityState.textContent = getSecurityStateLabel(user);
+  if (el.emailVerification) el.emailVerification.textContent = user.emailVerified ? "Validado" : "Pendente";
+  if (el.emailVerificationText) {
+    el.emailVerificationText.textContent = user.emailVerified
+      ? "Este e-mail já foi confirmado."
+      : "Confirme o link enviado para validar a conta.";
+  }
+  if (el.resendVerification) el.resendVerification.hidden = Boolean(user.emailVerified);
   if (el.createdAt) el.createdAt.textContent = formatDateOnly(user.createdAt);
   if (el.count5e) el.count5e.textContent = `${counts["5e"]}/${ACCOUNT_LIMIT_PER_EDITION}`;
   if (el.count2024) el.count2024.textContent = `${counts["5.5e-2024"]}/${ACCOUNT_LIMIT_PER_EDITION}`;
@@ -264,6 +275,15 @@ el.logout?.addEventListener("click", async () => {
   setStatus("Você saiu da conta.", "info");
 });
 
+el.resendVerification?.addEventListener("click", async () => {
+  try {
+    await requestEmailVerification();
+    setStatus("Enviamos um novo link de validação para seu e-mail.", "success");
+  } catch (error) {
+    setStatus(error?.message || "Não foi possível reenviar a validação.", "warning");
+  }
+});
+
 el.list?.addEventListener("click", async (event) => {
   const migrateButton = event.target.closest("[data-user-character-migrate]");
   if (migrateButton) {
@@ -299,6 +319,7 @@ el.list?.addEventListener("click", async (event) => {
 el.profileForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
   const formData = new FormData(el.profileForm);
+  const previousEmail = getCurrentUser()?.email || "";
 
   try {
     await updateCurrentAccount({
@@ -308,7 +329,13 @@ el.profileForm?.addEventListener("submit", async (event) => {
     });
     el.profileForm.elements.currentPassword.value = "";
     renderUserPage();
-    setStatus("Dados da conta atualizados.", "success");
+    const nextEmail = getCurrentUser()?.email || "";
+    setStatus(
+      previousEmail && nextEmail && previousEmail !== nextEmail
+        ? "Dados atualizados. Enviamos um novo link para validar o e-mail."
+        : "Dados da conta atualizados.",
+      "success"
+    );
   } catch (error) {
     setStatus(error?.message || "Não foi possível atualizar a conta.", "warning");
   }

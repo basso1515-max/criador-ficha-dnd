@@ -535,6 +535,15 @@ fieldset,
   text-decoration: none;
 }
 
+.home-popup-link-button {
+  appearance: none;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+}
+
 .home-popup-link:hover {
   text-decoration: underline;
 }

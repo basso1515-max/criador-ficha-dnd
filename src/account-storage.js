@@ -125,6 +125,8 @@ function normalizeClientAccount(account) {
     displayName: String(account.displayName || "").trim(),
     email: normalizeEmail(account.email || ""),
     passwordSet: account.passwordSet !== false,
+    emailVerified: Boolean(account.emailVerified || account.emailVerifiedAt),
+    emailVerifiedAt: String(account.emailVerifiedAt || ""),
     authProviders: Array.isArray(account.authProviders)
       ? account.authProviders.map((provider) => ({
         provider: String(provider?.provider || ""),
@@ -147,6 +149,8 @@ function toPublicUser(account) {
     displayName: account.displayName,
     email: account.email,
     passwordSet: account.passwordSet !== false,
+    emailVerified: Boolean(account.emailVerified || account.emailVerifiedAt),
+    emailVerifiedAt: account.emailVerifiedAt || "",
     authProviders: Array.isArray(account.authProviders) ? [...account.authProviders] : [],
     createdAt: account.createdAt,
   };
@@ -376,6 +380,57 @@ export async function loginAccount({ email, password }) {
   });
   currentAccount = normalizeClientAccount(data.account);
   return toPublicUser(currentAccount);
+}
+
+export async function requestPasswordReset({ email } = {}) {
+  const normalizedEmail = assertEmailInput(email);
+  await ensureServerReady();
+
+  return await requestApi("/api/accounts/password-reset/request", {
+    method: "POST",
+    body: { email: normalizedEmail },
+  });
+}
+
+export async function confirmPasswordReset({ token, password } = {}) {
+  const resetToken = String(token || "").trim();
+  assertNewPasswordInput(password);
+  await ensureServerReady();
+
+  const data = await requestApi("/api/accounts/password-reset/confirm", {
+    method: "POST",
+    body: { token: resetToken, password },
+  });
+  currentAccount = normalizeClientAccount(data.account);
+  return toPublicUser(currentAccount);
+}
+
+export async function requestEmailVerification() {
+  await ensureServerReady();
+  if (!currentAccount) {
+    throw new Error("Entre em uma conta para reenviar a validação.");
+  }
+
+  return await requestApi("/api/accounts/email-verification/request", {
+    method: "POST",
+  });
+}
+
+export async function confirmEmailVerification({ token } = {}) {
+  const verificationToken = String(token || "").trim();
+  await ensureServerReady();
+
+  const data = await requestApi("/api/accounts/email-verification/confirm", {
+    method: "POST",
+    body: { token: verificationToken },
+  });
+  if (data.account) {
+    currentAccount = normalizeClientAccount(data.account);
+  }
+  return {
+    emailVerified: Boolean(data.emailVerified),
+    account: toPublicUser(currentAccount),
+  };
 }
 
 export async function logoutAccount() {

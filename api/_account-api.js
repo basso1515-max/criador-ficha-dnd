@@ -31,6 +31,8 @@ const ACCOUNT_LIMIT_PER_EDITION = 10;
 const EDITIONS = ["5e", "5.5e-2024"];
 const COOKIE_NAME = "dnd_sheet_session";
 const SESSION_TTL_SECONDS = 60 * 60 * 24 * 30;
+const PASSWORD_RESET_TTL_SECONDS = 60 * 60;
+const EMAIL_VERIFICATION_TTL_SECONDS = 60 * 60 * 24;
 const PASSWORD_ALGO_SCRYPT_V1 = "scrypt-v1";
 const PASSWORD_ALGO_SCRYPT_V2 = "scrypt-v2";
 const PASSWORD_ALGO_SCRYPT_V2_PEPPER = "scrypt-v2-pepper";
@@ -67,6 +69,10 @@ const RATE_LIMITS = {
   loginIp: { limit: 30, windowSeconds: 15 * 60 },
   loginEmail: { limit: 8, windowSeconds: 15 * 60 },
   registerIp: { limit: 10, windowSeconds: 60 * 60 },
+  passwordResetIp: { limit: 6, windowSeconds: 60 * 60 },
+  passwordResetEmail: { limit: 3, windowSeconds: 60 * 60 },
+  emailVerificationIp: { limit: 12, windowSeconds: 60 * 60 },
+  emailVerificationAccount: { limit: 5, windowSeconds: 60 * 60 },
   migrationIp: { limit: 2, windowSeconds: 60 * 60 },
 };
 const SAFE_ID_RE = /^[a-z]+_[a-zA-Z0-9_-]{8,128}$/;
@@ -97,6 +103,14 @@ function keyEmail(email) {
 
 function keySession(tokenHash) {
   return `${STORE_PREFIX}:session:${tokenHash}`;
+}
+
+function keyPasswordReset(tokenHash) {
+  return `${STORE_PREFIX}:password-reset:${tokenHash}`;
+}
+
+function keyEmailVerification(tokenHash) {
+  return `${STORE_PREFIX}:email-verification:${tokenHash}`;
 }
 
 function keyOAuthProvider(provider, providerAccountId) {
@@ -149,6 +163,7 @@ function normalizeAccountRecord(account) {
     passwordSalt: sanitizePasswordSecret(account.passwordSalt),
     passwordHash: sanitizePasswordSecret(account.passwordHash),
     passwordSet: account.passwordSet !== false,
+    emailVerifiedAt: sanitizeDateString(account.emailVerifiedAt, ""),
     authProviders: normalizeAuthProviders(account.authProviders),
     createdAt: sanitizeDateString(account.createdAt, new Date().toISOString()),
     characters: normalizeCharacters(account.characters),
@@ -302,6 +317,129 @@ function hashSessionToken(token) {
   return createHash("sha256").update(String(token || "")).digest("hex");
 }
 
+function makeAccountActionToken() {
+  return randomBytes(32).toString("hex");
+}
+
+function getAccountPublicBaseUrl(req) {
+  const configured = String(process.env.ACCOUNT_PUBLIC_BASE_URL || "").trim();
+  const base = configured || getRequestOrigin(req);
+  return base.replace(/\/+$/, "");
+}
+
+function buildAccountActionUrl(req, params) {
+  const url = new URL("conta.html", `${getAccountPublicBaseUrl(req)}/`);
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value) url.searchParams.set(key, value);
+  });
+  return url.toString();
+}
+
+function shouldExposeEmailDebugResponse() {
+  return String(process.env.ACCOUNT_EMAIL_DEBUG_RESPONSE || "") === "1";
+}
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+async function sendAccountEmail({ to, subject, text, html, tag = "account" } = {}) {
+  const apiKey = String(process.env.RESEND_API_KEY || "").trim();
+  const from = String(process.env.ACCOUNT_EMAIL_FROM || process.env.RESEND_FROM_EMAIL || "").trim();
+  const appName = String(process.env.ACCOUNT_EMAIL_NAME || "Criador de ficha D&D").trim();
+
+  if (!apiKey || !from) {
+    console.warn(JSON.stringify({
+      level: "warn",
+      msg: "account_email_not_configured",
+      to,
+      subject,
+    }));
+    return { sent: false, provider: "none" };
+  }
+
+  try {
+    const response = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+        "Idempotency-Key": `${tag}-${Date.now()}-${randomBytes(8).toString("hex")}`,
+      },
+      body: JSON.stringify({
+        from: from.includes("<") ? from : `${appName} <${from}>`,
+        to,
+        subject,
+        text,
+        html,
+        tags: [{ name: "category", value: tag.replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 64) || "account" }],
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => "");
+      throw new Error(`Resend HTTP ${response.status}: ${errorText.slice(0, 500)}`);
+    }
+    return { sent: true, provider: "resend" };
+  } catch (error) {
+    console.error(JSON.stringify({
+      level: "error",
+      msg: "account_email_send_failed",
+      to,
+      subject,
+      error: error?.message || "Falha ao enviar e-mail.",
+    }));
+    return { sent: false, provider: "resend" };
+  }
+}
+
+function buildPasswordResetEmail(account, resetUrl) {
+  const name = account.displayName || account.email;
+  return {
+    subject: "Recuperação de senha do Criador de ficha D&D",
+    text: [
+      `Olá, ${name}.`,
+      "",
+      "Recebemos uma solicitação para redefinir a senha da sua conta.",
+      `Use este link em até 1 hora: ${resetUrl}`,
+      "",
+      "Se você não pediu essa alteração, ignore este e-mail.",
+    ].join("\n"),
+    html: `
+      <p>Olá, ${escapeHtml(name)}.</p>
+      <p>Recebemos uma solicitação para redefinir a senha da sua conta.</p>
+      <p><a href="${escapeHtml(resetUrl)}">Redefinir minha senha</a></p>
+      <p>Este link expira em 1 hora. Se você não pediu essa alteração, ignore este e-mail.</p>
+    `,
+  };
+}
+
+function buildVerificationEmail(account, verificationUrl) {
+  const name = account.displayName || account.email;
+  return {
+    subject: "Valide sua conta no Criador de ficha D&D",
+    text: [
+      `Olá, ${name}.`,
+      "",
+      "Confirme seu e-mail para validar a conta.",
+      `Use este link em até 24 horas: ${verificationUrl}`,
+      "",
+      "Se você não criou essa conta, ignore este e-mail.",
+    ].join("\n"),
+    html: `
+      <p>Olá, ${escapeHtml(name)}.</p>
+      <p>Confirme seu e-mail para validar a conta.</p>
+      <p><a href="${escapeHtml(verificationUrl)}">Validar minha conta</a></p>
+      <p>Este link expira em 24 horas. Se você não criou essa conta, ignore este e-mail.</p>
+    `,
+  };
+}
+
 function safeHashEquals(left, right) {
   if (String(left || "").startsWith("fallback-") || String(right || "").startsWith("fallback-")) {
     return String(left || "") === String(right || "");
@@ -323,6 +461,8 @@ function toClientAccount(account) {
     displayName: account.displayName,
     email: account.email,
     passwordSet: account.passwordSet !== false,
+    emailVerified: Boolean(account.emailVerifiedAt),
+    emailVerifiedAt: account.emailVerifiedAt || "",
     authProviders: normalizeAuthProviders(account.authProviders).map((provider) => ({
       provider: provider.provider,
       label: getOAuthProviderLabel(provider.provider),
@@ -473,6 +613,9 @@ function assertPersistableAccountRecord(account) {
   assertDisplayNameInput(account.displayName);
   assertEmailInput(account.email);
   assertImportedPasswordRecord(account);
+  if (account.emailVerifiedAt) {
+    sanitizeDateString(account.emailVerifiedAt, "");
+  }
   assertPersistableAuthProviders(account.authProviders);
   const characters = normalizeCharacters(account.characters);
   EDITIONS.forEach((edition) => {
@@ -590,6 +733,35 @@ function validateLoginBody(body) {
   return {
     email: assertEmailInput(input.email),
     password: assertPasswordCredentialInput(input.password),
+  };
+}
+
+function assertAccountActionTokenInput(token, label = "Token") {
+  if (typeof token !== "string" || !/^[a-f0-9]{64}$/i.test(token.trim())) {
+    throw new HttpError(400, `${label} inválido ou expirado.`);
+  }
+  return token.trim().toLowerCase();
+}
+
+function validatePasswordResetRequestBody(body) {
+  const input = assertRequestBody(body, ["email"], ["email"], "Recuperação de senha");
+  return {
+    email: assertEmailInput(input.email),
+  };
+}
+
+function validatePasswordResetConfirmBody(body) {
+  const input = assertRequestBody(body, ["token", "password"], ["token", "password"], "Redefinição de senha");
+  return {
+    token: assertAccountActionTokenInput(input.token, "Link de recuperação"),
+    password: assertNewPasswordInput(input.password),
+  };
+}
+
+function validateEmailVerificationConfirmBody(body) {
+  const input = assertRequestBody(body, ["token"], ["token"], "Validação da conta");
+  return {
+    token: assertAccountActionTokenInput(input.token, "Link de validação"),
   };
 }
 
@@ -861,6 +1033,78 @@ async function reserveEmail(redis, email, accountId) {
   }
   const result = await redis.set(keyEmail(normalizedEmail), accountId, { nx: true });
   return result !== null;
+}
+
+async function createPasswordResetToken(redis, account, req) {
+  const token = makeAccountActionToken();
+  const tokenHash = hashSessionToken(token);
+  const expiresAt = new Date(Date.now() + PASSWORD_RESET_TTL_SECONDS * 1000).toISOString();
+  await redis.set(keyPasswordReset(tokenHash), {
+    accountId: account.id,
+    email: account.email,
+    createdAt: new Date().toISOString(),
+    expiresAt,
+  }, { ex: PASSWORD_RESET_TTL_SECONDS });
+
+  const resetUrl = buildAccountActionUrl(req, { resetToken: token });
+  const message = buildPasswordResetEmail(account, resetUrl);
+  const delivery = await sendAccountEmail({
+    to: account.email,
+    subject: message.subject,
+    text: message.text,
+    html: message.html,
+    tag: "password_reset",
+  });
+  return { token, url: resetUrl, delivery };
+}
+
+async function consumePasswordResetToken(redis, token) {
+  const tokenHash = hashSessionToken(token);
+  const key = keyPasswordReset(tokenHash);
+  const record = await redis.get(key);
+  await redis.del(key);
+  if (!record || typeof record !== "object") return null;
+  return {
+    accountId: String(record.accountId || ""),
+    email: normalizeEmail(record.email || ""),
+    expiresAt: String(record.expiresAt || ""),
+  };
+}
+
+async function createEmailVerificationToken(redis, account, req) {
+  const token = makeAccountActionToken();
+  const tokenHash = hashSessionToken(token);
+  const expiresAt = new Date(Date.now() + EMAIL_VERIFICATION_TTL_SECONDS * 1000).toISOString();
+  await redis.set(keyEmailVerification(tokenHash), {
+    accountId: account.id,
+    email: account.email,
+    createdAt: new Date().toISOString(),
+    expiresAt,
+  }, { ex: EMAIL_VERIFICATION_TTL_SECONDS });
+
+  const verificationUrl = buildAccountActionUrl(req, { verifyToken: token });
+  const message = buildVerificationEmail(account, verificationUrl);
+  const delivery = await sendAccountEmail({
+    to: account.email,
+    subject: message.subject,
+    text: message.text,
+    html: message.html,
+    tag: "email_verification",
+  });
+  return { token, url: verificationUrl, delivery };
+}
+
+async function consumeEmailVerificationToken(redis, token) {
+  const tokenHash = hashSessionToken(token);
+  const key = keyEmailVerification(tokenHash);
+  const record = await redis.get(key);
+  await redis.del(key);
+  if (!record || typeof record !== "object") return null;
+  return {
+    accountId: String(record.accountId || ""),
+    email: normalizeEmail(record.email || ""),
+    expiresAt: String(record.expiresAt || ""),
+  };
 }
 
 function getSessionToken(req) {
@@ -1219,6 +1463,7 @@ async function upsertOAuthAccount(redis, profile) {
       email,
       ...makePasswordRecord(randomBytes(32).toString("hex")),
       passwordSet: false,
+      emailVerifiedAt: new Date().toISOString(),
       authProviders: [],
       createdAt: new Date().toISOString(),
       characters: normalizeCharacters(),
@@ -1249,6 +1494,9 @@ async function upsertOAuthAccount(redis, profile) {
   account.authProviders = providers;
   if (!account.displayName) {
     account.displayName = sanitizeDisplayName(profile.displayName) || email.split("@")[0];
+  }
+  if (!account.emailVerifiedAt) {
+    account.emailVerifiedAt = new Date().toISOString();
   }
 
   return await saveAccount(redis, account);
@@ -1387,6 +1635,7 @@ async function handleAccountApiInternal(req, res, pathname) {
       displayName: input.displayName,
       email,
       ...makePasswordRecord(input.password),
+      emailVerifiedAt: "",
       createdAt: new Date().toISOString(),
       characters: normalizeCharacters(),
     };
@@ -1398,7 +1647,91 @@ async function handleAccountApiInternal(req, res, pathname) {
 
     await saveAccount(redis, account);
     await createSession(redis, account.id, req, res);
-    sendJson(res, 201, { account: toClientAccount(account) });
+    const verification = await createEmailVerificationToken(redis, account, req);
+    const payload = {
+      account: toClientAccount(account),
+      emailVerificationSent: verification.delivery.sent,
+    };
+    if (shouldExposeEmailDebugResponse()) {
+      payload.debug = { emailVerificationUrl: verification.url };
+    }
+    sendJson(res, 201, payload);
+    return;
+  }
+
+  if (method === "POST" && pathname === "/api/accounts/password-reset/request") {
+    const input = validatePasswordResetRequestBody(body);
+    await assertRateLimit(redis, "password-reset-ip", getClientIp(req), RATE_LIMITS.passwordResetIp);
+    await assertRateLimit(redis, "password-reset-email", input.email, RATE_LIMITS.passwordResetEmail);
+    const account = await getAccountByEmail(redis, input.email);
+    const payload = { ok: true };
+    if (account) {
+      const reset = await createPasswordResetToken(redis, account, req);
+      if (shouldExposeEmailDebugResponse()) {
+        payload.debug = { passwordResetUrl: reset.url };
+      }
+    }
+    sendJson(res, 200, payload);
+    return;
+  }
+
+  if (method === "POST" && pathname === "/api/accounts/password-reset/confirm") {
+    const input = validatePasswordResetConfirmBody(body);
+    const record = await consumePasswordResetToken(redis, input.token);
+    const expiresAt = record ? Date.parse(record.expiresAt) : NaN;
+    if (!record || !Number.isFinite(expiresAt) || expiresAt <= Date.now()) {
+      throw new HttpError(400, "Link de recuperação inválido ou expirado.");
+    }
+    const account = await getAccountById(redis, record.accountId);
+    if (!account || account.email !== record.email) {
+      throw new HttpError(400, "Link de recuperação inválido ou expirado.");
+    }
+
+    assertNewPasswordInput(input.password, [account.displayName, account.email]);
+    Object.assign(account, makePasswordRecord(input.password));
+    account.passwordSet = true;
+    await clearAccountSessions(redis, account.id);
+    await saveAccount(redis, account);
+    await createSession(redis, account.id, req, res);
+    sendJson(res, 200, { account: toClientAccount(account) });
+    return;
+  }
+
+  if (method === "POST" && pathname === "/api/accounts/email-verification/request") {
+    await assertRateLimit(redis, "email-verification-ip", getClientIp(req), RATE_LIMITS.emailVerificationIp);
+    const { account } = await requireAuthenticatedAccount(redis, req);
+    await assertRateLimit(redis, "email-verification-account", account.id, RATE_LIMITS.emailVerificationAccount);
+    const payload = { ok: true, emailVerified: Boolean(account.emailVerifiedAt) };
+    if (!account.emailVerifiedAt) {
+      const verification = await createEmailVerificationToken(redis, account, req);
+      payload.emailVerificationSent = verification.delivery.sent;
+      if (shouldExposeEmailDebugResponse()) {
+        payload.debug = { emailVerificationUrl: verification.url };
+      }
+    }
+    sendJson(res, 200, payload);
+    return;
+  }
+
+  if (method === "POST" && pathname === "/api/accounts/email-verification/confirm") {
+    const input = validateEmailVerificationConfirmBody(body);
+    const record = await consumeEmailVerificationToken(redis, input.token);
+    const expiresAt = record ? Date.parse(record.expiresAt) : NaN;
+    if (!record || !Number.isFinite(expiresAt) || expiresAt <= Date.now()) {
+      throw new HttpError(400, "Link de validação inválido ou expirado.");
+    }
+    const account = await getAccountById(redis, record.accountId);
+    if (!account || account.email !== record.email) {
+      throw new HttpError(400, "Link de validação inválido ou expirado.");
+    }
+
+    account.emailVerifiedAt = new Date().toISOString();
+    await saveAccount(redis, account);
+    const auth = await findAuthenticatedAccount(redis, req);
+    sendJson(res, 200, {
+      account: auth?.account?.id === account.id ? toClientAccount(account) : null,
+      emailVerified: true,
+    });
     return;
   }
 
@@ -1455,6 +1788,9 @@ async function handleAccountApiInternal(req, res, pathname) {
 
     account.displayName = nextName;
     account.email = nextEmail;
+    if (wantsEmailChange) {
+      account.emailVerifiedAt = "";
+    }
     let shouldRotateSession = false;
     if (wantsPasswordChange) {
       Object.assign(account, makePasswordRecord(input.newPassword));
@@ -1467,7 +1803,15 @@ async function handleAccountApiInternal(req, res, pathname) {
     if (shouldRotateSession) {
       await createSession(redis, account.id, req, res);
     }
-    sendJson(res, 200, { account: toClientAccount(account) });
+    const payload = { account: toClientAccount(account) };
+    if (wantsEmailChange) {
+      const verification = await createEmailVerificationToken(redis, account, req);
+      payload.emailVerificationSent = verification.delivery.sent;
+      if (shouldExposeEmailDebugResponse()) {
+        payload.debug = { emailVerificationUrl: verification.url };
+      }
+    }
+    sendJson(res, 200, payload);
     return;
   }
 

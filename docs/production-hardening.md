@@ -8,6 +8,8 @@ Este projeto pode rodar localmente sem muita cerimônia, mas publicação públi
 - Use Upstash Redis persistente em produção.
 - Defina `UPSTASH_REDIS_REST_URL` e `UPSTASH_REDIS_REST_TOKEN` somente no painel da Vercel ou no provedor de deploy.
 - Defina `ACCOUNT_PASSWORD_PEPPER` como um segredo longo e aleatório antes de criar contas reais, se quiser uma camada extra para hashes de senha.
+- Configure `RESEND_API_KEY`, `ACCOUNT_EMAIL_FROM` e, se necessário, `ACCOUNT_PUBLIC_BASE_URL` para recuperação de senha e validação de e-mail.
+- Nunca habilite `ACCOUNT_EMAIL_DEBUG_RESPONSE` em produção.
 - Não publique `.env.local`, dumps de Redis, `server-data/`, logs ou arquivos gerados em `out/`.
 - Rode `npm audit --omit=dev` antes do deploy.
 - Rode `npm test` antes de promover uma versão. Ele cobre validação estrutural, smoke DOM, conta/API e exportação PDF 5e/2024.

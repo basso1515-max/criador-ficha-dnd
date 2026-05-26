@@ -360,6 +360,32 @@
     var(--card);
 }
 
+.account-recovery-panel {
+  grid-column: 1 / -1;
+  min-height: 0;
+  margin-top: 14px;
+  border-radius: 18px;
+}
+
+.account-inline-link {
+  appearance: none;
+  width: fit-content;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.account-inline-link:hover,
+.account-inline-link:focus-visible {
+  color: #7a4d21;
+}
+
 .account-form-heading {
   display: grid;
   gap: 8px;
@@ -790,7 +816,7 @@
 
 .user-page-account-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
 }
 

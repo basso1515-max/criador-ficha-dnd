@@ -59,6 +59,7 @@ async function main() {
       HOST,
       PORT: String(serverPort),
       SERVER_DATA_DIR: tempDataDir,
+      ACCOUNT_EMAIL_DEBUG_RESPONSE: "1",
     },
     stdio: ["ignore", "pipe", "pipe"],
   });
@@ -69,6 +70,7 @@ async function main() {
   const email = `e2e-${Date.now()}@example.test`;
   const password = "SenhaE2E!123456";
   const nextPassword = "SenhaE2E!456789";
+  const resetPassword = "SenhaE2E!789012";
 
   assertCommunityStatsFallbackForOldSnapshots();
   await assertSecurityHeaders(baseUrl);
@@ -113,10 +115,24 @@ async function main() {
   });
   assert(registered.statusCode === 201, "Cadastro deveria retornar HTTP 201.");
   assert(registered.data.account?.email === email, "Cadastro não retornou a conta criada.");
+  assert(registered.data.account?.emailVerified === false, "Conta criada por senha deveria começar aguardando validação de e-mail.");
+  assert(registered.data.debug?.emailVerificationUrl, "Cadastro deveria gerar link de validação em modo debug.");
   assert(jar.header().includes("dnd_sheet_session="), "Cadastro não definiu cookie de sessão.");
+
+  const verificationToken = new URL(registered.data.debug.emailVerificationUrl).searchParams.get("verifyToken");
+  const verifiedAccount = await requestJson(baseUrl, "/api/accounts/email-verification/confirm", {
+    method: "POST",
+    jar,
+    body: {
+      token: verificationToken,
+    },
+  });
+  assert(verifiedAccount.data.emailVerified === true, "Validação de e-mail deveria confirmar ok.");
+  assert(verifiedAccount.data.account?.emailVerified === true, "Sessão atual deveria refletir e-mail validado.");
 
   const current = await requestJson(baseUrl, "/api/account/current", { jar });
   assert(current.data.account?.email === email, "Sessão autenticada não carregou a conta.");
+  assert(current.data.account?.emailVerified === true, "Conta validada deveria carregar como confirmada.");
 
   const rejectedUnexpectedField = await requestJson(baseUrl, "/api/account/current", {
     method: "PATCH",
@@ -347,6 +363,28 @@ async function main() {
     body: {},
   });
 
+  const passwordResetRequested = await requestJson(baseUrl, "/api/accounts/password-reset/request", {
+    method: "POST",
+    jar: new CookieJar(),
+    body: {
+      email,
+    },
+  });
+  assert(passwordResetRequested.data.ok === true, "Solicitação de recuperação deveria retornar ok.");
+  assert(passwordResetRequested.data.debug?.passwordResetUrl, "Recuperação deveria gerar link em modo debug.");
+
+  const resetToken = new URL(passwordResetRequested.data.debug.passwordResetUrl).searchParams.get("resetToken");
+  const resetJar = new CookieJar();
+  const passwordResetConfirmed = await requestJson(baseUrl, "/api/accounts/password-reset/confirm", {
+    method: "POST",
+    jar: resetJar,
+    body: {
+      token: resetToken,
+      password: resetPassword,
+    },
+  });
+  assert(passwordResetConfirmed.data.account?.email === email, "Redefinição deveria autenticar a conta.");
+
   const oldLogin = await requestJson(baseUrl, "/api/accounts/login", {
     method: "POST",
     jar: new CookieJar(),
@@ -358,27 +396,37 @@ async function main() {
   });
   assert(oldLogin.statusCode === 401, "Senha antiga ainda fez login.");
 
-  const newJar = new CookieJar();
-  const newLogin = await requestJson(baseUrl, "/api/accounts/login", {
+  const changedPasswordLogin = await requestJson(baseUrl, "/api/accounts/login", {
     method: "POST",
-    jar: newJar,
+    jar: new CookieJar(),
     body: {
       email,
       password: nextPassword,
     },
+    expectedStatus: 401,
   });
-  assert(newLogin.data.account?.email === email, "Senha nova não fez login.");
+  assert(changedPasswordLogin.statusCode === 401, "Senha trocada antes da recuperação ainda fez login.");
+
+  const resetLogin = await requestJson(baseUrl, "/api/accounts/login", {
+    method: "POST",
+    jar: resetJar,
+    body: {
+      email,
+      password: resetPassword,
+    },
+  });
+  assert(resetLogin.data.account?.email === email, "Senha redefinida não fez login.");
 
   const deletedAccount = await requestJson(baseUrl, "/api/account/current", {
     method: "DELETE",
-    jar: newJar,
+    jar: resetJar,
     body: {
-      password: nextPassword,
+      password: resetPassword,
     },
   });
   assert(deletedAccount.data.ok === true, "Exclusão de conta não confirmou ok.");
 
-  const afterDelete = await requestJson(baseUrl, "/api/account/current", { jar: newJar });
+  const afterDelete = await requestJson(baseUrl, "/api/account/current", { jar: resetJar });
   assert(afterDelete.data.account === null, "Conta excluída ainda aparece na sessão.");
 
   console.log("E2E de conta/API concluido com sucesso.");
@@ -388,11 +436,13 @@ async function main() {
     "política de senha nova",
     "validação estrita de payloads maliciosos",
     "cadastro e sessão",
+    "validação de e-mail por link",
     "salvamento e overwrite de personagem 5e",
     "migração duplicate e transfer para 5.5e",
     "estatísticas públicas anônimas",
     "exclusão de personagem",
     "atualização de perfil e senha",
+    "recuperação de senha por e-mail",
     "logout, login e exclusão de conta",
   ].forEach((line) => console.log(`OK: ${line}`));
 

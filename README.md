@@ -227,6 +227,19 @@ KV_REST_API_URL
 KV_REST_API_TOKEN
 ```
 
+### E-mails De Conta
+
+Recuperação de senha e validação de conta usam links enviados por e-mail. O envio é feito pela API HTTP do Resend; configure:
+
+```text
+RESEND_API_KEY
+ACCOUNT_EMAIL_FROM
+ACCOUNT_EMAIL_NAME
+ACCOUNT_PUBLIC_BASE_URL
+```
+
+`ACCOUNT_PUBLIC_BASE_URL` é opcional e define a URL pública usada nos links. Sem `RESEND_API_KEY` ou remetente, o cadastro e a recuperação continuam funcionando, mas o servidor apenas registra aviso nos logs. `ACCOUNT_EMAIL_DEBUG_RESPONSE=1` existe só para testes locais e não deve ser usado em produção.
+
 ### Login Social
 
 O app também oferece login com Google, Apple e Facebook via OAuth. Configure, no painel de cada provedor, a URL de callback:

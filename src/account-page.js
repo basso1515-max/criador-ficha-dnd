@@ -1,11 +1,14 @@
 import {
   ACCOUNT_LIMIT_PER_EDITION,
+  confirmEmailVerification,
+  confirmPasswordReset,
   getAccountCounts,
   getCurrentUser,
   hydrateAccountStorage,
   loginAccount,
   logoutAccount,
   registerAccount,
+  requestPasswordReset,
 } from "./account-storage.js";
 import { MIN_NEW_PASSWORD_LENGTH } from "./shared/password-policy.js";
 
@@ -19,6 +22,9 @@ const el = {
   logoutButton: document.getElementById("accountLogoutButton"),
   authSection: document.getElementById("accountAuthSection"),
   loginForm: document.getElementById("accountLoginForm"),
+  forgotPasswordToggle: document.getElementById("accountForgotPasswordToggle"),
+  forgotPasswordForm: document.getElementById("accountForgotPasswordForm"),
+  resetPasswordForm: document.getElementById("accountResetPasswordForm"),
   registerForm: document.getElementById("accountRegisterForm"),
   registerPassword: document.getElementById("accountRegisterPassword"),
   registerPasswordStrengthBar: document.getElementById("accountRegisterPasswordStrengthBar"),
@@ -99,6 +105,38 @@ function completeAuth(message, redirectTo) {
   }
 }
 
+function setPasswordRecoveryOpen(open) {
+  if (!el.forgotPasswordForm || !el.forgotPasswordToggle) return;
+  el.forgotPasswordForm.hidden = !open;
+  el.forgotPasswordToggle.setAttribute("aria-expanded", String(open));
+  if (open) {
+    const loginEmail = el.loginForm?.elements.email?.value || "";
+    if (el.forgotPasswordForm.elements.email && !el.forgotPasswordForm.elements.email.value) {
+      el.forgotPasswordForm.elements.email.value = loginEmail;
+    }
+    el.forgotPasswordForm.elements.email?.focus();
+  }
+}
+
+function showResetPasswordForm(token) {
+  if (!el.resetPasswordForm) return;
+  if (el.authSection) el.authSection.hidden = false;
+  el.resetPasswordForm.hidden = false;
+  el.resetPasswordForm.elements.token.value = token;
+  el.loginForm?.setAttribute("aria-hidden", "true");
+  el.registerForm?.setAttribute("aria-hidden", "true");
+  if (el.loginForm) el.loginForm.hidden = true;
+  if (el.registerForm) el.registerForm.hidden = true;
+  setPasswordRecoveryOpen(false);
+  el.resetPasswordForm.elements.password?.focus();
+}
+
+function clearAccountActionParams() {
+  const url = new URL(window.location.href);
+  ["resetToken", "verifyToken"].forEach((key) => url.searchParams.delete(key));
+  window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
+}
+
 function getAuthRedirect(fallbackPage) {
   return returnTo || fallbackPage;
 }
@@ -130,6 +168,30 @@ function renderOAuthStatusFromUrl() {
     : "Login social";
   const message = OAUTH_ERROR_MESSAGES[errorCode] || OAUTH_ERROR_MESSAGES["callback-failed"];
   setStatus(`${providerLabel}: ${message}`, "warning");
+}
+
+async function handleAccountActionParams() {
+  const params = new URLSearchParams(window.location.search);
+  const resetToken = params.get("resetToken");
+  const verifyToken = params.get("verifyToken");
+
+  if (resetToken) {
+    showResetPasswordForm(resetToken);
+    setStatus("Defina uma nova senha para concluir a recuperação.", "info");
+    return;
+  }
+
+  if (!verifyToken) return;
+
+  try {
+    await confirmEmailVerification({ token: verifyToken });
+    clearAccountActionParams();
+    renderAccountPage();
+    setStatus("Conta validada. Seu e-mail foi confirmado.", "success");
+  } catch (error) {
+    clearAccountActionParams();
+    setStatus(error?.message || "Não foi possível validar a conta.", "warning");
+  }
 }
 
 async function updateOAuthProviderAvailability() {
@@ -211,6 +273,49 @@ el.loginForm?.addEventListener("submit", async (event) => {
   }
 });
 
+el.forgotPasswordToggle?.addEventListener("click", () => {
+  setPasswordRecoveryOpen(el.forgotPasswordForm?.hidden !== false);
+});
+
+el.forgotPasswordForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const formData = new FormData(el.forgotPasswordForm);
+
+  try {
+    await requestPasswordReset({ email: formData.get("email") });
+    el.forgotPasswordForm.reset();
+    setPasswordRecoveryOpen(false);
+    setStatus("Se este e-mail estiver cadastrado, enviaremos um link de recuperação.", "success");
+  } catch (error) {
+    setStatus(error?.message || "Não foi possível solicitar a recuperação.", "warning");
+  }
+});
+
+el.resetPasswordForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const formData = new FormData(el.resetPasswordForm);
+  const password = String(formData.get("password") || "");
+  const confirmPassword = String(formData.get("confirmPassword") || "");
+
+  if (password !== confirmPassword) {
+    setStatus("A confirmação da nova senha não confere.", "warning");
+    el.resetPasswordForm.elements.confirmPassword?.focus();
+    return;
+  }
+
+  try {
+    await confirmPasswordReset({
+      token: formData.get("token"),
+      password,
+    });
+    clearAccountActionParams();
+    el.resetPasswordForm.reset();
+    completeAuth("Senha redefinida. Redirecionando para sua página.", LOGIN_SUCCESS_PAGE);
+  } catch (error) {
+    setStatus(error?.message || "Não foi possível redefinir a senha.", "warning");
+  }
+});
+
 el.registerForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
   const formData = new FormData(el.registerForm);
@@ -232,7 +337,7 @@ el.registerForm?.addEventListener("submit", async (event) => {
     el.registerForm.reset();
     updateRegisterPasswordStrength();
     completeAuth(
-      getAuthRedirectMessage("Conta criada", "Conta criada. Redirecionando para a página inicial."),
+      getAuthRedirectMessage("Conta criada. Enviamos um link para validar seu e-mail", "Conta criada. Enviamos um link para validar seu e-mail."),
       getAuthRedirect(REGISTER_SUCCESS_PAGE)
     );
   } catch (error) {
@@ -251,5 +356,6 @@ el.logoutButton?.addEventListener("click", async () => {
 await hydrateAccountStorage();
 renderAccountPage();
 renderOAuthStatusFromUrl();
+await handleAccountActionParams();
 await updateOAuthProviderAvailability();
 updateRegisterPasswordStrength();

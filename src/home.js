@@ -5,6 +5,7 @@ import {
   listCharactersForCurrentUser,
   loginAccount,
   logoutAccount,
+  requestPasswordReset,
 } from "./account-storage.js";
 
 const el = {
@@ -13,6 +14,9 @@ const el = {
   popup: document.getElementById("homeAccountPopup"),
   authPanel: document.getElementById("homeAuthPanel"),
   loginForm: document.getElementById("homeLoginForm"),
+  forgotPasswordToggle: document.getElementById("homeForgotPasswordToggle"),
+  forgotPasswordForm: document.getElementById("homeForgotPasswordForm"),
+  forgotPasswordEmail: document.getElementById("homeForgotPasswordEmail"),
   oauthLinks: Array.from(document.querySelectorAll("[data-home-oauth-provider]")),
   userPanel: document.getElementById("homeUserPanel"),
   accountName: document.getElementById("homeAccountName"),
@@ -50,6 +54,19 @@ function renderHomeAccount() {
   if (el.count5e) el.count5e.textContent = `${saves5e}/${ACCOUNT_LIMIT_PER_EDITION}`;
   if (el.count2024) el.count2024.textContent = `${saves2024}/${ACCOUNT_LIMIT_PER_EDITION}`;
   updateHomeOAuthLinks();
+}
+
+function setForgotPasswordOpen(open) {
+  if (!el.forgotPasswordForm || !el.forgotPasswordToggle) return;
+  el.forgotPasswordForm.hidden = !open;
+  el.forgotPasswordToggle.setAttribute("aria-expanded", String(open));
+  if (open) {
+    const loginEmail = el.loginForm?.elements.email?.value || "";
+    if (el.forgotPasswordEmail && !el.forgotPasswordEmail.value) {
+      el.forgotPasswordEmail.value = loginEmail;
+    }
+    el.forgotPasswordEmail?.focus();
+  }
 }
 
 function updateHomeOAuthLinks() {
@@ -102,6 +119,24 @@ el.loginForm?.addEventListener("submit", async (event) => {
     setStatus("Conta acessada.", "success");
   } catch (error) {
     setStatus(error?.message || "Não foi possível entrar na conta.", "warning");
+  }
+});
+
+el.forgotPasswordToggle?.addEventListener("click", () => {
+  setForgotPasswordOpen(el.forgotPasswordForm?.hidden !== false);
+});
+
+el.forgotPasswordForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const formData = new FormData(el.forgotPasswordForm);
+
+  try {
+    await requestPasswordReset({ email: formData.get("email") });
+    el.forgotPasswordForm.reset();
+    setForgotPasswordOpen(false);
+    setStatus("Se este e-mail estiver cadastrado, enviaremos um link de recuperação.", "success");
+  } catch (error) {
+    setStatus(error?.message || "Não foi possível solicitar a recuperação.", "warning");
   }
 });
 

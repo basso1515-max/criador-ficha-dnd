@@ -93,7 +93,45 @@
           <input name="password" type="password" autocomplete="current-password" maxlength="256" required />
         </label>
 
+        <button id="accountForgotPasswordToggle" type="button" class="account-inline-link" aria-controls="accountForgotPasswordForm" aria-expanded="false">Esqueci minha senha</button>
         <button type="submit" class="primary account-submit-button">Entrar</button>
+      </form>
+
+      <form id="accountForgotPasswordForm" class="account-form-panel account-recovery-panel" method="post" hidden>
+        <div class="account-form-heading">
+          <span>Recuperação</span>
+          <h2>Esqueci minha senha</h2>
+          <p>Digite o e-mail da conta para receber um link seguro de redefinição.</p>
+        </div>
+
+        <label class="row">
+          <span>E-mail</span>
+          <input name="email" type="email" autocomplete="email" maxlength="254" required />
+        </label>
+
+        <button type="submit" class="secondary-button account-submit-button">Enviar link</button>
+      </form>
+
+      <form id="accountResetPasswordForm" class="account-form-panel account-recovery-panel" method="post" hidden>
+        <div class="account-form-heading">
+          <span>Nova senha</span>
+          <h2>Redefinir senha</h2>
+          <p>Escolha uma nova senha para concluir a recuperação.</p>
+        </div>
+
+        <input name="token" type="hidden" />
+
+        <label class="row">
+          <span>Nova senha</span>
+          <input name="password" type="password" autocomplete="new-password" minlength="6" maxlength="256" required />
+        </label>
+
+        <label class="row">
+          <span>Confirmar nova senha</span>
+          <input name="confirmPassword" type="password" autocomplete="new-password" minlength="6" maxlength="256" required />
+        </label>
+
+        <button type="submit" class="primary account-submit-button">Redefinir senha</button>
       </form>
 
       <form id="accountRegisterForm" class="account-form-panel account-register-panel" method="post">
