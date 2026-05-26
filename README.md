@@ -243,7 +243,7 @@ Use `ACCOUNT_EMAIL_NAME=Sheetify` para que remetente e assuntos dos e-mails de c
 
 ### Login Social
 
-O app também oferece login com Google, Apple e Facebook via OAuth. Configure, no painel de cada provedor, a URL de callback:
+O app também oferece login com Google e Facebook via OAuth. Configure, no painel de cada provedor, a URL de callback:
 
 ```text
 http://127.0.0.1:8000/api/accounts/oauth/callback
@@ -260,13 +260,9 @@ GOOGLE_OAUTH_CLIENT_SECRET
 FACEBOOK_OAUTH_CLIENT_ID
 FACEBOOK_OAUTH_CLIENT_SECRET
 FACEBOOK_GRAPH_VERSION
-APPLE_OAUTH_CLIENT_ID
-APPLE_OAUTH_TEAM_ID
-APPLE_OAUTH_KEY_ID
-APPLE_OAUTH_PRIVATE_KEY
 ```
 
-Para Apple, `APPLE_OAUTH_CLIENT_ID` é o Services ID. A chave privada pode ficar em uma linha usando `\n` para quebras de linha.
+Na página do usuário, provedores sociais vinculados podem ser desvinculados com segurança. Contas com senha precisam confirmar a senha atual; contas somente sociais só podem remover um provedor se outro provedor social permanecer ativo ou depois de definir uma senha.
 
 ## Deploy Na Vercel
 
@@ -301,6 +297,7 @@ As telas consomem estas rotas:
 - `/api/accounts/oauth/start`
 - `/api/accounts/oauth/callback`
 - `/api/accounts/oauth/providers`
+- `/api/account/current/auth-providers`
 - `/api/characters`
 - `/api/community-stats`
 
