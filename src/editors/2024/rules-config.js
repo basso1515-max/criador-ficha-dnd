@@ -272,9 +272,9 @@ export const SPELLCASTING_RULES_2024 = {
     preparedByLevel: PREPARED_HALF_SPELLS_2024,
     selectionLabel: "Magias preparadas",
   },
-  patrulheiro: {
+  guardiao: {
     kind: "prepared",
-    sourceClassId: "patrulheiro",
+    sourceClassId: "guardiao",
     ability: "sab",
     multiclassProgression: "half-up",
     slotTable: SLOT_TABLES_2024.half,
@@ -324,7 +324,7 @@ export const MULTICLASS_PREREQUISITES_2024 = {
   mago: { mode: "all", checks: [{ attr: "int", min: 13 }] },
   monge: { mode: "all", checks: [{ attr: "des", min: 13 }, { attr: "sab", min: 13 }] },
   paladino: { mode: "all", checks: [{ attr: "for", min: 13 }, { attr: "car", min: 13 }] },
-  patrulheiro: { mode: "all", checks: [{ attr: "des", min: 13 }, { attr: "sab", min: 13 }] },
+  guardiao: { mode: "all", checks: [{ attr: "des", min: 13 }, { attr: "sab", min: 13 }] },
 };
 
 export const MULTICLASS_PROFICIENCIES_2024 = {
@@ -394,11 +394,11 @@ export const MULTICLASS_PROFICIENCIES_2024 = {
     ferramentas: [],
     skillChoice: null,
   },
-  patrulheiro: {
+  guardiao: {
     armaduras: ["leve", "media", "escudo"],
     armas: ["marcial"],
     ferramentas: [],
-    skillChoice: { picks: 1, from: (CLASSES_2024?.patrulheiro?.proficiencias?.periciasEscolha?.from || []) },
+    skillChoice: { picks: 1, from: (CLASSES_2024?.guardiao?.proficiencias?.periciasEscolha?.from || []) },
   },
 };
 

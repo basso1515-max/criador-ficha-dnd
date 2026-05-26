@@ -18,7 +18,7 @@ export const STANDARD_ABILITY_SET_BY_CLASS_2024 = {
   clerigo: { for: 14, des: 8, con: 13, int: 10, sab: 15, car: 12 },
   druida: { for: 8, des: 12, con: 14, int: 13, sab: 15, car: 10 },
   feiticeiro: { for: 10, des: 13, con: 14, int: 8, sab: 12, car: 15 },
-  patrulheiro: { for: 12, des: 15, con: 13, int: 8, sab: 14, car: 10 },
+  guardiao: { for: 12, des: 15, con: 13, int: 8, sab: 14, car: 10 },
   guerreiro: { for: 15, des: 14, con: 13, int: 8, sab: 10, car: 12 },
   ladino: { for: 12, des: 15, con: 13, int: 14, sab: 10, car: 8 },
   mago: { for: 8, des: 12, con: 13, int: 15, sab: 14, car: 10 },

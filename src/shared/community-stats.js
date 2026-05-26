@@ -20,7 +20,12 @@ const MAX_EVENT_ITEMS = 12;
 
 const CATALOGS = {
   "5e": buildCatalog(CLASSES_5E, MAGIAS_5E, ARMAS_5E),
-  "5.5e-2024": buildCatalog(CLASSES_2024, MAGIAS_2024, ARMAS_2024),
+  "5.5e-2024": buildCatalog(CLASSES_2024, MAGIAS_2024, ARMAS_2024, {
+    classAliases: [
+      ["patrulheiro", "guardiao"],
+      ["ranger", "guardiao"],
+    ],
+  }),
 };
 
 const GLOBAL_SPELLS = buildGlobalIndex("spells");
@@ -304,16 +309,18 @@ export function normalizeCounterMap(value) {
   }, {});
 }
 
-function buildCatalog(classes, spells, weapons) {
+function buildCatalog(classes, spells, weapons, options = {}) {
   const classRecords = listRecords(classes).filter((item) => item?.id && item?.nome);
   const spellRecords = collectSpellRecords(spells).filter((item) => item?.id && item?.nome);
   const weaponRecords = listRecords(weapons).filter((item) => item?.id && item?.nome);
+  const classLookup = buildLookup(classRecords, (item) => ({
+    id: item.id,
+    label: item.nome,
+  }));
+  addLookupAliases(classLookup, options.classAliases || []);
 
   return {
-    classes: buildLookup(classRecords, (item) => ({
-      id: item.id,
-      label: item.nome,
-    })),
+    classes: classLookup,
     spells: buildLookup(spellRecords, (item) => ({
       id: item.id,
       label: item.nome,
@@ -324,6 +331,13 @@ function buildCatalog(classes, spells, weapons) {
       label: item.nome,
     }), { includePluralAlias: true }),
   };
+}
+
+function addLookupAliases(lookup, aliases = []) {
+  aliases.forEach(([alias, canonicalId]) => {
+    const target = lookup?.byId?.get(canonicalId);
+    if (alias && target) lookup.byLookup.set(normalizeLookupKey(alias), target);
+  });
 }
 
 function buildGlobalIndex(kind) {

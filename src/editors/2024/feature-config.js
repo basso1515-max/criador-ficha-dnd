@@ -137,8 +137,8 @@ export const COMPANION_CHOICE_DEFINITIONS_2024 = [
   {
     id: "primal-companion",
     kind: "subclass",
-    classId: "patrulheiro",
-    subclassId: "patrulheiro-mestre-feras",
+    classId: "guardiao",
+    subclassId: "guardiao-mestre-feras",
     minClassLevel: 3,
     featureLabel: "Companheiro Primal",
     selectionLabel: "Fera primal",
@@ -535,7 +535,7 @@ export const FEATURE_CHOICE_DEFINITIONS_2024 = {
         options: BATTLE_MASTER_MANEUVERS_2024,
       },
     ],
-    "patrulheiro-cacador": [
+    "guardiao-cacador": [
       {
         id: "hunter-prey",
         minLevel: 3,
