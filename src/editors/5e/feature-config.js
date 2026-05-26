@@ -1019,18 +1019,6 @@ export const RACIAL_SPELL_SOURCE_DEFINITIONS = {
     ],
   },
   subrace: {
-    "tiferino-infernal": [
-      {
-        sourceKeySuffix: "magia-infernal",
-        featureLabel: "Magia Infernal",
-        ability: "car",
-        unlocks: {
-          1: ["taumaturgia"],
-          3: ["repreensao-infernal"],
-          5: ["escuridao"],
-        },
-      },
-    ],
     "elfo-alto": [
       {
         sourceKeySuffix: "truque",

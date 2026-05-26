@@ -1057,20 +1057,6 @@ export const SUBRACAS = {
         }
     ],
   },
-
-  "tiferino-infernal": {
-    id: "tiferino-infernal",
-    base: "tiferino",
-    nome: "Tiferino Infernal",
-    nomeEN: "Infernal Tiefling",
-    tracos: [
-        { id: 
-          "magia-infernal", 
-          nome: "Magia Infernal", 
-          resumo: "Truque: Taumaturgia; N3: Repreensão Infernal 1/Desc. Longo; N5: Escuridão 1/Desc. Longo. Carisma é a habilidade de conjuração." 
-        }
-    ],
-  },
 };
 
 Object.assign(RACAS, {
@@ -2458,11 +2444,6 @@ const PERFIS_FISICOS_SUBRACIAIS = {
   "draconato-vermelho": {
     olhos: "vermelho-âmbar ou dourado",
     pele: "escamas vermelhas, carmesim ou cobre queimado",
-  },
-  "tiferino-infernal": {
-    olhos: "vermelhos, dourados ou totalmente negros",
-    pele: "carmesim, vinho, púrpura ou azul-acinzentada",
-    cabelo: "preto, vermelho escuro ou azul-escuro",
   },
 };
 

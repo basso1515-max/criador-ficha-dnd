@@ -4,6 +4,7 @@ import path from "node:path";
 import { CLASSES as CLASSES_5E } from "../src/data/5e/classes.js";
 import { MAGIAS as MAGIAS_5E } from "../src/data/5e/magias.js";
 import { SUBCLASSES as SUBCLASSES_5E } from "../src/data/5e/subclasses.js";
+import { RACAS as RACAS_5E, SUBRACAS as SUBRACAS_5E } from "../src/data/5e/racas.js";
 import { ARMAS as ARMAS_5E } from "../src/data/5e/armas.js";
 import { ARMADURAS as ARMADURAS_5E } from "../src/data/5e/armaduras.js";
 import {
@@ -13,6 +14,7 @@ import {
 import { CLASSES as CLASSES_2024 } from "../src/data/5.5e/classes.js";
 import { MAGIAS as MAGIAS_2024 } from "../src/data/5.5e/magias.js";
 import { SUBCLASSES as SUBCLASSES_2024 } from "../src/data/5.5e/subclasses.js";
+import { RACAS as RACAS_2024, SUBRACAS as SUBRACAS_2024 } from "../src/data/5.5e/racas.js";
 import { ARMAS as ARMAS_2024 } from "../src/data/5.5e/armas.js";
 import { ARMADURAS as ARMADURAS_2024 } from "../src/data/5.5e/armaduras.js";
 import {
@@ -32,6 +34,7 @@ import {
   RANGER_NATURAL_EXPLORER_BY_LEVEL_5E,
   RANGER_NATURAL_EXPLORER_OPTIONS_5E,
 } from "../src/data/subclass-learned-options.js";
+import { RACIAL_SPELL_SOURCE_DEFINITIONS } from "../src/editors/5e/feature-config.js";
 
 const root = process.cwd();
 const requiredFiles = [
@@ -315,6 +318,111 @@ function validateClassSubclassRefs(edition, classes, subclasses, errors) {
   });
 }
 
+function getSubraceParentId(subrace) {
+  return subrace?.race || subrace?.base || "";
+}
+
+function isAllowedSharedSubraceParent(edition, raceId, parentId) {
+  return edition === "5e" && raceId === "humano-variante" && parentId === "humano";
+}
+
+function collectListedSubraceIds(races) {
+  return new Set(
+    listRecords(races).flatMap((race) => Array.isArray(race?.subracas) ? race.subracas : []),
+  );
+}
+
+function validateRaceSubraceRefs(edition, races, subraces, errors) {
+  const raceIds = new Set(listRecords(races).map((race) => race.id));
+  const subraceById = new Map(listRecords(subraces).map((subrace) => [subrace.id, subrace]));
+  const listedSubraceIds = collectListedSubraceIds(races);
+
+  listRecords(races).forEach((race) => {
+    (race.subracas || []).forEach((subraceId) => {
+      const subrace = subraceById.get(subraceId);
+      if (!subrace) {
+        errors.push(`${edition}: ${race.id} referencia sub-raca ausente (${subraceId}).`);
+        return;
+      }
+
+      const parentId = getSubraceParentId(subrace);
+      if (!parentId) {
+        errors.push(`${edition}: sub-raca ${subrace.id} sem race/base.`);
+      } else if (parentId !== race.id && !isAllowedSharedSubraceParent(edition, race.id, parentId)) {
+        errors.push(`${edition}: ${race.id} lista ${subrace.id}, mas parent=${parentId}.`);
+      }
+    });
+  });
+
+  subraceById.forEach((subrace) => {
+    const parentId = getSubraceParentId(subrace);
+    if (!raceIds.has(parentId)) {
+      errors.push(`${edition}: sub-raca ${subrace.id} referencia raca ausente (${parentId || "sem parent"}).`);
+    }
+    if (!listedSubraceIds.has(subrace.id)) {
+      errors.push(`${edition}: sub-raca ${subrace.id} nao aparece em nenhum seletor de raca.`);
+    }
+  });
+}
+
+function collectConfiguredSpellIds(definition) {
+  const ids = [];
+
+  (definition?.grantedSpellIds || []).forEach((spellId) => ids.push(spellId));
+  Object.values(definition?.unlocks || {}).forEach((spellIds) => {
+    (spellIds || []).forEach((spellId) => ids.push(spellId));
+  });
+
+  return ids;
+}
+
+function validateRacialSpellSourceRefs(edition, races, subraces, classes, spells, sourceDefinitions, errors) {
+  if (!sourceDefinitions) return;
+
+  const raceIds = new Set(listRecords(races).map((race) => race.id));
+  const subraceIds = new Set(listRecords(subraces).map((subrace) => subrace.id));
+  const listedSubraceIds = collectListedSubraceIds(races);
+  const classIds = new Set(listRecords(classes).map((classe) => classe.id));
+  const spellIds = collectSpellIds(spells);
+
+  Object.entries(sourceDefinitions.race || {}).forEach(([raceId, definitions]) => {
+    if (!raceIds.has(raceId)) {
+      errors.push(`${edition}: magia racial referencia raca ausente (${raceId}).`);
+    }
+
+    (definitions || []).forEach((definition) => {
+      if (definition.sourceClassId && !classIds.has(definition.sourceClassId)) {
+        errors.push(`${edition}: magia racial de ${raceId} referencia classe ausente (${definition.sourceClassId}).`);
+      }
+      collectConfiguredSpellIds(definition).forEach((spellId) => {
+        if (!spellIds.has(spellId)) {
+          errors.push(`${edition}: magia racial de ${raceId} referencia magia ausente (${spellId}).`);
+        }
+      });
+    });
+  });
+
+  Object.entries(sourceDefinitions.subrace || {}).forEach(([subraceId, definitions]) => {
+    if (!subraceIds.has(subraceId)) {
+      errors.push(`${edition}: magia racial referencia sub-raca ausente (${subraceId}).`);
+    }
+    if (!listedSubraceIds.has(subraceId)) {
+      errors.push(`${edition}: magia racial referencia sub-raca fora dos seletores (${subraceId}).`);
+    }
+
+    (definitions || []).forEach((definition) => {
+      if (definition.sourceClassId && !classIds.has(definition.sourceClassId)) {
+        errors.push(`${edition}: magia racial de ${subraceId} referencia classe ausente (${definition.sourceClassId}).`);
+      }
+      collectConfiguredSpellIds(definition).forEach((spellId) => {
+        if (!spellIds.has(spellId)) {
+          errors.push(`${edition}: magia racial de ${subraceId} referencia magia ausente (${spellId}).`);
+        }
+      });
+    });
+  });
+}
+
 function validateEditionBoundary(edition, subclasses, expectedSource, errors) {
   listRecords(subclasses).forEach((subclass) => {
     const source = String(subclass.fonte || "").trim().toUpperCase();
@@ -334,6 +442,10 @@ function validateCatalogReferenceIntegrity() {
       edition: "5e",
       classes: CLASSES_5E,
       subclasses: SUBCLASSES_5E,
+      races: RACAS_5E,
+      subraces: SUBRACAS_5E,
+      spells: MAGIAS_5E,
+      racialSpellSourceDefinitions: RACIAL_SPELL_SOURCE_DEFINITIONS,
       weapons: ARMAS_5E,
       armors: ARMADURAS_5E,
       classEquipmentRules: CLASS_EQUIPMENT_RULES_5E,
@@ -343,6 +455,9 @@ function validateCatalogReferenceIntegrity() {
       edition: "2024",
       classes: CLASSES_2024,
       subclasses: SUBCLASSES_2024,
+      races: RACAS_2024,
+      subraces: SUBRACAS_2024,
+      spells: MAGIAS_2024,
       weapons: ARMAS_2024,
       armors: ARMADURAS_2024,
       classEquipmentRules: CLASS_EQUIPMENT_RULES_2024,
@@ -354,6 +469,16 @@ function validateCatalogReferenceIntegrity() {
     validateCatalogKeyIds(dataset.edition, "arma", dataset.weapons, errors);
     validateCatalogKeyIds(dataset.edition, "armadura", dataset.armors, errors);
     validateClassSubclassRefs(dataset.edition, dataset.classes, dataset.subclasses, errors);
+    validateRaceSubraceRefs(dataset.edition, dataset.races, dataset.subraces, errors);
+    validateRacialSpellSourceRefs(
+      dataset.edition,
+      dataset.races,
+      dataset.subraces,
+      dataset.classes,
+      dataset.spells,
+      dataset.racialSpellSourceDefinitions,
+      errors,
+    );
     validateEditionBoundary(dataset.edition, dataset.subclasses, "PHB24", errors);
 
     const weaponIds = new Set(listRecords(dataset.weapons).map((item) => item.id));
