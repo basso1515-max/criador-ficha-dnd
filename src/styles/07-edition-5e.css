@@ -1289,6 +1289,7 @@ html:not([data-theme="dark"]) body[data-active-screen="5.5e-2024"] .level-up-hov
   padding: 0;
   border: 1px solid rgba(90, 62, 36, 0.26);
   border-radius: 999px;
+  overflow: hidden;
   background:
     radial-gradient(circle at 34% 22%, rgba(255, 250, 230, 0.74), rgba(255, 250, 230, 0) 36%),
     rgba(255, 250, 238, 0.9);
@@ -1329,6 +1330,15 @@ html:not([data-theme="dark"]) body[data-active-screen="5.5e-2024"] .level-up-hov
   transform: rotate(var(--theme-icon-spin));
   transform-origin: center;
   transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.theme-toggle-icon,
+.theme-morph,
+.theme-morph-moon,
+.theme-morph-sun,
+.theme-morph-auto,
+.theme-toggle-text {
+  pointer-events: none;
 }
 
 .theme-morph {
