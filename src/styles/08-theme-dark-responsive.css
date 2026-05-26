@@ -351,6 +351,44 @@ html[data-theme="dark"] .edition-pill {
   color: #f4bf73;
 }
 
+html[data-theme="dark"] .home-brand-lockup::before {
+  background: linear-gradient(90deg, rgba(255, 154, 118, 0.58), rgba(96, 212, 190, 0.42), transparent);
+}
+
+html[data-theme="dark"] .home-brand-d20 {
+  filter: drop-shadow(0 18px 26px rgba(0, 0, 0, 0.42));
+}
+
+html[data-theme="dark"] .home-brand-d20::before {
+  border-color: rgba(244, 191, 115, 0.24);
+}
+
+html[data-theme="dark"] .home-brand-d20-face {
+  fill: #9c5134;
+  stroke: rgba(255, 232, 196, 0.82);
+}
+
+html[data-theme="dark"] .home-brand-d20-face-center {
+  fill: #d15b48;
+}
+
+html[data-theme="dark"] .home-brand-d20-num {
+  fill: #fff0d4;
+}
+
+html[data-theme="dark"] .home-brand-name {
+  color: #f4bf73;
+  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.32);
+}
+
+html[data-theme="dark"] .home-brand-name span:last-child {
+  color: #60d4be;
+}
+
+html[data-theme="dark"] .home-brand-tagline {
+  color: #ff9a76;
+}
+
 html[data-theme="dark"] .level-up-dialog {
   border-color: rgba(255, 255, 255, 0.08);
   background:

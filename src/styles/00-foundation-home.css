@@ -171,6 +171,135 @@ fieldset,
   stroke-linejoin: round;
 }
 
+.home-brand-lockup {
+  position: relative;
+  isolation: isolate;
+  display: inline-grid;
+  grid-template-columns: clamp(74px, 10vw, 112px) minmax(0, auto);
+  align-items: center;
+  gap: clamp(12px, 2vw, 20px);
+  width: fit-content;
+  max-width: 100%;
+  margin-bottom: 2px;
+}
+
+.home-brand-lockup::before {
+  content: "";
+  position: absolute;
+  left: clamp(60px, 8vw, 96px);
+  right: clamp(-12px, -1vw, -4px);
+  bottom: clamp(4px, 1vw, 10px);
+  z-index: -1;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(127, 37, 31, 0.48), rgba(45, 90, 82, 0.34), transparent);
+  transform: rotate(-2deg);
+}
+
+.home-brand-d20 {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: clamp(74px, 10vw, 112px);
+  min-width: 74px;
+  aspect-ratio: 1;
+  filter: drop-shadow(0 16px 22px rgba(70, 42, 18, 0.24));
+}
+
+.home-brand-d20::before {
+  content: "";
+  position: absolute;
+  inset: 11%;
+  border: 1px solid rgba(127, 37, 31, 0.32);
+  transform: rotate(45deg);
+}
+
+.home-brand-d20-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  transform-origin: 50% 50%;
+  animation: home-brand-d20-poise 7s ease-in-out infinite;
+  transition: transform 180ms ease;
+}
+
+.home-brand-lockup:hover .home-brand-d20-svg {
+  transform: rotate(-2deg) translateY(-2px) scale(1.02);
+}
+
+.home-brand-d20-face {
+  fill: #a65f38;
+  stroke: rgba(255, 244, 220, 0.96);
+  stroke-width: 16;
+  stroke-linejoin: round;
+}
+
+.home-brand-d20-face-center {
+  fill: #7f251f;
+}
+
+.home-brand-d20-num {
+  fill: #fff4dc;
+  font-family: "Libre Baskerville", Georgia, serif;
+  font-weight: 700;
+  text-anchor: middle;
+  dominant-baseline: middle;
+}
+
+.home-brand-d20-num-big {
+  fill: #fff8e9;
+  font-size: 92px;
+}
+
+.home-brand-d20-num-mid {
+  font-size: 48px;
+}
+
+.home-brand-d20-num-small {
+  font-size: 28px;
+}
+
+.home-brand-d20-num-bottom {
+  fill: #ffe6b8;
+}
+
+.home-brand-copy {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.home-brand-name,
+.home-brand-tagline {
+  margin: 0;
+}
+
+.home-brand-name {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  color: #5c251a;
+  font-family: "Cinzel", "Libre Baskerville", Georgia, serif;
+  font-size: clamp(48px, 7.2vw, 88px);
+  font-weight: 700;
+  line-height: 0.9;
+  text-shadow: 0 2px 0 rgba(255, 249, 231, 0.8);
+}
+
+.home-brand-name span:last-child {
+  color: #2d5a52;
+}
+
+.home-brand-tagline {
+  color: #7f251f;
+  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: clamp(12px, 1.35vw, 15px);
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  line-height: 1.35;
+  text-transform: uppercase;
+}
+
 .version-kicker,
 .version-option-tag,
 .version-badge {
@@ -770,4 +899,60 @@ fieldset,
 
 .edition-beta-grid {
   align-items: start;
+}
+
+@keyframes home-brand-d20-poise {
+  0%,
+  100% {
+    transform: rotate(-8deg);
+  }
+
+  50% {
+    transform: rotate(-3deg) translateY(-2px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-brand-d20-svg {
+    animation: none;
+    transform: rotate(-8deg);
+  }
+
+  .home-brand-lockup:hover .home-brand-d20-svg {
+    transform: rotate(-8deg);
+  }
+}
+
+@media (max-width: 720px) {
+  .home-brand-lockup {
+    grid-template-columns: clamp(64px, 20vw, 84px) minmax(0, auto);
+    gap: 12px;
+  }
+
+  .home-brand-d20 {
+    width: clamp(64px, 20vw, 84px);
+    min-width: 64px;
+  }
+
+  .home-brand-name {
+    font-size: clamp(40px, 15vw, 58px);
+  }
+
+  .home-brand-tagline {
+    max-width: 28ch;
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 420px) {
+  .home-brand-lockup {
+    grid-template-columns: 1fr;
+    justify-items: start;
+  }
+
+  .home-brand-lockup::before {
+    left: 6px;
+    right: 0;
+    bottom: -3px;
+  }
 }
