@@ -165,7 +165,13 @@ html[data-theme="dark"] .danger-panel,
 html[data-theme="dark"] .account-modal,
 html[data-theme="dark"] .user-area-count,
 html[data-theme="dark"] .user-auth-form,
+html[data-theme="dark"] .user-page-account-card,
+html[data-theme="dark"] .user-page-storage-badge,
+html[data-theme="dark"] .saved-library-total,
 html[data-theme="dark"] .user-page-stats span,
+html[data-theme="dark"] .user-page-edition-section,
+html[data-theme="dark"] .user-page-edition-heading strong,
+html[data-theme="dark"] .user-page-edition-empty,
 html[data-theme="dark"] .user-page-character-item,
 html[data-theme="dark"] .edition-pill,
 html[data-theme="dark"] .saved-character-item,
@@ -224,9 +230,34 @@ html[data-theme="dark"] .home-social-button.is-facebook:focus-visible {
 html[data-theme="dark"] .account-current-panel,
 html[data-theme="dark"] .account-section-panel,
 html[data-theme="dark"] .legal-page-panel,
+html[data-theme="dark"] .user-page-edition-section,
+html[data-theme="dark"] .user-page-account-card,
 html[data-theme="dark"] .user-page-character-item,
 html[data-theme="dark"] .account-character-item {
   background:
+    linear-gradient(180deg, rgba(39, 31, 23, 0.96), rgba(25, 21, 17, 0.94)),
+    var(--card);
+}
+
+html[data-theme="dark"] .user-page-avatar {
+  border-color: rgba(232, 201, 153, 0.26);
+  background:
+    radial-gradient(circle at 35% 22%, rgba(255, 235, 190, 0.22), rgba(255, 235, 190, 0) 34%),
+    linear-gradient(160deg, rgba(183, 131, 67, 0.95), rgba(89, 55, 29, 0.94));
+  box-shadow: none;
+}
+
+html[data-theme="dark"] .user-page-storage-badge {
+  color: #9fe0b7;
+  border-color: rgba(91, 183, 123, 0.24);
+  background: rgba(91, 183, 123, 0.1);
+}
+
+html[data-theme="dark"] .user-page-edition-section--2024 {
+  --edition-accent: #ff8993;
+  border-color: rgba(255, 137, 147, 0.24);
+  background:
+    radial-gradient(circle at top right, rgba(255, 137, 147, 0.12), rgba(255, 137, 147, 0) 34%),
     linear-gradient(180deg, rgba(39, 31, 23, 0.96), rgba(25, 21, 17, 0.94)),
     var(--card);
 }
@@ -1549,7 +1580,9 @@ html[data-theme="dark"] body[data-active-screen="5.5e-2024"] .level-up-dialog .l
 
 @media (max-width: 900px) {
   .account-management-grid,
-  .user-page-stats {
+  .user-page-stats,
+  .user-page-account-grid,
+  .user-page-character-list {
     grid-template-columns: 1fr;
   }
 }

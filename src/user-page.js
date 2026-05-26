@@ -6,32 +6,49 @@ import {
   getCurrentUser,
   hydrateAccountStorage,
   isUsingServerStorage,
-  listAllCharactersForCurrentUser,
+  listCharactersForCurrentUser,
   migrateCharacterVersionForCurrentUser,
   logoutAccount,
   updateCurrentAccount,
 } from "./account-storage.js";
 import { build5eTo2024MigrationPayload } from "./character-migration.js";
 
+const EDITION_ORDER = ["5e", "5.5e-2024"];
+
 const EDITION_META = {
   "5e": {
     label: "D&D 5e",
+    shortLabel: "5e",
+    description: "Personagens criados para as regras clássicas da quinta edição.",
+    empty: "Nenhum personagem 5e salvo ainda.",
+    newLabel: "Novo personagem 5e",
     editor: "./5e.html",
     hash: "userArea5e",
+    slug: "5e",
   },
   "5.5e-2024": {
     label: "D&D 5.5e",
+    shortLabel: "5.5e",
+    description: "Fichas no conjunto de regras 2024, separadas das fichas 5e.",
+    empty: "Nenhum personagem 5.5e salvo ainda.",
+    newLabel: "Novo personagem 5.5e",
     editor: "./5.5e-2024.html",
     hash: "userArea2024",
+    slug: "2024",
   },
 };
 
 const el = {
   guest: document.getElementById("userPageGuest"),
   content: document.getElementById("userPageContent"),
+  avatar: document.getElementById("userPageAvatar"),
   name: document.getElementById("userPageName"),
   email: document.getElementById("userPageEmail"),
   storage: document.getElementById("userPageStorage"),
+  capacity: document.getElementById("userPageCapacity"),
+  authMethods: document.getElementById("userPageAuthMethods"),
+  securityState: document.getElementById("userPageSecurityState"),
+  createdAt: document.getElementById("userPageCreatedAt"),
   count5e: document.getElementById("userPageCount5e"),
   count2024: document.getElementById("userPageCount2024"),
   total: document.getElementById("userPageTotal"),
@@ -99,7 +116,8 @@ function setMigrateModalOpen(isOpen, character = null) {
 function renderUserPage() {
   const user = getCurrentUser();
   const counts = getAccountCounts();
-  const characters = listAllCharactersForCurrentUser();
+  const charactersByEdition = getCharactersByEdition();
+  const characters = EDITION_ORDER.flatMap((edition) => charactersByEdition[edition]);
 
   if (el.guest) el.guest.hidden = Boolean(user);
   if (el.content) el.content.hidden = !user;
@@ -108,14 +126,23 @@ function renderUserPage() {
 
   if (el.name) el.name.textContent = user.displayName || "Minha conta";
   if (el.email) el.email.textContent = user.email || "";
+  if (el.avatar) el.avatar.textContent = getInitials(user.displayName || user.email || "?");
   if (el.storage) {
     el.storage.textContent = isUsingServerStorage()
       ? "Dados salvos no servidor"
       : "Servidor indisponível";
   }
+  if (el.capacity) {
+    const totalLimit = ACCOUNT_LIMIT_PER_EDITION * EDITION_ORDER.length;
+    const freeSlots = Math.max(0, totalLimit - characters.length);
+    el.capacity.textContent = `${freeSlots} ${freeSlots === 1 ? "vaga livre" : "vagas livres"}`;
+  }
+  if (el.authMethods) el.authMethods.textContent = getAuthMethodLabel(user);
+  if (el.securityState) el.securityState.textContent = getSecurityStateLabel(user);
+  if (el.createdAt) el.createdAt.textContent = formatDateOnly(user.createdAt);
   if (el.count5e) el.count5e.textContent = `${counts["5e"]}/${ACCOUNT_LIMIT_PER_EDITION}`;
   if (el.count2024) el.count2024.textContent = `${counts["5.5e-2024"]}/${ACCOUNT_LIMIT_PER_EDITION}`;
-  if (el.total) el.total.textContent = String(characters.length);
+  if (el.total) el.total.textContent = `${characters.length} ${characters.length === 1 ? "salvo" : "salvos"}`;
 
   if (el.profileForm) {
     el.profileForm.elements.displayName.value = user.displayName || "";
@@ -125,8 +152,16 @@ function renderUserPage() {
 
   if (el.empty) el.empty.hidden = characters.length > 0;
   if (el.list) {
-    el.list.innerHTML = characters.map(renderCharacterCard).join("");
+    el.list.innerHTML = EDITION_ORDER
+      .map((edition) => renderEditionSection(edition, charactersByEdition[edition], counts[edition]))
+      .join("");
   }
+}
+
+function getCharactersByEdition() {
+  return Object.fromEntries(
+    EDITION_ORDER.map((edition) => [edition, listCharactersForCurrentUser(edition)])
+  );
 }
 
 function renderAccountSecurityState(user) {
@@ -170,9 +205,9 @@ function renderCharacterCard(character) {
       <div class="user-page-character-heading">
         <div>
           <strong>${escapeHtml(character.name)}</strong>
-          <span>${escapeHtml(updatedAt)}</span>
+          <span>Atualizado em ${escapeHtml(updatedAt)}</span>
         </div>
-        <span class="edition-pill">${escapeHtml(meta.label)}</span>
+        <span class="edition-pill">${escapeHtml(meta.shortLabel)}</span>
       </div>
       <p>${escapeHtml(summary)}</p>
       <div class="saved-character-actions">
@@ -181,6 +216,45 @@ function renderCharacterCard(character) {
         <button type="button" class="ghost-button" data-user-character-delete="${escapeHtml(character.id)}" data-edition="${escapeHtml(character.edition)}">Excluir</button>
       </div>
     </article>
+  `;
+}
+
+function renderEditionSection(edition, characters, count) {
+  const meta = EDITION_META[edition] || EDITION_META["5e"];
+  const safeSlug = escapeHtml(meta.slug);
+  const freeSlots = Math.max(0, ACCOUNT_LIMIT_PER_EDITION - Number(count || 0));
+  const listContent = characters.length
+    ? characters.map(renderCharacterCard).join("")
+    : renderEditionEmptyState(meta);
+
+  return `
+    <section class="user-page-edition-section user-page-edition-section--${safeSlug}" aria-labelledby="userPageEdition${safeSlug}">
+      <div class="user-page-edition-heading">
+        <div>
+          <span>${escapeHtml(meta.shortLabel)}</span>
+          <h3 id="userPageEdition${safeSlug}">${escapeHtml(meta.label)}</h3>
+          <p>${escapeHtml(meta.description)}</p>
+        </div>
+        <strong>${escapeHtml(String(count || 0))}/${ACCOUNT_LIMIT_PER_EDITION}</strong>
+      </div>
+      <div class="user-page-edition-actions">
+        <a class="secondary-button" href="${escapeHtml(meta.editor)}">${escapeHtml(meta.newLabel)}</a>
+        <span>${freeSlots > 0 ? `${freeSlots} ${freeSlots === 1 ? "vaga livre" : "vagas livres"}` : "Limite atingido"}</span>
+      </div>
+      <div class="user-page-edition-list">
+        ${listContent}
+      </div>
+    </section>
+  `;
+}
+
+function renderEditionEmptyState(meta) {
+  return `
+    <div class="user-page-edition-empty">
+      <strong>${escapeHtml(meta.empty)}</strong>
+      <p>Comece pelo editor correspondente para manter as regras e PDFs na edição certa.</p>
+      <a class="ghost-button" href="${escapeHtml(meta.editor)}">${escapeHtml(meta.newLabel)}</a>
+    </div>
   `;
 }
 
@@ -194,8 +268,8 @@ el.list?.addEventListener("click", async (event) => {
   const migrateButton = event.target.closest("[data-user-character-migrate]");
   if (migrateButton) {
     const characterId = migrateButton.getAttribute("data-user-character-migrate");
-    const character = listAllCharactersForCurrentUser()
-      .find((item) => item.edition === "5e" && item.id === characterId);
+    const character = listCharactersForCurrentUser("5e")
+      .find((item) => item.id === characterId);
     if (!character) {
       setStatus("Personagem 5e não encontrado.", "warning");
       renderUserPage();
@@ -382,6 +456,57 @@ function formatDate(value) {
   } catch {
     return date.toLocaleString();
   }
+}
+
+function formatDateOnly(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Sem data";
+
+  try {
+    return new Intl.DateTimeFormat("pt-BR", {
+      dateStyle: "medium",
+    }).format(date);
+  } catch {
+    return date.toLocaleDateString();
+  }
+}
+
+function getInitials(value) {
+  const words = String(value || "")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+  const initials = words.slice(0, 2).map((word) => word[0]).join("");
+  return initials ? initials.toUpperCase() : "?";
+}
+
+function getAuthMethodLabel(user) {
+  const providers = getProviderLabels(user);
+  if (providers.length && user?.passwordSet !== false) {
+    return `Senha + ${providers.join(", ")}`;
+  }
+  if (providers.length) {
+    return providers.join(", ");
+  }
+  return user?.passwordSet === false ? "Login social" : "E-mail e senha";
+}
+
+function getSecurityStateLabel(user) {
+  const providers = getProviderLabels(user);
+  if (user?.passwordSet === false) {
+    return providers.length
+      ? "Conta conectada por provedor social. Defina uma senha para habilitar login por e-mail."
+      : "Defina uma senha para habilitar login por e-mail.";
+  }
+  return providers.length
+    ? "Senha ativa e login social vinculado."
+    : "Senha ativa para alterações sensíveis.";
+}
+
+function getProviderLabels(user) {
+  return (Array.isArray(user?.authProviders) ? user.authProviders : [])
+    .map((provider) => provider.label || provider.provider)
+    .filter(Boolean);
 }
 
 function escapeHtml(value) {

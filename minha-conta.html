@@ -47,100 +47,143 @@
       <div id="userPageContent" class="user-page-layout" hidden>
         <section class="account-section-panel user-page-overview" aria-label="Resumo da conta">
           <div class="user-page-title-row">
-            <div>
-              <h2 id="userPageName">Minha conta</h2>
-              <p id="userPageEmail" class="note subtle"></p>
-              <p id="userPageStorage" class="note subtle"></p>
+            <div class="user-page-profile">
+              <div id="userPageAvatar" class="user-page-avatar" aria-hidden="true">?</div>
+              <div>
+                <h2 id="userPageName">Minha conta</h2>
+                <p id="userPageEmail" class="note subtle"></p>
+              </div>
             </div>
-            <button id="userPageLogout" type="button" class="ghost-button">Sair</button>
+            <div class="user-page-session-actions">
+              <span id="userPageStorage" class="user-page-storage-badge"></span>
+              <button id="userPageLogout" type="button" class="ghost-button">Sair</button>
+            </div>
           </div>
 
-          <div class="user-page-stats" aria-label="Resumo de personagens salvos">
-            <span><strong id="userPageCount5e">0/10</strong> D&D 5e</span>
-            <span><strong id="userPageCount2024">0/10</strong> D&D 5.5e</span>
-            <span><strong id="userPageTotal">0</strong> Total salvo</span>
+          <div class="user-page-account-grid" aria-label="Detalhes da conta">
+            <div class="user-page-account-card">
+              <span>Capacidade</span>
+              <strong id="userPageCapacity">0 vagas livres</strong>
+              <p>Limite de 10 personagens por edição.</p>
+            </div>
+            <div class="user-page-account-card">
+              <span>Acesso</span>
+              <strong id="userPageAuthMethods">E-mail e senha</strong>
+              <p id="userPageSecurityState">Senha ativa.</p>
+            </div>
+            <div class="user-page-account-card">
+              <span>Conta criada</span>
+              <strong id="userPageCreatedAt">-</strong>
+              <p>Dados e personagens ficam vinculados a este login.</p>
+            </div>
+          </div>
+
+          <div class="user-page-quick-actions" aria-label="Atalhos">
+            <a href="./5e.html" class="primary">Criar personagem 5e</a>
+            <a href="./5.5e-2024.html" class="secondary-button">Criar personagem 5.5e</a>
+            <a href="./estatisticas.html" class="ghost-button">Ver estatísticas</a>
           </div>
         </section>
 
         <section class="account-section-panel saved-library-panel" aria-label="Personagens salvos">
           <div class="account-section-heading saved-library-heading">
-            <span>Biblioteca</span>
-            <h2>Meus personagens</h2>
+            <div>
+              <span>Biblioteca</span>
+              <h2>Meus personagens</h2>
+            </div>
+            <strong id="userPageTotal" class="saved-library-total">0 salvos</strong>
+          </div>
+          <div class="user-page-stats" aria-label="Resumo de personagens salvos">
+            <span><strong id="userPageCount5e">0/10</strong> D&D 5e</span>
+            <span><strong id="userPageCount2024">0/10</strong> D&D 5.5e</span>
           </div>
           <p id="userPageEmpty" class="note subtle">Nenhum personagem salvo ainda.</p>
           <div id="userPageCharacterList" class="user-page-character-list"></div>
         </section>
 
-        <section class="account-management-grid" aria-label="Gerenciar conta">
-          <form id="userProfileForm" class="account-form-panel user-management-panel" method="post">
-            <div class="account-form-heading">
-              <span>Perfil</span>
-              <h2>Dados da conta</h2>
-              <p>Altere nome e e-mail da conta.</p>
+        <section class="account-section-panel user-settings-panel" aria-label="Gerenciar conta">
+          <div class="account-section-heading user-settings-heading">
+            <div>
+              <span>Configurações</span>
+              <h2>Gerenciar conta</h2>
             </div>
-
-            <label class="row">
-              <span>Nome</span>
-              <input name="displayName" type="text" autocomplete="name" maxlength="80" required />
-            </label>
-
-            <label class="row">
-              <span>E-mail</span>
-              <input name="email" type="email" autocomplete="email" maxlength="254" required />
-            </label>
-
-            <label class="row">
-              <span>Senha atual para trocar e-mail</span>
-              <input name="currentPassword" type="password" autocomplete="current-password" maxlength="256" />
-            </label>
-
-            <button type="submit" class="primary account-submit-button">Salvar alterações</button>
-          </form>
-
-          <form id="userPasswordForm" class="account-form-panel user-management-panel" method="post">
-            <div class="account-form-heading">
-              <span>Segurança</span>
-              <h2>Alterar senha</h2>
-              <p>Confirme a senha atual antes de definir uma nova.</p>
+            <div class="user-settings-links">
+              <a href="./privacidade.html" class="ghost-button">Privacidade</a>
+              <a href="./termos.html" class="ghost-button">Termos</a>
             </div>
+          </div>
 
-            <label class="row">
-              <span>Senha atual</span>
-              <input name="currentPassword" type="password" autocomplete="current-password" maxlength="256" required />
-            </label>
+          <div class="account-management-grid">
+            <form id="userProfileForm" class="account-form-panel user-management-panel" method="post">
+              <div class="account-form-heading">
+                <span>Perfil</span>
+                <h2>Dados da conta</h2>
+                <p>Altere nome e e-mail da conta.</p>
+              </div>
 
-            <label class="row">
-              <span>Nova senha</span>
-              <input name="newPassword" type="password" autocomplete="new-password" minlength="6" maxlength="256" required />
-            </label>
+              <label class="row">
+                <span>Nome</span>
+                <input name="displayName" type="text" autocomplete="name" maxlength="80" required />
+              </label>
 
-            <label class="row">
-              <span>Confirmar nova senha</span>
-              <input name="confirmPassword" type="password" autocomplete="new-password" minlength="6" maxlength="256" required />
-            </label>
+              <label class="row">
+                <span>E-mail</span>
+                <input name="email" type="email" autocomplete="email" maxlength="254" required />
+              </label>
 
-            <button type="submit" class="primary account-submit-button">Alterar senha</button>
-          </form>
+              <label class="row">
+                <span>Senha atual para trocar e-mail</span>
+                <input name="currentPassword" type="password" autocomplete="current-password" maxlength="256" />
+              </label>
 
-          <form id="userDeleteForm" class="account-form-panel user-management-panel danger-panel" method="post">
-            <div class="account-form-heading">
-              <span>Exclusão</span>
-              <h2>Excluir conta</h2>
-              <p>Remove a conta e todos os personagens salvos.</p>
-            </div>
+              <button type="submit" class="primary account-submit-button">Salvar alterações</button>
+            </form>
 
-            <label class="row">
-              <span>Senha atual</span>
-              <input name="password" type="password" autocomplete="current-password" maxlength="256" required />
-            </label>
+            <form id="userPasswordForm" class="account-form-panel user-management-panel" method="post">
+              <div class="account-form-heading">
+                <span>Segurança</span>
+                <h2>Alterar senha</h2>
+                <p>Confirme a senha atual antes de definir uma nova.</p>
+              </div>
 
-            <label class="checkbox-row danger-confirm-row">
-              <input name="confirmIrreversible" type="checkbox" required />
-              <span>Confirmo que essa ação não tem retorno.</span>
-            </label>
+              <label class="row">
+                <span>Senha atual</span>
+                <input name="currentPassword" type="password" autocomplete="current-password" maxlength="256" required />
+              </label>
 
-            <button type="submit" class="danger-button account-submit-button">Excluir conta</button>
-          </form>
+              <label class="row">
+                <span>Nova senha</span>
+                <input name="newPassword" type="password" autocomplete="new-password" minlength="6" maxlength="256" required />
+              </label>
+
+              <label class="row">
+                <span>Confirmar nova senha</span>
+                <input name="confirmPassword" type="password" autocomplete="new-password" minlength="6" maxlength="256" required />
+              </label>
+
+              <button type="submit" class="primary account-submit-button">Alterar senha</button>
+            </form>
+
+            <form id="userDeleteForm" class="account-form-panel user-management-panel danger-panel" method="post">
+              <div class="account-form-heading">
+                <span>Exclusão</span>
+                <h2>Excluir conta</h2>
+                <p>Remove a conta e todos os personagens salvos.</p>
+              </div>
+
+              <label class="row">
+                <span>Senha atual</span>
+                <input name="password" type="password" autocomplete="current-password" maxlength="256" required />
+              </label>
+
+              <label class="checkbox-row danger-confirm-row">
+                <input name="confirmIrreversible" type="checkbox" required />
+                <span>Confirmo que essa ação não tem retorno.</span>
+              </label>
+
+              <button type="submit" class="danger-button account-submit-button">Excluir conta</button>
+            </form>
+          </div>
         </section>
       </div>
 
