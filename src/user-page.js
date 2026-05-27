@@ -83,13 +83,20 @@ const el = {
 
 let pendingDeletePassword = "";
 let pendingMigrationCharacter = null;
+let statusClearTimer = 0;
 
 function setStatus(message, tone = "info") {
   if (!el.status) return;
+  window.clearTimeout(statusClearTimer);
   el.status.textContent = message || "";
   el.status.classList.remove("status-info", "status-success", "status-warning");
   if (message) {
     el.status.classList.add(tone === "success" ? "status-success" : tone === "warning" ? "status-warning" : "status-info");
+    if (tone !== "warning") {
+      statusClearTimer = window.setTimeout(() => {
+        setStatus("");
+      }, 6000);
+    }
   }
 }
 

@@ -192,6 +192,26 @@ html[data-theme="dark"] .spellbook-level-count {
   box-shadow: none;
 }
 
+html[data-theme="dark"] body[data-active-screen="user-page"] .account-page-status:not(:empty) {
+  background: rgba(19, 24, 30, 0.94);
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.34);
+}
+
+html[data-theme="dark"] .account-page-status.status-success {
+  color: #9ff1bd;
+  border-color: rgba(159, 241, 189, 0.34);
+}
+
+html[data-theme="dark"] .account-page-status.status-warning {
+  color: #ffb4a9;
+  border-color: rgba(255, 180, 169, 0.34);
+}
+
+html[data-theme="dark"] .account-page-status.status-info {
+  color: #e8c999;
+  border-color: rgba(232, 201, 153, 0.28);
+}
+
 html[data-theme="dark"] .account-social-button {
   color: var(--text);
 }
