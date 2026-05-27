@@ -1,6 +1,6 @@
-# Sheetify
+# Sheetfy
 
-Sheetify é um criador de personagens de D&D feito em HTML, CSS e JavaScript puro, com foco em montar fichas jogáveis sem transformar a preparação da aventura em uma maratona de planilha.
+Sheetfy é um criador de personagens de D&D feito em HTML, CSS e JavaScript puro, com foco em montar fichas jogáveis sem transformar a preparação da aventura em uma maratona de planilha.
 
 O projeto nasceu de um sonho bem claro: fazer uma ficha da forma como a WotC planejou que as fichas fossem feitas da forma mais oficial possível. E também para resolver uma dor bem prática: escolher raça/espécie, classe, antecedentes, talentos, magias, equipamentos e detalhes de progressão com ajuda visual, resumo automático e exportação para PDF preenchível.
 
@@ -239,7 +239,7 @@ ACCOUNT_PUBLIC_BASE_URL
 ```
 
 `ACCOUNT_PUBLIC_BASE_URL` é opcional e define a URL pública usada nos links. Sem `RESEND_API_KEY` ou remetente, o cadastro e a recuperação continuam funcionando, mas o servidor apenas registra aviso nos logs. `ACCOUNT_EMAIL_DEBUG_RESPONSE=1` existe só para testes locais e não deve ser usado em produção.
-Use `ACCOUNT_EMAIL_NAME=Sheetify` para que remetente e assuntos dos e-mails de conta carreguem o novo nome.
+Use `ACCOUNT_EMAIL_NAME=Sheetfy` para que remetente e assuntos dos e-mails de conta carreguem o novo nome.
 
 ### Login Social
 
@@ -250,7 +250,7 @@ http://127.0.0.1:8000/api/accounts/oauth/callback
 https://seu-dominio.example/api/accounts/oauth/callback
 ```
 
-Nos cadastros públicos dos aplicativos de OAuth, especialmente Google e Facebook, use `Sheetify` como nome do app/produto para que a tela de consentimento acompanhe a marca do site.
+Nos cadastros públicos dos aplicativos de OAuth, especialmente Google e Facebook, use `Sheetfy` como nome do app/produto para que a tela de consentimento acompanhe a marca do site.
 
 Variáveis aceitas:
 

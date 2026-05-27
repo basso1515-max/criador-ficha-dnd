@@ -1,5 +1,5 @@
 param(
-  [string]$TaskName = "SheetifyServer",
+  [string]$TaskName = "SheetfyServer",
   [string]$ProjectRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path,
   [string]$HostName = "127.0.0.1",
   [int]$Port = 8000
@@ -40,7 +40,7 @@ Register-ScheduledTask `
   -Trigger $trigger `
   -Principal $principal `
   -Settings $settings `
-  -Description "Mantem o servidor local do Sheetify ativo." `
+  -Description "Mantem o servidor local do Sheetfy ativo." `
   -Force | Out-Null
 
 Start-ScheduledTask -TaskName $TaskName

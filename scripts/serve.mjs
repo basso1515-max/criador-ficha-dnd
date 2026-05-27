@@ -440,7 +440,7 @@ function escapeHtml(value) {
 }
 
 function getAccountEmailAppName() {
-  return String(process.env.ACCOUNT_EMAIL_NAME || "Sheetify").trim() || "Sheetify";
+  return String(process.env.ACCOUNT_EMAIL_NAME || "Sheetfy").trim() || "Sheetfy";
 }
 
 async function sendAccountEmail({ to, subject, text, html, tag = "account" } = {}) {

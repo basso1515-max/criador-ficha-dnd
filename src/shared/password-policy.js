@@ -21,7 +21,7 @@ const COMMON_PASSWORD_BLOCKLIST = new Set([
   "senha123",
   "senha123456",
   "senhafichadnd",
-  "sheetify",
+  "sheetfy",
   "admin",
   "administrator",
   "dnd",

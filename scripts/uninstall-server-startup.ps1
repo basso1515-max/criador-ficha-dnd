@@ -1,5 +1,5 @@
 param(
-  [string]$TaskName = "SheetifyServer"
+  [string]$TaskName = "SheetfyServer"
 )
 
 $ErrorActionPreference = "Stop"

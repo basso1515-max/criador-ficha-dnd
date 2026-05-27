@@ -1,5 +1,5 @@
 param(
-  [string]$TaskName = "SheetifyServer",
+  [string]$TaskName = "SheetfyServer",
   [string]$HostName = "127.0.0.1",
   [int]$Port = 8000
 )
