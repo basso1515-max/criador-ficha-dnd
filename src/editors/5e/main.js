@@ -17942,7 +17942,7 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
   }
 
   async function gerarFichaPdf(tab, overrides = {}) {
-    if (!window.PDFLib) throw new Error("pdf-lib não carregou. Verifique internet/CDN.");
+    if (!window.PDFLib) throw new Error("pdf-lib não carregou. Recarregue a página e tente novamente.");
 
     const state = overrides.state || collectState();
     if (!state.nome) throw new Error("Informe o nome do personagem.");

@@ -14292,7 +14292,7 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
     event.preventDefault();
 
     if (!window.PDFLib) {
-      setStatus2024("pdf-lib não carregou. Verifique sua conexão ou recarregue a página.", "warning");
+      setStatus2024("pdf-lib não carregou. Recarregue a página e tente novamente.", "warning");
       return;
     }
 

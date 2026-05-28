@@ -56,6 +56,7 @@ const requiredFiles = [
   "assets/pdf/5e/pdf-map.json",
   "assets/pdf/5.5e/ficha5.5e.pdf",
   "assets/pdf/5.5e/pdf-map.json",
+  "assets/vendor/pdf-lib-1.17.1.min.js",
 ];
 
 const missing = requiredFiles.filter((file) => !existsSync(path.join(root, file)));
@@ -64,6 +65,36 @@ if (missing.length) {
   missing.forEach((file) => console.error(`- ${file}`));
   process.exit(1);
 }
+
+function validatePdfLibBundle() {
+  const expectedSrc = "./assets/vendor/pdf-lib-1.17.1.min.js";
+  const errors = [];
+
+  ["5e.html", "5.5e-2024.html"].forEach((file) => {
+    const html = readFileSync(path.join(root, file), "utf8");
+    if (html.includes("unpkg.com/pdf-lib")) {
+      errors.push(`${file}: pdf-lib ainda depende do CDN unpkg.`);
+    }
+    if (!html.includes(`src="${expectedSrc}"`)) {
+      errors.push(`${file}: pdf-lib deve apontar para ${expectedSrc}.`);
+    }
+  });
+
+  const vendorBundle = readFileSync(path.join(root, "assets/vendor/pdf-lib-1.17.1.min.js"), "utf8");
+  if (!vendorBundle.includes("PDFLib")) {
+    errors.push("assets/vendor/pdf-lib-1.17.1.min.js nao parece expor window.PDFLib.");
+  }
+
+  if (errors.length) {
+    console.error("\nValidacao do bundle local de pdf-lib falhou:");
+    errors.forEach((error) => console.error(`- ${error}`));
+    process.exit(1);
+  }
+
+  console.log("OK: bundle local de pdf-lib");
+}
+
+validatePdfLibBundle();
 
 function collectScriptFiles(relativeDir) {
   const absoluteDir = path.join(root, relativeDir);

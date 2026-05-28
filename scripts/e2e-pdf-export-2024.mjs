@@ -86,6 +86,7 @@ async function main() {
   await navigate(cdp, `${baseUrl}/5.5e-2024.html`);
   await waitForSelector(cdp, "#btnGerar2024");
   await waitForFunction(cdp, "Boolean(window.__DND_SHEET_2024_TEST_HOOKS__)", PAGE_TIMEOUT_MS, "Hooks de teste 2024 indisponiveis");
+  await assertLocalPdfLibLoaded(cdp);
 
   const formState = await evaluate(cdp, fillBarbarian2024PdfFixtureScript());
   assert(formState.summary.includes("3/3"), `Resumo de maestrias inesperado: ${formState.summary}`);
@@ -208,7 +209,7 @@ function fillBarbarian2024PdfFixtureScript() {
         if (window.PDFLib) return;
         await new Promise((resolve, reject) => {
           const script = document.createElement("script");
-          script.src = "/node_modules/pdf-lib/dist/pdf-lib.min.js";
+          script.src = "/assets/vendor/pdf-lib-1.17.1.min.js";
           script.onload = resolve;
           script.onerror = () => reject(new Error("pdf-lib local nao carregou."));
           document.head.appendChild(script);
@@ -303,7 +304,7 @@ function fillDruidLand2024PdfFixtureScript() {
         if (window.PDFLib) return;
         await new Promise((resolve, reject) => {
           const script = document.createElement("script");
-          script.src = "/node_modules/pdf-lib/dist/pdf-lib.min.js";
+          script.src = "/assets/vendor/pdf-lib-1.17.1.min.js";
           script.onload = resolve;
           script.onerror = () => reject(new Error("pdf-lib local nao carregou."));
           document.head.appendChild(script);
@@ -380,6 +381,22 @@ async function navigate(cdp, url) {
 async function waitForSelector(cdp, selector) {
   const safeSelector = JSON.stringify(selector);
   await waitForFunction(cdp, `Boolean(document.querySelector(${safeSelector}))`, PAGE_TIMEOUT_MS, `Seletor ausente: ${selector}`);
+}
+
+async function assertLocalPdfLibLoaded(cdp) {
+  await waitForFunction(
+    cdp,
+    "Boolean(window.PDFLib?.PDFDocument && window.PDFLib?.StandardFonts)",
+    PAGE_TIMEOUT_MS,
+    "pdf-lib local nao carregou via HTML"
+  );
+
+  const scripts = await evaluate(
+    cdp,
+    "Array.from(document.scripts).map((script) => script.getAttribute('src') || '')"
+  );
+  assert(scripts.includes("./assets/vendor/pdf-lib-1.17.1.min.js"), "HTML nao referencia o bundle local de pdf-lib.");
+  assert(!scripts.some((src) => src.includes("unpkg.com/pdf-lib")), "HTML ainda referencia pdf-lib via unpkg.");
 }
 
 async function waitForFunction(cdp, expression, timeoutMs = PAGE_TIMEOUT_MS, label = expression) {
