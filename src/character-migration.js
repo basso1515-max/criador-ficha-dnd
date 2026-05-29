@@ -1,3 +1,5 @@
+// @ts-check
+
 import { CLASSES as CLASSES_2024 } from "./data/5.5e/classes.js";
 import { RACAS as RACES_2024, SUBRACAS as SUBRACES_2024 } from "./data/5.5e/racas.js";
 import { ANTECEDENTES as BACKGROUNDS_2024 } from "./data/5.5e/antecedentes.js";
@@ -10,6 +12,9 @@ const LEGACY_BACKGROUND_ID_2024 = "antecedente-legado";
 const LEGACY_BACKGROUND_LABEL_2024 = "Antecedente legado";
 const OFFICIAL_GUIDANCE_URL = "https://www.dndbeyond.com/posts/1875-updating-your-campaign-to-the-5-5e-d-d-rules";
 const OFFICIAL_CHARACTER_RULES_URL = "https://www.dndbeyond.com/sources/dnd/free-rules/creating-a-character";
+
+/** @typedef {Record<string, any>} AnyRecord */
+/** @typedef {{ converted: string[], review: string[], sources: string[] }} MigrationReport */
 
 const FIELD_ID_MAP = {
   distanceUnit: "distanceUnit2024",
@@ -95,11 +100,11 @@ export function build5eTo2024MigrationPayload(character, { mode = "duplicate" } 
   }
 
   const source = createSnapshotReader(character.snapshot);
-  const report = {
+  const report = /** @type {MigrationReport} */ ({
     converted: [],
     review: [],
     sources: [OFFICIAL_GUIDANCE_URL, OFFICIAL_CHARACTER_RULES_URL],
-  };
+  });
   const fields = [];
 
   Object.entries(FIELD_ID_MAP).forEach(([fromId, toId]) => {
@@ -489,6 +494,10 @@ function makeNormalizedMap(records) {
   );
 }
 
+/**
+ * @param {unknown} sourceValue
+ * @param {AnyRecord | null} [legacy]
+ */
 function buildLegacyBackgroundPayload(sourceValue, legacy = null) {
   const name = String(legacy?.nome || sourceValue || "Antecedente antigo").trim();
   return {

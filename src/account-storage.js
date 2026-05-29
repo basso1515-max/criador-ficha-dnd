@@ -1,3 +1,5 @@
+// @ts-check
+
 import {
   migrateCharacterSnapshot,
   normalizeStoredCharacterSnapshot,
@@ -11,20 +13,66 @@ import { trackCommunityCharacterCreated } from "./analytics.js";
 
 export const ACCOUNT_LIMIT_PER_EDITION = 10;
 
+/** @typedef {"5e" | "5.5e-2024"} Edition */
+/** @typedef {Record<string, unknown>} SnapshotObject */
+/**
+ * @typedef {object} CharacterRecord
+ * @property {string} id
+ * @property {Edition | string} edition
+ * @property {string} name
+ * @property {string} summary
+ * @property {SnapshotObject} snapshot
+ * @property {string} createdAt
+ * @property {string} updatedAt
+ */
+/**
+ * @typedef {object} AuthProviderRecord
+ * @property {string} provider
+ * @property {string} [label]
+ * @property {string} [providerAccountId]
+ * @property {string} [email]
+ * @property {string} [linkedAt]
+ */
+/**
+ * @typedef {object} AccountRecord
+ * @property {string} id
+ * @property {string} displayName
+ * @property {string} email
+ * @property {string} [passwordAlgo]
+ * @property {string} [passwordSalt]
+ * @property {string} [passwordHash]
+ * @property {boolean} [passwordSet]
+ * @property {boolean} [emailVerified]
+ * @property {string} [emailVerifiedAt]
+ * @property {AuthProviderRecord[]} [authProviders]
+ * @property {string} createdAt
+ * @property {Record<Edition, CharacterRecord[]>} characters
+ */
+/** @typedef {{ version: number, accounts: AccountRecord[] }} LegacyStore */
+/** @typedef {"pending" | "server" | "unavailable"} StorageMode */
+/** @typedef {Record<string, any>} ApiPayload */
+/** @typedef {{ name?: unknown, summary?: unknown, snapshot?: unknown }} CharacterSavePayload */
+/** @typedef {"duplicate" | "transfer"} MigrationMode */
+
 const LEGACY_STORE_KEY = "dnd_sheet_accounts_v1";
 const LEGACY_SESSION_KEY = "dnd_sheet_current_account_v1";
 const LEGACY_MIGRATION_DISABLED_KEY = "dnd_sheet_legacy_migration_disabled_v1";
 const STORE_VERSION = 1;
+/** @type {readonly Edition[]} */
 const EDITIONS = ["5e", "5.5e-2024"];
 const MAX_DISPLAY_NAME_LENGTH = 80;
 const MAX_EMAIL_LENGTH = 254;
 const MAX_CHARACTER_NAME_LENGTH = 80;
 const MAX_CHARACTER_SUMMARY_LENGTH = 260;
 
+/** @type {AccountRecord | null} */
 let currentAccount = null;
+/** @type {StorageMode} */
 let storageMode = "pending";
+/** @type {Promise<void> | null} */
 let hydratePromise = null;
 
+/** @returns {LegacyStore} */
 function createEmptyStore() {
   return {
     version: STORE_VERSION,
@@ -46,6 +94,7 @@ function canUseServerApi() {
     && window.location.protocol !== "file:";
 }
 
+/** @returns {LegacyStore} */
 function readLegacyStore() {
   if (!canUseLocalStorage()) return createEmptyStore();
 
@@ -80,19 +129,53 @@ function disableLegacyMigrationRetry() {
   localStorage.setItem(LEGACY_MIGRATION_DISABLED_KEY, "1");
 }
 
-function normalizeCharacters(characters) {
-  const source = characters && typeof characters === "object" ? characters : {};
+/**
+ * @param {unknown} value
+ * @returns {value is Record<string, any>}
+ */
+function isRecord(value) {
+  return Boolean(value && typeof value === "object" && !Array.isArray(value));
+}
+
+/**
+ * @param {unknown} edition
+ * @returns {edition is Edition}
+ */
+function isEdition(edition) {
+  return EDITIONS.includes(/** @type {Edition} */ (edition));
+}
+
+/**
+ * @template T
+ * @param {T | null | undefined | false} value
+ * @returns {value is T}
+ */
+function isPresent(value) {
+  return Boolean(value);
+}
+
+/**
+ * @param {unknown} characters
+ * @returns {Record<Edition, CharacterRecord[]>}
+ */
+function normalizeCharacters(characters = {}) {
+  const source = isRecord(characters) ? characters : {};
   return {
-    "5e": Array.isArray(source["5e"]) ? source["5e"].map((character) => normalizeCharacterRecord(character, "5e")).filter(Boolean) : [],
+    "5e": Array.isArray(source["5e"]) ? source["5e"].map((character) => normalizeCharacterRecord(character, "5e")).filter(isPresent) : [],
     "5.5e-2024": Array.isArray(source["5.5e-2024"])
-      ? source["5.5e-2024"].map((character) => normalizeCharacterRecord(character, "5.5e-2024")).filter(Boolean)
+      ? source["5.5e-2024"].map((character) => normalizeCharacterRecord(character, "5.5e-2024")).filter(isPresent)
       : [],
   };
 }
 
+/**
+ * @param {unknown} character
+ * @param {Edition | string} [fallbackEdition]
+ * @returns {CharacterRecord | null}
+ */
 function normalizeCharacterRecord(character, fallbackEdition = "") {
-  if (!character || typeof character !== "object") return null;
-  const edition = EDITIONS.includes(character.edition) ? character.edition : fallbackEdition;
+  if (!isRecord(character)) return null;
+  const edition = isEdition(character.edition) ? character.edition : fallbackEdition;
   return {
     id: String(character.id || ""),
     edition,
@@ -104,8 +187,12 @@ function normalizeCharacterRecord(character, fallbackEdition = "") {
   };
 }
 
+/**
+ * @param {unknown} account
+ * @returns {AccountRecord | null}
+ */
 function normalizeAccountRecord(account) {
-  if (!account || typeof account !== "object") return null;
+  if (!isRecord(account)) return null;
   return {
     id: String(account.id || ""),
     displayName: String(account.displayName || "").trim(),
@@ -118,8 +205,12 @@ function normalizeAccountRecord(account) {
   };
 }
 
+/**
+ * @param {unknown} account
+ * @returns {AccountRecord | null}
+ */
 function normalizeClientAccount(account) {
-  if (!account || typeof account !== "object") return null;
+  if (!isRecord(account)) return null;
   return {
     id: String(account.id || ""),
     displayName: String(account.displayName || "").trim(),
@@ -138,10 +229,17 @@ function normalizeClientAccount(account) {
   };
 }
 
+/**
+ * @param {unknown} email
+ * @returns {string}
+ */
 function normalizeEmail(email) {
   return String(email || "").trim().toLowerCase();
 }
 
+/**
+ * @param {AccountRecord | null} account
+ */
 function toPublicUser(account) {
   if (!account) return null;
   return {
@@ -156,6 +254,10 @@ function toPublicUser(account) {
   };
 }
 
+/**
+ * @param {unknown} displayName
+ * @returns {string}
+ */
 function assertDisplayNameInput(displayName) {
   const name = String(displayName || "").trim();
   if (!name) {
@@ -167,6 +269,10 @@ function assertDisplayNameInput(displayName) {
   return name;
 }
 
+/**
+ * @param {unknown} email
+ * @returns {string}
+ */
 function assertEmailInput(email) {
   const normalized = normalizeEmail(email);
   if (
@@ -179,6 +285,10 @@ function assertEmailInput(email) {
   return normalized;
 }
 
+/**
+ * @param {{ displayName?: unknown, email?: unknown, password?: unknown }} input
+ * @param {{ creating?: boolean, passwordRequired?: boolean, newPassword?: boolean }} [options]
+ */
 function assertAccountInput({ displayName, email, password }, { creating = false, passwordRequired = true, newPassword = false } = {}) {
   const expectedValues = [];
   if (creating) {
@@ -194,6 +304,9 @@ function assertAccountInput({ displayName, email, password }, { creating = false
   }
 }
 
+/**
+ * @param {unknown} password
+ */
 function assertPasswordCredentialInput(password) {
   const value = String(password || "");
   if (!value) {
@@ -204,6 +317,10 @@ function assertPasswordCredentialInput(password) {
   }
 }
 
+/**
+ * @param {unknown} password
+ * @param {unknown[]} [expectedValues]
+ */
 function assertNewPasswordInput(password, expectedValues = []) {
   assertPasswordCredentialInput(password);
   if (String(password || "").length < MIN_NEW_PASSWORD_LENGTH) {
@@ -214,8 +331,13 @@ function assertNewPasswordInput(password, expectedValues = []) {
   }
 }
 
+/**
+ * @param {AccountRecord} account
+ * @param {Edition} edition
+ * @returns {CharacterRecord[]}
+ */
 function getEditionBucket(account, edition) {
-  if (!account.characters || typeof account.characters !== "object") {
+  if (!isRecord(account.characters)) {
     account.characters = normalizeCharacters();
   }
   if (!Array.isArray(account.characters[edition])) {
@@ -224,20 +346,38 @@ function getEditionBucket(account, edition) {
   return account.characters[edition];
 }
 
+/**
+ * @param {unknown} name
+ * @returns {string}
+ */
 function sanitizeCharacterName(name) {
   const text = String(name || "").trim().slice(0, MAX_CHARACTER_NAME_LENGTH);
   return text || "Personagem sem nome";
 }
 
+/**
+ * @param {unknown} summary
+ * @returns {string}
+ */
 function sanitizeCharacterSummary(summary) {
   return String(summary || "").trim().slice(0, MAX_CHARACTER_SUMMARY_LENGTH);
 }
 
+/**
+ * @param {CharacterRecord[]} characters
+ * @returns {CharacterRecord[]}
+ */
 function sortCharacters(characters) {
   return [...characters].sort((a, b) => String(b.updatedAt || "").localeCompare(String(a.updatedAt || "")));
 }
 
+/**
+ * @param {string} path
+ * @param {{ method?: string, body?: unknown }} [options]
+ * @returns {Promise<ApiPayload>}
+ */
 async function requestApi(path, { method = "GET", body } = {}) {
+  /** @type {RequestInit & { headers: Record<string, string> }} */
   const options = {
     method,
     credentials: "same-origin",
@@ -253,7 +393,7 @@ async function requestApi(path, { method = "GET", body } = {}) {
 
   const response = await fetch(path, options);
   const text = await response.text();
-  let payload = {};
+  let payload = /** @type {ApiPayload} */ ({});
   if (text) {
     try {
       payload = JSON.parse(text);
@@ -264,7 +404,7 @@ async function requestApi(path, { method = "GET", body } = {}) {
 
   if (!response.ok) {
     const error = new Error(payload?.message || "Não foi possível falar com o servidor.");
-    error.statusCode = response.status;
+    /** @type {Error & { statusCode?: number }} */ (error).statusCode = response.status;
     throw error;
   }
 
@@ -291,7 +431,7 @@ async function migrateLegacyStoreToServer() {
     }
     clearLegacyStore();
   } catch (error) {
-    if ([403, 410, 413, 415].includes(Number(error?.statusCode))) {
+    if ([403, 410, 413, 415].includes(Number(/** @type {{ statusCode?: number }} */ (error)?.statusCode))) {
       disableLegacyMigrationRetry();
       console.warn("Migração local antiga não foi aceita pelo servidor.", error);
       return;
@@ -358,6 +498,9 @@ export function getAccountCounts() {
   };
 }
 
+/**
+ * @param {{ displayName: unknown, email: unknown, password: unknown }} input
+ */
 export async function registerAccount({ displayName, email, password }) {
   assertAccountInput({ displayName, email, password }, { creating: true, newPassword: true });
   await ensureServerReady();
@@ -370,6 +513,9 @@ export async function registerAccount({ displayName, email, password }) {
   return toPublicUser(currentAccount);
 }
 
+/**
+ * @param {{ email: unknown, password: unknown }} input
+ */
 export async function loginAccount({ email, password }) {
   assertAccountInput({ email, password });
   await ensureServerReady();
@@ -382,6 +528,9 @@ export async function loginAccount({ email, password }) {
   return toPublicUser(currentAccount);
 }
 
+/**
+ * @param {{ email?: unknown }} [input]
+ */
 export async function requestPasswordReset({ email } = {}) {
   const normalizedEmail = assertEmailInput(email);
   await ensureServerReady();
@@ -392,6 +541,9 @@ export async function requestPasswordReset({ email } = {}) {
   });
 }
 
+/**
+ * @param {{ token?: unknown, password?: unknown }} [input]
+ */
 export async function confirmPasswordReset({ token, password } = {}) {
   const resetToken = String(token || "").trim();
   assertNewPasswordInput(password);
@@ -416,6 +568,9 @@ export async function requestEmailVerification() {
   });
 }
 
+/**
+ * @param {{ token?: unknown }} [input]
+ */
 export async function confirmEmailVerification({ token } = {}) {
   const verificationToken = String(token || "").trim();
   await ensureServerReady();
@@ -444,21 +599,33 @@ export async function logoutAccount() {
   }
 }
 
+/**
+ * @param {Edition} edition
+ * @returns {CharacterRecord[]}
+ */
 export function listCharactersForCurrentUser(edition) {
-  if (!currentAccount) return [];
+  const account = currentAccount;
+  if (!account) return [];
 
-  return sortCharacters(getEditionBucket(currentAccount, edition))
+  return sortCharacters(getEditionBucket(account, edition))
     .map((character) => ({ ...character }));
 }
 
+/** @returns {CharacterRecord[]} */
 export function listAllCharactersForCurrentUser() {
-  if (!currentAccount) return [];
+  const account = currentAccount;
+  if (!account) return [];
 
   return sortCharacters(EDITIONS.flatMap((edition) => (
-    getEditionBucket(currentAccount, edition).map((character) => ({ ...character, edition }))
+    getEditionBucket(account, edition).map((character) => ({ ...character, edition }))
   )));
 }
 
+/**
+ * @param {Edition} edition
+ * @param {CharacterSavePayload} payload
+ * @param {{ overwriteId?: string }} [options]
+ */
 export async function saveCharacterForCurrentUser(edition, payload, { overwriteId = "" } = {}) {
   await ensureServerReady();
   if (!currentAccount) {
@@ -489,6 +656,15 @@ export async function saveCharacterForCurrentUser(edition, payload, { overwriteI
   return normalizeCharacterRecord(data.character, edition) || { ...data.character };
 }
 
+/**
+ * @param {{
+ *   sourceEdition?: Edition,
+ *   targetEdition?: Edition,
+ *   characterId?: unknown,
+ *   payload?: CharacterSavePayload,
+ *   mode?: MigrationMode
+ * }} [input]
+ */
 export async function migrateCharacterVersionForCurrentUser({
   sourceEdition = "5e",
   targetEdition = "5.5e-2024",
@@ -531,6 +707,10 @@ export async function migrateCharacterVersionForCurrentUser({
   };
 }
 
+/**
+ * @param {Edition} edition
+ * @param {unknown} characterId
+ */
 export async function deleteCharacterForCurrentUser(edition, characterId) {
   await ensureServerReady();
   if (!currentAccount) {
@@ -547,6 +727,9 @@ export async function deleteCharacterForCurrentUser(edition, characterId) {
   currentAccount = normalizeClientAccount(data.account);
 }
 
+/**
+ * @param {{ displayName?: unknown, email?: unknown, currentPassword?: unknown, newPassword?: unknown }} [input]
+ */
 export async function updateCurrentAccount({ displayName, email, currentPassword, newPassword } = {}) {
   await ensureServerReady();
   if (!currentAccount) {
@@ -558,6 +741,7 @@ export async function updateCurrentAccount({ displayName, email, currentPassword
   assertDisplayNameInput(nextName);
   if (newPassword) assertNewPasswordInput(newPassword, [currentAccount.displayName, currentAccount.email, nextName, nextEmail]);
 
+  /** @type {{ displayName: string, email: string, currentPassword?: unknown, newPassword?: unknown }} */
   const body = {
     displayName: nextName,
     email: nextEmail,
@@ -573,10 +757,16 @@ export async function updateCurrentAccount({ displayName, email, currentPassword
   return toPublicUser(currentAccount);
 }
 
+/**
+ * @param {{ currentPassword: unknown, newPassword: unknown }} input
+ */
 export async function changePasswordForCurrentUser({ currentPassword, newPassword }) {
   return await updateCurrentAccount({ currentPassword, newPassword });
 }
 
+/**
+ * @param {{ provider?: unknown, currentPassword?: unknown }} [input]
+ */
 export async function unlinkAuthProviderForCurrentUser({ provider, currentPassword } = {}) {
   await ensureServerReady();
   if (!currentAccount) {
@@ -595,6 +785,9 @@ export async function unlinkAuthProviderForCurrentUser({ provider, currentPasswo
   return toPublicUser(currentAccount);
 }
 
+/**
+ * @param {{ password?: unknown }} [input]
+ */
 export async function deleteCurrentAccount({ password } = {}) {
   await ensureServerReady();
   if (!currentAccount) {
@@ -608,6 +801,11 @@ export async function deleteCurrentAccount({ password } = {}) {
   currentAccount = null;
 }
 
+/**
+ * @template T
+ * @param {T} value
+ * @returns {T}
+ */
 function structuredCloneSafe(value) {
   if (typeof structuredClone === "function") {
     return structuredClone(value);

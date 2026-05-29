@@ -1,3 +1,5 @@
+// @ts-check
+
 import {
   ACCOUNT_LIMIT_PER_EDITION,
   deleteCharacterForCurrentUser,
@@ -19,16 +21,52 @@ const AUTO_EDITOR_DRAFT_KEY_PREFIX = "dnd_sheet_auto_editor_draft_v1";
 const AUTO_EDITOR_DRAFT_TTL_MS = 1000 * 60 * 60 * 24;
 const SAVE_BUTTON_CONTENT = new WeakMap();
 
+/** @typedef {"5e" | "5.5e-2024"} Edition */
+/** @typedef {Record<string, any>} AnyRecord */
+/** @typedef {{ id: string, name: string, summary: string, snapshot: AnyRecord, updatedAt: string }} SavedCharacter */
+/** @typedef {{ name?: unknown, summary?: unknown, snapshot?: unknown }} CharacterPayload */
+/** @typedef {{ version: number, savedAt: string, fields: FormPresetField[] }} FormPreset */
+/**
+ * @typedef {object} FormPresetField
+ * @property {string} tag
+ * @property {string} inputType
+ * @property {string} id
+ * @property {string} name
+ * @property {Record<string, string>} data
+ * @property {string} optionValue
+ * @property {string} value
+ * @property {boolean} checked
+ * @property {number} [ordinal]
+ */
+/** @typedef {{ payload?: CharacterPayload, snapshot?: unknown, edition?: string, returnTo?: string, selectedCharacterId?: string }} EditorDraft */
+/** @typedef {{ clear: () => void }} AutoDraftController */
+
+/**
+ * @template T
+ * @param {T | null | undefined | false} value
+ * @returns {value is T}
+ */
+function isPresent(value) {
+  return Boolean(value);
+}
+
+/**
+ * @param {HTMLFormElement | null | undefined} form
+ * @returns {FormPreset}
+ */
 export function captureFormPreset(form) {
   const counters = new Map();
-  const fields = Array.from(form?.querySelectorAll("input, select, textarea") || [])
+  const controls = /** @type {Array<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>} */ (
+    Array.from(form?.querySelectorAll("input, select, textarea") || [])
+  );
+  const fields = controls
     .map(readControlState)
-    .filter(Boolean)
+    .filter(isPresent)
     .map((field) => {
       const key = buildIdentityKey(field);
       const ordinal = counters.get(key) || 0;
       counters.set(key, ordinal + 1);
-      return { ...field, ordinal };
+      return /** @type {FormPresetField} */ ({ ...field, ordinal });
     });
 
   return {
@@ -57,7 +95,7 @@ export function restoreFormPreset(form, preset) {
 export function syncUnitToggleButtons(root = document) {
   root.querySelectorAll(".unit-toggle[data-target]").forEach((group) => {
     const targetId = group.getAttribute("data-target");
-    const input = targetId ? document.getElementById(targetId) : null;
+    const input = targetId ? /** @type {HTMLInputElement | HTMLSelectElement | null} */ (document.getElementById(targetId)) : null;
     if (!input) return;
 
     group.querySelectorAll(".unit-toggle-btn").forEach((button) => {
@@ -164,7 +202,7 @@ export function initializeUserArea({
       render();
       notify("Conta acessada.", "success");
     } catch (error) {
-      notify(error?.message || "Não foi possível entrar na conta.", "warning");
+      notify(getErrorMessage(error, "Não foi possível entrar na conta."), "warning");
     }
   });
 
@@ -184,7 +222,7 @@ export function initializeUserArea({
       render();
       notify("Conta criada.", "success");
     } catch (error) {
-      notify(error?.message || "Não foi possível criar a conta.", "warning");
+      notify(getErrorMessage(error, "Não foi possível criar a conta."), "warning");
     }
   });
 
@@ -221,7 +259,7 @@ export function initializeUserArea({
       render();
       notify(`Personagem salvo: ${saved.name}.`, "success");
     } catch (error) {
-      notify(error?.message || "Não foi possível salvar o personagem.", "warning");
+      notify(getErrorMessage(error, "Não foi possível salvar o personagem."), "warning");
     }
   };
 
@@ -263,7 +301,7 @@ export function initializeUserArea({
         render();
         notify(`Personagem atualizado: ${saved.name}.`, "success");
       } catch (error) {
-        notify(error?.message || "Não foi possível atualizar o personagem.", "warning");
+        notify(getErrorMessage(error, "Não foi possível atualizar o personagem."), "warning");
       }
       return;
     }
@@ -280,7 +318,7 @@ export function initializeUserArea({
         render();
         notify("Personagem excluído.", "success");
       } catch (error) {
-        notify(error?.message || "Não foi possível excluir o personagem.", "warning");
+        notify(getErrorMessage(error, "Não foi possível excluir o personagem."), "warning");
       }
     }
   });
@@ -775,11 +813,16 @@ function renderSavedCharacter(character, { selected = false } = {}) {
   `;
 }
 
+/**
+ * @param {HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement} control
+ * @returns {FormPresetField | null}
+ */
 function readControlState(control) {
   const tag = control.tagName.toLowerCase();
   const inputType = tag === "input" ? String(control.type || "text").toLowerCase() : "";
   if (IGNORED_INPUT_TYPES.has(inputType)) return null;
 
+  /** @type {Record<string, string>} */
   const data = {};
   Array.from(control.attributes || []).forEach((attribute) => {
     if (attribute.name.startsWith("data-")) {
@@ -788,15 +831,16 @@ function readControlState(control) {
   });
 
   const checkable = CHECKABLE_INPUT_TYPES.has(inputType);
+  const inputControl = /** @type {HTMLInputElement} */ (control);
   const state = {
     tag,
     inputType,
     id: control.id || "",
     name: control.name || "",
     data,
-    optionValue: checkable ? control.value : "",
+    optionValue: checkable ? inputControl.value : "",
     value: checkable ? "" : control.value,
-    checked: checkable ? control.checked : false,
+    checked: checkable ? inputControl.checked : false,
   };
 
   if (!state.id && !state.name && !Object.keys(data).length) return null;
@@ -888,4 +932,13 @@ function escapeHtml(value) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
+}
+
+/**
+ * @param {unknown} error
+ * @param {string} fallback
+ * @returns {string}
+ */
+function getErrorMessage(error, fallback) {
+  return error instanceof Error ? error.message : fallback;
 }

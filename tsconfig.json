@@ -7,18 +7,24 @@
     "checkJs": false,
     "noEmit": true,
     "strict": true,
+    "noImplicitAny": false,
     "exactOptionalPropertyTypes": true,
     "noUncheckedIndexedAccess": true,
     "skipLibCheck": true,
+    "types": ["node"],
     "lib": ["ES2022", "DOM"]
   },
   "include": [
+    "src/account-storage.js",
+    "src/character-migration.js",
+    "src/user-area.js",
     "src/shared/character-schema.js",
     "src/editors/5e/spell-rules.js",
     "src/editors/5e/equipment-rules.js",
     "src/editors/5e/character-state.js",
     "src/editors/2024/spell-rules.js",
     "src/editors/2024/equipment-rules.js",
-    "src/editors/2024/character-state.js"
+    "src/editors/2024/character-state.js",
+    "scripts/serve.mjs"
   ]
 }

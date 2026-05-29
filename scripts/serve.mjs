@@ -1,3 +1,5 @@
+// @ts-check
+
 import { createHash, createHmac, randomBytes, randomUUID, scryptSync, timingSafeEqual } from "node:crypto";
 import { createReadStream, existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { createServer } from "node:http";
@@ -108,6 +110,21 @@ const MIME_TYPES = {
 };
 
 const DEV_NO_CACHE_EXTENSIONS = new Set([".css", ".html", ".js"]);
+
+/** @typedef {Record<string, any>} AnyRecord */
+/** @typedef {{ provider: string, providerAccountId: string, email: string, linkedAt: string }} AuthProviderRecord */
+/** @typedef {{ maxLength?: number, required?: boolean, trim?: boolean, allowUnsafe?: boolean }} StringFieldOptions */
+/** @typedef {{ to: string, subject: string, text: string, html: string, tag?: string }} AccountEmailMessage */
+/** @typedef {{ provider?: string, error?: string, fallbackReturnTo?: string }} OAuthAccountRedirectOptions */
+
+/**
+ * @template T
+ * @param {T | null | undefined | false} value
+ * @returns {value is T}
+ */
+function isPresent(value) {
+  return Boolean(value);
+}
 
 function createEmptyStore() {
   return {
@@ -223,27 +240,33 @@ function normalizeAccountRecord(account) {
 
 function normalizeAuthProviders(providers) {
   const seen = new Set();
-  return Array.isArray(providers)
-    ? providers.map(normalizeAuthProviderRecord).filter((provider) => {
+  const normalized = Array.isArray(providers)
+    ? providers.map(normalizeAuthProviderRecord).filter(isPresent)
+    : [];
+  return normalized.filter((provider) => {
       if (!provider) return false;
       const key = `${provider.provider}:${provider.providerAccountId}`;
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
     })
-    : [];
 }
 
+/**
+ * @param {unknown} provider
+ * @returns {AuthProviderRecord | null}
+ */
 function normalizeAuthProviderRecord(provider) {
   if (!provider || typeof provider !== "object") return null;
-  const providerId = normalizeOAuthProvider(provider.provider);
-  const providerAccountId = String(provider.providerAccountId || "").trim().slice(0, 256);
+  const source = /** @type {AnyRecord} */ (provider);
+  const providerId = normalizeOAuthProvider(source.provider);
+  const providerAccountId = String(source.providerAccountId || "").trim().slice(0, 256);
   if (!providerId || !providerAccountId) return null;
   return {
     provider: providerId,
     providerAccountId,
-    email: normalizeEmail(provider.email || ""),
-    linkedAt: sanitizeDateString(provider.linkedAt, new Date().toISOString()),
+    email: normalizeEmail(source.email || ""),
+    linkedAt: sanitizeDateString(source.linkedAt, new Date().toISOString()),
   };
 }
 
@@ -439,11 +462,23 @@ function escapeHtml(value) {
     .replaceAll("'", "&#39;");
 }
 
+/**
+ * @param {unknown} error
+ * @param {string} fallback
+ * @returns {string}
+ */
+function getErrorMessage(error, fallback) {
+  return error instanceof Error ? error.message : fallback;
+}
+
 function getAccountEmailAppName() {
   return String(process.env.ACCOUNT_EMAIL_NAME || "Sheetfy").trim() || "Sheetfy";
 }
 
-async function sendAccountEmail({ to, subject, text, html, tag = "account" } = {}) {
+/**
+ * @param {AccountEmailMessage} message
+ */
+async function sendAccountEmail({ to, subject, text, html, tag = "account" }) {
   const apiKey = String(process.env.RESEND_API_KEY || "").trim();
   const from = String(process.env.ACCOUNT_EMAIL_FROM || process.env.RESEND_FROM_EMAIL || "").trim();
   const appName = getAccountEmailAppName();
@@ -487,7 +522,7 @@ async function sendAccountEmail({ to, subject, text, html, tag = "account" } = {
       msg: "account_email_send_failed",
       to,
       subject,
-      error: error?.message || "Falha ao enviar e-mail.",
+      error: getErrorMessage(error, "Falha ao enviar e-mail."),
     }));
     return { sent: false, provider: "resend" };
   }
@@ -795,6 +830,12 @@ function assertNoUnsafeText(value, label) {
   }
 }
 
+/**
+ * @param {unknown} value
+ * @param {string} label
+ * @param {StringFieldOptions} [options]
+ * @returns {string}
+ */
 function assertStringField(value, label, { maxLength, required = true, trim = true, allowUnsafe = false } = {}) {
   if (typeof value !== "string") {
     throw new HttpError(400, `${label} inválido.`);
@@ -1194,7 +1235,7 @@ function getCookieValue(req, cookieName) {
 }
 
 function isSecureRequest(req) {
-  const forwardedProto = String(req.headers["x-forwarded-proto"] || "").split(",")[0].trim().toLowerCase();
+  const forwardedProto = String(req.headers["x-forwarded-proto"] || "").split(",")[0]?.trim().toLowerCase() || "";
   return forwardedProto === "https" || Boolean(req.socket?.encrypted);
 }
 
@@ -1320,7 +1361,7 @@ function assertSameOrigin(req) {
 }
 
 function getClientIp(req) {
-  const forwardedFor = String(req.headers["x-forwarded-for"] || "").split(",")[0].trim();
+  const forwardedFor = String(req.headers["x-forwarded-for"] || "").split(",")[0]?.trim() || "";
   return forwardedFor || String(req.socket?.remoteAddress || "unknown");
 }
 
@@ -1414,7 +1455,7 @@ function readJsonBody(req) {
 
 function getRequestOrigin(req) {
   const hostHeader = req?.headers?.host || `${host}:${port}`;
-  const forwardedProto = String(req?.headers?.["x-forwarded-proto"] || "").split(",")[0].trim().toLowerCase();
+  const forwardedProto = String(req?.headers?.["x-forwarded-proto"] || "").split(",")[0]?.trim().toLowerCase() || "";
   const protocol = forwardedProto || (req?.socket?.encrypted ? "https" : "http");
   return `${protocol}://${hostHeader}`;
 }
@@ -1430,7 +1471,7 @@ function getSafeReturnToFromValue(value) {
   try {
     const url = new URL(candidate, "http://local.invalid");
     const allowedPages = new Set(["index.html", "5e.html", "5.5e-2024.html", "conta.html", "minha-conta.html", "usuario.html"]);
-    const page = url.pathname.split("/").pop();
+    const page = url.pathname.split("/").pop() || "";
     if (url.origin !== "http://local.invalid" || !allowedPages.has(page)) return "";
     return `${page}${url.search || ""}${url.hash || ""}`;
   } catch {
@@ -1443,6 +1484,9 @@ function buildLocalRedirect(returnTo, fallback = "/minha-conta.html") {
   return safeReturnTo ? `/${safeReturnTo}` : fallback;
 }
 
+/**
+ * @param {OAuthAccountRedirectOptions} [options]
+ */
 function buildOAuthAccountRedirect({ provider = "", error = "", fallbackReturnTo = "" } = {}) {
   const params = new URLSearchParams();
   if (provider) params.set("provider", provider);
@@ -1524,7 +1568,7 @@ async function handleOAuthStart(req, res, url) {
     return;
   }
 
-  const statePayload = makeOAuthStatePayload({ provider, returnTo });
+  const statePayload = /** @type {(input: { provider: string, returnTo?: string }) => AnyRecord} */ (makeOAuthStatePayload)({ provider, returnTo });
   let authorizationUrl = "";
   try {
     authorizationUrl = buildOAuthAuthorizationUrl({
@@ -2036,6 +2080,10 @@ const server = createServer(async (req, res) => {
     }
 
     const filePath = resolved.filePath;
+    if (!filePath) {
+      sendText(res, 404, "Arquivo nao encontrado.");
+      return;
+    }
     if (!existsSync(filePath) || !statSync(filePath).isFile()) {
       sendText(res, 404, "Arquivo nao encontrado.");
       return;
@@ -2054,7 +2102,7 @@ const server = createServer(async (req, res) => {
   } catch (error) {
     const statusCode = error instanceof HttpError ? error.statusCode : 500;
     sendJson(res, statusCode, {
-      message: error?.message || "Erro interno do servidor.",
+      message: getErrorMessage(error, "Erro interno do servidor."),
     });
   }
 });
