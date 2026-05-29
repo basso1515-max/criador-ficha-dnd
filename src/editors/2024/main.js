@@ -90,6 +90,15 @@ import {
   LEGACY_BACKGROUND_2024,
 } from "./rules-config.js";
 import {
+  averageHitDieRoundedUp2024,
+  buildHitPointLevelEntries2024,
+  calculateHitPointsFromClassEntries2024,
+  calculateWeaponMasteryLimit2024,
+  getProficiencyBonus2024 as getProficiencyBonus,
+  getSpellSlotTotalsForLimits2024,
+  getSpellcastingContribution2024,
+} from "./rules-calculations.js";
+import {
   DRUID_WILD_SHAPE_USES_BY_LEVEL_2024,
   DRUID_DRUIDIC_GRANTED_SPELL_IDS_2024,
   DRUID_CIRCLE_GRANTED_SPELL_IDS_2024,
@@ -9394,10 +9403,6 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
     updatePreview();
   }
 
-  function getProficiencyBonus(level) {
-    return 2 + Math.floor((Math.max(1, level) - 1) / 4);
-  }
-
   function getAbilityModifier(score) {
     return Number.isFinite(score) ? Math.floor((score - 10) / 2) : null;
   }
@@ -10447,35 +10452,8 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
     return spells.sort((a, b) => (Number(a.nivel || 0) - Number(b.nivel || 0)) || a.nome.localeCompare(b.nome, "pt-BR"));
   }
 
-  function averageHitDieRoundedUp2024(hitDie) {
-    const value = Number(hitDie || 0);
-    return value > 0 ? Math.floor(value / 2) + 1 : 1;
-  }
-
   function getHitPointProgressionMode2024() {
     return el.hpMethodRolled?.checked ? "rolled" : "fixed";
-  }
-
-  function buildHitPointLevelEntries2024(entries = []) {
-    const levels = [];
-    let characterLevel = 0;
-
-    (entries || []).forEach((entry) => {
-      const hitDie = Number(entry?.hitDie || entry?.classData?.dadoVida || 0);
-      const className = entry?.classe || entry?.classData?.nome || labelFromSlug(entry?.classId || "");
-      for (let classLevel = 1; classLevel <= Number(entry?.level || 0); classLevel += 1) {
-        characterLevel += 1;
-        levels.push({
-          key: `${entry?.uid || entry?.classId || "classe"}:${classLevel}:${characterLevel}:d${hitDie}`,
-          characterLevel,
-          classLevel,
-          className,
-          hitDie,
-        });
-      }
-    });
-
-    return levels;
   }
 
   function collectHitPointRollValues2024({ includeEmpty = false } = {}) {
@@ -10615,26 +10593,6 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
     );
     syncDerivedQuickSheetFields2024();
     updatePreview();
-  }
-
-  function calculateHitPointsFromClassEntries2024(entries = [], conMod = 0, { mode = "fixed", rolls = {} } = {}) {
-    let hpTotal = 0;
-    const levelEntries = buildHitPointLevelEntries2024(entries);
-
-    levelEntries.forEach((entry) => {
-      if (entry.characterLevel === 1) {
-        hpTotal += entry.hitDie + conMod;
-        return;
-      }
-
-      const rolledValue = clampInt(rolls?.[entry.key], 1, entry.hitDie);
-      const levelValue = mode === "rolled" && Number.isFinite(Number(rolls?.[entry.key]))
-        ? rolledValue
-        : averageHitDieRoundedUp2024(entry.hitDie);
-      hpTotal += levelValue + conMod;
-    });
-
-    return Math.max(1, hpTotal || (1 + conMod));
   }
 
   function getCharacterLevelFromClassEntries2024(entries = getResolvedClassEntries2024()) {
@@ -11595,15 +11553,11 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
   }
 
   function getWeaponMasteryLimitForClassEntry2024(entry) {
-    if (!collectUnlockedFeatureNames(entry.classData?.features, entry.level).includes("Maestria em Arma")) {
-      return 0;
-    }
-
-    const level = clampInt(entry.level, 1, 20);
-    if (entry.classId === "barbaro") return BARBARIAN_PROGRESSION_2024.weaponMastery[level] || 0;
-    if (entry.classId === "guerreiro") return FIGHTER_PROGRESSION_2024.weaponMastery[level] || 0;
-    if (["ladino", "paladino", "guardiao"].includes(entry.classId)) return 2;
-    return Number.POSITIVE_INFINITY;
+    return calculateWeaponMasteryLimit2024(entry, {
+      hasWeaponMastery: collectUnlockedFeatureNames(entry.classData?.features, entry.level).includes("Maestria em Arma"),
+      barbarianWeaponMasteryByLevel: BARBARIAN_PROGRESSION_2024.weaponMastery,
+      fighterWeaponMasteryByLevel: FIGHTER_PROGRESSION_2024.weaponMastery,
+    });
   }
 
   function getWeaponMasteryState2024(
@@ -11867,23 +11821,6 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
     spellSelectionStore2024.deleteExcept(validSourceKeys);
   }
 
-  function getSpellcastingContribution2024(level, progression) {
-    const classLevel = clampInt(level, 0, 20);
-    switch (progression) {
-      case "half":
-        return Math.floor(classLevel / 2);
-      case "half-up":
-        return Math.ceil(classLevel / 2);
-      case "third":
-        return Math.floor(classLevel / 3);
-      case "pact":
-        return 0;
-      case "full":
-      default:
-        return classLevel;
-    }
-  }
-
   function collectGrantedSpellIdsByLevel2024(definition, level) {
     const grantedSpellIds = [];
     Object.entries(definition || {}).forEach(([requiredLevel, spellIds]) => {
@@ -12048,21 +11985,6 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
       pactSlots: Number(config.pactSlotsByLevel?.[spellcastingLevel] || 0),
       pactSlotLevel: Number(config.pactSlotLevelByLevel?.[spellcastingLevel] || 0),
     };
-  }
-
-  function getSpellSlotTotalsForLimits2024(limits) {
-    const totals = Object.fromEntries(SPELL_SLOT_LEVELS_2024.map((level) => [level, 0]));
-    if (!limits) return totals;
-
-    if (limits.pactSlots && limits.pactSlotLevel) {
-      totals[limits.pactSlotLevel] = limits.pactSlots;
-      return totals;
-    }
-
-    SPELL_SLOT_LEVELS_2024.forEach((level) => {
-      totals[level] = Number(limits.slots?.[level - 1] || 0);
-    });
-    return totals;
   }
 
   function buildSpellcastingSource2024(entry, config, limits, proficiencyBonus) {

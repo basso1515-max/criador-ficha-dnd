@@ -133,6 +133,18 @@ npm run check
 Valida a sintaxe dos arquivos `.js` e `.mjs` e roda checagens estruturais dos catálogos e motores de regra.
 
 ```powershell
+npm run perf:budget
+```
+
+Valida o orçamento de carregamento inicial dos editores, somando os imports estáticos de JS/CSS e bloqueando catálogos pesados que devem continuar sob demanda, como magias, resumos de recursos 2024 e `pdf-lib`.
+
+```powershell
+npm run test:unit
+```
+
+Roda testes unitários pequenos para funções puras de regras e dados: proficiência, slots de magia, HP, maestria em arma e migração/normalização de snapshots.
+
+```powershell
 npm run smoke:dom
 ```
 
@@ -161,7 +173,7 @@ npm run test:pdf:2024
 npm test
 ```
 
-Roda a bateria principal: validação estrutural, smoke DOM, E2E de conta/API e E2E de PDF das duas edições.
+Roda a bateria principal: validação estrutural, orçamento de performance inicial, testes unitários, smoke DOM, E2E de conta/API e E2E de PDF das duas edições.
 
 Os testes de DOM/PDF usam Chrome ou Edge em modo headless. Se o executável não for encontrado automaticamente, defina `CHROME_PATH` conforme o exemplo em `.env.example`.
 
