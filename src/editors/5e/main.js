@@ -78,6 +78,26 @@ import {
   proficiencyBonus,
 } from "./rules-calculations.js";
 import {
+  buildEquipmentLookup,
+  currencyBreakdownToCopper,
+  findCatalogItemByText,
+  formatCurrencyFromCopper,
+  normalizeEquipmentSearchToken,
+  normalizeEquipmentTag,
+} from "./equipment-rules.js";
+import {
+  buildFeatureChoiceSlotKey,
+  buildFeatureChoiceSourceKey,
+  getFeatureChoiceImpactLines,
+} from "./feature-choice-rules.js";
+import {
+  buildSpellLevelCountSummary,
+  formatSpellLevelRangeList,
+  formatSpellSlotTotals,
+  normalizeSpellSelectionSnapshot,
+  normalizeSpellSlotUsage,
+} from "./spell-rules.js";
+import {
   SORCERER_METAMAGIC_OPTIONS_BY_LEVEL_5E,
   FEATURE_CHOICE_METAMAGIC_OPTIONS_5E,
   FEATURE_CHOICE_DAMAGE_TYPE_OPTIONS_5E,
@@ -3134,14 +3154,6 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     return clampInt(definition?.picks || 1, 0, 20);
   }
 
-  function buildFeatureChoiceSourceKey(entry, definition) {
-    return `${entry?.uid || entry?.classId || "class"}:feature-choice:${definition?.kind || "class"}:${definition?.id || "choice"}`;
-  }
-
-  function buildFeatureChoiceSlotKey(source, slotIndex) {
-    return `${source.key}:slot-${slotIndex}`;
-  }
-
   function getCurrentFeatureClassEntries() {
     return collectClassEntries(getSelectedClassData(), getSelectedSubclassData(), getTotalCharacterLevel())
       .filter((entry) => entry?.classData && entry.level > 0);
@@ -3203,42 +3215,6 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       ? source.options
       : (source.optionSet === "wizard-spells" ? getWizardFeatureSpellOptions(source.spellLevel) : []);
     return options.filter((option) => !option.minClassLevel || Number(source.entry?.level || 0) >= Number(option.minClassLevel));
-  }
-
-  function getFeatureChoiceImpactLines(source, option = null) {
-    if (source?.grantsSelectedSpell) {
-      return ["Magia: entra como magia preparada/concedida no bloco de magia e no PDF."];
-    }
-    if (source?.id === "metamagic") {
-      return ["Metamagia: fica registrada nas características do personagem e no PDF."];
-    }
-    if (source?.id === "favored-enemy") {
-      return ["Rastreamento: registra vantagem de conhecimento/rastreio contra esse tipo.", "Idioma: libera uma escolha associada no painel de idiomas."];
-    }
-    if (source?.id === "natural-explorer") {
-      return [
-        "Exploração: aplica os benefícios de viagem, navegação e rastreamento do Explorador Nato nesse terreno.",
-        "Perícias: dobra o bônus de proficiência em testes de INT ou SAB relacionados ao terreno quando a perícia já é proficiente.",
-        "Progressão: 1 terreno no nível 1, outro no nível 6 e outro no nível 10.",
-      ];
-    }
-    if (source?.id === "armor-model") {
-      return ["Armadura: registra o modelo ativo e seus benefícios no resumo da ficha e no PDF."];
-    }
-    if (source?.id === "genie-patron") {
-      return ["Patrono: define o tipo de dano de Ira do Gênio e a resistência de Dádiva Elemental."];
-    }
-    if (source?.id === "fiendish-resilience") {
-      return ["Resistência: registra o tipo escolhido após descanso e pode ser atualizado quando a escolha mudar."];
-    }
-    if (["totem-spirit", "beast-aspect", "totemic-attunement"].includes(source?.id)) {
-      return ["Totem: registra a escolha animal desse patamar do Guerreiro Totêmico."];
-    }
-    if (source?.id === "wild-magic-surge") {
-      return ["Surto: registra o efeito atual ou controlado da Magia Selvagem sem criar pendência obrigatória."];
-    }
-    if (option?.summary) return [`Registro: ${option.summary}`];
-    return ["Registro: aparece no resumo da ficha e na seção de características do PDF."];
   }
 
   function describeFeatureChoiceOption(select, value, label) {
@@ -11142,32 +11118,6 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     return skill ? skill.nome : labelFromSlug(skillKey);
   }
 
-  function singularizeEquipmentTag(value) {
-    return String(value || "")
-      .replace(/\barmaduras\b/g, "armadura")
-      .replace(/\barmas\b/g, "arma")
-      .replace(/\bescudos\b/g, "escudo")
-      .replace(/\bbestas\b/g, "besta")
-      .replace(/\bespadas\b/g, "espada")
-      .replace(/\badagas\b/g, "adaga")
-      .replace(/\bdardos\b/g, "dardo")
-      .replace(/\barcos\b/g, "arco")
-      .replace(/\bmachadinhas\b/g, "machadinha")
-      .replace(/\bmartelos\b/g, "martelo")
-      .replace(/\bmacas\b/g, "maca")
-      .replace(/\blancas\b/g, "lanca")
-      .replace(/\bcurtas\b/g, "curta")
-      .replace(/\blongas\b/g, "longa")
-      .replace(/\bleves\b/g, "leve")
-      .replace(/\bmedias\b/g, "media")
-      .replace(/\bpesadas\b/g, "pesada")
-      .trim();
-  }
-
-  function normalizeEquipmentTag(value) {
-    return singularizeEquipmentTag(normalizePt(String(value || "")).replaceAll("-", " "));
-  }
-
   function extractCatalogTagsFromSummary(summary, dataset = []) {
     const normalized = normalizeEquipmentTag(summary);
     const tags = new Set();
@@ -11490,73 +11440,8 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     return bonus;
   }
 
-  function buildEquipmentLookup(items) {
-    const lookup = new Map();
-
-    items.forEach((item) => {
-      const aliases = new Set([
-        item.datasetKey,
-        item.id,
-        item.nome,
-        labelFromSlug(item.datasetKey),
-        labelFromSlug(item.id),
-      ].filter(Boolean));
-
-      if (/^Armadura de /i.test(item.nome || "")) {
-        aliases.add(String(item.nome).replace(/^Armadura de /i, ""));
-      }
-
-      if (/^Armadura /i.test(item.nome || "")) {
-        aliases.add(String(item.nome).replace(/^Armadura /i, ""));
-      }
-
-      aliases.forEach((alias) => {
-        const normalized = normalizeEquipmentTag(alias);
-        if (normalized && !lookup.has(normalized)) {
-          lookup.set(normalized, item);
-        }
-      });
-    });
-
-    return lookup;
-  }
-
-  const WEAPON_LOOKUP = buildEquipmentLookup(WEAPON_DATASET);
-  const ARMOR_LOOKUP = buildEquipmentLookup(ARMOR_DATASET);
-
-  function normalizeEquipmentSearchToken(value) {
-    return singularizeEquipmentTag(
-      normalizePt(String(value || ""))
-        .replaceAll("-", " ")
-        .replace(/^\d+\s*x?\s*/g, "")
-        .replace(/^(um|uma|dois|duas|tres|três|quatro|cinco|seis|sete|oito|nove|dez)\s+/g, "")
-        .replace(/^qualquer\s+/g, "")
-        .replace(/^arma\s+/g, "")
-        .replace(/^armadura\s+de\s+/g, "")
-        .replace(/^armadura\s+/g, "")
-        .replace(/\(.*?\)/g, "")
-        .trim()
-    );
-  }
-
-  function findCatalogItemByText(value, lookup) {
-    const normalized = normalizeEquipmentSearchToken(value);
-    if (!normalized) return null;
-
-    if (lookup.has(normalized)) {
-      return lookup.get(normalized) || null;
-    }
-
-    const fallback = Array.from(lookup.entries())
-      .sort((a, b) => b[0].length - a[0].length)
-      .find(([alias]) =>
-        normalized.startsWith(`${alias} `) ||
-        normalized.endsWith(` ${alias}`) ||
-        normalized.includes(` ${alias} `)
-      );
-
-    return fallback ? fallback[1] : null;
-  }
+  const WEAPON_LOOKUP = buildEquipmentLookup(WEAPON_DATASET, { labelFromSlug });
+  const ARMOR_LOOKUP = buildEquipmentLookup(ARMOR_DATASET, { labelFromSlug });
 
   function findWeaponByIdOrName(value) {
     return findCatalogItemByText(value, WEAPON_LOOKUP);
@@ -11564,46 +11449,6 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
 
   function findArmorByIdOrName(value) {
     return findCatalogItemByText(value, ARMOR_LOOKUP);
-  }
-
-  function currencyBreakdownToCopper(cost = {}) {
-    const factors = {
-      pc: 1,
-      cp: 1,
-      pp: 10,
-      sp: 10,
-      pe: 50,
-      ep: 50,
-      po: 100,
-      gp: 100,
-      pl: 1000,
-    };
-
-    return Object.entries(cost || {}).reduce((total, [currency, amount]) => {
-      const factor = factors[currency] || 0;
-      return total + Math.round(Number(amount || 0) * factor);
-    }, 0);
-  }
-
-  function formatCurrencyFromCopper(totalCopper) {
-    let remaining = Math.max(0, Math.round(Number(totalCopper || 0)));
-    if (!remaining) return "0 PO";
-
-    const parts = [];
-    [
-      ["PL", 1000],
-      ["PO", 100],
-      ["PE", 50],
-      ["PP", 10],
-      ["PC", 1],
-    ].forEach(([label, factor]) => {
-      const quantity = Math.floor(remaining / factor);
-      if (!quantity) return;
-      parts.push(`${quantity} ${label}`);
-      remaining -= quantity * factor;
-    });
-
-    return parts.join(" • ");
   }
 
   function formatWeightFromPounds(totalLb) {
@@ -13076,26 +12921,6 @@ function getSelectedSubclassData() {
     return changed;
   }
 
-  function normalizeSpellSelectionSnapshot(snapshot = {}) {
-    if (Array.isArray(snapshot.cantrips) || Array.isArray(snapshot.spells)) {
-      return {
-        primary: {
-          cantrips: Array.isArray(snapshot.cantrips) ? snapshot.cantrips : [],
-          spells: Array.isArray(snapshot.spells) ? snapshot.spells : [],
-        },
-      };
-    }
-
-    const normalized = {};
-    Object.entries(snapshot || {}).forEach(([sourceKey, selection]) => {
-      normalized[sourceKey] = {
-        cantrips: Array.isArray(selection?.cantrips) ? selection.cantrips : [],
-        spells: Array.isArray(selection?.spells) ? selection.spells : [],
-      };
-    });
-    return normalized;
-  }
-
   function getSpellcastingConfigForEntry(entry) {
     const subclassRule = entry?.subclassData ? SUBCLASS_SPELLCASTING_RULES[entry.subclassData.id] : null;
     if (subclassRule && entry.level >= (subclassRule.minLevel || 1)) {
@@ -13617,24 +13442,6 @@ function getSelectedSubclassData() {
     return usage;
   }
 
-  function normalizeSpellSlotUsage(slotTotals, rawUsage = {}) {
-    const normalized = {};
-
-    SPELL_SLOT_LEVELS.forEach((level) => {
-      const total = clampInt(slotTotals?.[level] || 0, 0, 99);
-      const rawValue = rawUsage?.[level] ?? rawUsage?.[String(level)];
-
-      if (!total || rawValue === "" || rawValue === null || rawValue === undefined) {
-        normalized[level] = "";
-        return;
-      }
-
-      normalized[level] = String(clampInt(rawValue, 0, total));
-    });
-
-    return normalized;
-  }
-
   function collectSelectedSpellEntries(selectedSpells = {}, sourceMap = new Map()) {
     const entries = [];
     const normalized = normalizeSpellSelectionSnapshot(selectedSpells);
@@ -13920,26 +13727,12 @@ function listVisibleSpellPickerSourceKeys(sources = []) {
     return Array.from(grouped.entries()).sort((a, b) => a[0] - b[0]);
   }
 
-  function formatSpellSlotTotals(slotTotals = {}) {
-    const activeLevels = SPELL_SLOT_LEVELS.filter((level) => Number(slotTotals[level] || 0) > 0);
-    if (!activeLevels.length) return "Sem espaços de magia neste nível.";
-    return activeLevels.map((level) => `${level}º: ${slotTotals[level]}`).join(" • ");
-  }
-
   function formatSpellSlots(source) {
     if (!source) return "";
     if (source.slotPool === "pact") {
       return `${source.limits.pactSlots} espaço(s) de ${source.limits.pactSlotLevel}º círculo`;
     }
     return formatSpellSlotTotals(source.slotTotals);
-  }
-
-  function formatSpellLevelRangeList(maxSpellLevel = 0) {
-    const labels = [];
-    for (let level = 1; level <= maxSpellLevel; level += 1) {
-      labels.push(SPELL_LEVEL_LABELS[level] || `${level}º círculo`);
-    }
-    return formatList(labels);
   }
 
   function buildSpellLevelDistributionInfo(source) {
@@ -14005,14 +13798,6 @@ function listVisibleSpellPickerSourceKeys(sources = []) {
 
   function createEmptySpellLevelCounts(maxSpellLevel = 0) {
     return Array.from({ length: clampInt(maxSpellLevel, 0, 9) }, () => 0);
-  }
-
-  function buildSpellLevelCountSummary(counts = []) {
-    return counts
-      .map((count, index) => ({ count, level: index + 1 }))
-      .filter((entry) => entry.count > 0)
-      .map((entry) => `${SPELL_LEVEL_LABELS[entry.level] || `${entry.level}º círculo`}: ${entry.count}`)
-      .join(", ");
   }
 
   function distributeKnownSpellGains(baseCounts, addCount, maxSpellLevel, collector) {

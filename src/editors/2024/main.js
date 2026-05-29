@@ -75,7 +75,6 @@ import {
   CHAPTER_TWO_LANGUAGE_CHOICE_IDS_2024,
   LANGUAGE_ORIGINS_2024,
   LANGUAGE_METADATA_2024,
-  CURRENCY_KEYS_2024,
   CURRENCY_TO_COPPER_FACTORS_2024,
   WEAPON_TEXT_ALIASES_2024,
   PDF_MAP_URL_2024,
@@ -99,6 +98,28 @@ import {
   getSpellSlotTotalsForLimits2024,
   getSpellcastingContribution2024,
 } from "./rules-calculations.js";
+import {
+  createEmptyCurrencyBreakdown2024,
+  extractCurrencyBreakdownFromText2024,
+  addCurrencyBreakdown2024,
+  currencyBreakdownToCopper2024,
+  copperToCurrencyBreakdown2024,
+  stringifyCurrencyBreakdown2024,
+  formatCurrencyBreakdownSummary2024,
+  formatCurrencyFromCopper2024,
+  formatSignedCurrencyFromCopper2024,
+  getCarryingCapacityMultiplier2024,
+} from "./equipment-rules.js";
+import {
+  buildFeatureChoiceSlotKey2024,
+  buildFeatureChoiceSourceKey2024,
+} from "./feature-choice-rules.js";
+import {
+  collectGrantedSpellIdsByLevel2024,
+  formatSpellSlotTotals2024,
+  mergeGrantedSpellIdsIntoConfig2024,
+  normalizeSpellSlotUsage2024,
+} from "./spell-rules.js";
 import {
   DRUID_WILD_SHAPE_USES_BY_LEVEL_2024,
   DRUID_DRUIDIC_GRANTED_SPELL_IDS_2024,
@@ -3155,14 +3176,6 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
       return clampInt(definition.picksByLevel[clampInt(entry?.level, 0, 20)] || 0, 0, 20);
     }
     return clampInt(definition?.picks || 1, 0, 20);
-  }
-
-  function buildFeatureChoiceSourceKey2024(entry, definition) {
-    return `${entry?.uid || entry?.classId || "class"}:feature-choice:${definition?.kind || "class"}:${definition?.id || "choice"}`;
-  }
-
-  function buildFeatureChoiceSlotKey2024(source, slotIndex) {
-    return `${source.key}:slot-${slotIndex}`;
   }
 
   function buildWeaponMasteryFeatureChoiceDefinition2024(entry) {
@@ -10741,65 +10754,6 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
     return null;
   }
 
-  function createEmptyCurrencyBreakdown2024() {
-    return Object.fromEntries(CURRENCY_KEYS_2024.map((key) => [key, 0]));
-  }
-
-  function extractCurrencyBreakdownFromText2024(text) {
-    const totals = createEmptyCurrencyBreakdown2024();
-    const normalized = normalizePt(text);
-    if (!normalized) return totals;
-
-    const patterns = {
-      pc: /(\d+)\s*(pc|peca(?:s)? de cobre)\b/g,
-      pp: /(\d+)\s*(pp|peca(?:s)? de prata)\b/g,
-      pe: /(\d+)\s*(pe|ce|ep|peca(?:s)? de electro|peca(?:s)? de eletro)\b/g,
-      po: /(\d+)\s*(po|gp|peca(?:s)? de ouro)\b/g,
-      pl: /(\d+)\s*(pl|peca(?:s)? de platina)\b/g,
-    };
-
-    Object.entries(patterns).forEach(([currencyKey, pattern]) => {
-      for (const match of normalized.matchAll(pattern)) {
-        totals[currencyKey] += clampInt(match[1], 0, 999999);
-      }
-    });
-
-    return totals;
-  }
-
-  function addCurrencyBreakdown2024(target, source) {
-    CURRENCY_KEYS_2024.forEach((currencyKey) => {
-      target[currencyKey] = Number(target[currencyKey] || 0) + Number(source?.[currencyKey] || 0);
-    });
-    return target;
-  }
-
-  function currencyBreakdownToCopper2024(breakdown = {}) {
-    return CURRENCY_KEYS_2024.reduce(
-      (total, currencyKey) => total + (Number(breakdown?.[currencyKey] || 0) * CURRENCY_TO_COPPER_FACTORS_2024[currencyKey]),
-      0
-    );
-  }
-
-  function copperToCurrencyBreakdown2024(totalCopper) {
-    let remaining = Math.max(0, Number(totalCopper || 0));
-    const breakdown = createEmptyCurrencyBreakdown2024();
-
-    ["pl", "po", "pe", "pp", "pc"].forEach((currencyKey) => {
-      const factor = CURRENCY_TO_COPPER_FACTORS_2024[currencyKey];
-      breakdown[currencyKey] = Math.floor(remaining / factor);
-      remaining %= factor;
-    });
-
-    return breakdown;
-  }
-
-  function stringifyCurrencyBreakdown2024(breakdown = {}) {
-    return Object.fromEntries(
-      CURRENCY_KEYS_2024.map((currencyKey) => [currencyKey, breakdown[currencyKey] ? String(breakdown[currencyKey]) : ""])
-    );
-  }
-
   function getGrantedCurrencyTotals2024(cls, background) {
     const totals = createEmptyCurrencyBreakdown2024();
     const classPackage = getStrictSelectedClassEquipmentPackage2024(cls);
@@ -10828,39 +10782,6 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
     return stringifyCurrencyBreakdown2024(copperToCurrencyBreakdown2024(shoppingState.remainingCopper));
   }
 
-  function formatCurrencyBreakdownSummary2024(breakdown = {}) {
-    const labels = {
-      pc: "PC",
-      pp: "PP",
-      pe: "PE",
-      po: "PO",
-      pl: "PL",
-    };
-
-    const parts = CURRENCY_KEYS_2024
-      .map((currencyKey) => {
-        const value = String(breakdown?.[currencyKey] || "").trim();
-        return value ? `${labels[currencyKey]} ${value}` : "";
-      })
-      .filter(Boolean);
-
-    return parts.join(" • ");
-  }
-
-  function formatCurrencyFromCopper2024(totalCopper) {
-    const copper = Math.max(0, Number(totalCopper || 0));
-    if (copper <= 0) return "0 PO";
-    return formatCurrencyBreakdownSummary2024(stringifyCurrencyBreakdown2024(copperToCurrencyBreakdown2024(copper))) || "0 PO";
-  }
-
-  function formatSignedCurrencyFromCopper2024(totalCopper) {
-    const copper = Number(totalCopper || 0);
-    if (copper < 0) {
-      return `-${formatCurrencyFromCopper2024(Math.abs(copper))}`;
-    }
-    return formatCurrencyFromCopper2024(copper);
-  }
-
   function formatWeightFromPounds2024(totalLb) {
     const unit = getPreferredWeightUnit2024();
     return formatMeasurement2024(convertWeight2024(totalLb, "lb", unit), WEIGHT_UNITS_2024[unit]);
@@ -10871,19 +10792,6 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
       || subrace?.tamanho
       || race?.tamanho
       || "";
-  }
-
-  function getCarryingCapacityMultiplier2024(sizeCode, { powerfulBuild = false } = {}) {
-    let effectiveSize = sizeCode || "M";
-
-    if (powerfulBuild) {
-      if (effectiveSize === "P") effectiveSize = "M";
-      else if (effectiveSize === "M") effectiveSize = "G";
-      else if (effectiveSize === "G") return 4;
-    }
-
-    if (effectiveSize === "G") return 2;
-    return 1;
   }
 
   function getCarryingCapacityState2024(race = getSelectedRace(), subrace = getSelectedSubrace(), abilityScores = getEffectiveAbilityScores().scores) {
@@ -11822,28 +11730,6 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
     spellSelectionStore2024.deleteExcept(validSourceKeys);
   }
 
-  function collectGrantedSpellIdsByLevel2024(definition, level) {
-    const grantedSpellIds = [];
-    Object.entries(definition || {}).forEach(([requiredLevel, spellIds]) => {
-      if (level >= Number(requiredLevel)) grantedSpellIds.push(...spellIds);
-    });
-    return Array.from(new Set(grantedSpellIds));
-  }
-
-  function mergeGrantedSpellIdsIntoConfig2024(config, spellIds = [], grantLabel = "Magia concedida") {
-    const grantedSpellIds = Array.from(new Set((spellIds || []).filter(Boolean)));
-    if (!grantedSpellIds.length) return config;
-    config.grantedSpellIds = Array.from(new Set([...(config.grantedSpellIds || []), ...grantedSpellIds]));
-    config.allowedSpellIds = Array.from(new Set([...(config.allowedSpellIds || []), ...grantedSpellIds]));
-    config.grantedSpellDetails = { ...(config.grantedSpellDetails || {}) };
-    grantedSpellIds.forEach((spellId) => {
-      if (!config.grantedSpellDetails[spellId]) {
-        config.grantedSpellDetails[spellId] = grantLabel;
-      }
-    });
-    return config;
-  }
-
   function getSpellcastingConfigForEntry2024(entry) {
     if (!entry?.classData || !entry.level) return null;
 
@@ -12640,16 +12526,6 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
     return usage;
   }
 
-  function normalizeSpellSlotUsage2024(slotTotals = {}, rawUsage = {}) {
-    const normalized = {};
-    SPELL_SLOT_LEVELS_2024.forEach((level) => {
-      const total = clampInt(slotTotals[level] || 0, 0, 99);
-      const raw = rawUsage[level] ?? rawUsage[String(level)] ?? "";
-      normalized[level] = !total || raw === "" ? "" : String(clampInt(raw, 0, total));
-    });
-    return normalized;
-  }
-
   function getSelectedSpellEntries2024(context = lastMagicContext2024) {
     if (!context?.sources?.length) return [];
 
@@ -13146,13 +13022,6 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
         },
       })),
     };
-  }
-
-  function formatSpellSlotTotals2024(slotTotals = {}) {
-    const parts = SPELL_SLOT_LEVELS_2024
-      .filter((level) => Number(slotTotals[level] || 0) > 0)
-      .map((level) => `${SPELL_LEVEL_LABELS_2024[level]}: ${slotTotals[level]}`);
-    return parts.length ? parts.join(" • ") : "Sem espaços de magia neste nível.";
   }
 
   function buildMagicSelectionStatusText2024(context) {
