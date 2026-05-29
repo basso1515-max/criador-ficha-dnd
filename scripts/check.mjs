@@ -100,6 +100,30 @@ function validatePdfLibBundle() {
 
 validatePdfLibBundle();
 
+function validateLazyLoadedCatalogs() {
+  const errors = [];
+  const editor2024 = readFileSync(path.join(root, "src/editors/2024/main.js"), "utf8");
+  if (editor2024.includes('import { FEATURE_SUMMARIES_2024 } from "../../data/5.5e/feature-summaries.js"')) {
+    errors.push("src/editors/2024/main.js carrega feature-summaries.js no bundle inicial.");
+  }
+  if (!editor2024.includes('import("../../data/5.5e/feature-summaries.js")')) {
+    errors.push("src/editors/2024/main.js nao carrega feature-summaries.js sob demanda.");
+  }
+  if (!editor2024.includes("loadFeatureSummaries2024")) {
+    errors.push("src/editors/2024/main.js nao possui loader de resumos de recursos 2024.");
+  }
+
+  if (errors.length) {
+    console.error("\nValidacao de catalogos sob demanda falhou:");
+    errors.forEach((error) => console.error(`- ${error}`));
+    process.exit(1);
+  }
+
+  console.log("OK: catalogos 2024 sob demanda");
+}
+
+validateLazyLoadedCatalogs();
+
 function collectScriptFiles(relativeDir) {
   const absoluteDir = path.join(root, relativeDir);
   if (!existsSync(absoluteDir)) {

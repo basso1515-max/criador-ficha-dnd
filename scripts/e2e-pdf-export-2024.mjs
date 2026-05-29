@@ -87,6 +87,7 @@ async function main() {
   await waitForSelector(cdp, "#btnGerar2024");
   await waitForFunction(cdp, "Boolean(window.__DND_SHEET_2024_TEST_HOOKS__)", PAGE_TIMEOUT_MS, "Hooks de teste 2024 indisponiveis");
   await assertPdfLibIsLazy(cdp);
+  await assertFeatureSummariesAreLazy(cdp);
 
   const formState = await evaluate(cdp, fillBarbarian2024PdfFixtureScript());
   assert(formState.summary.includes("3/3"), `Resumo de maestrias inesperado: ${formState.summary}`);
@@ -97,6 +98,7 @@ async function main() {
   assert(generated?.fieldTexts, "Hook de PDF nao retornou o snapshot dos campos.");
   assert(generated.byteLength > 10_000_000, "PDF 2024 gerado parece pequeno demais.");
   await assertPdfLibLoadedOnDemand(cdp);
+  await assertFeatureSummariesLoadedOnDemand(cdp);
 
   const allText = getPdfSnapshotText(generated);
 
@@ -136,6 +138,7 @@ async function main() {
     "Maestria em Arma exige tres escolhas unicas",
     "fixture de Druida da Terra nivel 5 preenche magias concedidas",
     "pdf-lib carregado sob demanda durante a geracao",
+    "resumos de recursos 2024 carregados sob demanda durante a geracao",
     "PDF gerado em memoria pelo mesmo motor do editor",
     "campos finais do PDF contem nome, classe, nivel, maestrias e magias",
   ].forEach((line) => console.log(`OK: ${line}`));
@@ -388,6 +391,31 @@ async function assertPdfLibLoadedOnDemand(cdp) {
   );
   assert(scripts.some((src) => src.includes("/assets/vendor/pdf-lib-1.17.1.min.js")), "Loader nao injetou o bundle local de pdf-lib.");
   assert(!scripts.some((src) => src.includes("unpkg.com/pdf-lib")), "HTML ainda referencia pdf-lib via unpkg.");
+}
+
+async function assertFeatureSummariesAreLazy(cdp) {
+  const state = await evaluate(
+    cdp,
+    `(() => ({
+      resources: performance.getEntriesByType("resource").map((entry) => entry.name),
+      scripts: Array.from(document.scripts).map((script) => script.getAttribute("src") || "")
+    }))()`
+  );
+  assert(!hasFeatureSummariesResource(state.resources), "Resumos de recursos 2024 carregaram antes da exportacao.");
+  assert(!hasFeatureSummariesResource(state.scripts), "HTML inicial injeta os resumos de recursos 2024.");
+}
+
+async function assertFeatureSummariesLoadedOnDemand(cdp) {
+  await waitForFunction(
+    cdp,
+    `performance.getEntriesByType("resource").some((entry) => entry.name.includes("/src/data/5.5e/feature-summaries.js"))`,
+    PAGE_TIMEOUT_MS,
+    "Resumos de recursos 2024 nao carregaram sob demanda"
+  );
+}
+
+function hasFeatureSummariesResource(urls) {
+  return (urls || []).some((url) => String(url || "").includes("/src/data/5.5e/feature-summaries.js"));
 }
 
 async function waitForFunction(cdp, expression, timeoutMs = PAGE_TIMEOUT_MS, label = expression) {

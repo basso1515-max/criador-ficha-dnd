@@ -6,7 +6,6 @@ import { DIVINDADES } from "../../data/5.5e/divindades.js";
 import { TALENTOS, META_TALENTOS } from "../../data/5.5e/talentos.js";
 import { ARMADURAS } from "../../data/5.5e/armaduras.js";
 import { ARMAS, PROPRIEDADES_ARMA, PROPRIEDADES_MAESTRIA_ARMA } from "../../data/5.5e/armas.js";
-import { FEATURE_SUMMARIES_2024 } from "../../data/5.5e/feature-summaries.js";
 import { EQUIPMENT_OPTION_LISTS, CLASS_EQUIPMENT_RULES, BACKGROUND_EQUIPMENT_RULES } from "../../data/5.5e/equipamento-inicial.js";
 import { EXTRA_EQUIPMENT_CATALOG_2024, EXTRA_EQUIPMENT_GROUP_LABELS_2024 } from "../../data/5.5e/equipment-compendium.js";
 import { buildRandomCharacterNameForRace } from "../../data/character-name-randomizer.js";
@@ -288,6 +287,8 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
   let SPELL_BY_ID_2024 = new Map();
   let spellCatalogLoadPromise2024 = null;
   let spellCatalogLoadError2024 = null;
+  let FEATURE_SUMMARIES_2024 = null;
+  let featureSummariesLoadPromise2024 = null;
   const ALL_SPELLCASTING_CLASS_IDS_2024 = [
     "bardo",
     "bruxo",
@@ -329,6 +330,28 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
         });
     }
     return spellCatalogLoadPromise2024;
+  }
+
+  function areFeatureSummariesLoaded2024() {
+    return Boolean(FEATURE_SUMMARIES_2024);
+  }
+
+  function loadFeatureSummaries2024() {
+    if (areFeatureSummariesLoaded2024()) {
+      return Promise.resolve(FEATURE_SUMMARIES_2024);
+    }
+    if (!featureSummariesLoadPromise2024) {
+      featureSummariesLoadPromise2024 = import("../../data/5.5e/feature-summaries.js")
+        .then(({ FEATURE_SUMMARIES_2024: summaries }) => {
+          FEATURE_SUMMARIES_2024 = summaries || {};
+          return FEATURE_SUMMARIES_2024;
+        })
+        .catch((error) => {
+          featureSummariesLoadPromise2024 = null;
+          throw error;
+        });
+    }
+    return featureSummariesLoadPromise2024;
   }
 
   const DEFAULT_CLASS_FEAT_LEVELS = [4, 8, 12, 16, 19];
@@ -14264,6 +14287,16 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
         await yieldUi2024();
       }
 
+      if (!areFeatureSummariesLoaded2024()) {
+        writeLoadingTab2024(
+          loadingTab,
+          "Carregando resumos de recursos...",
+          "Os resumos completos de classe e subclasse entram só agora, para manter a página inicial mais leve."
+        );
+        await loadFeatureSummaries2024();
+        await yieldUi2024();
+      }
+
       const pdfMap = await loadPdfMap2024();
       const templateUrl = pdfMap?.meta?.template || DEFAULT_TEMPLATE_URL_2024;
       writeLoadingTab2024(
@@ -14344,6 +14377,7 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
     const buildGeneratedPdf = async (overrides = {}) => {
       await ensurePdfLibLoaded();
       await ensureSpellCatalogForCurrentMagic2024({ refreshUi: false });
+      await loadFeatureSummaries2024();
 
       const pdfMap = overrides.pdfMap || await loadPdfMap2024();
       const templateUrl = overrides.templateUrl || pdfMap?.meta?.template || DEFAULT_TEMPLATE_URL_2024;
