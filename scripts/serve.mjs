@@ -449,6 +449,10 @@ function buildAccountActionUrl(req, params) {
   return url.toString();
 }
 
+function buildAccountPublicUrl(req, pathname) {
+  return new URL(pathname, `${getAccountPublicBaseUrl(req)}/`).toString();
+}
+
 function shouldExposeEmailDebugResponse() {
   return String(process.env.ACCOUNT_EMAIL_DEBUG_RESPONSE || "") === "1";
 }
@@ -1461,7 +1465,7 @@ function getRequestOrigin(req) {
 }
 
 function getOAuthRedirectUri(req) {
-  return `${getRequestOrigin(req)}/api/accounts/oauth/callback`;
+  return buildAccountPublicUrl(req, "/api/accounts/oauth/callback");
 }
 
 function getSafeReturnToFromValue(value) {

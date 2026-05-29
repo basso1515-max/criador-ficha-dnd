@@ -61,6 +61,9 @@ async function main() {
       PORT: String(serverPort),
       SERVER_DATA_DIR: tempDataDir,
       ACCOUNT_EMAIL_DEBUG_RESPONSE: "1",
+      ACCOUNT_PUBLIC_BASE_URL: "https://sheetfy.vercel.app",
+      GOOGLE_OAUTH_CLIENT_ID: "google-client-id.example.test",
+      GOOGLE_OAUTH_CLIENT_SECRET: "google-client-secret.example.test",
     },
     stdio: ["ignore", "pipe", "pipe"],
   });
@@ -78,6 +81,7 @@ async function main() {
   assertCommunityStatsFallbackForOldSnapshots();
   await assertSecurityHeaders(baseUrl);
   await assertCrossSiteWriteBlocked(baseUrl);
+  await assertOAuthRedirectUsesPublicBaseUrl(baseUrl);
 
   const anonymous = await requestJson(baseUrl, "/api/account/current", { jar });
   assert(anonymous.statusCode === 200, "Consulta inicial de conta falhou.");
@@ -451,6 +455,7 @@ async function main() {
     "bloqueio de escrita cross-site",
     "política de senha nova",
     "validação estrita de payloads maliciosos",
+    "callback OAuth no domínio público canônico",
     "cadastro e sessão",
     "validação de e-mail por link",
     "desvinculação segura de login social",
@@ -597,6 +602,23 @@ async function assertCrossSiteWriteBlocked(baseUrl) {
     },
   });
   assert(response.statusCode === 403, "Escrita cross-site deveria ser bloqueada.");
+}
+
+async function assertOAuthRedirectUsesPublicBaseUrl(baseUrl) {
+  const jar = new CookieJar();
+  const response = await requestRaw(baseUrl, "/api/accounts/oauth/start?provider=google&returnTo=minha-conta.html", {
+    jar,
+    expectedStatus: 302,
+  });
+  const location = response.headers.location || "";
+  assert(location, "Inicio de OAuth deveria redirecionar para o provedor.");
+  const authorizationUrl = new URL(location);
+  assert(authorizationUrl.hostname === "accounts.google.com", "OAuth Google deveria usar o endpoint de autorizacao.");
+  assert(
+    authorizationUrl.searchParams.get("redirect_uri") === "https://sheetfy.vercel.app/api/accounts/oauth/callback",
+    "OAuth deveria usar ACCOUNT_PUBLIC_BASE_URL como base do callback."
+  );
+  assert(jar.header().includes("dnd_sheet_oauth_state="), "Inicio de OAuth deveria definir cookie temporario de state.");
 }
 
 async function requestJson(baseUrl, route, options = {}) {

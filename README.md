@@ -250,7 +250,7 @@ ACCOUNT_EMAIL_NAME
 ACCOUNT_PUBLIC_BASE_URL
 ```
 
-`ACCOUNT_PUBLIC_BASE_URL` é opcional e define a URL pública usada nos links. Sem `RESEND_API_KEY` ou remetente, o cadastro e a recuperação continuam funcionando, mas o servidor apenas registra aviso nos logs. `ACCOUNT_EMAIL_DEBUG_RESPONSE=1` existe só para testes locais e não deve ser usado em produção.
+`ACCOUNT_PUBLIC_BASE_URL` é opcional e define a URL pública usada nos links e callbacks de OAuth. Em produção, configure com o domínio canônico, por exemplo `https://sheetfy.vercel.app`. Sem `RESEND_API_KEY` ou remetente, o cadastro e a recuperação continuam funcionando, mas o servidor apenas registra aviso nos logs. `ACCOUNT_EMAIL_DEBUG_RESPONSE=1` existe só para testes locais e não deve ser usado em produção.
 Use `ACCOUNT_EMAIL_NAME=Sheetfy` para que remetente e assuntos dos e-mails de conta carreguem o novo nome.
 
 ### Login Social
@@ -259,7 +259,7 @@ O app também oferece login com Google e Facebook via OAuth. Configure, no paine
 
 ```text
 http://127.0.0.1:8000/api/accounts/oauth/callback
-https://seu-dominio.example/api/accounts/oauth/callback
+https://sheetfy.vercel.app/api/accounts/oauth/callback
 ```
 
 Nos cadastros públicos dos aplicativos de OAuth, especialmente Google e Facebook, use `Sheetfy` como nome do app/produto para que a tela de consentimento acompanhe a marca do site.
@@ -272,6 +272,7 @@ GOOGLE_OAUTH_CLIENT_SECRET
 FACEBOOK_OAUTH_CLIENT_ID
 FACEBOOK_OAUTH_CLIENT_SECRET
 FACEBOOK_GRAPH_VERSION
+ACCOUNT_PUBLIC_BASE_URL
 ```
 
 Na página do usuário, provedores sociais vinculados podem ser desvinculados com segurança. Contas com senha precisam confirmar a senha atual; contas somente sociais só podem remover um provedor se outro provedor social permanecer ativo ou depois de definir uma senha.
