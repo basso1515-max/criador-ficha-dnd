@@ -87,7 +87,7 @@ async function main() {
   await navigate(cdp, `${baseUrl}/5e.html`);
   await waitForSelector(cdp, "#btnGerar");
   await waitForFunction(cdp, "Boolean(window.__DND_SHEET_5E_TEST_HOOKS__)", PAGE_TIMEOUT_MS, "Hooks de teste 5e indisponiveis");
-  await assertLocalPdfLibLoaded(cdp);
+  await assertPdfLibIsLazy(cdp);
 
   const formState = await evaluate(cdp, fillArtificerPdfFixtureScript());
   assert(formState.summary.includes("Conhecidas 6/6") && formState.summary.includes("Ativas 3/3"), `Resumo de infusoes inesperado: ${formState.summary}`);
@@ -95,6 +95,7 @@ async function main() {
 
   const generated = await evaluate(cdp, "window.__DND_SHEET_5E_TEST_HOOKS__.generatePdfBase64({ flatten: false })", 45_000);
   assert(generated?.base64, "Hook de PDF nao retornou base64.");
+  await assertPdfLibLoadedOnDemand(cdp);
 
   const pdfBytes = Buffer.from(generated.base64, "base64");
   assert(pdfBytes.length > 50_000, "PDF gerado parece pequeno demais.");
@@ -119,6 +120,7 @@ async function main() {
     "hook de teste 5e habilitado somente por flag",
     "fixture de Artifice nivel 6 preenchida no editor",
     "Armadura Resistente exige e preserva tipo de dano",
+    "pdf-lib carregado sob demanda durante a geracao",
     "PDF gerado em memoria pelo mesmo motor do editor",
     "campos finais do PDF contem nome, classe, infusao, alvo e resistencia",
   ].forEach((line) => console.log(`OK: ${line}`));
@@ -198,18 +200,6 @@ function fillArtificerPdfFixtureScript() {
         select.value = option.value;
         dispatch(select, "change");
       };
-      const ensurePdfLib = async () => {
-        if (window.PDFLib) return;
-        await new Promise((resolve, reject) => {
-          const script = document.createElement("script");
-          script.src = "/assets/vendor/pdf-lib-1.17.1.min.js";
-          script.onload = resolve;
-          script.onerror = () => reject(new Error("pdf-lib local nao carregou."));
-          document.head.appendChild(script);
-        });
-      };
-
-      await ensurePdfLib();
       await waitForCondition(() => window.__DND_SHEET_5E_TEST_HOOKS__, "Hook de teste nao ficou pronto.");
 
       setValue("#nome", "Teste PDF Artifice");
@@ -280,19 +270,32 @@ async function waitForSelector(cdp, selector) {
   await waitForFunction(cdp, `Boolean(document.querySelector(${safeSelector}))`, PAGE_TIMEOUT_MS, `Seletor ausente: ${selector}`);
 }
 
-async function assertLocalPdfLibLoaded(cdp) {
+async function assertPdfLibIsLazy(cdp) {
+  const state = await evaluate(
+    cdp,
+    `(() => ({
+      loaded: Boolean(window.PDFLib?.PDFDocument && window.PDFLib?.StandardFonts),
+      scripts: Array.from(document.scripts).map((script) => script.getAttribute("src") || "")
+    }))()`
+  );
+  assert(!state.loaded, "pdf-lib carregou antes da exportacao.");
+  assert(!state.scripts.some((src) => src.includes("pdf-lib-1.17.1.min.js")), "HTML inicial ainda injeta o bundle local de pdf-lib.");
+  assert(!state.scripts.some((src) => src.includes("unpkg.com/pdf-lib")), "HTML ainda referencia pdf-lib via unpkg.");
+}
+
+async function assertPdfLibLoadedOnDemand(cdp) {
   await waitForFunction(
     cdp,
     "Boolean(window.PDFLib?.PDFDocument && window.PDFLib?.StandardFonts)",
     PAGE_TIMEOUT_MS,
-    "pdf-lib local nao carregou via HTML"
+    "pdf-lib local nao carregou sob demanda"
   );
 
   const scripts = await evaluate(
     cdp,
     "Array.from(document.scripts).map((script) => script.getAttribute('src') || '')"
   );
-  assert(scripts.includes("./assets/vendor/pdf-lib-1.17.1.min.js"), "HTML nao referencia o bundle local de pdf-lib.");
+  assert(scripts.some((src) => src.includes("/assets/vendor/pdf-lib-1.17.1.min.js")), "Loader nao injetou o bundle local de pdf-lib.");
   assert(!scripts.some((src) => src.includes("unpkg.com/pdf-lib")), "HTML ainda referencia pdf-lib via unpkg.");
 }
 

@@ -1086,12 +1086,21 @@ const smokePages = [
         };
         const modalText = () => document.querySelector(".level-up-dialog")?.textContent || "";
         const openLevelUp = async () => {
-          click(".level-up-open-button");
-          await waitForCondition(
-            () => document.querySelector(".level-up-modal-shell")?.classList.contains("is-open")
-              && modalText().includes("Seguir com a classe principal"),
-            "Popup de nível 5.5e não abriu na aba Caminho."
-          );
+          await waitForCondition(() => {
+            const button = document.querySelector(".level-up-open-button");
+            return button && !button.disabled;
+          }, "Botão de subir nível 5.5e não ficou disponível.");
+
+          const startedAt = Date.now();
+          while (Date.now() - startedAt < 8000) {
+            const shell = document.querySelector(".level-up-modal-shell");
+            if (shell?.classList.contains("is-open") && modalText().includes("Seguir com a classe principal")) {
+              return;
+            }
+            click(".level-up-open-button");
+            await new Promise((resolve) => setTimeout(resolve, 80));
+          }
+          throw new Error("Popup de nível 5.5e não abriu na aba Caminho.");
         };
         const hasLevelUpTab = (label) => Array.from(document.querySelectorAll(".level-up-tab"))
           .some((tab) => tab.textContent.trim() === label);

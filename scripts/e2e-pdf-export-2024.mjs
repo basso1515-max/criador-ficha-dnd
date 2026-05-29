@@ -86,7 +86,7 @@ async function main() {
   await navigate(cdp, `${baseUrl}/5.5e-2024.html`);
   await waitForSelector(cdp, "#btnGerar2024");
   await waitForFunction(cdp, "Boolean(window.__DND_SHEET_2024_TEST_HOOKS__)", PAGE_TIMEOUT_MS, "Hooks de teste 2024 indisponiveis");
-  await assertLocalPdfLibLoaded(cdp);
+  await assertPdfLibIsLazy(cdp);
 
   const formState = await evaluate(cdp, fillBarbarian2024PdfFixtureScript());
   assert(formState.summary.includes("3/3"), `Resumo de maestrias inesperado: ${formState.summary}`);
@@ -96,6 +96,7 @@ async function main() {
   const generated = await evaluate(cdp, "window.__DND_SHEET_2024_TEST_HOOKS__.generatePdfSnapshot({ flatten: false })", 45_000);
   assert(generated?.fieldTexts, "Hook de PDF nao retornou o snapshot dos campos.");
   assert(generated.byteLength > 10_000_000, "PDF 2024 gerado parece pequeno demais.");
+  await assertPdfLibLoadedOnDemand(cdp);
 
   const allText = getPdfSnapshotText(generated);
 
@@ -134,6 +135,7 @@ async function main() {
     "fixture de Barbaro nivel 4 preenchida no editor 2024",
     "Maestria em Arma exige tres escolhas unicas",
     "fixture de Druida da Terra nivel 5 preenche magias concedidas",
+    "pdf-lib carregado sob demanda durante a geracao",
     "PDF gerado em memoria pelo mesmo motor do editor",
     "campos finais do PDF contem nome, classe, nivel, maestrias e magias",
   ].forEach((line) => console.log(`OK: ${line}`));
@@ -205,18 +207,6 @@ function fillBarbarian2024PdfFixtureScript() {
           label: String(option.textContent || option.value).trim(),
         };
       };
-      const ensurePdfLib = async () => {
-        if (window.PDFLib) return;
-        await new Promise((resolve, reject) => {
-          const script = document.createElement("script");
-          script.src = "/assets/vendor/pdf-lib-1.17.1.min.js";
-          script.onload = resolve;
-          script.onerror = () => reject(new Error("pdf-lib local nao carregou."));
-          document.head.appendChild(script);
-        });
-      };
-
-      await ensurePdfLib();
       await waitForCondition(() => window.__DND_SHEET_2024_TEST_HOOKS__, "Hook de teste nao ficou pronto.");
 
       setValue("#nome2024", "Teste PDF 2024");
@@ -300,18 +290,6 @@ function fillDruidLand2024PdfFixtureScript() {
         dispatch(select, "change");
         return option.value;
       };
-      const ensurePdfLib = async () => {
-        if (window.PDFLib) return;
-        await new Promise((resolve, reject) => {
-          const script = document.createElement("script");
-          script.src = "/assets/vendor/pdf-lib-1.17.1.min.js";
-          script.onload = resolve;
-          script.onerror = () => reject(new Error("pdf-lib local nao carregou."));
-          document.head.appendChild(script);
-        });
-      };
-
-      await ensurePdfLib();
       await waitForCondition(() => window.__DND_SHEET_2024_TEST_HOOKS__, "Hook de teste nao ficou pronto.");
 
       setValue("#nome2024", "Teste PDF Druida 2024");
@@ -383,19 +361,32 @@ async function waitForSelector(cdp, selector) {
   await waitForFunction(cdp, `Boolean(document.querySelector(${safeSelector}))`, PAGE_TIMEOUT_MS, `Seletor ausente: ${selector}`);
 }
 
-async function assertLocalPdfLibLoaded(cdp) {
+async function assertPdfLibIsLazy(cdp) {
+  const state = await evaluate(
+    cdp,
+    `(() => ({
+      loaded: Boolean(window.PDFLib?.PDFDocument && window.PDFLib?.StandardFonts),
+      scripts: Array.from(document.scripts).map((script) => script.getAttribute("src") || "")
+    }))()`
+  );
+  assert(!state.loaded, "pdf-lib carregou antes da exportacao.");
+  assert(!state.scripts.some((src) => src.includes("pdf-lib-1.17.1.min.js")), "HTML inicial ainda injeta o bundle local de pdf-lib.");
+  assert(!state.scripts.some((src) => src.includes("unpkg.com/pdf-lib")), "HTML ainda referencia pdf-lib via unpkg.");
+}
+
+async function assertPdfLibLoadedOnDemand(cdp) {
   await waitForFunction(
     cdp,
     "Boolean(window.PDFLib?.PDFDocument && window.PDFLib?.StandardFonts)",
     PAGE_TIMEOUT_MS,
-    "pdf-lib local nao carregou via HTML"
+    "pdf-lib local nao carregou sob demanda"
   );
 
   const scripts = await evaluate(
     cdp,
     "Array.from(document.scripts).map((script) => script.getAttribute('src') || '')"
   );
-  assert(scripts.includes("./assets/vendor/pdf-lib-1.17.1.min.js"), "HTML nao referencia o bundle local de pdf-lib.");
+  assert(scripts.some((src) => src.includes("/assets/vendor/pdf-lib-1.17.1.min.js")), "Loader nao injetou o bundle local de pdf-lib.");
   assert(!scripts.some((src) => src.includes("unpkg.com/pdf-lib")), "HTML ainda referencia pdf-lib via unpkg.");
 }
 

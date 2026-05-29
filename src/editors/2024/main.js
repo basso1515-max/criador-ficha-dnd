@@ -28,6 +28,7 @@ import { createLevelUpAssistant } from "../../level-up-assistant.js";
 import { createMigrationReviewAssistant } from "../../migration-review-assistant.js";
 import { saveCharacterForCurrentUser } from "../../account-storage.js";
 import { initializeEditorA11y } from "../../shared/a11y.js";
+import { ensurePdfLibLoaded } from "../../shared/pdf-lib-loader.js";
 import { escapeHtml, normalizePt, slugify } from "../../shared/text-utils.js";
 import { createFloatingSubmitButtonController } from "../floating-submit-ui.js";
 import { installMobileDropdownKeyboardGate } from "../mobile-dropdown-keyboard.js";
@@ -14228,11 +14229,6 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
   async function handlePdfSubmit(event) {
     event.preventDefault();
 
-    if (!window.PDFLib) {
-      setStatus2024("pdf-lib não carregou. Recarregue a página e tente novamente.", "warning");
-      return;
-    }
-
     const loadingTab = openLoadingTab2024();
     if (!loadingTab) {
       setStatus2024("O navegador bloqueou a nova aba. Libere pop-ups para abrir o PDF automaticamente.", "warning");
@@ -14248,6 +14244,14 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
         "Preparando dados da ficha...",
         "Validando o mapa dos campos e reunindo as informações necessárias para montar o PDF."
       );
+      await yieldUi2024();
+
+      writeLoadingTab2024(
+        loadingTab,
+        "Carregando motor de PDF...",
+        "A biblioteca local de PDF está sendo carregada agora, apenas porque você pediu a exportação."
+      );
+      await ensurePdfLibLoaded();
       await yieldUi2024();
 
       if (buildSpellcastingContext2024({ syncSelections: false }).sources.length && !isSpellCatalogLoaded2024()) {
@@ -14338,7 +14342,7 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
     };
 
     const buildGeneratedPdf = async (overrides = {}) => {
-      if (!window.PDFLib) throw new Error("pdf-lib não carregou.");
+      await ensurePdfLibLoaded();
       await ensureSpellCatalogForCurrentMagic2024({ refreshUi: false });
 
       const pdfMap = overrides.pdfMap || await loadPdfMap2024();

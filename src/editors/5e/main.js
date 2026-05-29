@@ -24,6 +24,7 @@ import { buildRandomCharacterNameForRace } from "../../data/character-name-rando
 import { captureFormPreset, restoreFormPreset, syncUnitToggleButtons } from "../../user-area.js";
 import { createLevelUpAssistant } from "../../level-up-assistant.js";
 import { fitPdfTextToField as fitSharedPdfTextToField } from "../../shared/pdf-layout.js";
+import { ensurePdfLibLoaded } from "../../shared/pdf-lib-loader.js";
 import { initializeEditorA11y } from "../../shared/a11y.js";
 import { escapeHtml as escapeHtmlBase, normalizePt } from "../../shared/text-utils.js";
 import { createFloatingSubmitButtonController } from "../floating-submit-ui.js";
@@ -16325,8 +16326,6 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
   }
 
   async function gerarFichaPdf(tab, overrides = {}) {
-    if (!window.PDFLib) throw new Error("pdf-lib não carregou. Recarregue a página e tente novamente.");
-
     const state = overrides.state || collectState();
     if (!state.nome) throw new Error("Informe o nome do personagem.");
 
@@ -16352,6 +16351,12 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
       writeLoadingScreen(tab, title, body);
       await yieldLoadingTask();
     };
+
+    await updateLoadingStep(
+      "Carregando motor de PDF...",
+      "A biblioteca local de PDF está sendo carregada agora, apenas porque você pediu a exportação."
+    );
+    await ensurePdfLibLoaded();
 
     await updateLoadingStep(
       "Preparando dados da ficha...",
@@ -16727,6 +16732,7 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
   }
 
   async function inspectTemplateInteractive() {
+    await ensurePdfLibLoaded();
     const state = collectState();
     const templateBytes = await loadTemplatePdfBytes(state);
     const pdfDoc = await PDFLib.PDFDocument.load(templateBytes);
@@ -17120,7 +17126,7 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
       },
 
       async generatePdfBase64(overrides = {}) {
-        if (!window.PDFLib) throw new Error("pdf-lib nao carregou.");
+        await ensurePdfLibLoaded();
 
         try {
           await pdfMapLoadPromise;
