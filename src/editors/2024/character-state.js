@@ -1,5 +1,21 @@
+// @ts-check
+
+/** @typedef {"magic" | "preview"} DeferredUiKey2024 */
+/**
+ * @typedef {object} DeferredUiControllerOptions2024
+ * @property {() => void} [renderMagic]
+ * @property {() => void} [updatePreview]
+ * @property {() => void} [afterFlush]
+ */
+
+/**
+ * @param {DeferredUiControllerOptions2024} [options]
+ */
 export function createDeferredUiController({ renderMagic, updatePreview, afterFlush } = {}) {
+  const renderMagicCallback = renderMagic || noop;
+  const updatePreviewCallback = updatePreview || noop;
   let depth = 0;
+  /** @type {Record<DeferredUiKey2024, boolean>} */
   const pending = {
     magic: false,
     preview: false,
@@ -9,6 +25,9 @@ export function createDeferredUiController({ renderMagic, updatePreview, afterFl
     return depth > 0;
   }
 
+  /**
+   * @param {DeferredUiKey2024} key
+   */
   function defer(key) {
     pending[key] = true;
   }
@@ -20,11 +39,11 @@ export function createDeferredUiController({ renderMagic, updatePreview, afterFl
     pending.preview = false;
 
     if (shouldRenderMagic) {
-      renderMagic();
+      renderMagicCallback();
     }
 
     if (shouldUpdatePreview) {
-      updatePreview();
+      updatePreviewCallback();
     }
 
     if ((shouldRenderMagic || shouldUpdatePreview) && typeof afterFlush === "function") {
@@ -32,6 +51,11 @@ export function createDeferredUiController({ renderMagic, updatePreview, afterFl
     }
   }
 
+  /**
+   * @template T
+   * @param {() => T} task
+   * @returns {T}
+   */
   function withDeferred(task) {
     depth += 1;
     try {
@@ -50,3 +74,5 @@ export function createDeferredUiController({ renderMagic, updatePreview, afterFl
     withDeferred,
   };
 }
+
+function noop() {}

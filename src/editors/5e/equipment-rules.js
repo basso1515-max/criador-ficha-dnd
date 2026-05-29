@@ -1,5 +1,15 @@
+// @ts-check
+
 import { normalizePt } from "../../shared/text-utils.js";
 
+/** @typedef {Record<string, number | string | null | undefined>} CurrencyBreakdown */
+/** @typedef {Record<string, unknown> & { id?: string, datasetKey?: string, nome?: string, custo?: CurrencyBreakdown }} EquipmentItem */
+/** @typedef {(value: unknown) => string} LabelFromSlug */
+
+/**
+ * @param {unknown} value
+ * @returns {string}
+ */
 export function singularizeEquipmentTag(value) {
   return String(value || "")
     .replace(/\barmaduras\b/g, "armadura")
@@ -22,10 +32,18 @@ export function singularizeEquipmentTag(value) {
     .trim();
 }
 
+/**
+ * @param {unknown} value
+ * @returns {string}
+ */
 export function normalizeEquipmentTag(value) {
   return singularizeEquipmentTag(normalizePt(String(value || "")).replaceAll("-", " "));
 }
 
+/**
+ * @param {unknown} value
+ * @returns {string}
+ */
 export function normalizeEquipmentSearchToken(value) {
   return singularizeEquipmentTag(
     normalizePt(String(value || ""))
@@ -41,17 +59,25 @@ export function normalizeEquipmentSearchToken(value) {
   );
 }
 
+/**
+ * @param {EquipmentItem[]} [items]
+ * @param {{ labelFromSlug?: LabelFromSlug }} [options]
+ * @returns {Map<string, EquipmentItem>}
+ */
 export function buildEquipmentLookup(items = [], { labelFromSlug = defaultLabelFromSlug } = {}) {
+  /** @type {Map<string, EquipmentItem>} */
   const lookup = new Map();
 
   (Array.isArray(items) ? items : []).forEach((item) => {
-    const aliases = new Set([
+    const rawAliases = [
       item?.datasetKey,
       item?.id,
       item?.nome,
       labelFromSlug(item?.datasetKey),
       labelFromSlug(item?.id),
-    ].filter(Boolean));
+    ];
+    /** @type {Set<string>} */
+    const aliases = new Set(rawAliases.filter(isNonEmptyString));
 
     if (/^Armadura de /i.test(item?.nome || "")) {
       aliases.add(String(item.nome).replace(/^Armadura de /i, ""));
@@ -72,6 +98,11 @@ export function buildEquipmentLookup(items = [], { labelFromSlug = defaultLabelF
   return lookup;
 }
 
+/**
+ * @param {unknown} value
+ * @param {Map<string, EquipmentItem> | null | undefined} lookup
+ * @returns {EquipmentItem | null}
+ */
 export function findCatalogItemByText(value, lookup) {
   const normalized = normalizeEquipmentSearchToken(value);
   if (!normalized) return null;
@@ -91,7 +122,12 @@ export function findCatalogItemByText(value, lookup) {
   return fallback ? fallback[1] : null;
 }
 
+/**
+ * @param {CurrencyBreakdown} [cost]
+ * @returns {number}
+ */
 export function currencyBreakdownToCopper(cost = {}) {
+  /** @type {Record<string, number>} */
   const factors = {
     pc: 1,
     cp: 1,
@@ -110,18 +146,25 @@ export function currencyBreakdownToCopper(cost = {}) {
   }, 0);
 }
 
+/**
+ * @param {unknown} totalCopper
+ * @returns {string}
+ */
 export function formatCurrencyFromCopper(totalCopper) {
   let remaining = Math.max(0, Math.round(Number(totalCopper || 0)));
   if (!remaining) return "0 PO";
 
+  /** @type {string[]} */
   const parts = [];
-  [
+  /** @type {Array<[string, number]>} */
+  const denominations = [
     ["PL", 1000],
     ["PO", 100],
     ["PE", 50],
     ["PP", 10],
     ["PC", 1],
-  ].forEach(([label, factor]) => {
+  ];
+  denominations.forEach(([label, factor]) => {
     const quantity = Math.floor(remaining / factor);
     if (!quantity) return;
     parts.push(`${quantity} ${label}`);
@@ -131,8 +174,20 @@ export function formatCurrencyFromCopper(totalCopper) {
   return parts.join(" • ");
 }
 
+/**
+ * @param {unknown} value
+ * @returns {string}
+ */
 function defaultLabelFromSlug(value) {
   return String(value || "")
     .replaceAll("-", " ")
     .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+/**
+ * @param {unknown} value
+ * @returns {value is string}
+ */
+function isNonEmptyString(value) {
+  return typeof value === "string" && Boolean(value.trim());
 }

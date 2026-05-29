@@ -1,16 +1,52 @@
+// @ts-check
+
+/** @typedef {"magic" | "preview"} HeavyUiRefreshKey */
+/** @typedef {Record<string, any>} CharacterStateSnapshot */
+/** @typedef {Record<string, string | number>} CharacterStateProjection */
+/**
+ * @typedef {object} CharacterStateChangeDetail
+ * @property {string} source
+ * @property {Set<string>} changedKeys
+ * @property {CharacterStateSnapshot | null} state
+ * @property {Record<string, any>} [personagem]
+ */
+/**
+ * @typedef {object} CharacterStateSubscriber
+ * @property {Set<string>} keys
+ * @property {(detail: CharacterStateChangeDetail) => void} handler
+ */
+/**
+ * @typedef {object} CharacterStateControllerOptions
+ * @property {() => CharacterStateSnapshot} [collectState]
+ * @property {() => void} [renderMagicSection]
+ * @property {() => void} [updatePreview]
+ * @property {() => boolean} [isSpellCatalogLoaded]
+ */
+
+/**
+ * @param {CharacterStateControllerOptions} [options]
+ */
 export function createCharacterStateController({
   collectState,
   renderMagicSection,
   updatePreview,
   isSpellCatalogLoaded,
 } = {}) {
+  const collectCurrentState = collectState || defaultCollectState;
+  const renderMagic = renderMagicSection || noop;
+  const refreshPreview = updatePreview || noop;
+  const hasLoadedSpellCatalog = isSpellCatalogLoaded || returnFalse;
   let deferredHeavyUiDepth = 0;
+  /** @type {Record<HeavyUiRefreshKey, boolean>} */
   const pendingHeavyUiRefresh = {
     magic: false,
     preview: false,
   };
+  /** @type {CharacterStateSubscriber[]} */
   const subscribers = [];
+  /** @type {Set<string>} */
   const changedKeys = new Set();
+  /** @type {{ snapshot: CharacterStateSnapshot | null, [key: string]: any }} */
   const target = { snapshot: null };
   let batchDepth = 0;
   let initialized = false;
@@ -32,9 +68,17 @@ export function createCharacterStateController({
     },
   });
 
+  /**
+   * @param {unknown} value
+   * @returns {string}
+   */
   function stableStateStringify(value) {
     const seen = new WeakSet();
 
+    /**
+     * @param {unknown} item
+     * @returns {unknown}
+     */
     const normalize = (item) => {
       if (item instanceof Set) return Array.from(item).sort();
       if (Array.isArray(item)) return item.map(normalize);
@@ -42,13 +86,14 @@ export function createCharacterStateController({
         if (typeof Node !== "undefined" && item instanceof Node) return "[Node]";
         if (seen.has(item)) return "[Circular]";
         seen.add(item);
-        return Object.keys(item).sort().reduce((acc, key) => {
-          const nextValue = item[key];
+        const source = /** @type {Record<string, any>} */ (item);
+        return Object.keys(source).sort().reduce((acc, key) => {
+          const nextValue = source[key];
           if (typeof nextValue !== "function") {
             acc[key] = normalize(nextValue);
           }
           return acc;
-        }, {});
+        }, /** @type {Record<string, unknown>} */ ({}));
       }
       return item;
     };
@@ -56,6 +101,10 @@ export function createCharacterStateController({
     return JSON.stringify(normalize(value));
   }
 
+  /**
+   * @param {CharacterStateSnapshot[]} [entries]
+   * @returns {string}
+   */
   function classEntriesSignature(entries = []) {
     return (Array.isArray(entries) ? entries : [])
       .map((entry) => [
@@ -67,6 +116,10 @@ export function createCharacterStateController({
       .join("|");
   }
 
+  /**
+   * @param {CharacterStateSnapshot[]} [feats]
+   * @returns {string}
+   */
   function selectedFeatIdsSignature(feats = []) {
     return (Array.isArray(feats) ? feats : [])
       .map((feat) => feat?.id || feat?.name_pt || feat?.name || "")
@@ -74,6 +127,10 @@ export function createCharacterStateController({
       .join("|");
   }
 
+  /**
+   * @param {CharacterStateSnapshot} [state]
+   * @returns {CharacterStateProjection}
+   */
   function projectState(state = {}) {
     const classSignature = classEntriesSignature(state.classEntries);
     const attributesSignature = stableStateStringify({
@@ -168,6 +225,10 @@ export function createCharacterStateController({
     };
   }
 
+  /**
+   * @param {string | string[]} keys
+   * @param {(detail: CharacterStateChangeDetail) => void} handler
+   */
   function subscribe(keys, handler) {
     subscribers.push({
       keys: new Set(Array.isArray(keys) ? keys : [keys]),
@@ -175,6 +236,10 @@ export function createCharacterStateController({
     });
   }
 
+  /**
+   * @param {Set<string>} keys
+   * @param {{ source?: string }} [detail]
+   */
   function publish(keys, detail = {}) {
     if (!keys.size || applyingReaction) return;
     const eventDetail = {
@@ -199,8 +264,12 @@ export function createCharacterStateController({
     }
   }
 
+  /**
+   * @param {{ source?: string, refresh?: boolean }} [options]
+   * @returns {CharacterStateSnapshot}
+   */
   function sync({ source = "manual", refresh = true } = {}) {
-    const nextState = collectState();
+    const nextState = collectCurrentState();
     const nextProjection = projectState(nextState);
     target.snapshot = nextState;
 
@@ -225,10 +294,17 @@ export function createCharacterStateController({
     refreshEnabled = true;
   }
 
+  /**
+   * @param {string} [source]
+   * @returns {CharacterStateSnapshot}
+   */
   function commit(source = "manual") {
     return sync({ source });
   }
 
+  /**
+   * @param {HTMLFormElement | null | undefined} form
+   */
   function bindForm(form) {
     if (!form) return;
     form.addEventListener("input", () => {
@@ -243,6 +319,9 @@ export function createCharacterStateController({
     return deferredHeavyUiDepth > 0;
   }
 
+  /**
+   * @param {HeavyUiRefreshKey} key
+   */
   function defer(key) {
     pendingHeavyUiRefresh[key] = true;
   }
@@ -254,15 +333,20 @@ export function createCharacterStateController({
     pendingHeavyUiRefresh.preview = false;
 
     if (shouldRenderMagic) {
-      renderMagicSection();
+      renderMagic();
       return;
     }
 
     if (shouldUpdatePreview) {
-      updatePreview();
+      refreshPreview();
     }
   }
 
+  /**
+   * @template T
+   * @param {() => T} task
+   * @returns {T}
+   */
   function withDeferred(task) {
     deferredHeavyUiDepth += 1;
     try {
@@ -276,13 +360,13 @@ export function createCharacterStateController({
   }
 
   subscribe("magicSignature", () => {
-    renderMagicSection();
+    renderMagic();
     sync({ source: "magic:render", refresh: false });
   });
 
   subscribe("previewSignature", ({ changedKeys: keys }) => {
-    if (keys.has("magicSignature") && isSpellCatalogLoaded()) return;
-    updatePreview();
+    if (keys.has("magicSignature") && hasLoadedSpellCatalog()) return;
+    refreshPreview();
   });
 
   return {
@@ -294,4 +378,17 @@ export function createCharacterStateController({
     sync,
     withDeferred,
   };
+}
+
+/**
+ * @returns {CharacterStateSnapshot}
+ */
+function defaultCollectState() {
+  return {};
+}
+
+function noop() {}
+
+function returnFalse() {
+  return false;
 }

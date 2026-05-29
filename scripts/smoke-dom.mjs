@@ -1090,6 +1090,7 @@ const smokePages = [
             const button = document.querySelector(".level-up-open-button");
             return button && !button.disabled;
           }, "Botão de subir nível 5.5e não ficou disponível.");
+          await new Promise((resolve) => setTimeout(resolve, 160));
 
           const startedAt = Date.now();
           while (Date.now() - startedAt < 8000) {
@@ -1098,7 +1099,7 @@ const smokePages = [
               return;
             }
             click(".level-up-open-button");
-            await new Promise((resolve) => setTimeout(resolve, 80));
+            await new Promise((resolve) => setTimeout(resolve, 160));
           }
           throw new Error("Popup de nível 5.5e não abriu na aba Caminho.");
         };
