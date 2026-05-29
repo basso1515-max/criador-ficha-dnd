@@ -94,6 +94,7 @@ import {
   buildHitPointLevelEntries2024,
   calculateHitPointsFromClassEntries2024,
   calculateWeaponMasteryLimit2024,
+  clampInt2024 as clampInt,
   getProficiencyBonus2024 as getProficiencyBonus,
   getSpellSlotTotalsForLimits2024,
   getSpellcastingContribution2024,
@@ -14724,12 +14725,6 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
     return [...(list || [])].sort((a, b) =>
       String(a?.[key] || "").localeCompare(String(b?.[key] || ""), "pt-BR")
     );
-  }
-
-  function clampInt(value, min, max) {
-    const parsed = Number.parseInt(String(value ?? ""), 10);
-    if (!Number.isFinite(parsed)) return min;
-    return Math.min(max, Math.max(min, parsed));
   }
 
   function formatList(values) {

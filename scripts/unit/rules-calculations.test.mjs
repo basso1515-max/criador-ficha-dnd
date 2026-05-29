@@ -6,6 +6,7 @@ import {
   buildHitPointLevelEntries2024,
   calculateHitPointsFromClassEntries2024,
   calculateWeaponMasteryLimit2024,
+  clampInt2024,
   getProficiencyBonus2024,
   getSpellSlotTotalsForLimits2024,
   getSpellcastingContribution2024,
@@ -14,6 +15,13 @@ import {
   BARBARIAN_PROGRESSION_2024,
   FIGHTER_PROGRESSION_2024,
 } from "../../src/editors/2024/class-progressions.js";
+
+test("clampInt 2024 normaliza inteiros dentro dos limites", () => {
+  assert.equal(clampInt2024("7", 1, 10), 7);
+  assert.equal(clampInt2024("0", 1, 10), 1);
+  assert.equal(clampInt2024("99", 1, 10), 10);
+  assert.equal(clampInt2024("abc", 1, 10), 1);
+});
 
 test("bonus de proficiencia 2024 segue os degraus oficiais", () => {
   assert.equal(getProficiencyBonus2024(1), 2);

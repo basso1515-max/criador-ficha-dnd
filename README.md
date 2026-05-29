@@ -142,7 +142,7 @@ Valida o orçamento de carregamento inicial dos editores, somando os imports est
 npm run test:unit
 ```
 
-Roda testes unitários pequenos para funções puras de regras e dados: proficiência, slots de magia, HP, maestria em arma e migração/normalização de snapshots.
+Roda testes unitários pequenos para funções puras de regras e dados das edições 5e e 2024: proficiência, slots de magia, HP, maestria em arma e migração/normalização de snapshots.
 
 ```powershell
 npm run smoke:dom
