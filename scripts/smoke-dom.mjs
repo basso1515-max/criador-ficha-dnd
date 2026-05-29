@@ -714,11 +714,32 @@ const smokePages = [
       "#btnRandomizeAll2024",
     ],
     setup: `
-      (() => {
+      (async () => {
         const assert = (condition, message) => {
           if (!condition) throw new Error(message);
         };
         const dispatch = (node, type) => node.dispatchEvent(new Event(type, { bubbles: true }));
+        const waitForCondition = async (predicate, message, timeoutMs = 8000) => {
+          const start = Date.now();
+          let lastError = null;
+          while (Date.now() - start < timeoutMs) {
+            try {
+              if (predicate()) return;
+            } catch (error) {
+              lastError = error;
+            }
+            await new Promise((resolve) => setTimeout(resolve, 40));
+          }
+          throw new Error(message + (lastError ? ": " + lastError.message : ""));
+        };
+        const waitForLazyCatalogs2024 = () => waitForCondition(() => {
+          const loadingText = [
+            "#featureChoicesSummary2024",
+            "#magicSummary2024",
+            "#warlockInvocationsSummary2024",
+          ].map((selector) => document.querySelector(selector)?.textContent || "").join(" ");
+          return !loadingText.includes("Carregando");
+        }, "Catálogo lazy 2024 não terminou de carregar");
         const setValue = (selector, value, events = ["change"]) => {
           const node = document.querySelector(selector);
           assert(node, "Campo ausente: " + selector);
@@ -831,6 +852,7 @@ const smokePages = [
         assert(terrainSelect, "Seletor de terreno do Círculo da Terra ausente.");
         terrainSelect.value = "arido";
         dispatch(terrainSelect, "change");
+        await waitForLazyCatalogs2024();
         const landMagicText = document.querySelector("#magicSourcesList2024")?.textContent || "";
         assert(
           landMagicText.includes("Nublar")
@@ -935,6 +957,7 @@ const smokePages = [
 
         setClassLevel("bruxo", 17);
         setValue("#subclasse2024", "bruxo-infernal", ["change"]);
+        await waitForLazyCatalogs2024();
         const magicSourceCards2024 = () => Array.from(document.querySelectorAll("#magicSourcesList2024 .spell-source-card--2024, #magicSourcesList2024 .edition-summary-card"));
         const magicSourceTitle2024 = (card) => card?.querySelector("h3, h4")?.textContent || "";
         const warlockClassSpellCard2024 = () => magicSourceCards2024()
@@ -992,6 +1015,7 @@ const smokePages = [
         setClassLevel("paladino", 3);
         setValue("#subclasse2024", "paladino-vinganca", []);
         setValue("#nivel2024", 3, ["input", "change"]);
+        await waitForLazyCatalogs2024();
         const paladinMagicText = document.querySelector("#magicSourcesList2024")?.textContent || "";
         assert(paladinMagicText.includes("Perdição") && paladinMagicText.includes("Marca do Predador"), "Juramento da Vingança 2024 não exibiu magias fixas.");
         const vengeanceGranted = document.querySelector('#magicSourcesList2024 .spell-check-item[data-spell-id="perdicao"] input[type="checkbox"]');
@@ -1041,6 +1065,19 @@ const smokePages = [
           events.forEach((eventName) => dispatch(node, eventName));
           return node;
         };
+        const waitForCondition = async (predicate, message, timeoutMs = 8000) => {
+          const start = Date.now();
+          let lastError = null;
+          while (Date.now() - start < timeoutMs) {
+            try {
+              if (predicate()) return;
+            } catch (error) {
+              lastError = error;
+            }
+            await new Promise((resolve) => setTimeout(resolve, 40));
+          }
+          throw new Error(message + (lastError ? ": " + lastError.message : ""));
+        };
         const click = (selector) => {
           const node = document.querySelector(selector);
           assert(node, "Botão ausente: " + selector);
@@ -1048,6 +1085,14 @@ const smokePages = [
           return node;
         };
         const modalText = () => document.querySelector(".level-up-dialog")?.textContent || "";
+        const openLevelUp = async () => {
+          click(".level-up-open-button");
+          await waitForCondition(
+            () => document.querySelector(".level-up-modal-shell")?.classList.contains("is-open")
+              && modalText().includes("Seguir com a classe principal"),
+            "Popup de nível 5.5e não abriu na aba Caminho."
+          );
+        };
         const hasLevelUpTab = (label) => Array.from(document.querySelectorAll(".level-up-tab"))
           .some((tab) => tab.textContent.trim() === label);
         const clickLevelUpTab = (label) => {
@@ -1116,8 +1161,10 @@ const smokePages = [
           assert(hover && !hover.hidden, "Hovercard de recurso 5.5e não abriu dentro do assistente.");
           assertInsideRect(hover, content, "Hovercard de recurso 5.5e ultrapassou o assistente.");
         };
-        const assertSpellHoverInAssistant = () => {
+        const assertSpellHoverInAssistant = async () => {
           clickLevelUpTab("Magias");
+          await waitForCondition(() => Array.from(document.querySelectorAll(".level-up-portaled-panel [id^='availableSpellPanel'] [data-spell-id]"))
+            .some((item) => !item.querySelector("input[type='checkbox']")?.disabled), "Assistente 5.5e não carregou magias para hovercard.");
           const availableSpell = Array.from(document.querySelectorAll(".level-up-portaled-panel [id^='availableSpellPanel'] [data-spell-id]"))
             .find((item) => !item.querySelector("input[type='checkbox']")?.disabled);
           assert(availableSpell, "Assistente 5.5e não tem magia disponível para testar hovercard.");
@@ -1130,6 +1177,7 @@ const smokePages = [
             input.checked = true;
             dispatch(input, "change");
           }
+          await waitForCondition(() => Boolean(document.querySelector(".level-up-portaled-panel [id^='selectedSpellBook'] [data-spell-id]")), "Assistente 5.5e não registrou magia selecionada.");
           const selectedSpell = document.querySelector(".level-up-portaled-panel [id^='selectedSpellBook'] [data-spell-id]");
           assert(selectedSpell, "Assistente 5.5e não tem magia selecionada para testar hovercard.");
           selectedSpell.dispatchEvent(new MouseEvent("mouseover", { bubbles: true, clientX: 180, clientY: 180 }));
@@ -1138,7 +1186,7 @@ const smokePages = [
         };
 
         setValue("#classe2024", "guerreiro", ["change"]);
-        click(".level-up-open-button");
+        await openLevelUp();
         assert(modalText().includes("Seguir com a classe principal"), "Popup de nível 5.5e não abriu na aba Caminho.");
         assert(modalText().includes("Abrir ou avançar multiclasse"), "Popup de nível 5.5e não mostrou opção de multiclasse.");
         assert(document.querySelector(".level-up-hover-trigger"), "Popup de nível 5.5e não exibiu hovercards de descrição.");
@@ -1155,7 +1203,7 @@ const smokePages = [
         setValue("#classe2024", "guerreiro", ["change"]);
         setValue("#nivel2024", "2", ["input", "change"]);
         setValue("#subclasse2024", "", ["change"]);
-        click(".level-up-open-button");
+        await openLevelUp();
         document.querySelector('.level-up-choice-card input[value="main"]').click();
         click(".level-up-next");
         assert(hasLevelUpTab("Subclasse"), "Guia de subclasse 5.5e não apareceu quando Guerreiro chegou ao nível 3.");
@@ -1164,7 +1212,7 @@ const smokePages = [
         setValue("#classe2024", "bruxo", ["change"]);
         setValue("#nivel2024", "2", ["input", "change"]);
         setValue("#subclasse2024", "", ["change"]);
-        click(".level-up-open-button");
+        await openLevelUp();
         document.querySelector('.level-up-choice-card input[value="main"]').click();
         click(".level-up-next");
         assert(hasLevelUpTab("Subclasse"), "Guia de subclasse 5.5e não apareceu para Bruxo sem patrono no nível 3.");
@@ -1191,7 +1239,7 @@ const smokePages = [
         setValue("#classe2024", "bruxo", ["change"]);
         setValue("#nivel2024", "1", ["input", "change"]);
         setValue("#subclasse2024", "", ["change"]);
-        click(".level-up-open-button");
+        await openLevelUp();
         document.querySelector('.level-up-choice-card input[value="main"]').click();
         click(".level-up-next");
         assert(hasLevelUpTab("Recursos"), "Guia Recursos 5.5e não apareceu para Bruxo nível 2.");
@@ -1201,7 +1249,7 @@ const smokePages = [
         setValue("#classe2024", "guerreiro", ["change"]);
         setValue("#nivel2024", "3", ["input", "change"]);
         setValue("#subclasse2024", "guerreiro-campeao", ["change"]);
-        click(".level-up-open-button");
+        await openLevelUp();
         document.querySelector('.level-up-choice-card input[value="main"]').click();
         click(".level-up-next");
         assert(!hasLevelUpTab("Subclasse"), "Guia de subclasse 5.5e apareceu mesmo com subclasse já escolhida e sem novo desbloqueio.");
@@ -1209,7 +1257,7 @@ const smokePages = [
 
         setValue("#nivel2024", "1", ["input", "change"]);
         setValue("#classe2024", "bardo", ["change"]);
-        click(".level-up-open-button");
+        await openLevelUp();
         document.querySelector('.level-up-choice-card input[value="main"]').click();
         click(".level-up-next");
         assert(document.querySelector("#nivel2024")?.value === "2", "Assistente 5.5e não aumentou o nível principal para 2.");
@@ -1218,7 +1266,7 @@ const smokePages = [
         assert(modalText().includes("Pontos de vida do novo nível"), "Botão de avançar etapa 5.5e não levou para PV.");
         assert(document.querySelector(".level-up-content .level-up-hover-trigger"), "Aba de PV 5.5e não exibiu hovercards de descrição.");
         assertHpMethodTitles();
-        assertSpellHoverInAssistant();
+        await assertSpellHoverInAssistant();
         clickLevelUpTab("PV");
 
         click(".level-up-prev");
@@ -1246,7 +1294,7 @@ const smokePages = [
         setValue("#nivel2024", "3", ["input", "change"]);
         setValue('#multiclassRows2024 [data-multiclass-class]', "guerreiro", ["change"]);
         setValue('#multiclassRows2024 [data-multiclass-level]', "2", ["input", "change"]);
-        click(".level-up-open-button");
+        await openLevelUp();
         const existingMulticlassRadio = document.querySelector('.level-up-choice-card input[value="multiclass"]');
         assert(existingMulticlassRadio, "Rádio de multiclasse existente 5.5e ausente.");
         existingMulticlassRadio.checked = true;

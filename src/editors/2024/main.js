@@ -6,7 +6,6 @@ import { DIVINDADES } from "../../data/5.5e/divindades.js";
 import { TALENTOS, META_TALENTOS } from "../../data/5.5e/talentos.js";
 import { ARMADURAS } from "../../data/5.5e/armaduras.js";
 import { ARMAS, PROPRIEDADES_ARMA, PROPRIEDADES_MAESTRIA_ARMA } from "../../data/5.5e/armas.js";
-import { MAGIAS, ESCOLAS } from "../../data/5.5e/magias.js";
 import { FEATURE_SUMMARIES_2024 } from "../../data/5.5e/feature-summaries.js";
 import { EQUIPMENT_OPTION_LISTS, CLASS_EQUIPMENT_RULES, BACKGROUND_EQUIPMENT_RULES } from "../../data/5.5e/equipamento-inicial.js";
 import { EXTRA_EQUIPMENT_CATALOG_2024, EXTRA_EQUIPMENT_GROUP_LABELS_2024 } from "../../data/5.5e/equipment-compendium.js";
@@ -159,6 +158,16 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
   const BACKGROUND_BY_ID = new Map(BACKGROUND_LIST.map((item) => [item.id, item]));
   const SUBCLASS_BY_ID = new Map(SUBCLASS_LIST.map((item) => [item.id, item]));
   const FEAT_BY_ID = new Map(FEAT_LIST.map((item) => [item.id, item]));
+  const ESCOLAS = {
+    abjuracao: "Abjuração",
+    adivinhacao: "Adivinhação",
+    encantamento: "Encantamento",
+    evocacao: "Evocação",
+    ilusao: "Ilusão",
+    necromancia: "Necromancia",
+    transmutacao: "Transmutação",
+    conjuracao: "Conjuração",
+  };
   const LEGACY_CLASS_ID_ALIASES_2024 = new Map([
     ["patrulheiro", "guardiao"],
     ["ranger", "guardiao"],
@@ -274,11 +283,20 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
       normalizedName: normalizePt(weapon.nome),
     }))
     .sort((a, b) => b.normalizedName.length - a.normalizedName.length);
-  const SPELL_LIST_2024 = flattenMagicDataset2024(MAGIAS).filter(isOfficialSpellFor2024);
-  const SPELL_BY_ID_2024 = new Map(SPELL_LIST_2024.map((spell) => [spell.id, spell]));
-  const ALL_SPELLCASTING_CLASS_IDS_2024 = Array.from(new Set(
-    SPELL_LIST_2024.flatMap((spell) => Array.isArray(spell?.normalizedClasses) ? spell.normalizedClasses : [])
-  )).filter((classId) => Boolean(classId && CLASSES_2024?.[classId]));
+  let SPELL_LIST_2024 = [];
+  let SPELL_BY_ID_2024 = new Map();
+  let spellCatalogLoadPromise2024 = null;
+  let spellCatalogLoadError2024 = null;
+  const ALL_SPELLCASTING_CLASS_IDS_2024 = [
+    "bardo",
+    "bruxo",
+    "clerigo",
+    "druida",
+    "feiticeiro",
+    "mago",
+    "paladino",
+    "guardiao",
+  ].filter((classId) => Boolean(CLASSES_2024?.[classId]));
   const WARLOCK_NON_DAMAGE_CANTRIP_IDS_2024 = new Set([
     "amigos",
     "ilusao-menor",
@@ -286,6 +304,31 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
     "prestidigitacao",
     "protecao-contra-laminas",
   ]);
+
+  function isSpellCatalogLoaded2024() {
+    return SPELL_BY_ID_2024.size > 0;
+  }
+
+  function loadSpellCatalog2024() {
+    if (isSpellCatalogLoaded2024()) {
+      return Promise.resolve({ spells: SPELL_LIST_2024, byId: SPELL_BY_ID_2024 });
+    }
+    if (!spellCatalogLoadPromise2024) {
+      spellCatalogLoadError2024 = null;
+      spellCatalogLoadPromise2024 = import("../../data/5.5e/magias.js")
+        .then(({ MAGIAS }) => {
+          SPELL_LIST_2024 = flattenMagicDataset2024(MAGIAS).filter(isOfficialSpellFor2024);
+          SPELL_BY_ID_2024 = new Map(SPELL_LIST_2024.map((spell) => [spell.id, spell]));
+          return { spells: SPELL_LIST_2024, byId: SPELL_BY_ID_2024 };
+        })
+        .catch((error) => {
+          spellCatalogLoadPromise2024 = null;
+          spellCatalogLoadError2024 = error;
+          throw error;
+        });
+    }
+    return spellCatalogLoadPromise2024;
+  }
 
   const DEFAULT_CLASS_FEAT_LEVELS = [4, 8, 12, 16, 19];
   const CLASS_FEAT_LEVELS = {
@@ -3559,6 +3602,10 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
     `;
   }
 
+  function featureChoiceSourcesNeedSpellCatalog2024(sources = []) {
+    return (Array.isArray(sources) ? sources : []).some((source) => source?.optionSet === "wizard-spells");
+  }
+
   function renderFeatureChoices2024() {
     if (!el.featureChoicesPanel || !el.featureChoicesContainer) return;
 
@@ -4201,6 +4248,32 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
       el.companionChoicesSummary.textContent = "";
       el.companionChoicesContainer.innerHTML = "";
       if (el.companionChoicesInfo) el.companionChoicesInfo.textContent = "";
+      return;
+    }
+
+    if (featureChoiceSourcesNeedSpellCatalog2024(sources) && !isSpellCatalogLoaded2024()) {
+      el.featureChoicesPanel.hidden = false;
+      el.featureChoicesSummary.textContent = spellCatalogLoadError2024
+        ? "Não foi possível carregar as opções de magia."
+        : "Carregando opções de magia...";
+      el.featureChoicesContainer.innerHTML = "";
+      if (el.featureChoicesInfo) {
+        el.featureChoicesInfo.textContent = spellCatalogLoadError2024
+          ? "Tente trocar o nível/classe ou recarregar a página para buscar o catálogo novamente."
+          : "As opções de magia do Mago são carregadas sob demanda para manter a ficha inicial mais leve.";
+      }
+      if (!spellCatalogLoadError2024) {
+        loadSpellCatalog2024()
+          .then(() => {
+            renderFeatureChoices2024();
+            renderMagicSection2024();
+            updatePreview();
+          })
+          .catch((error) => {
+            console.error("Erro ao carregar catálogo de magias 2024:", error);
+            renderFeatureChoices2024();
+          });
+      }
       return;
     }
 
@@ -12537,7 +12610,7 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
     return changed;
   }
 
-  function buildSpellcastingContext2024() {
+  function buildSpellcastingContext2024({ syncSelections = isSpellCatalogLoaded2024() } = {}) {
     const classEntries = getResolvedClassEntries2024();
     const level = getSelectedLevel();
     const scores = getEffectiveAbilityScores().scores || {};
@@ -12592,10 +12665,12 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
       source.slotTotals = { ...standardSlotTotals };
     });
 
-    ensureGrantedSpellSelections2024(sources);
-    cleanupStaleSpellSelections2024(sources.map((source) => source.sourceKey));
-    sources.forEach((source) => enforceSpellSelectionLimitsForSource2024(source));
-    dedupeSpellSelectionsAcrossSources2024(sources);
+    if (syncSelections && isSpellCatalogLoaded2024()) {
+      ensureGrantedSpellSelections2024(sources);
+      cleanupStaleSpellSelections2024(sources.map((source) => source.sourceKey));
+      sources.forEach((source) => enforceSpellSelectionLimitsForSource2024(source));
+      dedupeSpellSelectionsAcrossSources2024(sources);
+    }
 
     return {
       classEntries,
@@ -13449,6 +13524,49 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
       return;
     }
 
+    if (!isSpellCatalogLoaded2024()) {
+      el.magicSection.style.display = "";
+      if (el.magicSlotsPanel) el.magicSlotsPanel.hidden = true;
+      if (el.magicSlotsGrid) el.magicSlotsGrid.innerHTML = "";
+      if (el.magicSourcesList) el.magicSourcesList.innerHTML = "";
+      if (el.selectedSpellBook) {
+        el.selectedSpellBook.innerHTML = `
+          <div class="magic-level-overview">
+            <div class="magic-detail-head">
+              <div>
+                <p class="magic-panel-kicker">Visualização por nível</p>
+                <h3>Magias organizadas como na ficha</h3>
+              </div>
+              <p>Carregando catálogo de magias...</p>
+            </div>
+            <p class="magic-level-empty">O grimório será preenchido assim que as opções de magia estiverem disponíveis.</p>
+          </div>
+        `;
+      }
+      el.magicSummary.textContent = spellCatalogLoadError2024
+        ? "Não foi possível carregar o catálogo de magias."
+        : "Carregando catálogo de magias...";
+      if (el.spellPickerHelp) {
+        el.spellPickerHelp.textContent = spellCatalogLoadError2024
+          ? "Tente trocar a classe ou recarregar a página para buscar o catálogo novamente."
+          : "As magias são carregadas apenas quando a ficha precisa de conjuração.";
+      }
+      if (!spellCatalogLoadError2024) {
+        loadSpellCatalog2024()
+          .then(() => {
+            renderWarlockInvocationChoices2024();
+            renderFeatureChoices2024();
+            renderMagicSection2024();
+            updatePreview();
+          })
+          .catch((error) => {
+            console.error("Erro ao carregar catálogo de magias 2024:", error);
+            renderMagicSection2024();
+          });
+      }
+      return;
+    }
+
     el.magicSection.style.display = "";
     el.magicSummary.textContent = buildMagicSelectionStatusText2024(context);
     if (el.spellPickerHelp) {
@@ -14093,6 +14211,20 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
     window.setTimeout(() => URL.revokeObjectURL(url), 60000);
   }
 
+  async function ensureSpellCatalogForCurrentMagic2024({ refreshUi = true } = {}) {
+    const context = buildSpellcastingContext2024({ syncSelections: false });
+    if (!context.sources.length || isSpellCatalogLoaded2024()) return false;
+
+    await loadSpellCatalog2024();
+    if (refreshUi) {
+      renderWarlockInvocationChoices2024();
+      renderFeatureChoices2024();
+      renderMagicSection2024();
+      updatePreview();
+    }
+    return true;
+  }
+
   async function handlePdfSubmit(event) {
     event.preventDefault();
 
@@ -14117,6 +14249,16 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
         "Validando o mapa dos campos e reunindo as informações necessárias para montar o PDF."
       );
       await yieldUi2024();
+
+      if (buildSpellcastingContext2024({ syncSelections: false }).sources.length && !isSpellCatalogLoaded2024()) {
+        writeLoadingTab2024(
+          loadingTab,
+          "Carregando magias...",
+          "A ficha usa conjuração, então o catálogo de magias 2024 está sendo carregado antes da exportação."
+        );
+        await ensureSpellCatalogForCurrentMagic2024();
+        await yieldUi2024();
+      }
 
       const pdfMap = await loadPdfMap2024();
       const templateUrl = pdfMap?.meta?.template || DEFAULT_TEMPLATE_URL_2024;
@@ -14197,6 +14339,7 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
 
     const buildGeneratedPdf = async (overrides = {}) => {
       if (!window.PDFLib) throw new Error("pdf-lib não carregou.");
+      await ensureSpellCatalogForCurrentMagic2024({ refreshUi: false });
 
       const pdfMap = overrides.pdfMap || await loadPdfMap2024();
       const templateUrl = overrides.templateUrl || pdfMap?.meta?.template || DEFAULT_TEMPLATE_URL_2024;
