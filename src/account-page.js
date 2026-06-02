@@ -72,7 +72,7 @@ function renderAccountPage() {
   if (el.count2024) el.count2024.textContent = `${counts["5.5e-2024"]}/${ACCOUNT_LIMIT_PER_EDITION}`;
   if (el.continueLink) {
     el.continueLink.href = returnTo || "./minha-conta.html";
-    el.continueLink.textContent = returnTo ? "Continuar" : "Minha página";
+    el.continueLink.textContent = returnTo ? "Continuar" : "Minha conta";
   }
   updateOAuthLinks();
 }

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Minha página | Sheetfy</title>
+  <title>Minha conta | Sheetfy</title>
   <link rel="icon" type="image/png" href="favicon.png" />
   <script src="./src/theme-boot.js"></script>
   <link rel="stylesheet" href="./src/style.css" />
@@ -27,9 +27,9 @@
       </div>
 
       <div class="account-page-intro">
-        <p class="version-kicker">Página do usuário</p>
-        <h1>Personagens salvos</h1>
-        <p>Veja seus personagens por edição e gerencie os dados da sua conta em um só lugar.</p>
+        <p class="version-kicker">Área do usuário</p>
+        <h1>Minha conta</h1>
+        <p>Centralize personagens salvos, segurança, acesso social e atalhos de criação em um só painel.</p>
       </div>
     </header>
 
@@ -60,6 +60,36 @@
             </div>
           </div>
 
+          <div class="user-page-command-grid" aria-label="Prioridades da conta">
+            <div class="user-page-focus-card">
+              <span>Próximo passo</span>
+              <strong id="userPageFocusTitle">Organize sua biblioteca</strong>
+              <p id="userPageFocusText">Use os atalhos para criar fichas e manter os dados da conta atualizados.</p>
+              <div id="userPageFocusActions" class="user-page-focus-actions"></div>
+            </div>
+
+            <div class="user-page-health-card" aria-label="Checklist da conta">
+              <div>
+                <span>Checklist</span>
+                <strong>Estado da conta</strong>
+              </div>
+              <ul>
+                <li id="userPageEmailHealth">
+                  <span>E-mail</span>
+                  <strong id="userPageEmailHealthText">Pendente</strong>
+                </li>
+                <li id="userPagePasswordHealth">
+                  <span>Senha</span>
+                  <strong id="userPagePasswordHealthText">Ativa</strong>
+                </li>
+                <li id="userPageStorageHealth">
+                  <span>Salvamento</span>
+                  <strong id="userPageStorageHealthText">Servidor</strong>
+                </li>
+              </ul>
+            </div>
+          </div>
+
           <div class="user-page-account-grid" aria-label="Detalhes da conta">
             <div class="user-page-account-card">
               <span>Capacidade</span>
@@ -82,6 +112,11 @@
               <strong id="userPageCreatedAt">-</strong>
               <p>Dados e personagens ficam vinculados a este login.</p>
             </div>
+            <div class="user-page-account-card">
+              <span>Última atividade</span>
+              <strong id="userPageLastActivity">Sem personagens</strong>
+              <p id="userPageLastActivityText">Crie ou salve uma ficha para iniciar o histórico.</p>
+            </div>
           </div>
 
           <div class="user-page-quick-actions" aria-label="Atalhos">
@@ -89,9 +124,15 @@
             <a href="./5.5e-2024.html" class="secondary-button">Criar personagem 5.5e</a>
             <a href="./estatisticas.html" class="ghost-button">Ver estatísticas</a>
           </div>
+
+          <nav class="user-page-section-nav" aria-label="Navegação da conta">
+            <a href="#userLibrary">Biblioteca</a>
+            <a href="#userSettings">Configurações</a>
+            <a href="./privacidade.html">Privacidade</a>
+          </nav>
         </section>
 
-        <section class="account-section-panel saved-library-panel" aria-label="Personagens salvos">
+        <section id="userLibrary" class="account-section-panel saved-library-panel" aria-label="Personagens salvos">
           <div class="account-section-heading saved-library-heading">
             <div>
               <span>Biblioteca</span>
@@ -103,11 +144,34 @@
             <span><strong id="userPageCount5e">0/10</strong> D&D 5e</span>
             <span><strong id="userPageCount2024">0/10</strong> D&D 5.5e</span>
           </div>
+          <div class="saved-library-tools" aria-label="Ferramentas da biblioteca">
+            <label class="saved-library-filter saved-library-search">
+              <span>Buscar</span>
+              <input id="userPageSearch" type="search" placeholder="Nome, resumo ou edição" autocomplete="off" />
+            </label>
+            <label class="saved-library-filter">
+              <span>Edição</span>
+              <select id="userPageEditionFilter">
+                <option value="all">Todas</option>
+                <option value="5e">D&D 5e</option>
+                <option value="5.5e-2024">D&D 5.5e</option>
+              </select>
+            </label>
+            <label class="saved-library-filter">
+              <span>Ordenar</span>
+              <select id="userPageSort">
+                <option value="updated-desc">Mais recentes</option>
+                <option value="updated-asc">Mais antigos</option>
+                <option value="name-asc">Nome A-Z</option>
+              </select>
+            </label>
+          </div>
+          <p id="userPageLibraryStatus" class="saved-library-result-status" aria-live="polite"></p>
           <p id="userPageEmpty" class="note subtle">Nenhum personagem salvo ainda.</p>
           <div id="userPageCharacterList" class="user-page-character-list"></div>
         </section>
 
-        <section class="account-section-panel user-settings-panel" aria-label="Gerenciar conta">
+        <section id="userSettings" class="account-section-panel user-settings-panel" aria-label="Gerenciar conta">
           <div class="account-section-heading user-settings-heading">
             <div>
               <span>Configurações</span>

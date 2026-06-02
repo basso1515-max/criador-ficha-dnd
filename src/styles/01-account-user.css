@@ -828,9 +828,121 @@ body[data-active-screen="user-page"] .account-page-status:not(:empty) {
   line-height: 1.05;
 }
 
+.user-page-command-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.85fr);
+  gap: 14px;
+}
+
+.user-page-focus-card,
+.user-page-health-card {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid rgba(90, 62, 36, 0.18);
+  border-radius: 12px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.62), rgba(255, 250, 238, 0.5));
+}
+
+.user-page-focus-card {
+  border-color: rgba(32, 90, 56, 0.2);
+  background:
+    radial-gradient(circle at top right, rgba(42, 121, 83, 0.12), rgba(42, 121, 83, 0) 36%),
+    linear-gradient(180deg, rgba(248, 255, 247, 0.82), rgba(255, 250, 238, 0.58));
+}
+
+.user-page-focus-card > span,
+.user-page-health-card > div > span {
+  width: fit-content;
+  color: #2f6f4a;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.user-page-focus-card strong,
+.user-page-health-card > div > strong {
+  color: var(--accent);
+  font-size: 24px;
+  line-height: 1.12;
+}
+
+.user-page-focus-card p {
+  max-width: 66ch;
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.user-page-focus-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.user-page-focus-actions .primary,
+.user-page-focus-actions .secondary-button,
+.user-page-focus-actions .ghost-button {
+  width: fit-content;
+}
+
+.user-page-health-card > div {
+  display: grid;
+  gap: 4px;
+}
+
+.user-page-health-card ul {
+  display: grid;
+  gap: 8px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.user-page-health-card li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 42px;
+  padding: 9px 10px;
+  border: 1px solid rgba(90, 62, 36, 0.16);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.44);
+}
+
+.user-page-health-card li span {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.user-page-health-card li strong {
+  color: var(--accent);
+  font-size: 14px;
+}
+
+.user-page-health-card li.is-ready strong {
+  color: #205a38;
+}
+
+.user-page-health-card li.is-warning {
+  border-color: rgba(139, 47, 32, 0.22);
+  background: rgba(255, 244, 235, 0.72);
+}
+
+.user-page-health-card li.is-warning strong {
+  color: #8b2f20;
+}
+
 .user-page-account-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(178px, 1fr));
   gap: 10px;
 }
 
@@ -867,7 +979,8 @@ body[data-active-screen="user-page"] .account-page-status:not(:empty) {
 }
 
 .user-page-quick-actions,
-.user-settings-links {
+.user-settings-links,
+.user-page-section-nav {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -878,6 +991,29 @@ body[data-active-screen="user-page"] .account-page-status:not(:empty) {
 .user-page-quick-actions .secondary-button,
 .user-page-quick-actions .ghost-button {
   width: fit-content;
+}
+
+.user-page-section-nav {
+  padding-top: 2px;
+}
+
+.user-page-section-nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 7px 10px;
+  border: 1px solid rgba(90, 62, 36, 0.16);
+  border-radius: 999px;
+  background: rgba(253, 246, 227, 0.54);
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.user-page-section-nav a:hover {
+  border-color: rgba(90, 62, 36, 0.34);
+  background: rgba(255, 250, 238, 0.86);
 }
 
 .user-page-stats {
@@ -900,6 +1036,40 @@ body[data-active-screen="user-page"] .account-page-status:not(:empty) {
 .user-page-stats strong {
   color: var(--accent);
   font-size: 24px;
+}
+
+.saved-library-tools {
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) minmax(150px, 0.4fr) minmax(160px, 0.45fr);
+  gap: 10px;
+  align-items: end;
+}
+
+.saved-library-filter {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  margin: 0;
+}
+
+.saved-library-filter span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.saved-library-filter input,
+.saved-library-filter select {
+  width: 100%;
+  min-height: 44px;
+}
+
+.saved-library-result-status {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.4;
 }
 
 .saved-library-total {
@@ -1286,9 +1456,11 @@ body[data-active-screen="user-page"] .account-page-status:not(:empty) {
   .account-dashboard,
   .account-edition-grid,
   .account-profile-list,
+  .user-page-command-grid,
   .user-page-account-grid,
   .user-page-character-list,
-  .account-management-grid {
+  .account-management-grid,
+  .saved-library-tools {
     grid-template-columns: 1fr;
   }
   .account-split { grid-template-columns: 1fr; }
@@ -1353,7 +1525,9 @@ body[data-active-screen="user-page"] .account-page-status:not(:empty) {
 
   .user-page-quick-actions,
   .user-page-session-actions,
-  .user-settings-links {
+  .user-settings-links,
+  .user-page-section-nav,
+  .user-page-focus-actions {
     display: grid;
     grid-template-columns: 1fr;
   }
@@ -1363,6 +1537,10 @@ body[data-active-screen="user-page"] .account-page-status:not(:empty) {
   .user-page-quick-actions .ghost-button,
   .user-page-session-actions .ghost-button,
   .user-settings-links .ghost-button,
+  .user-page-section-nav a,
+  .user-page-focus-actions .primary,
+  .user-page-focus-actions .secondary-button,
+  .user-page-focus-actions .ghost-button,
   .user-social-provider-item .ghost-button {
     width: 100%;
   }

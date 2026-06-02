@@ -55,9 +55,24 @@ const el = {
   emailVerificationText: document.getElementById("userPageEmailVerificationText"),
   resendVerification: document.getElementById("userPageResendVerification"),
   createdAt: document.getElementById("userPageCreatedAt"),
+  lastActivity: document.getElementById("userPageLastActivity"),
+  lastActivityText: document.getElementById("userPageLastActivityText"),
+  focusTitle: document.getElementById("userPageFocusTitle"),
+  focusText: document.getElementById("userPageFocusText"),
+  focusActions: document.getElementById("userPageFocusActions"),
+  emailHealth: document.getElementById("userPageEmailHealth"),
+  emailHealthText: document.getElementById("userPageEmailHealthText"),
+  passwordHealth: document.getElementById("userPagePasswordHealth"),
+  passwordHealthText: document.getElementById("userPagePasswordHealthText"),
+  storageHealth: document.getElementById("userPageStorageHealth"),
+  storageHealthText: document.getElementById("userPageStorageHealthText"),
   count5e: document.getElementById("userPageCount5e"),
   count2024: document.getElementById("userPageCount2024"),
   total: document.getElementById("userPageTotal"),
+  search: document.getElementById("userPageSearch"),
+  editionFilter: document.getElementById("userPageEditionFilter"),
+  sort: document.getElementById("userPageSort"),
+  libraryStatus: document.getElementById("userPageLibraryStatus"),
   empty: document.getElementById("userPageEmpty"),
   list: document.getElementById("userPageCharacterList"),
   logout: document.getElementById("userPageLogout"),
@@ -84,6 +99,11 @@ const el = {
 let pendingDeletePassword = "";
 let pendingMigrationCharacter = null;
 let statusClearTimer = 0;
+const libraryFilters = {
+  query: "",
+  edition: "all",
+  sort: "updated-desc",
+};
 
 function setStatus(message, tone = "info") {
   if (!el.status) return;
@@ -135,6 +155,9 @@ function renderUserPage() {
   const counts = getAccountCounts();
   const charactersByEdition = getCharactersByEdition();
   const characters = EDITION_ORDER.flatMap((edition) => charactersByEdition[edition]);
+  const visibleEditions = libraryFilters.edition === "all" ? EDITION_ORDER : [libraryFilters.edition];
+  const filteredCharactersByEdition = getFilteredCharactersByEdition(charactersByEdition);
+  const filteredCharacters = visibleEditions.flatMap((edition) => filteredCharactersByEdition[edition] || []);
 
   if (el.guest) el.guest.hidden = Boolean(user);
   if (el.content) el.content.hidden = !user;
@@ -164,21 +187,31 @@ function renderUserPage() {
   }
   if (el.resendVerification) el.resendVerification.hidden = Boolean(user.emailVerified);
   if (el.createdAt) el.createdAt.textContent = formatDateOnly(user.createdAt);
+  renderLastActivity(characters);
   if (el.count5e) el.count5e.textContent = `${counts["5e"]}/${ACCOUNT_LIMIT_PER_EDITION}`;
   if (el.count2024) el.count2024.textContent = `${counts["5.5e-2024"]}/${ACCOUNT_LIMIT_PER_EDITION}`;
   if (el.total) el.total.textContent = `${characters.length} ${characters.length === 1 ? "salvo" : "salvos"}`;
+  syncLibraryControls();
 
   if (el.profileForm) {
     el.profileForm.elements.displayName.value = user.displayName || "";
     el.profileForm.elements.email.value = user.email || "";
   }
+  renderAccountFocus(user, characters, counts);
+  renderAccountHealth(user);
   renderAccountSecurityState(user);
   renderSocialProviderState(user);
 
-  if (el.empty) el.empty.hidden = characters.length > 0;
+  renderLibraryStatus(characters.length, filteredCharacters.length);
+  if (el.empty) {
+    el.empty.hidden = filteredCharacters.length > 0;
+    el.empty.textContent = characters.length
+      ? "Nenhum personagem encontrado com esses filtros."
+      : "Nenhum personagem salvo ainda.";
+  }
   if (el.list) {
-    el.list.innerHTML = EDITION_ORDER
-      .map((edition) => renderEditionSection(edition, charactersByEdition[edition], counts[edition]))
+    el.list.innerHTML = visibleEditions
+      .map((edition) => renderEditionSection(edition, filteredCharactersByEdition[edition] || [], counts[edition]))
       .join("");
   }
 }
@@ -187,6 +220,148 @@ function getCharactersByEdition() {
   return Object.fromEntries(
     EDITION_ORDER.map((edition) => [edition, listCharactersForCurrentUser(edition)])
   );
+}
+
+function getFilteredCharactersByEdition(charactersByEdition) {
+  const query = normalizeSearchText(libraryFilters.query);
+  return Object.fromEntries(
+    EDITION_ORDER.map((edition) => {
+      const meta = EDITION_META[edition] || EDITION_META["5e"];
+      const characters = (charactersByEdition[edition] || [])
+        .filter((character) => {
+          if (libraryFilters.edition !== "all" && character.edition !== libraryFilters.edition) return false;
+          if (!query) return true;
+
+          return normalizeSearchText([
+            character.name,
+            character.summary,
+            meta.label,
+            meta.shortLabel,
+          ].filter(Boolean).join(" ")).includes(query);
+        });
+
+      return [edition, sortCharacters(characters)];
+    })
+  );
+}
+
+function sortCharacters(characters) {
+  return [...characters].sort((left, right) => {
+    if (libraryFilters.sort === "name-asc") {
+      return String(left.name || "").localeCompare(String(right.name || ""), "pt-BR", { sensitivity: "base" });
+    }
+
+    const leftTime = Number(new Date(left.updatedAt || left.createdAt || 0));
+    const rightTime = Number(new Date(right.updatedAt || right.createdAt || 0));
+    const direction = libraryFilters.sort === "updated-asc" ? 1 : -1;
+    return (leftTime - rightTime) * direction;
+  });
+}
+
+function syncLibraryControls() {
+  if (el.search && el.search.value !== libraryFilters.query && document.activeElement !== el.search) {
+    el.search.value = libraryFilters.query;
+  }
+  if (el.editionFilter) el.editionFilter.value = libraryFilters.edition;
+  if (el.sort) el.sort.value = libraryFilters.sort;
+}
+
+function renderLibraryStatus(totalCount, visibleCount) {
+  if (!el.libraryStatus) return;
+
+  const hasFilters = Boolean(libraryFilters.query.trim()) || libraryFilters.edition !== "all";
+  if (!totalCount) {
+    el.libraryStatus.textContent = "A biblioteca fica mais útil quando você salva personagens pelo editor.";
+    return;
+  }
+
+  if (!hasFilters) {
+    el.libraryStatus.textContent = `${totalCount} ${totalCount === 1 ? "personagem salvo" : "personagens salvos"} na conta.`;
+    return;
+  }
+
+  el.libraryStatus.textContent = `${visibleCount} de ${totalCount} ${totalCount === 1 ? "personagem" : "personagens"} aparecem com os filtros atuais.`;
+}
+
+function renderLastActivity(characters) {
+  const latest = getLatestCharacter(characters);
+  if (!latest) {
+    if (el.lastActivity) el.lastActivity.textContent = "Sem personagens";
+    if (el.lastActivityText) el.lastActivityText.textContent = "Crie ou salve uma ficha para iniciar o histórico.";
+    return;
+  }
+
+  const meta = EDITION_META[latest.edition] || EDITION_META["5e"];
+  if (el.lastActivity) el.lastActivity.textContent = formatDate(latest.updatedAt || latest.createdAt);
+  if (el.lastActivityText) {
+    el.lastActivityText.textContent = `${latest.name || "Personagem"} em ${meta.label}.`;
+  }
+}
+
+function renderAccountFocus(user, characters, counts) {
+  if (!el.focusTitle || !el.focusText || !el.focusActions) return;
+
+  const has5eCharacters = Number(counts["5e"] || 0) > 0;
+  const has2024Characters = Number(counts["5.5e-2024"] || 0) > 0;
+  if (!user.emailVerified) {
+    el.focusTitle.textContent = "Valide o e-mail da conta";
+    el.focusText.textContent = "A validação deixa recuperação de acesso e avisos da conta prontos para uso.";
+    el.focusActions.innerHTML = `
+      <button type="button" class="primary" data-user-focus-action="verify-email">Reenviar validação</button>
+      <a href="#userSettings" class="ghost-button">Revisar dados</a>
+    `;
+    return;
+  }
+
+  if (!characters.length) {
+    el.focusTitle.textContent = "Crie o primeiro personagem";
+    el.focusText.textContent = "Depois de salvar uma ficha, ela aparece aqui com edição, resumo e ações rápidas.";
+    el.focusActions.innerHTML = `
+      <a href="./5e.html" class="primary">Criar 5e</a>
+      <a href="./5.5e-2024.html" class="secondary-button">Criar 5.5e</a>
+    `;
+    return;
+  }
+
+  if (has5eCharacters && !has2024Characters) {
+    el.focusTitle.textContent = "Revise a migração para 5.5e";
+    el.focusText.textContent = "Personagens 5e podem ser duplicados ou transferidos para a edição 2024 pela biblioteca.";
+    el.focusActions.innerHTML = `
+      <a href="#userLibrary" class="primary">Abrir biblioteca</a>
+      <a href="./5.5e-2024.html" class="secondary-button">Criar 5.5e</a>
+    `;
+    return;
+  }
+
+  el.focusTitle.textContent = "Biblioteca em dia";
+  el.focusText.textContent = "Use busca, filtros e atalhos para continuar as fichas salvas ou começar novos personagens.";
+  el.focusActions.innerHTML = `
+    <a href="#userLibrary" class="primary">Ver personagens</a>
+    <a href="./estatisticas.html" class="ghost-button">Ver estatísticas</a>
+  `;
+}
+
+function renderAccountHealth(user) {
+  setHealthItem(el.emailHealth, el.emailHealthText, Boolean(user.emailVerified), user.emailVerified ? "Validado" : "Pendente");
+  setHealthItem(
+    el.passwordHealth,
+    el.passwordHealthText,
+    user.passwordSet !== false,
+    user.passwordSet === false ? "Definir" : "Ativa"
+  );
+  setHealthItem(
+    el.storageHealth,
+    el.storageHealthText,
+    isUsingServerStorage(),
+    isUsingServerStorage() ? "Servidor" : "Indisponível"
+  );
+}
+
+function setHealthItem(item, textNode, isReady, text) {
+  if (!item || !textNode) return;
+  item.classList.toggle("is-ready", isReady);
+  item.classList.toggle("is-warning", !isReady);
+  textNode.textContent = text;
 }
 
 function renderAccountSecurityState(user) {
@@ -310,9 +485,12 @@ function renderEditionSection(edition, characters, count) {
   const meta = EDITION_META[edition] || EDITION_META["5e"];
   const safeSlug = escapeHtml(meta.slug);
   const freeSlots = Math.max(0, ACCOUNT_LIMIT_PER_EDITION - Number(count || 0));
+  const hasActiveFilters = Boolean(libraryFilters.query.trim()) || libraryFilters.edition !== "all";
   const listContent = characters.length
     ? characters.map(renderCharacterCard).join("")
-    : renderEditionEmptyState(meta);
+    : hasActiveFilters && Number(count || 0) > 0
+      ? renderEditionFilteredEmptyState(meta)
+      : renderEditionEmptyState(meta);
 
   return `
     <section class="user-page-edition-section user-page-edition-section--${safeSlug}" aria-labelledby="userPageEdition${safeSlug}">
@@ -345,19 +523,55 @@ function renderEditionEmptyState(meta) {
   `;
 }
 
+function renderEditionFilteredEmptyState(meta) {
+  return `
+    <div class="user-page-edition-empty">
+      <strong>Nenhum resultado em ${escapeHtml(meta.label)}</strong>
+      <p>Ajuste a busca ou a edição para voltar a ver os personagens salvos.</p>
+    </div>
+  `;
+}
+
 el.logout?.addEventListener("click", async () => {
   await logoutAccount();
   renderUserPage();
   setStatus("Você saiu da conta.", "info");
 });
 
-el.resendVerification?.addEventListener("click", async () => {
+async function resendEmailVerification() {
   try {
     await requestEmailVerification();
     setStatus("Enviamos um novo link de validação para seu e-mail.", "success");
   } catch (error) {
     setStatus(error?.message || "Não foi possível reenviar a validação.", "warning");
   }
+}
+
+el.resendVerification?.addEventListener("click", resendEmailVerification);
+
+el.focusActions?.addEventListener("click", async (event) => {
+  const actionButton = event.target.closest("[data-user-focus-action]");
+  if (!actionButton) return;
+
+  const action = actionButton.getAttribute("data-user-focus-action");
+  if (action === "verify-email") {
+    await resendEmailVerification();
+  }
+});
+
+el.search?.addEventListener("input", () => {
+  libraryFilters.query = el.search.value;
+  renderUserPage();
+});
+
+el.editionFilter?.addEventListener("change", () => {
+  libraryFilters.edition = el.editionFilter.value || "all";
+  renderUserPage();
+});
+
+el.sort?.addEventListener("change", () => {
+  libraryFilters.sort = el.sort.value || "updated-desc";
+  renderUserPage();
 });
 
 el.socialProviderList?.addEventListener("click", async (event) => {
@@ -571,6 +785,22 @@ async function migratePendingCharacter(mode) {
   } catch (error) {
     setStatus(error?.message || "Não foi possível migrar o personagem.", "warning");
   }
+}
+
+function getLatestCharacter(characters) {
+  return [...characters].sort((left, right) => {
+    const leftTime = Number(new Date(left.updatedAt || left.createdAt || 0));
+    const rightTime = Number(new Date(right.updatedAt || right.createdAt || 0));
+    return rightTime - leftTime;
+  })[0] || null;
+}
+
+function normalizeSearchText(value) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
 }
 
 function formatDate(value) {
