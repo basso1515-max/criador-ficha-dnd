@@ -115,6 +115,7 @@ import {
 import {
   buildFeatureChoiceSlotKey2024,
   buildFeatureChoiceSourceKey2024,
+  isExplicitWeaponMasteryClass2024,
 } from "./feature-choice-rules.js";
 import {
   collectGrantedSpellIdsByLevel2024,
@@ -438,7 +439,6 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
     "treinamento-com-armas-marciais": ["marcial"],
   };
   const FEAT_WEAPON_MASTERY_IDS_2024 = new Set(["mestre-de-armas"]);
-  const EXPLICIT_WEAPON_MASTERY_CLASS_IDS_2024 = new Set(["barbaro", "guerreiro", "ladino", "paladino", "guardiao"]);
   const FEAT_ABILITY_BONUS_RULES_2024 = {
     atleta: { type: "choice", amount: 1, options: ["for", "des"] },
     ator: { type: "choice", amount: 1, options: ["car"] },
@@ -3212,7 +3212,7 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
   }
 
   function buildWeaponMasteryFeatureChoiceDefinition2024(entry) {
-    if (!entry?.classId || !EXPLICIT_WEAPON_MASTERY_CLASS_IDS_2024.has(entry.classId)) return null;
+    if (!entry?.classId || !isExplicitWeaponMasteryClass2024(entry.classId)) return null;
     const picks = getWeaponMasteryLimitForClassEntry2024(entry);
     if (!picks || !Number.isFinite(picks)) return null;
     return {

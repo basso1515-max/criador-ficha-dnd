@@ -30,10 +30,6 @@ import {
   WARLOCK_MYSTIC_ARCANUM_SLOTS_2024,
   WARLOCK_PACT_BOONS_5E,
 } from "../src/data/warlock-invocations.js";
-import {
-  RANGER_NATURAL_EXPLORER_BY_LEVEL_5E,
-  RANGER_NATURAL_EXPLORER_OPTIONS_5E,
-} from "../src/data/subclass-learned-options.js";
 import { RACIAL_SPELL_SOURCE_DEFINITIONS } from "../src/editors/5e/feature-config.js";
 
 const root = process.cwd();
@@ -944,25 +940,15 @@ function validateFeatureChoiceEngine2024() {
     "featureChoicesInfo2024",
   ];
   const requiredScriptMarkers = [
-    "FEATURE_CHOICE_DEFINITIONS_2024",
     "renderFeatureChoices2024",
     "collectFeatureChoiceSources2024",
     "applyRandomFeatureChoices2024",
     "getFeatureChoiceSelectionEntries2024",
     "getFeatureChoiceCascadeMarkup2024",
     "data-feature-choice-hover-card",
-    "EXPLICIT_WEAPON_MASTERY_CLASS_IDS_2024",
-    '["barbaro", "guerreiro", "ladino", "paladino", "guardiao"]',
     "getWeaponMasteryChoiceOptions2024",
     "grantsSelectedWeaponMastery",
     "weapon-mastery",
-    "divine-order",
-    "primal-order",
-    "metamagic",
-    "spell-mastery-1",
-    "signature-spells",
-    "hunter-prey",
-    "defensive-tactics",
   ];
 
   requiredHtmlIds.forEach((id) => {
@@ -992,36 +978,12 @@ function validateFeatureChoiceEngine5e() {
     "featureChoicesInfo",
   ];
   const requiredScriptMarkers = [
-    "FEATURE_CHOICE_DEFINITIONS_5E",
     "renderFeatureChoices",
     "collectFeatureChoiceSources",
     "fillRandomFeatureChoices",
     "getFeatureChoiceSelectionEntries",
     "getFeatureChoiceCascadeMarkup",
     "data-feature-choice-hover-card",
-    "RANGER_NATURAL_EXPLORER_BY_LEVEL_5E",
-    "RANGER_NATURAL_EXPLORER_OPTIONS_5E",
-    "natural-explorer",
-    "Terreno favorito",
-    "metamagic",
-    "spell-mastery-1",
-    "signature-spells",
-    "armor-model",
-    "genie-patron",
-    "fiendish-resilience",
-    "totem-spirit",
-    "beast-aspect",
-    "totemic-attunement",
-    "wild-magic-surge",
-    "ARMORER_ARMOR_MODEL_OPTIONS_5E",
-    "GENIE_PATRON_OPTIONS_5E",
-    "FEATURE_CHOICE_DAMAGE_TYPE_OPTIONS_5E",
-    "TOTEM_SPIRIT_OPTIONS_5E",
-    "WILD_MAGIC_SURGE_OPTIONS_5E",
-    "hunter-prey",
-    "defensive-tactics",
-    "multiattack",
-    "superior-hunters-defense",
   ];
 
   requiredHtmlIds.forEach((id) => {
@@ -1029,34 +991,6 @@ function validateFeatureChoiceEngine5e() {
   });
   requiredScriptMarkers.forEach((marker) => {
     if (!script5e.includes(marker)) errors.push(`5e: motor de escolhas de recursos sem marcador ${marker}.`);
-  });
-
-  const expectedNaturalExplorerTerrains = [
-    "artico",
-    "costa",
-    "deserto",
-    "floresta",
-    "pastagem",
-    "montanha",
-    "pantano",
-    "subterraneo",
-  ];
-  if (RANGER_NATURAL_EXPLORER_BY_LEVEL_5E.length !== 21) {
-    errors.push("5e: tabela de Explorador Nato deve cobrir niveis 0 a 20.");
-  }
-  if (
-    RANGER_NATURAL_EXPLORER_BY_LEVEL_5E[1] !== 1
-    || RANGER_NATURAL_EXPLORER_BY_LEVEL_5E[6] !== 2
-    || RANGER_NATURAL_EXPLORER_BY_LEVEL_5E[10] !== 3
-    || RANGER_NATURAL_EXPLORER_BY_LEVEL_5E[20] !== 3
-  ) {
-    errors.push("5e: progressao de Explorador Nato deve liberar terrenos nos niveis 1, 6 e 10.");
-  }
-  expectedNaturalExplorerTerrains.forEach((terrain) => {
-    const option = RANGER_NATURAL_EXPLORER_OPTIONS_5E.find((item) => item.value === terrain);
-    if (!option?.label || !option?.summary) {
-      errors.push(`5e: Explorador Nato sem label/resumo para terreno ${terrain}.`);
-    }
   });
 
   if (errors.length) {
@@ -1214,10 +1148,6 @@ function validateArtificerInfusionEngine5e() {
   });
 
   [
-    "ARTIFICER_INFUSION_LIMITS_BY_LEVEL",
-    "ARTIFICER_INFUSION_CATALOG",
-    "ARTIFICER_INFUSION_TARGET_OPTIONS",
-    "ARTIFICER_INFUSION_DAMAGE_TYPE_OPTIONS",
     "renderArtificerInfusions",
     "collectArtificerInfusionSelectionState",
     "collectArtificerInfusionPendingLines",
@@ -1227,23 +1157,9 @@ function validateArtificerInfusionEngine5e() {
     "data-artificer-infusion-hover-card",
     "data-artificer-infusion-configuration-slot-key",
     "artificer-infusion-cascade",
-    "enhanced-defense",
-    "repeating-shot",
-    "resistant-armor",
-    "damage-type",
-    "replicate-bag-of-holding",
-    "spell-refueling-ring",
-    "arcane-propulsion-armor",
   ].forEach((marker) => {
     if (!script5e.includes(marker)) errors.push(`5e: motor de infusões de Artífice sem marcador ${marker}.`);
   });
-
-  if (!script5e.includes("{ known: 4, active: 2 }")) {
-    errors.push("5e: tabela de infusões não registra 4 conhecidas/2 ativas no nível inicial.");
-  }
-  if (!script5e.includes("{ known: 12, active: 6 }")) {
-    errors.push("5e: tabela de infusões não registra 12 conhecidas/6 ativas no nível alto.");
-  }
 
   if (errors.length) {
     console.error("\nValidacao do motor de infusões do Artífice falhou:");

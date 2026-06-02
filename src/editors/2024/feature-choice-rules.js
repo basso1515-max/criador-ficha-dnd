@@ -15,6 +15,16 @@
  * @property {string} key
  */
 
+export const WEAPON_MASTERY_CLASS_IDS_2024 = ["barbaro", "guerreiro", "ladino", "paladino", "guardiao"];
+
+/**
+ * @param {string | null | undefined} classId
+ * @returns {boolean}
+ */
+export function isExplicitWeaponMasteryClass2024(classId) {
+  return WEAPON_MASTERY_CLASS_IDS_2024.includes(String(classId || "").trim());
+}
+
 /**
  * @param {FeatureChoiceEntry2024 | null | undefined} entry
  * @param {FeatureChoiceDefinition2024 | null | undefined} definition

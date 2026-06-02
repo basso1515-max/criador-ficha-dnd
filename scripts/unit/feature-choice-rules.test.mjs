@@ -9,6 +9,8 @@ import {
 import {
   buildFeatureChoiceSlotKey2024,
   buildFeatureChoiceSourceKey2024,
+  isExplicitWeaponMasteryClass2024,
+  WEAPON_MASTERY_CLASS_IDS_2024,
 } from "../../src/editors/2024/feature-choice-rules.js";
 
 test("chaves de escolha de recurso 5e permanecem estaveis", () => {
@@ -41,4 +43,10 @@ test("chaves de escolha de recurso 2024 permanecem estaveis", () => {
   );
   assert.equal(sourceKey, "wizard-main:feature-choice:subclass:scholar");
   assert.equal(buildFeatureChoiceSlotKey2024({ key: sourceKey }, 0), "wizard-main:feature-choice:subclass:scholar:slot-0");
+});
+
+test("classes com maestria explicita em arma 2024 permanecem estaveis", () => {
+  assert.deepEqual(WEAPON_MASTERY_CLASS_IDS_2024, ["barbaro", "guerreiro", "ladino", "paladino", "guardiao"]);
+  assert.equal(isExplicitWeaponMasteryClass2024("guerreiro"), true);
+  assert.equal(isExplicitWeaponMasteryClass2024(" bardo "), false);
 });
