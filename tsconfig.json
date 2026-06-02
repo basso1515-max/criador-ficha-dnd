@@ -22,9 +22,13 @@
     "src/editors/5e/spell-rules.js",
     "src/editors/5e/equipment-rules.js",
     "src/editors/5e/character-state.js",
+    "src/editors/5e/feature-choice-rules.js",
+    "src/editors/5e/main.js",
     "src/editors/2024/spell-rules.js",
     "src/editors/2024/equipment-rules.js",
     "src/editors/2024/character-state.js",
+    "src/editors/2024/feature-choice-rules.js",
+    "src/editors/2024/main.js",
     "scripts/serve.mjs"
   ]
 }
