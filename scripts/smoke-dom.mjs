@@ -1332,7 +1332,7 @@ async function main() {
   const baseUrl = `http://${HOST}:${serverPort}`;
 
   const server = spawnChild(process.execPath, ["scripts/serve.mjs"], {
-    env: { ...process.env, PORT: String(serverPort) },
+    env: { ...process.env, HOST, PORT: String(serverPort) },
     stdio: ["ignore", "pipe", "pipe"],
   });
 
