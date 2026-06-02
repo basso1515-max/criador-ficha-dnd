@@ -93,6 +93,21 @@ function wrapPdfTextToWidth(text, maxWidth, font, fontSize) {
   return lines.join("\n");
 }
 
+function truncatePdfLinesToHeight(text, maxHeight, fontSize, lineHeightFactor) {
+  const lines = String(text || "").split("\n");
+  const maxLines = Math.max(1, Math.floor(maxHeight / Math.max(1, fontSize * lineHeightFactor)));
+  if (lines.length <= maxLines) return text;
+
+  const keptLines = lines.slice(0, maxLines);
+  const suffix = "...";
+  const lastIndex = keptLines.length - 1;
+  const lastLine = keptLines[lastIndex] || "";
+  keptLines[lastIndex] = lastLine.endsWith(suffix)
+    ? lastLine
+    : `${lastLine.replace(/\s+$/g, "")}${suffix}`;
+  return keptLines.join("\n");
+}
+
 export function fitPdfTextToField(text, field, font, options = {}) {
   const presets = options.presets || {};
   const fieldIsMultiline = typeof field?.isMultiline === "function" ? field.isMultiline() : false;
@@ -137,8 +152,11 @@ export function fitPdfTextToField(text, field, font, options = {}) {
   }
 
   const fallbackSize = config.minSize;
+  const fallbackText = config.multiline ? wrapPdfTextToWidth(normalized, maxWidth, font, fallbackSize) : normalized;
   return {
-    text: config.multiline ? wrapPdfTextToWidth(normalized, maxWidth, font, fallbackSize) : normalized,
+    text: config.multiline
+      ? truncatePdfLinesToHeight(fallbackText, maxHeight, fallbackSize, config.lineHeightFactor)
+      : fallbackText,
     fontSize: fallbackSize,
   };
 }
