@@ -35,7 +35,7 @@ Este projeto pode rodar localmente sem muita cerimônia, mas publicação públi
 
 - Confirme que os cookies de sessão estão com `HttpOnly`, `SameSite=Lax` e `Secure` em HTTPS.
 - Mantenha rate limit ativo para cadastro, login e migração.
-- Mantenha a política de senha nova em 15+ caracteres e bloqueio de senhas comuns.
+- Mantenha a política de senha nova em 6+ caracteres e bloqueio de senhas comuns.
 - Verifique se rotas sensíveis rejeitam origem cross-site.
 - Mantenha `Cache-Control: no-store` em respostas da API.
 - Revise headers de produção no `vercel.json` após mudanças grandes.
@@ -60,7 +60,7 @@ Este projeto pode rodar localmente sem muita cerimônia, mas publicação públi
 - Confira `/api/community-stats` depois de publicar, pois ele depende do mesmo Redis persistente usado pelas contas.
 - Se o app receber usuários externos, considere alertas simples para erro 5xx e limite de Redis.
 
-## Promocao De Deploy
+## Promoção De Deploy
 
 - Use `vercel deploy` para gerar um preview manual quando não estiver usando Git Integration.
 - Valide o preview com criação de conta, salvamento de personagem, geração de PDF e estatísticas públicas.
