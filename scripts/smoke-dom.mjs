@@ -1324,6 +1324,7 @@ const smokePages = [
 
 const children = new Set();
 let tempProfile = "";
+let smokeNavigationId = 0;
 
 async function main() {
   const serverPort = await getFreePort();
@@ -1380,6 +1381,9 @@ async function main() {
   await cdp.send("Page.enable");
   await cdp.send("Runtime.enable");
   await cdp.send("Log.enable");
+  await cdp.send("Page.addScriptToEvaluateOnNewDocument", {
+    source: "window.__DND_SHEET_DISABLE_AUTO_DRAFT__ = true;",
+  });
 
   const results = [];
   for (const page of smokePages) {
@@ -1416,18 +1420,25 @@ async function assertPageLoaded(cdp, page) {
 
 async function navigate(cdp, url) {
   await clearSmokeEditorDrafts(cdp);
-  const response = await cdp.send("Page.navigate", { url });
+  const targetUrl = getSmokeNavigationUrl(url);
+  const response = await cdp.send("Page.navigate", { url: targetUrl });
   if (response.errorText) {
-    throw new Error(`Falha ao navegar para ${url}: ${response.errorText}`);
+    throw new Error(`Falha ao navegar para ${targetUrl}: ${response.errorText}`);
   }
 
-  const safeUrl = JSON.stringify(url);
+  const safeUrl = JSON.stringify(targetUrl);
   await waitForFunction(
     cdp,
     `location.href === ${safeUrl} && document.readyState !== "loading"`,
     PAGE_TIMEOUT_MS,
-    `Pagina nao carregou: ${url}`
+    `Pagina nao carregou: ${targetUrl}`
   );
+}
+
+function getSmokeNavigationUrl(url) {
+  const target = new URL(url);
+  target.searchParams.set("__smoke", String(++smokeNavigationId));
+  return target.href;
 }
 
 async function clearSmokeEditorDrafts(cdp) {

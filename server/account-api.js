@@ -78,8 +78,15 @@ const RATE_LIMITS = {
 const SAFE_ID_RE = /^[a-z]+_[a-zA-Z0-9_-]{8,128}$/;
 
 let redisClient = null;
+let configuredAccountStore = null;
+
+export function configureAccountApiStore(store) {
+  configuredAccountStore = store || null;
+  redisClient = null;
+}
 
 function getRedis() {
+  if (configuredAccountStore) return configuredAccountStore;
   if (redisClient) return redisClient;
 
   const url = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;

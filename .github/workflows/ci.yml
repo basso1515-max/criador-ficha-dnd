@@ -34,17 +34,5 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Check project invariants
-        run: npm run check
-
-      - name: Typecheck
-        run: npm run typecheck
-
-      - name: Check performance budget
-        run: npm run perf:budget
-
-      - name: Run unit tests
-        run: npm run test:unit
-
-      - name: Run account API E2E
-        run: npm run test:e2e
+      - name: Run test suite
+        run: npm test

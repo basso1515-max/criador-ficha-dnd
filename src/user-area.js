@@ -563,6 +563,14 @@ function setupAutoEditorDraft({
   getSelectedCharacterId,
   getReturnTo,
 }) {
+  if (isAutoEditorDraftDisabled()) {
+    return {
+      clear() {
+        clearAutoEditorDraft(edition);
+      },
+    };
+  }
+
   let saveTimer = 0;
   let dirty = false;
 
@@ -614,6 +622,8 @@ function setupAutoEditorDraft({
 }
 
 function saveAutoEditorDraft(edition, draft) {
+  if (isAutoEditorDraftDisabled()) return false;
+
   const storage = getWritableAutoDraftStorage();
   if (!storage || !edition || !draft?.payload?.snapshot) return false;
 
@@ -633,6 +643,8 @@ function saveAutoEditorDraft(edition, draft) {
 }
 
 function readAutoEditorDraft(edition, returnTo) {
+  if (isAutoEditorDraftDisabled()) return null;
+
   const key = getAutoEditorDraftKey(edition);
   for (const storage of getAutoDraftStorageCandidates()) {
     try {
@@ -673,6 +685,10 @@ function clearAutoEditorDraft(edition) {
 
 function getAutoEditorDraftKey(edition) {
   return `${AUTO_EDITOR_DRAFT_KEY_PREFIX}:${edition || "default"}`;
+}
+
+function isAutoEditorDraftDisabled() {
+  return typeof window !== "undefined" && /** @type {any} */ (window).__DND_SHEET_DISABLE_AUTO_DRAFT__ === true;
 }
 
 function getWritableAutoDraftStorage() {
