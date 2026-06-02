@@ -502,11 +502,15 @@ function findChromeExecutable() {
     "chromium-browser",
   ].filter(Boolean);
 
-  const executable = candidates.find((candidate) => candidate.includes(path.sep) ? existsSync(candidate) : true);
+  const executable = candidates.find((candidate) => isExplicitPath(candidate) ? existsSync(candidate) : true);
   if (!executable) {
     throw new Error("Chrome/Edge nao encontrado. Defina CHROME_PATH para executar o E2E de PDF.");
   }
   return executable;
+}
+
+function isExplicitPath(candidate) {
+  return candidate.includes("/") || candidate.includes("\\") || /^[a-z]:/i.test(candidate);
 }
 
 function spawnChild(command, args, options = {}) {
