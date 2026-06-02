@@ -7,11 +7,21 @@ import { createServer as createNetServer } from "node:net";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
+import { OAUTH_STATE_COOKIE_NAME, exchangeOAuthCodeForProfile } from "../server/oauth.js";
 import { extractCommunityStatsEvent } from "../src/shared/community-stats.js";
 
 const HOST = "127.0.0.1";
 const SERVER_TIMEOUT_MS = 8_000;
 const REQUEST_TIMEOUT_MS = 4_000;
+const PRODUCTION_ACCOUNT_BASE_URL = "https://sheetfy.vercel.app";
+const OAUTH_CALLBACK_PATH = "/api/accounts/oauth/callback";
+const OAUTH_TEST_ENV = {
+  GOOGLE_OAUTH_CLIENT_ID: "google-client-id.example.test",
+  GOOGLE_OAUTH_CLIENT_SECRET: "google-client-secret.example.test",
+  FACEBOOK_OAUTH_CLIENT_ID: "facebook-client-id.example.test",
+  FACEBOOK_OAUTH_CLIENT_SECRET: "facebook-client-secret.example.test",
+  FACEBOOK_GRAPH_VERSION: "v24.0",
+};
 
 const children = new Set();
 let tempDataDir = "";
@@ -50,6 +60,18 @@ function assert(condition, message) {
 }
 
 async function main() {
+  const localOAuthBaseUrl = await assertOAuthStartFlowForLocalConfig();
+  await assertOAuthCallbackExchangeRedirectUris([
+    {
+      name: "local",
+      redirectUri: `${localOAuthBaseUrl}${OAUTH_CALLBACK_PATH}`,
+    },
+    {
+      name: "production",
+      redirectUri: `${PRODUCTION_ACCOUNT_BASE_URL}${OAUTH_CALLBACK_PATH}`,
+    },
+  ]);
+
   const serverPort = await getFreePort();
   const baseUrl = `http://${HOST}:${serverPort}`;
   tempDataDir = await mkdtemp(path.join(tmpdir(), "dnd-e2e-data-"));
@@ -61,9 +83,8 @@ async function main() {
       PORT: String(serverPort),
       SERVER_DATA_DIR: tempDataDir,
       ACCOUNT_EMAIL_DEBUG_RESPONSE: "1",
-      ACCOUNT_PUBLIC_BASE_URL: "https://sheetfy.vercel.app",
-      GOOGLE_OAUTH_CLIENT_ID: "google-client-id.example.test",
-      GOOGLE_OAUTH_CLIENT_SECRET: "google-client-secret.example.test",
+      ACCOUNT_PUBLIC_BASE_URL: PRODUCTION_ACCOUNT_BASE_URL,
+      ...OAUTH_TEST_ENV,
     },
     stdio: ["ignore", "pipe", "pipe"],
   });
@@ -81,7 +102,7 @@ async function main() {
   assertCommunityStatsFallbackForOldSnapshots();
   await assertSecurityHeaders(baseUrl);
   await assertCrossSiteWriteBlocked(baseUrl);
-  await assertOAuthRedirectUsesPublicBaseUrl(baseUrl);
+  await assertOAuthStartAuthorizationUrls(baseUrl, `${PRODUCTION_ACCOUNT_BASE_URL}${OAUTH_CALLBACK_PATH}`);
 
   const anonymous = await requestJson(baseUrl, "/api/account/current", { jar });
   assert(anonymous.statusCode === 200, "Consulta inicial de conta falhou.");
@@ -455,7 +476,7 @@ async function main() {
     "bloqueio de escrita cross-site",
     "política de senha nova",
     "validação estrita de payloads maliciosos",
-    "callback OAuth no domínio público canônico",
+    "OAuth Google/Facebook com callback local e público canônico",
     "cadastro e sessão",
     "validação de e-mail por link",
     "desvinculação segura de login social",
@@ -604,21 +625,194 @@ async function assertCrossSiteWriteBlocked(baseUrl) {
   assert(response.statusCode === 403, "Escrita cross-site deveria ser bloqueada.");
 }
 
-async function assertOAuthRedirectUsesPublicBaseUrl(baseUrl) {
-  const jar = new CookieJar();
-  const response = await requestRaw(baseUrl, "/api/accounts/oauth/start?provider=google&returnTo=minha-conta.html", {
-    jar,
-    expectedStatus: 302,
+async function assertOAuthStartFlowForLocalConfig() {
+  const serverPort = await getFreePort();
+  const baseUrl = `http://${HOST}:${serverPort}`;
+  const dataDir = await mkdtemp(path.join(tmpdir(), "dnd-e2e-oauth-local-"));
+  const server = spawnChild(process.execPath, ["scripts/serve.mjs"], {
+    env: {
+      ...process.env,
+      HOST,
+      PORT: String(serverPort),
+      SERVER_DATA_DIR: dataDir,
+      ACCOUNT_PUBLIC_BASE_URL: "",
+      ...OAUTH_TEST_ENV,
+    },
+    stdio: ["ignore", "pipe", "pipe"],
   });
-  const location = response.headers.location || "";
-  assert(location, "Inicio de OAuth deveria redirecionar para o provedor.");
-  const authorizationUrl = new URL(location);
-  assert(authorizationUrl.hostname === "accounts.google.com", "OAuth Google deveria usar o endpoint de autorizacao.");
-  assert(
-    authorizationUrl.searchParams.get("redirect_uri") === "https://sheetfy.vercel.app/api/accounts/oauth/callback",
-    "OAuth deveria usar ACCOUNT_PUBLIC_BASE_URL como base do callback."
-  );
-  assert(jar.header().includes("dnd_sheet_oauth_state="), "Inicio de OAuth deveria definir cookie temporario de state.");
+
+  try {
+    await waitForHttp(`${baseUrl}/index.html`, SERVER_TIMEOUT_MS);
+    await assertOAuthStartAuthorizationUrls(baseUrl, `${baseUrl}${OAUTH_CALLBACK_PATH}`);
+    return baseUrl;
+  } finally {
+    terminateChild(server);
+    await removeTempDir(dataDir);
+  }
+}
+
+async function assertOAuthStartAuthorizationUrls(baseUrl, expectedRedirectUri) {
+  for (const provider of ["google", "facebook"]) {
+    const jar = new CookieJar();
+    const response = await requestRaw(baseUrl, `/api/accounts/oauth/start?provider=${provider}&returnTo=minha-conta.html`, {
+      jar,
+      expectedStatus: 302,
+    });
+    const location = response.headers.location || "";
+    assert(location, `Inicio de OAuth ${provider} deveria redirecionar para o provedor.`);
+    const authorizationUrl = new URL(location);
+    const state = authorizationUrl.searchParams.get("state") || "";
+    assert(state, `Inicio de OAuth ${provider} deveria gerar state.`);
+    assert(
+      authorizationUrl.searchParams.get("redirect_uri") === expectedRedirectUri,
+      `OAuth ${provider} deveria usar callback ${expectedRedirectUri}.`
+    );
+    assert(
+      location === expectedOAuthAuthorizationUrl(provider, expectedRedirectUri, state),
+      `URL de autorizacao ${provider} divergente: ${location}`
+    );
+    assert(jar.header().includes(`${OAUTH_STATE_COOKIE_NAME}=`), `Inicio de OAuth ${provider} deveria definir cookie temporario de state.`);
+  }
+}
+
+function expectedOAuthAuthorizationUrl(provider, redirectUri, state) {
+  const encodedRedirectUri = encodeURIComponent(redirectUri);
+  const encodedState = encodeURIComponent(state);
+  if (provider === "google") {
+    return "https://accounts.google.com/o/oauth2/v2/auth"
+      + `?client_id=${OAUTH_TEST_ENV.GOOGLE_OAUTH_CLIENT_ID}`
+      + `&redirect_uri=${encodedRedirectUri}`
+      + "&response_type=code"
+      + "&scope=openid+email+profile"
+      + `&state=${encodedState}`
+      + "&prompt=select_account";
+  }
+
+  if (provider === "facebook") {
+    return "https://www.facebook.com/v24.0/dialog/oauth"
+      + `?client_id=${OAUTH_TEST_ENV.FACEBOOK_OAUTH_CLIENT_ID}`
+      + `&redirect_uri=${encodedRedirectUri}`
+      + "&response_type=code"
+      + "&scope=email%2Cpublic_profile"
+      + `&state=${encodedState}`;
+  }
+
+  throw new Error(`Provedor OAuth inesperado no teste: ${provider}`);
+}
+
+async function assertOAuthCallbackExchangeRedirectUris(configs) {
+  await withOAuthTestEnv(async () => {
+    for (const config of configs) {
+      await assertGoogleCallbackExchangeRedirectUri(config.redirectUri, config.name);
+      await assertFacebookCallbackExchangeRedirectUri(config.redirectUri, config.name);
+    }
+  });
+}
+
+async function assertGoogleCallbackExchangeRedirectUri(redirectUri, configName) {
+  const calls = [];
+  await withMockedFetch(async () => {
+    const profile = await exchangeOAuthCodeForProfile({
+      provider: "google",
+      code: `google-code-${configName}`,
+      redirectUri,
+    });
+    assert(profile.provider === "google", `Callback Google ${configName} deveria retornar perfil Google.`);
+  }, async (url, options = {}) => {
+    calls.push({ url: String(url), options });
+    if (String(url) === "https://oauth2.googleapis.com/token") {
+      const body = new URLSearchParams(String(options.body || ""));
+      assert(options.method === "POST", `Callback Google ${configName} deveria usar POST no token.`);
+      assert(body.get("redirect_uri") === redirectUri, `Callback Google ${configName} enviou redirect_uri incorreto.`);
+      assert(body.get("code") === `google-code-${configName}`, `Callback Google ${configName} enviou code incorreto.`);
+      return jsonResponse({ access_token: `google-token-${configName}` });
+    }
+    if (String(url) === "https://openidconnect.googleapis.com/v1/userinfo") {
+      assert(
+        options.headers?.Authorization === `Bearer google-token-${configName}`,
+        `Callback Google ${configName} deveria usar o token recebido.`
+      );
+      return jsonResponse({
+        sub: `google-sub-${configName}`,
+        email: `google-${configName}@example.test`,
+        email_verified: true,
+        name: `Google ${configName}`,
+      });
+    }
+    throw new Error(`Fetch Google inesperado em ${configName}: ${url}`);
+  });
+
+  assert(calls.length === 2, `Callback Google ${configName} deveria fazer token + userinfo.`);
+}
+
+async function assertFacebookCallbackExchangeRedirectUri(redirectUri, configName) {
+  const calls = [];
+  await withMockedFetch(async () => {
+    const profile = await exchangeOAuthCodeForProfile({
+      provider: "facebook",
+      code: `facebook-code-${configName}`,
+      redirectUri,
+    });
+    assert(profile.provider === "facebook", `Callback Facebook ${configName} deveria retornar perfil Facebook.`);
+  }, async (url) => {
+    calls.push(String(url));
+    const requestUrl = new URL(String(url));
+    if (requestUrl.origin === "https://graph.facebook.com" && requestUrl.pathname === "/v24.0/oauth/access_token") {
+      assert(requestUrl.searchParams.get("redirect_uri") === redirectUri, `Callback Facebook ${configName} enviou redirect_uri incorreto.`);
+      assert(requestUrl.searchParams.get("code") === `facebook-code-${configName}`, `Callback Facebook ${configName} enviou code incorreto.`);
+      return jsonResponse({ access_token: `facebook-token-${configName}` });
+    }
+    if (requestUrl.origin === "https://graph.facebook.com" && requestUrl.pathname === "/v24.0/me") {
+      assert(requestUrl.searchParams.get("fields") === "id,name,email", `Callback Facebook ${configName} deveria pedir campos esperados.`);
+      assert(requestUrl.searchParams.get("access_token") === `facebook-token-${configName}`, `Callback Facebook ${configName} deveria usar o token recebido.`);
+      assert(requestUrl.searchParams.get("appsecret_proof"), `Callback Facebook ${configName} deveria enviar appsecret_proof.`);
+      return jsonResponse({
+        id: `facebook-sub-${configName}`,
+        email: `facebook-${configName}@example.test`,
+        name: `Facebook ${configName}`,
+      });
+    }
+    throw new Error(`Fetch Facebook inesperado em ${configName}: ${url}`);
+  });
+
+  assert(calls.length === 2, `Callback Facebook ${configName} deveria fazer token + userinfo.`);
+}
+
+async function withOAuthTestEnv(callback) {
+  const names = Object.keys(OAUTH_TEST_ENV);
+  const previous = Object.fromEntries(names.map((name) => [name, process.env[name]]));
+  Object.assign(process.env, OAUTH_TEST_ENV);
+  try {
+    await callback();
+  } finally {
+    names.forEach((name) => {
+      if (previous[name] === undefined) {
+        delete process.env[name];
+      } else {
+        process.env[name] = previous[name];
+      }
+    });
+  }
+}
+
+async function withMockedFetch(callback, handler) {
+  const previousFetch = globalThis.fetch;
+  globalThis.fetch = handler;
+  try {
+    await callback();
+  } finally {
+    globalThis.fetch = previousFetch;
+  }
+}
+
+function jsonResponse(payload, { status = 200 } = {}) {
+  return {
+    ok: status >= 200 && status < 300,
+    status,
+    async text() {
+      return JSON.stringify(payload);
+    },
+  };
 }
 
 async function requestJson(baseUrl, route, options = {}) {
@@ -743,12 +937,16 @@ function terminateChild(child) {
 
 async function cleanup() {
   children.forEach(terminateChild);
-  if (!tempDataDir) return;
-  if (!existsSync(tempDataDir)) return;
+  await removeTempDir(tempDataDir);
+}
+
+async function removeTempDir(dir) {
+  if (!dir) return;
+  if (!existsSync(dir)) return;
 
   for (let attempt = 0; attempt < 10; attempt += 1) {
     try {
-      await rm(tempDataDir, { recursive: true, force: true, maxRetries: 2, retryDelay: 100 });
+      await rm(dir, { recursive: true, force: true, maxRetries: 2, retryDelay: 100 });
       return;
     } catch {
       await delay(200);
