@@ -98,7 +98,7 @@ async function updateHomeOAuthProviderAvailability() {
       link.setAttribute("aria-disabled", provider.configured ? "false" : "true");
       link.title = provider.configured
         ? link.getAttribute("aria-label") || ""
-        : "Configure as credenciais deste provedor no servidor para ativar este login.";
+        : "Este login social ainda não está disponível.";
     });
   } catch {
     // O backend ainda valida o clique caso esta consulta falhe.

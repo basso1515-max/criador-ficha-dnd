@@ -39,7 +39,7 @@ const REGISTER_SUCCESS_PAGE = "./index.html";
 const PASSWORD_STRENGTH_CLASSES = ["is-empty", "is-weak", "is-medium", "is-strong", "is-very-strong"];
 const OAUTH_ERROR_MESSAGES = {
   "provider-invalid": "Escolha um provedor de login válido.",
-  "provider-unconfigured": "Este login social ainda não foi configurado no servidor.",
+  "provider-unconfigured": "Este login social ainda não está disponível.",
   "provider-denied": "O login social foi cancelado ou não autorizado.",
   "state-invalid": "Não foi possível confirmar a sessão de login social. Tente novamente.",
   "code-missing": "O provedor não retornou a autorização de login.",
@@ -211,7 +211,7 @@ async function updateOAuthProviderAvailability() {
       link.classList.toggle("is-unconfigured", !provider.configured);
       link.title = provider.configured
         ? ""
-        : "Configure as credenciais deste provedor no servidor para ativar este login.";
+        : "Este login social ainda não está disponível.";
     });
   } catch {
     // A página continua funcional: o backend também informa erro ao clicar.

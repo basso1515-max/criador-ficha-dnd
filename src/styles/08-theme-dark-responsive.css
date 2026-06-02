@@ -170,7 +170,6 @@ html[data-theme="dark"] .user-page-health-card,
 html[data-theme="dark"] .user-page-health-card li,
 html[data-theme="dark"] .user-page-section-nav a,
 html[data-theme="dark"] .user-page-account-card,
-html[data-theme="dark"] .user-page-storage-badge,
 html[data-theme="dark"] .saved-library-total,
 html[data-theme="dark"] .user-social-provider-item,
 html[data-theme="dark"] .user-social-provider-empty,
@@ -273,12 +272,6 @@ html[data-theme="dark"] .user-page-avatar {
     radial-gradient(circle at 35% 22%, rgba(255, 235, 190, 0.22), rgba(255, 235, 190, 0) 34%),
     linear-gradient(160deg, rgba(183, 131, 67, 0.95), rgba(89, 55, 29, 0.94));
   box-shadow: none;
-}
-
-html[data-theme="dark"] .user-page-storage-badge {
-  color: #9fe0b7;
-  border-color: rgba(91, 183, 123, 0.24);
-  background: rgba(91, 183, 123, 0.1);
 }
 
 html[data-theme="dark"] .user-page-edition-section--2024 {

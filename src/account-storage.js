@@ -403,7 +403,7 @@ async function requestApi(path, { method = "GET", body } = {}) {
   }
 
   if (!response.ok) {
-    const error = new Error(payload?.message || "Não foi possível falar com o servidor.");
+    const error = new Error(payload?.message || "Não foi possível concluir a operação agora.");
     /** @type {Error & { statusCode?: number }} */ (error).statusCode = response.status;
     throw error;
   }
@@ -448,7 +448,7 @@ async function ensureServerReady() {
   }
 
   if (storageMode !== "server") {
-    throw new Error("O cadastro e login precisam do servidor ativo. Inicie com npm run serve ou publique o app em um servidor com armazenamento persistente.");
+    throw new Error("Não foi possível acessar contas agora. Tente novamente em instantes.");
   }
 }
 

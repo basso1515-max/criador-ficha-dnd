@@ -796,19 +796,6 @@ body[data-active-screen="user-page"] .account-page-status:not(:empty) {
   flex-wrap: wrap;
 }
 
-.user-page-storage-badge {
-  display: inline-flex;
-  align-items: center;
-  min-height: 38px;
-  padding: 8px 11px;
-  border: 1px solid rgba(32, 90, 56, 0.24);
-  border-radius: 999px;
-  background: rgba(226, 244, 229, 0.68);
-  color: #205a38;
-  font-size: 13px;
-  font-weight: 800;
-}
-
 .user-page-title-row h2,
 .user-page-title-row p,
 .saved-library-heading h2,

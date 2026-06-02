@@ -5,7 +5,6 @@ import {
   getAccountCounts,
   getCurrentUser,
   hydrateAccountStorage,
-  isUsingServerStorage,
   listCharactersForCurrentUser,
   migrateCharacterVersionForCurrentUser,
   logoutAccount,
@@ -47,7 +46,6 @@ const el = {
   avatar: document.getElementById("userPageAvatar"),
   name: document.getElementById("userPageName"),
   email: document.getElementById("userPageEmail"),
-  storage: document.getElementById("userPageStorage"),
   capacity: document.getElementById("userPageCapacity"),
   authMethods: document.getElementById("userPageAuthMethods"),
   securityState: document.getElementById("userPageSecurityState"),
@@ -64,8 +62,6 @@ const el = {
   emailHealthText: document.getElementById("userPageEmailHealthText"),
   passwordHealth: document.getElementById("userPagePasswordHealth"),
   passwordHealthText: document.getElementById("userPagePasswordHealthText"),
-  storageHealth: document.getElementById("userPageStorageHealth"),
-  storageHealthText: document.getElementById("userPageStorageHealthText"),
   count5e: document.getElementById("userPageCount5e"),
   count2024: document.getElementById("userPageCount2024"),
   total: document.getElementById("userPageTotal"),
@@ -167,11 +163,6 @@ function renderUserPage() {
   if (el.name) el.name.textContent = user.displayName || "Minha conta";
   if (el.email) el.email.textContent = user.email || "";
   if (el.avatar) el.avatar.textContent = getInitials(user.displayName || user.email || "?");
-  if (el.storage) {
-    el.storage.textContent = isUsingServerStorage()
-      ? "Dados salvos no servidor"
-      : "Servidor indisponível";
-  }
   if (el.capacity) {
     const totalLimit = ACCOUNT_LIMIT_PER_EDITION * EDITION_ORDER.length;
     const freeSlots = Math.max(0, totalLimit - characters.length);
@@ -348,12 +339,6 @@ function renderAccountHealth(user) {
     el.passwordHealthText,
     user.passwordSet !== false,
     user.passwordSet === false ? "Definir" : "Ativa"
-  );
-  setHealthItem(
-    el.storageHealth,
-    el.storageHealthText,
-    isUsingServerStorage(),
-    isUsingServerStorage() ? "Servidor" : "Indisponível"
   );
 }
 
