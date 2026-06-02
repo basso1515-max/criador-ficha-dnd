@@ -9,7 +9,7 @@ import { setTimeout as delay } from "node:timers/promises";
 
 const HOST = "127.0.0.1";
 const PAGE_TIMEOUT_MS = 12_000;
-const SERVER_TIMEOUT_MS = 8_000;
+const SERVER_TIMEOUT_MS = 30_000;
 const CHROME_TIMEOUT_MS = 10_000;
 
 const smokePages = [
@@ -1336,7 +1336,10 @@ async function main() {
     stdio: ["ignore", "pipe", "pipe"],
   });
 
-  await waitForHttp(`${baseUrl}/index.html`, SERVER_TIMEOUT_MS);
+  await waitForHttp(`${baseUrl}/index.html`, SERVER_TIMEOUT_MS, {
+    child: server,
+    label: "servidor local",
+  });
 
   const chromePath = findChromeExecutable();
   tempProfile = await mkdtemp(path.join(tmpdir(), "dnd-smoke-chrome-"));
@@ -1357,7 +1360,10 @@ async function main() {
     stdio: ["ignore", "pipe", "pipe"],
   });
 
-  await waitForHttp(`http://${HOST}:${chromePort}/json/version`, CHROME_TIMEOUT_MS);
+  await waitForHttp(`http://${HOST}:${chromePort}/json/version`, CHROME_TIMEOUT_MS, {
+    child: chrome,
+    label: "Chrome headless",
+  });
 
   const target = await createPageTarget(chromePort);
   const cdp = await connectCdp(target.webSocketDebuggerUrl);
@@ -1584,15 +1590,29 @@ function connectCdp(webSocketUrl) {
   });
 }
 
-function waitForHttp(url, timeoutMs) {
+function waitForHttp(url, timeoutMs, options = {}) {
   const deadline = Date.now() + timeoutMs;
+  const label = options.label || url;
+  let lastError = null;
+
   return new Promise((resolve, reject) => {
     const attempt = () => {
+      const childProblem = getChildProblem(options.child, label);
+      if (childProblem) {
+        reject(childProblem);
+        return;
+      }
+
       httpJson(new URL(url))
         .then(resolve)
         .catch((error) => {
+          lastError = error;
           if (Date.now() >= deadline) {
-            reject(error);
+            reject(new Error(
+              `${label} não respondeu em ${timeoutMs}ms para ${url}.`
+              + `${lastError ? ` Último erro HTTP: ${lastError.message}` : ""}`
+              + formatChildDiagnostics(options.child)
+            ));
             return;
           }
           setTimeout(attempt, 150);
@@ -1675,7 +1695,12 @@ function spawnChild(command, args, options = {}) {
   children.add(child);
   child.once("exit", () => children.delete(child));
 
+  let stdout = "";
   let stderr = "";
+  child.stdout?.on("data", (chunk) => {
+    stdout += String(chunk);
+    if (stdout.length > 4000) stdout = stdout.slice(-4000);
+  });
   child.stderr?.on("data", (chunk) => {
     stderr += String(chunk);
     if (stderr.length > 4000) stderr = stderr.slice(-4000);
@@ -1685,8 +1710,34 @@ function spawnChild(command, args, options = {}) {
     child.spawnError = error;
   });
 
+  child.stdoutText = () => stdout;
   child.stderrText = () => stderr;
   return child;
+}
+
+function getChildProblem(child, label) {
+  if (!child) return null;
+  if (child.spawnError) {
+    return new Error(`${label} não iniciou: ${child.spawnError.message}${formatChildDiagnostics(child)}`);
+  }
+  if (child.exitCode !== null || child.signalCode !== null) {
+    return new Error(
+      `${label} encerrou antes de responder`
+      + ` (exitCode=${child.exitCode ?? "null"}, signal=${child.signalCode ?? "null"}).`
+      + formatChildDiagnostics(child)
+    );
+  }
+  return null;
+}
+
+function formatChildDiagnostics(child) {
+  if (!child) return "";
+  const stdout = typeof child.stdoutText === "function" ? child.stdoutText().trim() : "";
+  const stderr = typeof child.stderrText === "function" ? child.stderrText().trim() : "";
+  return [
+    stdout ? `\nstdout:\n${stdout}` : "",
+    stderr ? `\nstderr:\n${stderr}` : "",
+  ].join("");
 }
 
 function terminateChild(child) {
