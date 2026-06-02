@@ -8,8 +8,10 @@ import {
   calculateWeaponMasteryLimit2024,
   clampInt2024,
   getProficiencyBonus2024,
+  getPrimaryLevelFromMulticlassDistribution2024,
   getSpellSlotTotalsForLimits2024,
   getSpellcastingContribution2024,
+  normalizeMulticlassAdditionalLevels2024,
 } from "../../src/editors/2024/rules-calculations.js";
 import {
   BARBARIAN_PROGRESSION_2024,
@@ -103,4 +105,22 @@ test("limite de maestria em arma respeita classe e nivel", () => {
   assert.equal(calculateWeaponMasteryLimit2024({ classId: "ladino", level: 20 }, options), 2);
   assert.equal(calculateWeaponMasteryLimit2024({ classId: "mago", level: 20 }, { ...options, hasWeaponMastery: false }), 0);
   assert.equal(calculateWeaponMasteryLimit2024({ classId: "classe-caseira", level: 1 }, options), Number.POSITIVE_INFINITY);
+});
+
+test("distribuicao de multiclasse 2024 respeita orcamento nos niveis 19 e 20", () => {
+  assert.deepEqual(normalizeMulticlassAdditionalLevels2024(20, [19]).map(({ level, max }) => [level, max]), [
+    [19, 19],
+  ]);
+  assert.equal(getPrimaryLevelFromMulticlassDistribution2024(20, [19]), 1);
+
+  assert.deepEqual(normalizeMulticlassAdditionalLevels2024(20, [19, 19]).map(({ level, max }) => [level, max]), [
+    [18, 18],
+    [1, 1],
+  ]);
+  assert.equal(getPrimaryLevelFromMulticlassDistribution2024(20, [19, 19]), 1);
+
+  assert.deepEqual(normalizeMulticlassAdditionalLevels2024(19, [19]).map(({ level, max }) => [level, max]), [
+    [18, 18],
+  ]);
+  assert.equal(getPrimaryLevelFromMulticlassDistribution2024(19, [19]), 1);
 });

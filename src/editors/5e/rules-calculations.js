@@ -99,6 +99,28 @@ export function getSpellcastingContribution(level, progression) {
   }
 }
 
+export function normalizeMulticlassAdditionalLevels(totalLevel, additionalLevels = []) {
+  const safeTotalLevel = clampInt(totalLevel, 1, 20);
+  const values = Array.isArray(additionalLevels) ? additionalLevels : [];
+  const allowedRows = Math.max(0, safeTotalLevel - 1);
+  let remainingBudget = allowedRows;
+
+  return values.slice(0, allowedRows).map((value, index, keptValues) => {
+    const remainingRows = keptValues.length - index - 1;
+    const max = Math.max(1, remainingBudget - remainingRows);
+    const level = clampInt(value, 1, max);
+    remainingBudget = Math.max(0, remainingBudget - level);
+    return { level, max };
+  });
+}
+
+export function getPrimaryLevelFromMulticlassDistribution(totalLevel, additionalLevels = []) {
+  const safeTotalLevel = clampInt(totalLevel, 1, 20);
+  const additionalTotal = normalizeMulticlassAdditionalLevels(safeTotalLevel, additionalLevels)
+    .reduce((sum, entry) => sum + entry.level, 0);
+  return Math.max(1, safeTotalLevel - additionalTotal);
+}
+
 function defaultLabelFromSlug(value) {
   return String(value || "")
     .replaceAll("-", " ")

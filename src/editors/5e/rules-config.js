@@ -322,6 +322,7 @@ export const XP_BY_LEVEL = [
   355000,
 ];
 export const MULTICLASS_PREREQUISITES = {
+  artifice: { mode: "all", checks: [{ attr: "int", min: 13 }] },
   barbaro: { mode: "all", checks: [{ attr: "for", min: 13 }] },
   bardo: { mode: "all", checks: [{ attr: "car", min: 13 }] },
   clerigo: { mode: "all", checks: [{ attr: "sab", min: 13 }] },

@@ -73,6 +73,28 @@ export function getSpellcastingContribution2024(level, progression) {
   }
 }
 
+export function normalizeMulticlassAdditionalLevels2024(totalLevel, additionalLevels = []) {
+  const safeTotalLevel = clampInt2024(totalLevel, 1, 20);
+  const values = Array.isArray(additionalLevels) ? additionalLevels : [];
+  const allowedRows = Math.max(0, safeTotalLevel - 1);
+  let remainingBudget = allowedRows;
+
+  return values.slice(0, allowedRows).map((value, index, keptValues) => {
+    const remainingRows = keptValues.length - index - 1;
+    const max = Math.max(1, remainingBudget - remainingRows);
+    const level = clampInt2024(value, 1, max);
+    remainingBudget = Math.max(0, remainingBudget - level);
+    return { level, max };
+  });
+}
+
+export function getPrimaryLevelFromMulticlassDistribution2024(totalLevel, additionalLevels = []) {
+  const safeTotalLevel = clampInt2024(totalLevel, 1, 20);
+  const additionalTotal = normalizeMulticlassAdditionalLevels2024(safeTotalLevel, additionalLevels)
+    .reduce((sum, entry) => sum + entry.level, 0);
+  return Math.max(1, safeTotalLevel - additionalTotal);
+}
+
 export function getSpellSlotTotalsForLimits2024(limits, spellSlotLevels = SPELL_SLOT_LEVELS_2024) {
   const totals = Object.fromEntries(spellSlotLevels.map((level) => [level, 0]));
   if (!limits) return totals;

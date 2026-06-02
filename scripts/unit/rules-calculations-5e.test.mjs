@@ -10,6 +10,8 @@ import {
   getSpellSlotTotalsForLimits,
   getSpellSlotTotalsFromSlotsArray,
   getSpellcastingContribution,
+  getPrimaryLevelFromMulticlassDistribution,
+  normalizeMulticlassAdditionalLevels,
   proficiencyBonus,
 } from "../../src/editors/5e/rules-calculations.js";
 
@@ -84,4 +86,22 @@ test("contribuicao de conjuracao 5e respeita progressao multiclasses", () => {
   assert.equal(getSpellcastingContribution(9, "third"), 3);
   assert.equal(getSpellcastingContribution(9, "pact"), 0);
   assert.equal(getSpellcastingContribution(30, "full"), 20);
+});
+
+test("distribuicao de multiclasse 5e respeita orcamento nos niveis 19 e 20", () => {
+  assert.deepEqual(normalizeMulticlassAdditionalLevels(20, [19]).map(({ level, max }) => [level, max]), [
+    [19, 19],
+  ]);
+  assert.equal(getPrimaryLevelFromMulticlassDistribution(20, [19]), 1);
+
+  assert.deepEqual(normalizeMulticlassAdditionalLevels(20, [19, 19]).map(({ level, max }) => [level, max]), [
+    [18, 18],
+    [1, 1],
+  ]);
+  assert.equal(getPrimaryLevelFromMulticlassDistribution(20, [19, 19]), 1);
+
+  assert.deepEqual(normalizeMulticlassAdditionalLevels(19, [19]).map(({ level, max }) => [level, max]), [
+    [18, 18],
+  ]);
+  assert.equal(getPrimaryLevelFromMulticlassDistribution(19, [19]), 1);
 });

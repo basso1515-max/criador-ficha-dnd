@@ -75,6 +75,8 @@ import {
   getSpellSlotTotalsForLimits,
   getSpellSlotTotalsFromSlotsArray,
   getSpellcastingContribution,
+  getPrimaryLevelFromMulticlassDistribution,
+  normalizeMulticlassAdditionalLevels,
   proficiencyBonus,
 } from "./rules-calculations.js";
 import {
@@ -1048,19 +1050,30 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     return Array.from(el.multiclassRows.querySelectorAll("[data-multiclass-row]"));
   }
 
+  function getAdditionalMulticlassLevelValues(excludeRow = null) {
+    return getAdditionalMulticlassRows()
+      .filter((row) => !excludeRow || row !== excludeRow)
+      .map((row) => row.querySelector("[data-multiclass-level]")?.value);
+  }
+
+  function getNormalizedAdditionalMulticlassRows(totalLevel = getTotalCharacterLevel()) {
+    const rows = getAdditionalMulticlassRows();
+    const normalized = normalizeMulticlassAdditionalLevels(
+      totalLevel,
+      rows.map((row) => row.querySelector("[data-multiclass-level]")?.value)
+    );
+    return normalized.map((entry, index) => ({ ...entry, row: rows[index] }));
+  }
+
   function getAssignedAdditionalLevels(excludeRow = null) {
     const totalLevel = getTotalCharacterLevel();
-    return getAdditionalMulticlassRows().reduce((sum, row) => {
-      if (excludeRow && row === excludeRow) return sum;
-      const levelInput = row.querySelector("[data-multiclass-level]");
-      return sum + clampInt(levelInput?.value, 1, totalLevel);
-    }, 0);
+    return normalizeMulticlassAdditionalLevels(totalLevel, getAdditionalMulticlassLevelValues(excludeRow))
+      .reduce((sum, entry) => sum + entry.level, 0);
   }
 
   function getComputedPrimaryLevel() {
     const totalLevel = getTotalCharacterLevel();
-    const additionalLevels = Math.min(getAssignedAdditionalLevels(), Math.max(0, totalLevel - 1));
-    return Math.max(1, totalLevel - additionalLevels);
+    return getPrimaryLevelFromMulticlassDistribution(totalLevel, getAdditionalMulticlassLevelValues());
   }
 
   function getPrimaryAssignedLevel() {
@@ -1228,20 +1241,12 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
   }
 
   function normalizeAdditionalMulticlassLevels() {
-    const rows = getAdditionalMulticlassRows();
     const totalLevel = getTotalCharacterLevel();
-    let remainingBudget = Math.max(0, totalLevel - 1);
-
-    rows.forEach((row, index) => {
+    getNormalizedAdditionalMulticlassRows(totalLevel).forEach(({ row, level, max }) => {
       const levelInput = row.querySelector("[data-multiclass-level]");
       if (!levelInput) return;
-
-      const remainingRows = rows.length - index - 1;
-      const maxForRow = Math.max(1, remainingBudget - remainingRows);
-      const nextValue = clampInt(levelInput.value, 1, maxForRow);
-      levelInput.max = String(maxForRow);
-      levelInput.value = String(nextValue);
-      remainingBudget -= nextValue;
+      levelInput.max = String(max);
+      levelInput.value = String(level);
     });
   }
 
@@ -1287,14 +1292,23 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     } else {
       warnings.push("Selecione a classe principal antes de distribuir níveis.");
     }
+    if (primaryClass && rows.length) {
+      const primaryPrereqValidation = validateMulticlassPrerequisites(primaryClass.id);
+      if (primaryPrereqValidation.applicable && !primaryPrereqValidation.valid) {
+        warnings.push(`A classe principal ${primaryClass.nome} também exige ${getMulticlassRequirementText(primaryClass.id)} para multiclasse.`);
+      }
+    }
 
     let assignedLevels = primaryLevel;
+    const normalizedByRow = new Map(
+      getNormalizedAdditionalMulticlassRows(totalLevel).map(({ row, level }) => [row, level])
+    );
 
     rows.forEach((row, index) => {
       const classSelect = row.querySelector("[data-multiclass-class]");
       const levelInput = row.querySelector("[data-multiclass-level]");
       const cls = CLASS_BY_NAME.get(classSelect?.value || "") || null;
-      const classLevel = clampInt(levelInput?.value, 1, totalLevel);
+      const classLevel = normalizedByRow.get(row) || clampInt(levelInput?.value, 1, totalLevel);
       assignedLevels += classLevel;
 
       if (!cls) {
@@ -12644,13 +12658,11 @@ function getSelectedSubclassData() {
       }),
     ];
 
-    getAdditionalMulticlassRows().forEach((row) => {
+    getNormalizedAdditionalMulticlassRows(totalLevel).forEach(({ row, level }) => {
       const uid = row.getAttribute("data-row-id") || `mc-row-${entries.length}`;
       const classSelect = row.querySelector("[data-multiclass-class]");
-      const levelInput = row.querySelector("[data-multiclass-level]");
       const subclassSelect = row.querySelector("[data-multiclass-subclass]");
       const classData = CLASS_BY_NAME.get(classSelect?.value || "") || null;
-      const level = clampInt(levelInput?.value, 1, totalLevel);
       const subclassData = SUBCLASS_BY_ID.get(subclassSelect?.value || "") || null;
 
       entries.push(buildClassEntry({
