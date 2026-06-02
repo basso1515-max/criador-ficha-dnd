@@ -15,9 +15,10 @@ Thumbs.db
 .vscode/
 .idea/
 
+# Local secrets and provider artifacts
 .env
 .env.*
+.env*.local
 !.env.example
 
-.vercel
-.env*.local
+.vercel/
