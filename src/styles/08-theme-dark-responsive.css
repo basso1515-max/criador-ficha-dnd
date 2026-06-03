@@ -80,6 +80,22 @@ html[data-theme="dark"] {
   --accent: #d9a766;
   --input-bg: #1e1711;
   --focus-ring: rgba(217, 167, 102, 0.24);
+  --dark-surface: #211a15;
+  --dark-surface-raised: #2a2119;
+  --dark-surface-soft: rgba(255, 246, 224, 0.075);
+  --dark-surface-strong: rgba(255, 246, 224, 0.12);
+  --dark-border: rgba(232, 201, 153, 0.22);
+  --dark-border-strong: rgba(232, 201, 153, 0.36);
+  --dark-muted: #d8c8aa;
+  --dark-accent: #f4bf73;
+  --dark-accent-soft: rgba(244, 191, 115, 0.14);
+  --dark-danger: #ffb4a9;
+  --dark-danger-strong: #ff8f7d;
+  --dark-danger-soft: rgba(255, 143, 125, 0.12);
+  --dark-success: #9ff1bd;
+  --dark-success-soft: rgba(110, 220, 168, 0.12);
+  --dark-info: #83c8c8;
+  --dark-info-soft: rgba(96, 212, 190, 0.1);
   --page-background:
     radial-gradient(circle at 10% 0%, rgba(217, 167, 102, 0.12), transparent 32%),
     radial-gradient(circle at 88% 8%, rgba(127, 37, 31, 0.16), transparent 30%),
@@ -134,8 +150,19 @@ html[data-theme="dark"] input,
 html[data-theme="dark"] select,
 html[data-theme="dark"] textarea {
   color-scheme: dark;
+  border-color: var(--dark-border);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.025)),
+    var(--input-bg);
+  color: var(--text);
 }
 
+html[data-theme="dark"] input::placeholder,
+html[data-theme="dark"] textarea::placeholder {
+  color: rgba(216, 200, 170, 0.68);
+}
+
+html[data-theme="dark"] select option,
 html[data-theme="dark"] select[multiple] option {
   color: var(--text);
   background: var(--card);
@@ -192,8 +219,10 @@ html[data-theme="dark"] .spell-source-stat,
 html[data-theme="dark"] .magic-level-meta span,
 html[data-theme="dark"] .magic-level-source,
 html[data-theme="dark"] .spellbook-level-count {
-  border-color: rgba(232, 201, 153, 0.2);
-  background: rgba(255, 246, 224, 0.07);
+  border-color: var(--dark-border);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.025)),
+    var(--dark-surface);
   box-shadow: none;
 }
 
@@ -269,14 +298,17 @@ html[data-theme="dark"] .home-social-button.is-facebook:focus-visible {
 html[data-theme="dark"] .account-current-panel,
 html[data-theme="dark"] .account-section-panel,
 html[data-theme="dark"] .legal-page-panel,
+html[data-theme="dark"] .saved-library-panel,
+html[data-theme="dark"] .user-page-overview,
 html[data-theme="dark"] .user-page-edition-section,
 html[data-theme="dark"] .user-page-account-card,
 html[data-theme="dark"] .user-page-character-item,
 html[data-theme="dark"] .user-social-provider-item,
 html[data-theme="dark"] .user-social-provider-empty,
 html[data-theme="dark"] .account-character-item {
+  border-color: var(--dark-border);
   background:
-    linear-gradient(180deg, rgba(39, 31, 23, 0.96), rgba(25, 21, 17, 0.94)),
+    linear-gradient(180deg, rgba(39, 31, 23, 0.98), rgba(23, 19, 16, 0.96)),
     var(--card);
 }
 
@@ -368,7 +400,8 @@ html[data-theme="dark"] .user-page-stats span,
 html[data-theme="dark"] .account-current-counts span,
 html[data-theme="dark"] .account-profile-list div,
 html[data-theme="dark"] .account-edition-panel {
-  background: rgba(255, 246, 224, 0.11);
+  border-color: var(--dark-border);
+  background: var(--dark-surface-strong);
   color: #dccbaa;
 }
 
@@ -380,9 +413,142 @@ html[data-theme="dark"] .user-page-focus-card > span,
 html[data-theme="dark"] .user-page-health-card > div > span,
 html[data-theme="dark"] .user-page-section-nav a,
 html[data-theme="dark"] .edition-pill {
-  border-color: rgba(244, 191, 115, 0.3);
-  background: rgba(255, 232, 196, 0.14);
-  color: #f4bf73;
+  border-color: rgba(244, 191, 115, 0.32);
+  background: var(--dark-accent-soft);
+  color: var(--dark-accent);
+}
+
+html[data-theme="dark"] .account-page-shell.admin-page-shell {
+  background:
+    radial-gradient(circle at 12% 0%, rgba(96, 212, 190, 0.1), transparent 30%),
+    radial-gradient(circle at 86% 10%, rgba(217, 167, 102, 0.13), transparent 32%),
+    radial-gradient(circle at bottom left, rgba(127, 37, 31, 0.14), transparent 38%),
+    linear-gradient(180deg, #15110d 0%, #100d0a 100%);
+}
+
+html[data-theme="dark"] .admin-account-list-panel,
+html[data-theme="dark"] .admin-detail-panel,
+html[data-theme="dark"] .admin-detail-content,
+html[data-theme="dark"] .admin-character-section,
+html[data-theme="dark"] .admin-account-form,
+html[data-theme="dark"] .admin-add-character-form {
+  border-color: var(--dark-border);
+  background:
+    radial-gradient(circle at top right, var(--dark-info-soft), transparent 34%),
+    linear-gradient(180deg, rgba(34, 27, 21, 0.98), rgba(20, 17, 14, 0.96)),
+    var(--card);
+  box-shadow: 0 18px 38px rgba(0, 0, 0, 0.2);
+}
+
+html[data-theme="dark"] .admin-overview-grid span,
+html[data-theme="dark"] .admin-detail-summary span,
+html[data-theme="dark"] .admin-account-facts div,
+html[data-theme="dark"] .admin-edition-usage-item,
+html[data-theme="dark"] .admin-account-item,
+html[data-theme="dark"] .admin-character-item {
+  border-color: var(--dark-border);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.032)),
+    var(--dark-surface);
+  color: var(--text);
+}
+
+html[data-theme="dark"] .admin-account-item:hover,
+html[data-theme="dark"] .admin-account-item.is-selected {
+  border-color: var(--dark-border-strong);
+  background:
+    radial-gradient(circle at top left, rgba(244, 191, 115, 0.12), transparent 34%),
+    linear-gradient(180deg, rgba(56, 43, 30, 0.98), rgba(31, 25, 20, 0.98));
+  box-shadow: inset 3px 0 0 var(--dark-accent);
+}
+
+html[data-theme="dark"] .admin-overview-grid strong,
+html[data-theme="dark"] .admin-detail-summary strong,
+html[data-theme="dark"] .admin-edition-usage-item strong,
+html[data-theme="dark"] .admin-add-character-form .account-form-heading h3,
+html[data-theme="dark"] .admin-character-section h3 {
+  color: var(--dark-accent);
+}
+
+html[data-theme="dark"] .admin-overview-grid small,
+html[data-theme="dark"] .admin-detail-summary small,
+html[data-theme="dark"] .admin-account-facts dt,
+html[data-theme="dark"] .admin-selected-email,
+html[data-theme="dark"] .admin-account-item small,
+html[data-theme="dark"] .admin-character-item span,
+html[data-theme="dark"] .admin-character-item p,
+html[data-theme="dark"] .admin-edition-usage-item span,
+html[data-theme="dark"] .admin-account-form label span,
+html[data-theme="dark"] .admin-add-character-form label span {
+  color: var(--dark-muted);
+}
+
+html[data-theme="dark"] .admin-account-facts dd,
+html[data-theme="dark"] .admin-account-item strong {
+  color: var(--text);
+}
+
+html[data-theme="dark"] .admin-attention-panel {
+  border-color: rgba(255, 143, 125, 0.34);
+  background:
+    radial-gradient(circle at top left, rgba(255, 143, 125, 0.18), transparent 36%),
+    linear-gradient(180deg, rgba(67, 30, 24, 0.9), rgba(31, 22, 19, 0.94));
+  color: var(--text);
+}
+
+html[data-theme="dark"] .admin-attention-panel strong,
+html[data-theme="dark"] .admin-attention-panel li::marker {
+  color: var(--dark-danger-strong);
+}
+
+html[data-theme="dark"] .admin-attention-chip {
+  border-color: rgba(255, 143, 125, 0.4);
+  background: var(--dark-danger-soft);
+  color: var(--dark-danger) !important;
+}
+
+html[data-theme="dark"] .admin-edition-usage-item.is-over-limit,
+html[data-theme="dark"] .admin-character-item--deleted {
+  border-color: rgba(255, 143, 125, 0.36);
+  background:
+    radial-gradient(circle at top left, rgba(255, 143, 125, 0.13), transparent 32%),
+    linear-gradient(180deg, rgba(52, 30, 24, 0.95), rgba(30, 22, 19, 0.95));
+}
+
+html[data-theme="dark"] .admin-usage-bar {
+  background: rgba(255, 246, 224, 0.12);
+}
+
+html[data-theme="dark"] .admin-usage-bar span {
+  background: linear-gradient(90deg, var(--dark-info), var(--dark-accent), var(--dark-danger-strong));
+}
+
+html[data-theme="dark"] .admin-limit-presets button {
+  border-color: var(--dark-border);
+  background: var(--dark-accent-soft);
+  color: var(--dark-accent);
+}
+
+html[data-theme="dark"] .admin-limit-presets button:hover,
+html[data-theme="dark"] .admin-limit-presets button:focus-visible {
+  border-color: rgba(244, 191, 115, 0.46);
+  background: rgba(244, 191, 115, 0.2);
+}
+
+html[data-theme="dark"] .admin-list-actions .secondary-button,
+html[data-theme="dark"] .admin-list-actions .ghost-button,
+html[data-theme="dark"] .admin-detail-actions .secondary-button,
+html[data-theme="dark"] .admin-detail-actions .ghost-button,
+html[data-theme="dark"] .admin-character-actions .secondary-button,
+html[data-theme="dark"] .admin-character-actions .ghost-button {
+  border-color: var(--dark-border);
+  background: var(--dark-surface-soft);
+}
+
+html[data-theme="dark"] .admin-character-actions .ghost-button,
+html[data-theme="dark"] .admin-list-actions .ghost-button,
+html[data-theme="dark"] .admin-detail-actions .ghost-button {
+  color: var(--dark-accent);
 }
 
 html[data-theme="dark"] .home-brand-lockup::before {
