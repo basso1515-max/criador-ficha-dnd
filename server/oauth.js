@@ -209,7 +209,7 @@ async function exchangeFacebookCode(config, code, redirectUri) {
     provider: "facebook",
     providerAccountId: String(userInfo.id || ""),
     email,
-    emailVerified: true,
+    emailVerified: false,
     displayName: String(userInfo.name || email.split("@")[0] || "Facebook"),
   };
 }

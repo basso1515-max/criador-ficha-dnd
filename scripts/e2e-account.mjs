@@ -1,7 +1,7 @@
 import { spawn, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { request } from "node:http";
 import { createServer as createNetServer } from "node:net";
 import { tmpdir } from "node:os";
@@ -520,39 +520,7 @@ function assertCommunityStatsFallbackForOldSnapshots() {
 }
 
 async function assertSocialProviderUnlinkFlow(baseUrl, email, password) {
-  const salt = `salt-${Date.now()}`;
-  const accountId = `account_social${Date.now()}`;
-  const migrated = await requestJson(baseUrl, "/api/accounts/migrate", {
-    method: "POST",
-    jar: new CookieJar(),
-    body: {
-      store: {
-        version: 1,
-        accounts: [{
-          id: accountId,
-          displayName: "Social Vinculada",
-          email,
-          passwordAlgo: "sha256",
-          passwordSalt: salt,
-          passwordHash: createHash("sha256").update(`${salt}:${password}`).digest("hex"),
-          passwordSet: true,
-          emailVerifiedAt: new Date().toISOString(),
-          authProviders: [{
-            provider: "google",
-            providerAccountId: `google-sub-${Date.now()}`,
-            email,
-            linkedAt: new Date().toISOString(),
-          }],
-          createdAt: new Date().toISOString(),
-          characters: {
-            "5e": [],
-            "5.5e-2024": [],
-          },
-        }],
-      },
-    },
-  });
-  assert(migrated.data.imported === 1, "Migração deveria preparar conta com login social.");
+  await seedLinkedAccountForUnlinkFlow(email, password);
 
   const jar = new CookieJar();
   const login = await requestJson(baseUrl, "/api/accounts/login", {
@@ -591,6 +559,41 @@ async function assertSocialProviderUnlinkFlow(baseUrl, email, password) {
   });
   assert(Array.isArray(unlinked.data.account?.authProviders), "Desvinculação deveria retornar conta atualizada.");
   assert(unlinked.data.account.authProviders.length === 0, "Google deveria ter sido removido da conta.");
+}
+
+async function seedLinkedAccountForUnlinkFlow(email, password) {
+  const salt = `salt-${Date.now()}`;
+  const accountId = `account_social${Date.now()}`;
+  const accountsFile = path.join(tempDataDir, "accounts.json");
+  const store = JSON.parse(await readFile(accountsFile, "utf8"));
+  const now = new Date().toISOString();
+
+  store.accounts = Array.isArray(store.accounts)
+    ? store.accounts.filter((account) => account?.email !== email)
+    : [];
+  store.accounts.push({
+    id: accountId,
+    displayName: "Social Vinculada",
+    email,
+    passwordAlgo: "sha256",
+    passwordSalt: salt,
+    passwordHash: createHash("sha256").update(`${salt}:${password}`).digest("hex"),
+    passwordSet: true,
+    emailVerifiedAt: now,
+    authProviders: [{
+      provider: "google",
+      providerAccountId: `google-${accountId}`,
+      email,
+      linkedAt: now,
+    }],
+    createdAt: now,
+    characters: {
+      "5e": [],
+      "5.5e-2024": [],
+    },
+  });
+
+  await writeFile(accountsFile, JSON.stringify(store, null, 2));
 }
 
 async function assertSecurityHeaders(baseUrl) {

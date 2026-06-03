@@ -328,10 +328,40 @@ function makeAccountActionToken() {
   return randomBytes(32).toString("hex");
 }
 
-function getAccountPublicBaseUrl(req) {
+function getConfiguredAccountPublicBaseUrl() {
   const configured = String(process.env.ACCOUNT_PUBLIC_BASE_URL || "").trim();
-  const base = configured || getRequestOrigin(req);
-  return base.replace(/\/+$/, "");
+  if (!configured) return "";
+
+  try {
+    const url = new URL(configured);
+    if (!["http:", "https:"].includes(url.protocol) || url.username || url.password || url.search || url.hash) {
+      throw new Error("invalid-public-base-url");
+    }
+    return url.toString().replace(/\/+$/, "");
+  } catch {
+    throw new HttpError(500, "ACCOUNT_PUBLIC_BASE_URL deve ser uma URL publica http(s) valida.");
+  }
+}
+
+function getRequestHostname(req) {
+  const host = String(req.headers.host || "localhost").trim();
+  try {
+    return new URL(`http://${host}`).hostname.toLowerCase().replace(/^\[|\]$/g, "");
+  } catch {
+    return "";
+  }
+}
+
+function isLocalRequestHost(req) {
+  const hostname = getRequestHostname(req);
+  return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1";
+}
+
+function getAccountPublicBaseUrl(req) {
+  const configured = getConfiguredAccountPublicBaseUrl();
+  if (configured) return configured;
+  if (isLocalRequestHost(req)) return getRequestOrigin(req).replace(/\/+$/, "");
+  throw new HttpError(500, "ACCOUNT_PUBLIC_BASE_URL deve ser configurado para gerar links de conta fora do localhost.");
 }
 
 function buildAccountActionUrl(req, params) {
@@ -1083,6 +1113,7 @@ async function createPasswordResetToken(redis, account, req) {
   const token = makeAccountActionToken();
   const tokenHash = hashSessionToken(token);
   const expiresAt = new Date(Date.now() + PASSWORD_RESET_TTL_SECONDS * 1000).toISOString();
+  const resetUrl = buildAccountActionUrl(req, { resetToken: token });
   await redis.set(keyPasswordReset(tokenHash), {
     accountId: account.id,
     email: account.email,
@@ -1090,7 +1121,6 @@ async function createPasswordResetToken(redis, account, req) {
     expiresAt,
   }, { ex: PASSWORD_RESET_TTL_SECONDS });
 
-  const resetUrl = buildAccountActionUrl(req, { resetToken: token });
   const message = buildPasswordResetEmail(account, resetUrl);
   const delivery = await sendAccountEmail({
     to: account.email,
@@ -1119,6 +1149,7 @@ async function createEmailVerificationToken(redis, account, req) {
   const token = makeAccountActionToken();
   const tokenHash = hashSessionToken(token);
   const expiresAt = new Date(Date.now() + EMAIL_VERIFICATION_TTL_SECONDS * 1000).toISOString();
+  const verificationUrl = buildAccountActionUrl(req, { verifyToken: token });
   await redis.set(keyEmailVerification(tokenHash), {
     accountId: account.id,
     email: account.email,
@@ -1126,7 +1157,6 @@ async function createEmailVerificationToken(redis, account, req) {
     expiresAt,
   }, { ex: EMAIL_VERIFICATION_TTL_SECONDS });
 
-  const verificationUrl = buildAccountActionUrl(req, { verifyToken: token });
   const message = buildVerificationEmail(account, verificationUrl);
   const delivery = await sendAccountEmail({
     to: account.email,
@@ -1467,31 +1497,41 @@ async function upsertOAuthAccount(redis, profile) {
   const provider = normalizeOAuthProvider(profile.provider);
   const providerAccountId = String(profile.providerAccountId || "").trim();
   const email = assertEmailInput(profile.email);
+  const emailVerified = profile.emailVerified === true;
   if (!provider || !providerAccountId) {
     throw new HttpError(400, "Login social invalido.");
   }
 
   let account = await getAccountByOAuthProvider(redis, provider, providerAccountId);
-  if (!account) {
-    account = await getAccountByEmail(redis, email);
+  if (!account && await getAccountByEmail(redis, email)) {
+    throw new OAuthProviderError(
+      "account-email-exists",
+      "Ja existe uma conta com este e-mail. Entre com e-mail e senha antes de vincular o login social.",
+      409
+    );
   }
 
   if (!account) {
+    const now = new Date().toISOString();
     account = {
       id: makeId("account"),
       displayName: sanitizeDisplayName(profile.displayName) || email.split("@")[0],
       email,
       ...makePasswordRecord(randomBytes(32).toString("hex")),
       passwordSet: false,
-      emailVerifiedAt: new Date().toISOString(),
+      emailVerifiedAt: emailVerified ? now : "",
       authProviders: [],
-      createdAt: new Date().toISOString(),
+      createdAt: now,
       characters: normalizeCharacters(),
     };
 
     const reserved = await reserveEmail(redis, email, account.id);
     if (!reserved) {
-      account = await getAccountByEmail(redis, email);
+      throw new OAuthProviderError(
+        "account-email-exists",
+        "Ja existe uma conta com este e-mail. Entre com e-mail e senha antes de vincular o login social.",
+        409
+      );
     }
   }
 
@@ -1515,7 +1555,7 @@ async function upsertOAuthAccount(redis, profile) {
   if (!account.displayName) {
     account.displayName = sanitizeDisplayName(profile.displayName) || email.split("@")[0];
   }
-  if (!account.emailVerifiedAt) {
+  if (!account.emailVerifiedAt && emailVerified) {
     account.emailVerifiedAt = new Date().toISOString();
   }
 
@@ -1597,41 +1637,13 @@ async function handleAccountApiInternal(req, res, pathname) {
     await handleOAuthCallback(req, res);
     return;
   }
+  if (method === "POST" && pathname === "/api/accounts/migrate") {
+    throw new HttpError(410, "Migracao legada de contas foi desativada por seguranca.");
+  }
 
   const redis = getRedis();
   assertSameOrigin(req);
   const body = ["POST", "PATCH", "DELETE"].includes(method) ? await readJsonBody(req) : {};
-
-  if (method === "POST" && pathname === "/api/accounts/migrate") {
-    await assertRateLimit(redis, "migration-ip", getClientIp(req), RATE_LIMITS.migrationIp);
-    const migrationBody = validateMigrationBody(body);
-    const incoming = migrationBody.store.accounts.map(normalizeImportedAccountRecord).filter(Boolean);
-    let imported = 0;
-    let skipped = 0;
-
-    for (const account of incoming) {
-      if (!account.email) {
-        skipped += 1;
-        continue;
-      }
-      const existing = await getAccountByEmail(redis, account.email);
-      if (existing) {
-        skipped += 1;
-        continue;
-      }
-
-      const reserved = await reserveEmail(redis, account.email, account.id);
-      if (reserved) {
-        await saveAccount(redis, account);
-        imported += 1;
-      } else {
-        skipped += 1;
-      }
-    }
-
-    sendJson(res, 200, { ok: true, imported, skipped });
-    return;
-  }
 
   if (method === "GET" && pathname === "/api/account/current") {
     const auth = await findAuthenticatedAccount(redis, req);

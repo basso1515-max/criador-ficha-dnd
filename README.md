@@ -250,7 +250,7 @@ ACCOUNT_EMAIL_NAME
 ACCOUNT_PUBLIC_BASE_URL
 ```
 
-`ACCOUNT_PUBLIC_BASE_URL` é opcional e define a URL pública usada nos links e callbacks de OAuth. Em produção, configure com o domínio canônico, por exemplo `https://sheetfy.vercel.app`. Sem `RESEND_API_KEY` ou remetente, o cadastro e a recuperação continuam funcionando, mas o servidor apenas registra aviso nos logs. `ACCOUNT_EMAIL_DEBUG_RESPONSE=1` existe só para testes locais e não deve ser usado em produção.
+`ACCOUNT_PUBLIC_BASE_URL` define a URL pública usada nos links e callbacks de OAuth. Fora de `localhost`, ela é obrigatória e deve apontar para o domínio canônico, por exemplo `https://sheetfy.vercel.app`. Sem `RESEND_API_KEY` ou remetente, o cadastro e a recuperação continuam funcionando, mas o servidor apenas registra aviso nos logs. `ACCOUNT_EMAIL_DEBUG_RESPONSE=1` existe só para testes locais e não deve ser usado em produção.
 Use `ACCOUNT_EMAIL_NAME=Sheetfy` para que remetente e assuntos dos e-mails de conta carreguem o novo nome.
 
 ### Login Social
@@ -306,7 +306,7 @@ As telas consomem estas rotas:
 - `/api/accounts/login`
 - `/api/accounts/register`
 - `/api/accounts/logout`
-- `/api/accounts/migrate`
+- `/api/accounts/migrate` (desativada para importação pública de contas legadas)
 - `/api/accounts/oauth/start`
 - `/api/accounts/oauth/callback`
 - `/api/accounts/oauth/providers`
