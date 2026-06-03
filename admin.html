@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Admin | Sheetfy</title>
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <script src="./src/theme-boot.js"></script>
+  <link rel="stylesheet" href="./src/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=EB+Garamond:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Libre+Baskerville:wght@400;700&family=Uncial+Antiqua&display=swap" rel="stylesheet">
+  <script type="module" defer src="./src/analytics.js"></script>
+  <script type="module" defer src="./src/theme.js"></script>
+  <script type="module" defer src="./src/admin-page.js"></script>
+</head>
+
+<body data-active-screen="admin-page">
+  <main class="account-page-shell admin-page-shell">
+    <header class="container account-page-header">
+      <div class="version-toolbar">
+        <div class="version-toolbar-actions">
+          <a href="./minha-conta.html" class="ghost-button">Minha conta</a>
+          <a href="./index.html" class="secondary-button">Início</a>
+          <button type="button" class="theme-toggle toolbar-theme-toggle" data-theme-toggle aria-label="Alternar tema"></button>
+        </div>
+      </div>
+
+      <div class="account-page-intro admin-page-intro">
+        <p class="version-kicker">Administração</p>
+        <h1>Painel admin</h1>
+        <p>Gerencie contas, permissões, capacidade de personagens e recuperação de fichas apagadas.</p>
+      </div>
+    </header>
+
+    <section class="container">
+      <div id="adminPageGuest" class="account-current-panel admin-page-guest">
+        <div>
+          <strong>Acesso administrativo necessário</strong>
+          <span>Entre com uma conta administradora para abrir este painel.</span>
+        </div>
+        <div class="account-current-actions">
+          <a href="./conta.html?returnTo=admin.html" class="primary">Entrar como admin</a>
+        </div>
+      </div>
+
+      <div id="adminPageContent" class="admin-page-layout" hidden>
+        <aside class="account-section-panel admin-account-list-panel" aria-label="Contas cadastradas">
+          <div class="account-section-heading">
+            <div>
+              <span>Contas</span>
+              <h2>Usuários</h2>
+            </div>
+            <button id="adminRefresh" type="button" class="ghost-button">Atualizar</button>
+          </div>
+          <label class="saved-library-filter admin-search">
+            <span>Buscar</span>
+            <input id="adminAccountSearch" type="search" placeholder="nome ou e-mail" autocomplete="off" />
+          </label>
+          <p id="adminAccountStatus" class="saved-library-result-status" aria-live="polite"></p>
+          <div id="adminAccountList" class="admin-account-list"></div>
+        </aside>
+
+        <section class="account-section-panel admin-detail-panel" aria-label="Detalhes da conta selecionada">
+          <div class="account-section-heading">
+            <div>
+              <span id="adminSelectedRole">Conta</span>
+              <h2 id="adminSelectedTitle">Selecione uma conta</h2>
+            </div>
+            <strong id="adminSelectedEmail" class="admin-selected-email"></strong>
+          </div>
+
+          <div id="adminEmptyDetail" class="account-empty-note">
+            Escolha uma conta na lista para editar permissões, limite e personagens.
+          </div>
+
+          <div id="adminDetailContent" class="admin-detail-content" hidden>
+            <form id="adminAccountForm" class="admin-account-form" method="post">
+              <label>
+                <span>Permissão</span>
+                <select id="adminAccountRole" name="role">
+                  <option value="user">Usuário</option>
+                  <option value="admin">Administrador</option>
+                </select>
+              </label>
+              <label>
+                <span>Limite por edição</span>
+                <input id="adminAccountLimit" name="characterLimitPerEdition" type="number" min="0" max="100" step="1" />
+              </label>
+              <button type="submit" class="primary">Salvar conta</button>
+            </form>
+
+            <form id="adminAddCharacterForm" class="admin-add-character-form" method="post">
+              <div class="account-form-heading">
+                <div>
+                  <span>Adicionar</span>
+                  <h3>Novo personagem</h3>
+                </div>
+              </div>
+              <label>
+                <span>Edição</span>
+                <select name="edition">
+                  <option value="5e">D&D 5e</option>
+                  <option value="5.5e-2024">D&D 5.5e</option>
+                </select>
+              </label>
+              <label>
+                <span>Nome</span>
+                <input name="name" type="text" maxlength="80" placeholder="Personagem sem nome" />
+              </label>
+              <label>
+                <span>Resumo</span>
+                <input name="summary" type="text" maxlength="260" placeholder="Classe, nível ou observação" />
+              </label>
+              <button type="submit" class="secondary-button">Adicionar personagem</button>
+            </form>
+
+            <section class="admin-character-section" aria-labelledby="adminActiveCharactersTitle">
+              <div class="account-section-heading">
+                <div>
+                  <span>Ativos</span>
+                  <h3 id="adminActiveCharactersTitle">Personagens salvos</h3>
+                </div>
+                <strong id="adminActiveCharactersCount">0 salvos</strong>
+              </div>
+              <div id="adminActiveCharacters" class="admin-character-list"></div>
+            </section>
+
+            <section class="admin-character-section" aria-labelledby="adminDeletedCharactersTitle">
+              <div class="account-section-heading">
+                <div>
+                  <span>Lixeira</span>
+                  <h3 id="adminDeletedCharactersTitle">Apagados por até 15 dias</h3>
+                </div>
+                <strong id="adminDeletedCharactersCount">0 apagados</strong>
+              </div>
+              <div id="adminDeletedCharacters" class="admin-character-list"></div>
+            </section>
+          </div>
+        </section>
+      </div>
+
+      <p id="adminPageStatus" class="note account-page-status" aria-live="polite"></p>
+    </section>
+  </main>
+</body>
+</html>

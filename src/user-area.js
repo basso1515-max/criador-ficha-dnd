@@ -1,8 +1,8 @@
 // @ts-check
 
 import {
-  ACCOUNT_LIMIT_PER_EDITION,
   deleteCharacterForCurrentUser,
+  getCharacterLimitPerEdition,
   getCurrentUser,
   hydrateAccountStorage,
   listCharactersForCurrentUser,
@@ -377,6 +377,7 @@ function renderUserArea({ edition, elements, saveButtons, state }) {
 function getUserAreaViewModel(edition, state) {
   const user = getCurrentUser();
   const saves = user ? listCharactersForCurrentUser(edition) : [];
+  const characterLimit = getCharacterLimitPerEdition(user);
   const activeCharacter = state.selectedCharacterId
     ? saves.find((character) => character.id === state.selectedCharacterId)
     : null;
@@ -386,12 +387,12 @@ function getUserAreaViewModel(edition, state) {
   return {
     accountEmail: user?.email || "",
     accountName: user?.displayName || "",
-    countLabel: user ? `${saves.length}/${ACCOUNT_LIMIT_PER_EDITION} salvos` : "Sem conta",
+    countLabel: user ? `${saves.length}/${characterLimit} salvos` : "Sem conta",
     activeCharacter,
     canManageCharacter: showSavedPanel,
     hasUser: Boolean(user),
     saves,
-    saveDisabled: !user || saves.length >= ACCOUNT_LIMIT_PER_EDITION,
+    saveDisabled: !user || saves.length >= characterLimit,
     selectedCharacter,
     showEmptyState: false,
     showSavedPanel,

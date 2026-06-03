@@ -1,8 +1,8 @@
 import {
-  ACCOUNT_LIMIT_PER_EDITION,
   deleteCharacterForCurrentUser,
   deleteCurrentAccount,
   getAccountCounts,
+  getCharacterLimitPerEdition,
   getCurrentUser,
   hydrateAccountStorage,
   listCharactersForCurrentUser,
@@ -47,6 +47,8 @@ const el = {
   name: document.getElementById("userPageName"),
   email: document.getElementById("userPageEmail"),
   capacity: document.getElementById("userPageCapacity"),
+  capacityText: document.getElementById("userPageCapacityText"),
+  adminLink: document.getElementById("userPageAdminLink"),
   authMethods: document.getElementById("userPageAuthMethods"),
   securityState: document.getElementById("userPageSecurityState"),
   emailVerification: document.getElementById("userPageEmailVerification"),
@@ -179,16 +181,20 @@ function renderUserPage() {
   if (el.guest) el.guest.hidden = Boolean(user);
   if (el.content) el.content.hidden = !user;
   if (el.authLink) el.authLink.hidden = Boolean(user);
+  if (el.adminLink) el.adminLink.hidden = user?.role !== "admin";
   if (!user) return;
+  const characterLimit = getCharacterLimitPerEdition(user);
 
   if (el.name) el.name.textContent = user.displayName || "Minha conta";
   if (el.email) el.email.textContent = user.email || "";
   if (el.avatar) el.avatar.textContent = getInitials(user.displayName || user.email || "?");
   if (el.capacity) {
-    const totalLimit = ACCOUNT_LIMIT_PER_EDITION * EDITION_ORDER.length;
+    const totalLimit = characterLimit * EDITION_ORDER.length;
     const freeSlots = Math.max(0, totalLimit - characters.length);
     el.capacity.textContent = `${freeSlots} ${freeSlots === 1 ? "vaga livre" : "vagas livres"}`;
   }
+  if (el.capacityText) el.capacityText.textContent = `Limite de ${characterLimit} personagens por edição.`;
+  if (el.adminLink) el.adminLink.hidden = user.role !== "admin";
   if (el.authMethods) el.authMethods.textContent = getAuthMethodLabel(user);
   if (el.securityState) el.securityState.textContent = getSecurityStateLabel(user);
   if (el.emailVerification) el.emailVerification.textContent = user.emailVerified ? "Validado" : "Pendente";
@@ -200,8 +206,8 @@ function renderUserPage() {
   if (el.resendVerification) el.resendVerification.hidden = Boolean(user.emailVerified);
   if (el.createdAt) el.createdAt.textContent = formatDateOnly(user.createdAt);
   renderLastActivity(characters);
-  if (el.count5e) el.count5e.textContent = `${counts["5e"]}/${ACCOUNT_LIMIT_PER_EDITION}`;
-  if (el.count2024) el.count2024.textContent = `${counts["5.5e-2024"]}/${ACCOUNT_LIMIT_PER_EDITION}`;
+  if (el.count5e) el.count5e.textContent = `${counts["5e"]}/${characterLimit}`;
+  if (el.count2024) el.count2024.textContent = `${counts["5.5e-2024"]}/${characterLimit}`;
   if (el.total) el.total.textContent = `${characters.length} ${characters.length === 1 ? "salvo" : "salvos"}`;
   syncLibraryControls();
 
@@ -223,7 +229,7 @@ function renderUserPage() {
   }
   if (el.list) {
     el.list.innerHTML = visibleEditions
-      .map((edition) => renderEditionSection(edition, filteredCharactersByEdition[edition] || [], counts[edition]))
+      .map((edition) => renderEditionSection(edition, filteredCharactersByEdition[edition] || [], counts[edition], characterLimit))
       .join("");
   }
 }
@@ -487,10 +493,10 @@ function renderCharacterCard(character) {
   `;
 }
 
-function renderEditionSection(edition, characters, count) {
+function renderEditionSection(edition, characters, count, characterLimit) {
   const meta = EDITION_META[edition] || EDITION_META["5e"];
   const safeSlug = escapeHtml(meta.slug);
-  const freeSlots = Math.max(0, ACCOUNT_LIMIT_PER_EDITION - Number(count || 0));
+  const freeSlots = Math.max(0, characterLimit - Number(count || 0));
   const hasActiveFilters = Boolean(libraryFilters.query.trim()) || libraryFilters.edition !== "all";
   const listContent = characters.length
     ? characters.map(renderCharacterCard).join("")
@@ -506,7 +512,7 @@ function renderEditionSection(edition, characters, count) {
           <h3 id="userPageEdition${safeSlug}">${escapeHtml(meta.label)}</h3>
           <p>${escapeHtml(meta.description)}</p>
         </div>
-        <strong>${escapeHtml(String(count || 0))}/${ACCOUNT_LIMIT_PER_EDITION}</strong>
+        <strong>${escapeHtml(String(count || 0))}/${characterLimit}</strong>
       </div>
       <div class="user-page-edition-actions">
         <a class="secondary-button" href="${escapeHtml(meta.editor)}">${escapeHtml(meta.newLabel)}</a>

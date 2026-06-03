@@ -1,8 +1,8 @@
 import {
-  ACCOUNT_LIMIT_PER_EDITION,
   confirmEmailVerification,
   confirmPasswordReset,
   getAccountCounts,
+  getCharacterLimitPerEdition,
   getCurrentUser,
   hydrateAccountStorage,
   loginAccount,
@@ -63,13 +63,14 @@ function setStatus(message, tone = "info") {
 function renderAccountPage() {
   const user = getCurrentUser();
   const counts = getAccountCounts();
+  const characterLimit = getCharacterLimitPerEdition(user);
 
   if (el.currentPanel) el.currentPanel.hidden = !user;
   if (el.authSection) el.authSection.hidden = Boolean(user);
   if (el.currentName) el.currentName.textContent = user?.displayName || "";
   if (el.currentEmail) el.currentEmail.textContent = user?.email || "";
-  if (el.count5e) el.count5e.textContent = `${counts["5e"]}/${ACCOUNT_LIMIT_PER_EDITION}`;
-  if (el.count2024) el.count2024.textContent = `${counts["5.5e-2024"]}/${ACCOUNT_LIMIT_PER_EDITION}`;
+  if (el.count5e) el.count5e.textContent = `${counts["5e"]}/${characterLimit}`;
+  if (el.count2024) el.count2024.textContent = `${counts["5.5e-2024"]}/${characterLimit}`;
   if (el.continueLink) {
     el.continueLink.href = returnTo || "./minha-conta.html";
     el.continueLink.textContent = returnTo ? "Continuar" : "Minha conta";
@@ -84,7 +85,7 @@ function getSafeReturnTo() {
 
   try {
     const url = new URL(candidate, window.location.href);
-    const allowedPages = new Set(["index.html", "5e.html", "5.5e-2024.html", "conta.html", "minha-conta.html", "usuario.html"]);
+    const allowedPages = new Set(["index.html", "5e.html", "5.5e-2024.html", "conta.html", "minha-conta.html", "usuario.html", "admin.html"]);
     const page = url.pathname.split("/").pop();
 
     if (url.origin !== window.location.origin || !allowedPages.has(page)) return "";

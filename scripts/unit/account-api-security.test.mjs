@@ -154,6 +154,101 @@ test("OAuth callback does not auto-link an unbound provider account by e-mail", 
   });
 });
 
+test("admin can manage account limits and recover deleted characters", async () => {
+  await withAccountStore(async () => {
+    const admin = await registerAccount({ email: "basso_0@hotmail.com" });
+    const user = await registerAccount({ email: "player-admin-target@example.test" });
+    assert.equal(admin.statusCode, 201);
+    assert.equal(user.statusCode, 201);
+    assert.equal(admin.data.account.role, "admin");
+    assert.equal(user.data.account.role, "user");
+
+    const adminCookie = getCookieHeader(admin, SESSION_COOKIE_NAME);
+    const userCookie = getCookieHeader(user, SESSION_COOKIE_NAME);
+    const userId = user.data.account.id;
+
+    const forbidden = await callAccountApi("/api/admin/accounts", {
+      cookie: userCookie,
+    });
+    assert.equal(forbidden.statusCode, 403);
+
+    const list = await callAccountApi("/api/admin/accounts", {
+      cookie: adminCookie,
+    });
+    assert.equal(list.statusCode, 200);
+    assert.ok(list.data.accounts.some((account) => account.email === "player-admin-target@example.test"));
+
+    const patched = await callAccountApi(`/api/admin/accounts/${userId}`, {
+      method: "PATCH",
+      cookie: adminCookie,
+      body: {
+        role: "admin",
+        characterLimitPerEdition: 1,
+      },
+    });
+    assert.equal(patched.statusCode, 200);
+    assert.equal(patched.data.account.role, "admin");
+    assert.equal(patched.data.account.characterLimitPerEdition, 1);
+
+    const created = await callAccountApi(`/api/admin/accounts/${userId}/characters`, {
+      method: "POST",
+      cookie: adminCookie,
+      body: {
+        edition: "5e",
+        payload: {
+          name: "Ficha recuperável",
+          summary: "Criada pelo admin",
+          snapshot: {},
+        },
+      },
+    });
+    assert.equal(created.statusCode, 200);
+    assert.equal(created.data.account.counts["5e"], 1);
+    const characterId = created.data.character.id;
+
+    const limitReached = await callAccountApi(`/api/admin/accounts/${userId}/characters`, {
+      method: "POST",
+      cookie: adminCookie,
+      body: {
+        edition: "5e",
+        payload: {
+          name: "Ficha bloqueada",
+          summary: "",
+          snapshot: {},
+        },
+      },
+    });
+    assert.equal(limitReached.statusCode, 400);
+    assert.match(limitReached.data.message, /Limite de 1/);
+
+    const deleted = await callAccountApi(`/api/admin/accounts/${userId}/characters`, {
+      method: "DELETE",
+      cookie: adminCookie,
+      body: {
+        edition: "5e",
+        characterId,
+      },
+    });
+    assert.equal(deleted.statusCode, 200);
+    assert.equal(deleted.data.account.counts["5e"], 0);
+    assert.equal(deleted.data.account.deletedCounts["5e"], 1);
+    assert.equal(deleted.data.deletedCharacter.id, characterId);
+
+    const restored = await callAccountApi(`/api/admin/accounts/${userId}/characters/restore`, {
+      method: "POST",
+      cookie: adminCookie,
+      body: {
+        edition: "5e",
+        characterId,
+      },
+    });
+    assert.equal(restored.statusCode, 200);
+    assert.equal(restored.data.account.counts["5e"], 1);
+    assert.equal(restored.data.account.deletedCounts["5e"], 0);
+    assert.equal(restored.data.character.id, characterId);
+  });
+});
+
 async function withAccountStore(callback) {
   const dataDir = await mkdtemp(path.join(tmpdir(), "dnd-account-security-"));
   configureAccountApiStore(createLocalJsonAccountStore({

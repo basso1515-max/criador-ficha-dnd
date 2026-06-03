@@ -12,6 +12,7 @@ import {
 import { trackCommunityCharacterCreated } from "./analytics.js";
 
 export const ACCOUNT_LIMIT_PER_EDITION = 10;
+export const ACCOUNT_ROLE_ADMIN = "admin";
 
 /** @typedef {"5e" | "5.5e-2024"} Edition */
 /** @typedef {Record<string, unknown>} SnapshotObject */
@@ -38,6 +39,8 @@ export const ACCOUNT_LIMIT_PER_EDITION = 10;
  * @property {string} id
  * @property {string} displayName
  * @property {string} email
+ * @property {string} [role]
+ * @property {number} [characterLimitPerEdition]
  * @property {string} [passwordAlgo]
  * @property {string} [passwordSalt]
  * @property {string} [passwordHash]
@@ -197,6 +200,8 @@ function normalizeAccountRecord(account) {
     id: String(account.id || ""),
     displayName: String(account.displayName || "").trim(),
     email: normalizeEmail(account.email || ""),
+    role: String(account.role || "user").trim().toLowerCase() || "user",
+    characterLimitPerEdition: normalizeAccountLimit(account.characterLimitPerEdition),
     passwordAlgo: String(account.passwordAlgo || "sha256").trim() || "sha256",
     passwordSalt: String(account.passwordSalt || ""),
     passwordHash: String(account.passwordHash || ""),
@@ -215,6 +220,8 @@ function normalizeClientAccount(account) {
     id: String(account.id || ""),
     displayName: String(account.displayName || "").trim(),
     email: normalizeEmail(account.email || ""),
+    role: String(account.role || "user").trim().toLowerCase() || "user",
+    characterLimitPerEdition: normalizeAccountLimit(account.characterLimitPerEdition),
     passwordSet: account.passwordSet !== false,
     emailVerified: Boolean(account.emailVerified || account.emailVerifiedAt),
     emailVerifiedAt: String(account.emailVerifiedAt || ""),
@@ -237,6 +244,13 @@ function normalizeEmail(email) {
   return String(email || "").trim().toLowerCase();
 }
 
+function normalizeAccountLimit(limit) {
+  const value = Number(limit);
+  return Number.isFinite(value) && value >= 0
+    ? Math.trunc(value)
+    : ACCOUNT_LIMIT_PER_EDITION;
+}
+
 /**
  * @param {AccountRecord | null} account
  */
@@ -246,6 +260,8 @@ function toPublicUser(account) {
     id: account.id,
     displayName: account.displayName,
     email: account.email,
+    role: account.role || "user",
+    characterLimitPerEdition: normalizeAccountLimit(account.characterLimitPerEdition),
     passwordSet: account.passwordSet !== false,
     emailVerified: Boolean(account.emailVerified || account.emailVerifiedAt),
     emailVerifiedAt: account.emailVerifiedAt || "",
@@ -484,6 +500,17 @@ export function isUsingServerStorage() {
 
 export function getCurrentUser() {
   return toPublicUser(currentAccount);
+}
+
+/**
+ * @param {any} [account]
+ */
+export function getCharacterLimitPerEdition(account = currentAccount) {
+  return normalizeAccountLimit(account?.characterLimitPerEdition);
+}
+
+export function isCurrentUserAdmin() {
+  return getCurrentUser()?.role === ACCOUNT_ROLE_ADMIN;
 }
 
 export function getCurrentAccountSnapshot() {
@@ -799,6 +826,173 @@ export async function deleteCurrentAccount({ password } = {}) {
     body: { password },
   });
   currentAccount = null;
+}
+
+export async function listAdminAccounts() {
+  await ensureServerReady();
+  assertCurrentAdmin();
+  const data = await requestApi("/api/admin/accounts");
+  return Array.isArray(data.accounts) ? data.accounts.map(normalizeAdminAccount).filter(Boolean) : [];
+}
+
+export async function getAdminAccount(accountId) {
+  await ensureServerReady();
+  assertCurrentAdmin();
+  const id = String(accountId || "").trim();
+  const data = await requestApi(`/api/admin/accounts/${encodeURIComponent(id)}`);
+  return normalizeAdminAccount(data.account);
+}
+
+/**
+ * @param {unknown} accountId
+ * @param {{ role?: unknown, characterLimitPerEdition?: unknown }} [input]
+ */
+export async function updateAdminAccount(accountId, input = {}) {
+  await ensureServerReady();
+  assertCurrentAdmin();
+  const body = {};
+  const { role, characterLimitPerEdition } = input;
+  if (role !== undefined) body.role = String(role || "").trim().toLowerCase();
+  if (characterLimitPerEdition !== undefined) body.characterLimitPerEdition = Number(characterLimitPerEdition);
+  const data = await requestApi(`/api/admin/accounts/${encodeURIComponent(String(accountId || "").trim())}`, {
+    method: "PATCH",
+    body,
+  });
+  return normalizeAdminAccount(data.account);
+}
+
+/**
+ * @param {unknown} accountId
+ * @param {{ edition?: unknown, name?: unknown, summary?: unknown }} [input]
+ */
+export async function addAdminCharacter(accountId, input = {}) {
+  await ensureServerReady();
+  assertCurrentAdmin();
+  const { edition, name, summary } = input;
+  const safeEdition = isEdition(edition) ? edition : "5e";
+  const data = await requestApi(`/api/admin/accounts/${encodeURIComponent(String(accountId || "").trim())}/characters`, {
+    method: "POST",
+    body: {
+      edition: safeEdition,
+      payload: {
+        name: sanitizeCharacterName(name),
+        summary: sanitizeCharacterSummary(summary),
+        snapshot: normalizeStoredCharacterSnapshot({}),
+      },
+    },
+  });
+  return normalizeAdminAccount(data.account);
+}
+
+/**
+ * @param {unknown} accountId
+ * @param {{ edition?: unknown, characterId?: unknown }} [input]
+ */
+export async function deleteAdminCharacter(accountId, input = {}) {
+  await ensureServerReady();
+  assertCurrentAdmin();
+  const { edition, characterId } = input;
+  const data = await requestApi(`/api/admin/accounts/${encodeURIComponent(String(accountId || "").trim())}/characters`, {
+    method: "DELETE",
+    body: {
+      edition,
+      characterId: String(characterId || "").trim(),
+    },
+  });
+  return normalizeAdminAccount(data.account);
+}
+
+/**
+ * @param {unknown} accountId
+ * @param {{ edition?: unknown, characterId?: unknown }} [input]
+ */
+export async function restoreAdminDeletedCharacter(accountId, input = {}) {
+  await ensureServerReady();
+  assertCurrentAdmin();
+  const { edition, characterId } = input;
+  const data = await requestApi(`/api/admin/accounts/${encodeURIComponent(String(accountId || "").trim())}/characters/restore`, {
+    method: "POST",
+    body: {
+      edition,
+      characterId: String(characterId || "").trim(),
+    },
+  });
+  return normalizeAdminAccount(data.account);
+}
+
+/**
+ * @param {unknown} accountId
+ * @param {{ edition?: unknown, characterId?: unknown }} [input]
+ */
+export async function purgeAdminDeletedCharacter(accountId, input = {}) {
+  await ensureServerReady();
+  assertCurrentAdmin();
+  const { edition, characterId } = input;
+  const data = await requestApi(`/api/admin/accounts/${encodeURIComponent(String(accountId || "").trim())}/deleted-characters`, {
+    method: "DELETE",
+    body: {
+      edition,
+      characterId: String(characterId || "").trim(),
+    },
+  });
+  return normalizeAdminAccount(data.account);
+}
+
+function assertCurrentAdmin() {
+  if (!isCurrentUserAdmin()) {
+    throw new Error("Acesso administrativo necessário.");
+  }
+}
+
+function normalizeAdminAccount(account) {
+  if (!isRecord(account)) return null;
+  return {
+    id: String(account.id || ""),
+    displayName: String(account.displayName || "").trim(),
+    email: normalizeEmail(account.email || ""),
+    role: String(account.role || "user").trim().toLowerCase() || "user",
+    characterLimitPerEdition: normalizeAccountLimit(account.characterLimitPerEdition),
+    passwordSet: account.passwordSet !== false,
+    emailVerified: Boolean(account.emailVerified || account.emailVerifiedAt),
+    emailVerifiedAt: String(account.emailVerifiedAt || ""),
+    authProviders: Array.isArray(account.authProviders) ? account.authProviders.map((provider) => ({
+      provider: String(provider?.provider || ""),
+      label: String(provider?.label || provider?.provider || ""),
+      email: normalizeEmail(provider?.email || ""),
+      linkedAt: String(provider?.linkedAt || ""),
+    })).filter((provider) => provider.provider) : [],
+    createdAt: String(account.createdAt || ""),
+    counts: normalizeEditionCounts(account.counts),
+    deletedCounts: normalizeEditionCounts(account.deletedCounts),
+    characters: normalizeCharacters(account.characters),
+    deletedCharacters: normalizeDeletedCharacters(account.deletedCharacters),
+  };
+}
+
+function normalizeEditionCounts(counts) {
+  const source = isRecord(counts) ? counts : {};
+  return Object.fromEntries(EDITIONS.map((edition) => [edition, Math.max(0, Number(source[edition] || 0))]));
+}
+
+function normalizeDeletedCharacters(deletedCharacters = {}) {
+  const source = isRecord(deletedCharacters) ? deletedCharacters : {};
+  return {
+    "5e": Array.isArray(source["5e"]) ? source["5e"].map((character) => normalizeDeletedCharacterRecord(character, "5e")).filter(isPresent) : [],
+    "5.5e-2024": Array.isArray(source["5.5e-2024"])
+      ? source["5.5e-2024"].map((character) => normalizeDeletedCharacterRecord(character, "5.5e-2024")).filter(isPresent)
+      : [],
+  };
+}
+
+function normalizeDeletedCharacterRecord(character, fallbackEdition = "") {
+  const normalized = normalizeCharacterRecord(character, fallbackEdition);
+  if (!normalized || !isRecord(character)) return null;
+  return {
+    ...normalized,
+    deletedAt: String(character.deletedAt || ""),
+    expiresAt: String(character.expiresAt || ""),
+    deletedByAccountId: String(character.deletedByAccountId || ""),
+  };
 }
 
 /**
