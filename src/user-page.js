@@ -74,6 +74,8 @@ const el = {
   logout: document.getElementById("userPageLogout"),
   profileForm: document.getElementById("userProfileForm"),
   passwordForm: document.getElementById("userPasswordForm"),
+  settingsTabs: Array.from(document.querySelectorAll("[data-user-settings-tab]")),
+  settingsPanels: Array.from(document.querySelectorAll("[data-user-settings-panel]")),
   socialProviderList: document.getElementById("userSocialProviderList"),
   socialProviderPassword: document.getElementById("userSocialProviderPassword"),
   socialProviderPasswordRow: document.getElementById("userSocialProviderPasswordRow"),
@@ -95,6 +97,7 @@ const el = {
 let pendingDeletePassword = "";
 let pendingMigrationCharacter = null;
 let statusClearTimer = 0;
+let activeSettingsTab = "profile";
 const libraryFilters = {
   query: "",
   edition: "all",
@@ -144,6 +147,24 @@ function setMigrateModalOpen(isOpen, character = null) {
     el.migrateSummary.textContent = "A nova ficha usará os dados salvos, aplicará ajustes oficiais quando houver no editor 5.5e e registrará pontos de revisão nas notas.";
   }
   el.migrateDuplicate?.focus();
+}
+
+function setActiveSettingsTab(tabKey, { focusTab = false } = {}) {
+  const hasTab = el.settingsTabs.some((tab) => tab.getAttribute("data-user-settings-tab") === tabKey);
+  const nextTab = hasTab ? tabKey : "profile";
+  activeSettingsTab = nextTab;
+
+  el.settingsTabs.forEach((tab) => {
+    const isActive = tab.getAttribute("data-user-settings-tab") === nextTab;
+    tab.classList.toggle("is-active", isActive);
+    tab.setAttribute("aria-selected", String(isActive));
+    tab.tabIndex = isActive ? 0 : -1;
+    if (isActive && focusTab) tab.focus();
+  });
+
+  el.settingsPanels.forEach((panel) => {
+    panel.hidden = panel.getAttribute("data-user-settings-panel") !== nextTab;
+  });
 }
 
 function renderUserPage() {
@@ -559,6 +580,27 @@ el.sort?.addEventListener("change", () => {
   renderUserPage();
 });
 
+el.settingsTabs.forEach((tab, index) => {
+  tab.addEventListener("click", () => {
+    setActiveSettingsTab(tab.getAttribute("data-user-settings-tab") || "profile");
+  });
+
+  tab.addEventListener("keydown", (event) => {
+    const key = event.key;
+    if (!["ArrowRight", "ArrowDown", "ArrowLeft", "ArrowUp", "Home", "End"].includes(key)) return;
+
+    event.preventDefault();
+    let nextIndex = index;
+    if (key === "ArrowRight" || key === "ArrowDown") nextIndex = (index + 1) % el.settingsTabs.length;
+    if (key === "ArrowLeft" || key === "ArrowUp") nextIndex = (index - 1 + el.settingsTabs.length) % el.settingsTabs.length;
+    if (key === "Home") nextIndex = 0;
+    if (key === "End") nextIndex = el.settingsTabs.length - 1;
+
+    const nextTab = el.settingsTabs[nextIndex];
+    setActiveSettingsTab(nextTab?.getAttribute("data-user-settings-tab") || "profile", { focusTab: true });
+  });
+});
+
 el.socialProviderList?.addEventListener("click", async (event) => {
   const button = event.target.closest("[data-user-auth-provider-unlink]");
   if (!button || button.disabled) return;
@@ -876,3 +918,4 @@ function escapeHtml(value) {
 
 await hydrateAccountStorage();
 renderUserPage();
+setActiveSettingsTab(activeSettingsTab);

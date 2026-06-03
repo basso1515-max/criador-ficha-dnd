@@ -178,25 +178,15 @@
             </div>
           </div>
 
-          <section class="account-form-panel user-management-panel user-social-provider-panel" aria-labelledby="userSocialProviderTitle">
-            <div class="account-form-heading">
-              <span>Acesso social</span>
-              <h2 id="userSocialProviderTitle">Google e Facebook</h2>
-              <p>Revise os provedores vinculados e remova os acessos que não deseja manter.</p>
-            </div>
+          <div class="user-settings-tabs" role="tablist" aria-label="Seções de gerenciamento da conta">
+            <button id="userSettingsTabProfile" type="button" role="tab" aria-controls="userProfileForm" aria-selected="true" data-user-settings-tab="profile">Perfil</button>
+            <button id="userSettingsTabSecurity" type="button" role="tab" aria-controls="userPasswordForm" aria-selected="false" data-user-settings-tab="security">Segurança</button>
+            <button id="userSettingsTabSocial" type="button" role="tab" aria-controls="userSettingsSocialPanel" aria-selected="false" data-user-settings-tab="social">Acesso social</button>
+            <button id="userSettingsTabDelete" type="button" role="tab" aria-controls="userDeleteForm" aria-selected="false" data-user-settings-tab="delete">Exclusão</button>
+          </div>
 
-            <div id="userSocialProviderList" class="user-social-provider-list" aria-live="polite"></div>
-
-            <label id="userSocialProviderPasswordRow" class="row user-social-provider-password-row">
-              <span>Senha atual para desvincular</span>
-              <input id="userSocialProviderPassword" name="currentPassword" type="password" autocomplete="current-password" maxlength="256" />
-            </label>
-
-            <p id="userSocialProviderHint" class="note subtle"></p>
-          </section>
-
-          <div class="account-management-grid">
-            <form id="userProfileForm" class="account-form-panel user-management-panel" method="post">
+          <div class="user-settings-panels">
+            <form id="userProfileForm" class="account-form-panel user-management-panel user-settings-tab-panel" method="post" role="tabpanel" aria-labelledby="userSettingsTabProfile" data-user-settings-panel="profile">
               <div class="account-form-heading">
                 <span>Perfil</span>
                 <h2>Dados da conta</h2>
@@ -221,7 +211,7 @@
               <button type="submit" class="primary account-submit-button">Salvar alterações</button>
             </form>
 
-            <form id="userPasswordForm" class="account-form-panel user-management-panel" method="post">
+            <form id="userPasswordForm" class="account-form-panel user-management-panel user-settings-tab-panel" method="post" role="tabpanel" aria-labelledby="userSettingsTabSecurity" data-user-settings-panel="security" hidden>
               <div class="account-form-heading">
                 <span>Segurança</span>
                 <h2>Alterar senha</h2>
@@ -246,7 +236,24 @@
               <button type="submit" class="primary account-submit-button">Alterar senha</button>
             </form>
 
-            <form id="userDeleteForm" class="account-form-panel user-management-panel danger-panel" method="post">
+            <section id="userSettingsSocialPanel" class="account-form-panel user-management-panel user-social-provider-panel user-settings-tab-panel" role="tabpanel" aria-labelledby="userSettingsTabSocial" data-user-settings-panel="social" hidden>
+              <div class="account-form-heading">
+                <span>Acesso social</span>
+                <h2 id="userSocialProviderTitle">Google e Facebook</h2>
+                <p>Revise os provedores vinculados e remova os acessos que não deseja manter.</p>
+              </div>
+
+              <div id="userSocialProviderList" class="user-social-provider-list" aria-live="polite"></div>
+
+              <label id="userSocialProviderPasswordRow" class="row user-social-provider-password-row">
+                <span>Senha atual para desvincular</span>
+                <input id="userSocialProviderPassword" name="currentPassword" type="password" autocomplete="current-password" maxlength="256" />
+              </label>
+
+              <p id="userSocialProviderHint" class="note subtle"></p>
+            </section>
+
+            <form id="userDeleteForm" class="account-form-panel user-management-panel user-settings-tab-panel danger-panel" method="post" role="tabpanel" aria-labelledby="userSettingsTabDelete" data-user-settings-panel="delete" hidden>
               <div class="account-form-heading">
                 <span>Exclusão</span>
                 <h2>Excluir conta</h2>
