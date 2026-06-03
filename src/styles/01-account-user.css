@@ -1640,6 +1640,58 @@ body[data-active-screen="user-page"] .account-page-status:not(:empty) {
   width: 100%;
 }
 
+.admin-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.admin-detail-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.admin-overview-grid span,
+.admin-detail-summary span,
+.admin-account-facts div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid rgba(90, 62, 36, 0.16);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.42);
+}
+
+.admin-overview-grid strong,
+.admin-detail-summary strong {
+  color: var(--accent);
+  font-size: 22px;
+  line-height: 1;
+}
+
+.admin-overview-grid small,
+.admin-detail-summary small,
+.admin-account-facts dt {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.admin-filter-row,
+.admin-character-tools {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  align-items: end;
+}
+
+.admin-character-tools {
+  grid-template-columns: minmax(220px, 1fr) minmax(150px, 0.35fr) minmax(170px, 0.4fr);
+}
+
 .admin-account-list {
   display: grid;
   gap: 8px;
@@ -1653,7 +1705,7 @@ body[data-active-screen="user-page"] .account-page-status:not(:empty) {
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 10px;
   width: 100%;
-  min-height: 78px;
+  min-height: 96px;
   padding: 10px;
   border: 1px solid rgba(90, 62, 36, 0.16);
   border-radius: 8px;
@@ -1690,6 +1742,18 @@ body[data-active-screen="user-page"] .account-page-status:not(:empty) {
   color: var(--muted);
 }
 
+.admin-attention-chip {
+  justify-self: end;
+  width: fit-content;
+  max-width: 170px;
+  padding: 4px 8px;
+  border: 1px solid rgba(139, 47, 32, 0.24);
+  border-radius: 999px;
+  background: rgba(255, 246, 238, 0.82);
+  color: #8b2f20 !important;
+  font-weight: 800;
+}
+
 .admin-account-meta {
   text-align: right;
 }
@@ -1697,6 +1761,46 @@ body[data-active-screen="user-page"] .account-page-status:not(:empty) {
 .admin-selected-email {
   color: var(--muted);
   font-size: 14px;
+}
+
+.admin-attention-panel {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid rgba(139, 47, 32, 0.28);
+  border-radius: 8px;
+  background: rgba(255, 246, 238, 0.72);
+}
+
+.admin-attention-panel[hidden] {
+  display: none;
+}
+
+.admin-attention-panel strong {
+  color: #8b2f20;
+}
+
+.admin-attention-panel ul {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding-left: 18px;
+  color: var(--text);
+}
+
+.admin-account-facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+
+.admin-account-facts dd {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: var(--text);
+  font-weight: 700;
 }
 
 .admin-account-form,
@@ -1793,6 +1897,12 @@ body[data-active-screen="user-page"] .account-page-status:not(:empty) {
     grid-template-columns: 1fr;
   }
 
+  .admin-overview-grid,
+  .admin-detail-summary,
+  .admin-character-tools {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .admin-account-list {
     max-height: 360px;
   }
@@ -1810,12 +1920,21 @@ body[data-active-screen="user-page"] .account-page-status:not(:empty) {
   .admin-account-item,
   .admin-character-item,
   .admin-account-form,
-  .admin-add-character-form {
+  .admin-add-character-form,
+  .admin-filter-row,
+  .admin-character-tools,
+  .admin-account-facts,
+  .admin-overview-grid,
+  .admin-detail-summary {
     grid-template-columns: 1fr;
   }
 
   .admin-account-meta {
     text-align: left;
+  }
+
+  .admin-attention-chip {
+    justify-self: start;
   }
 
   .admin-character-actions {

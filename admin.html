@@ -51,10 +51,49 @@
             </div>
             <button id="adminRefresh" type="button" class="ghost-button">Atualizar</button>
           </div>
+          <div id="adminOverview" class="admin-overview-grid" aria-label="Resumo administrativo">
+            <span>
+              <strong id="adminOverviewAccounts">0</strong>
+              <small>contas</small>
+            </span>
+            <span>
+              <strong id="adminOverviewCharacters">0</strong>
+              <small>personagens</small>
+            </span>
+            <span>
+              <strong id="adminOverviewDeleted">0</strong>
+              <small>na lixeira</small>
+            </span>
+            <span>
+              <strong id="adminOverviewAdmins">0</strong>
+              <small>admins</small>
+            </span>
+          </div>
           <label class="saved-library-filter admin-search">
             <span>Buscar</span>
             <input id="adminAccountSearch" type="search" placeholder="nome ou e-mail" autocomplete="off" />
           </label>
+          <div class="admin-filter-row" aria-label="Filtros de contas">
+            <label class="saved-library-filter">
+              <span>Permissão</span>
+              <select id="adminRoleFilter">
+                <option value="all">Todas</option>
+                <option value="admin">Admins</option>
+                <option value="user">Usuários</option>
+              </select>
+            </label>
+            <label class="saved-library-filter">
+              <span>Situação</span>
+              <select id="adminStatusFilter">
+                <option value="all">Todas</option>
+                <option value="needs-attention">Atenção</option>
+                <option value="verified">E-mail validado</option>
+                <option value="unverified">E-mail pendente</option>
+                <option value="with-trash">Com lixeira</option>
+                <option value="near-limit">Perto do limite</option>
+              </select>
+            </label>
+          </div>
           <p id="adminAccountStatus" class="saved-library-result-status" aria-live="polite"></p>
           <div id="adminAccountList" class="admin-account-list"></div>
         </aside>
@@ -73,6 +112,42 @@
           </div>
 
           <div id="adminDetailContent" class="admin-detail-content" hidden>
+            <div id="adminAttention" class="admin-attention-panel" hidden></div>
+
+            <div class="admin-detail-summary" aria-label="Resumo da conta selecionada">
+              <span>
+                <strong id="adminSummaryActive">0</strong>
+                <small>ativos</small>
+              </span>
+              <span>
+                <strong id="adminSummaryDeleted">0</strong>
+                <small>apagados</small>
+              </span>
+              <span>
+                <strong id="adminSummaryUsage">0%</strong>
+                <small>uso do limite</small>
+              </span>
+              <span>
+                <strong id="adminSummaryVerified">Pendente</strong>
+                <small>validação</small>
+              </span>
+            </div>
+
+            <dl class="admin-account-facts" aria-label="Dados rápidos da conta">
+              <div>
+                <dt>Criada em</dt>
+                <dd id="adminAccountCreatedAt">-</dd>
+              </div>
+              <div>
+                <dt>Logins</dt>
+                <dd id="adminAccountAuthMethods">-</dd>
+              </div>
+              <div>
+                <dt>Capacidade</dt>
+                <dd id="adminAccountCapacity">-</dd>
+              </div>
+            </dl>
+
             <form id="adminAccountForm" class="admin-account-form" method="post">
               <label>
                 <span>Permissão</span>
@@ -120,6 +195,28 @@
                   <h3 id="adminActiveCharactersTitle">Personagens salvos</h3>
                 </div>
                 <strong id="adminActiveCharactersCount">0 salvos</strong>
+              </div>
+              <div class="admin-character-tools" aria-label="Filtros de personagens ativos">
+                <label class="saved-library-filter">
+                  <span>Buscar personagem</span>
+                  <input id="adminCharacterSearch" type="search" placeholder="nome ou resumo" autocomplete="off" />
+                </label>
+                <label class="saved-library-filter">
+                  <span>Edição</span>
+                  <select id="adminCharacterEditionFilter">
+                    <option value="all">Todas</option>
+                    <option value="5e">D&D 5e</option>
+                    <option value="5.5e-2024">D&D 5.5e</option>
+                  </select>
+                </label>
+                <label class="saved-library-filter">
+                  <span>Ordenar</span>
+                  <select id="adminCharacterSort">
+                    <option value="updated-desc">Atualizados primeiro</option>
+                    <option value="name-asc">Nome A-Z</option>
+                    <option value="edition">Edição</option>
+                  </select>
+                </label>
               </div>
               <div id="adminActiveCharacters" class="admin-character-list"></div>
             </section>
