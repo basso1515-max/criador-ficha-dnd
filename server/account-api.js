@@ -27,8 +27,18 @@ import {
 } from "./oauth.js";
 
 const STORE_PREFIX = "dnd-sheet";
-const ACCOUNT_LIMIT_PER_EDITION = 10;
+const DEFAULT_ACCOUNT_LIMIT_PER_EDITION = 10;
+const MIN_ACCOUNT_LIMIT_PER_EDITION = 0;
+const MAX_ACCOUNT_LIMIT_PER_EDITION = 100;
+const MAX_STORED_CHARACTERS_PER_EDITION = 200;
+const MAX_DELETED_CHARACTERS_PER_EDITION = 200;
+const DELETED_CHARACTER_RETENTION_DAYS = 15;
+const DELETED_CHARACTER_RETENTION_MS = DELETED_CHARACTER_RETENTION_DAYS * 24 * 60 * 60 * 1000;
 const EDITIONS = ["5e", "5.5e-2024"];
+const ACCOUNT_ROLE_USER = "user";
+const ACCOUNT_ROLE_ADMIN = "admin";
+const ACCOUNT_ROLES = new Set([ACCOUNT_ROLE_USER, ACCOUNT_ROLE_ADMIN]);
+const DEFAULT_ADMIN_EMAILS = ["basso_0@hotmail.com"];
 const COOKIE_NAME = "dnd_sheet_session";
 const SESSION_TTL_SECONDS = 60 * 60 * 24 * 30;
 const PASSWORD_RESET_TTL_SECONDS = 60 * 60;
@@ -104,6 +114,10 @@ function keyAccount(accountId) {
   return `${STORE_PREFIX}:account:${accountId}`;
 }
 
+function keyAccountsIndex() {
+  return `${STORE_PREFIX}:accounts`;
+}
+
 function keyEmail(email) {
   return `${STORE_PREFIX}:email:${normalizeEmail(email)}`;
 }
@@ -140,7 +154,7 @@ function normalizeCharacters(characters) {
 
 function normalizeCharacterList(characters, edition) {
   return Array.isArray(characters)
-    ? characters.slice(0, ACCOUNT_LIMIT_PER_EDITION).map((character) => normalizeCharacterRecord(character, edition)).filter(Boolean)
+    ? characters.slice(0, MAX_STORED_CHARACTERS_PER_EDITION).map((character) => normalizeCharacterRecord(character, edition)).filter(Boolean)
     : [];
 }
 
@@ -160,12 +174,47 @@ function normalizeCharacterRecord(character, fallbackEdition = "") {
   };
 }
 
+function normalizeDeletedCharacters(deletedCharacters) {
+  const source = deletedCharacters && typeof deletedCharacters === "object" ? deletedCharacters : {};
+  return {
+    "5e": normalizeDeletedCharacterList(source["5e"], "5e"),
+    "5.5e-2024": normalizeDeletedCharacterList(source["5.5e-2024"], "5.5e-2024"),
+  };
+}
+
+function normalizeDeletedCharacterList(characters, edition) {
+  const now = Date.now();
+  return Array.isArray(characters)
+    ? characters
+      .slice(0, MAX_DELETED_CHARACTERS_PER_EDITION)
+      .map((character) => normalizeDeletedCharacterRecord(character, edition))
+      .filter((character) => character && Date.parse(character.expiresAt) > now)
+    : [];
+}
+
+function normalizeDeletedCharacterRecord(character, fallbackEdition = "") {
+  const normalized = normalizeCharacterRecord(character, fallbackEdition);
+  if (!normalized || !character || typeof character !== "object") return null;
+  const now = new Date().toISOString();
+  const deletedAt = sanitizeDateString(character.deletedAt, now);
+  const fallbackExpiresAt = new Date(Date.parse(deletedAt) + DELETED_CHARACTER_RETENTION_MS).toISOString();
+  return {
+    ...normalized,
+    deletedAt,
+    expiresAt: sanitizeDateString(character.expiresAt, fallbackExpiresAt),
+    deletedByAccountId: isSafeRecordId(character.deletedByAccountId, "account") ? character.deletedByAccountId : "",
+  };
+}
+
 function normalizeAccountRecord(account) {
   if (!account || typeof account !== "object") return null;
+  const email = normalizeEmail(account.email || "");
   return {
     id: sanitizeRecordId(account.id, "account"),
     displayName: sanitizeDisplayName(account.displayName),
-    email: normalizeEmail(account.email || ""),
+    email,
+    role: sanitizeAccountRole(account.role, email),
+    characterLimitPerEdition: sanitizeAccountLimit(account.characterLimitPerEdition),
     passwordAlgo: sanitizePasswordAlgo(account.passwordAlgo),
     passwordSalt: sanitizePasswordSecret(account.passwordSalt),
     passwordHash: sanitizePasswordSecret(account.passwordHash),
@@ -174,6 +223,7 @@ function normalizeAccountRecord(account) {
     authProviders: normalizeAuthProviders(account.authProviders),
     createdAt: sanitizeDateString(account.createdAt, new Date().toISOString()),
     characters: normalizeCharacters(account.characters),
+    deletedCharacters: normalizeDeletedCharacters(account.deletedCharacters),
   };
 }
 
@@ -209,6 +259,38 @@ function normalizeEmail(email) {
 
 function sanitizeDisplayName(displayName) {
   return String(displayName || "").trim().slice(0, MAX_DISPLAY_NAME_LENGTH);
+}
+
+function sanitizeAccountRole(role, email = "") {
+  if (isBootstrapAdminEmail(email)) return ACCOUNT_ROLE_ADMIN;
+  const value = String(role || ACCOUNT_ROLE_USER).trim().toLowerCase();
+  return ACCOUNT_ROLES.has(value) ? value : ACCOUNT_ROLE_USER;
+}
+
+function sanitizeAccountLimit(value) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return DEFAULT_ACCOUNT_LIMIT_PER_EDITION;
+  return Math.min(MAX_ACCOUNT_LIMIT_PER_EDITION, Math.max(MIN_ACCOUNT_LIMIT_PER_EDITION, Math.trunc(number)));
+}
+
+function getBootstrapAdminEmails() {
+  const configured = String(process.env.ADMIN_EMAILS || process.env.ACCOUNT_ADMIN_EMAILS || "")
+    .split(",")
+    .map(normalizeEmail)
+    .filter(Boolean);
+  return new Set([...DEFAULT_ADMIN_EMAILS, ...configured].map(normalizeEmail));
+}
+
+function isBootstrapAdminEmail(email) {
+  return getBootstrapAdminEmails().has(normalizeEmail(email));
+}
+
+function isAdminAccount(account) {
+  return sanitizeAccountRole(account?.role, account?.email) === ACCOUNT_ROLE_ADMIN;
+}
+
+function getAccountCharacterLimit(account) {
+  return sanitizeAccountLimit(account?.characterLimitPerEdition);
 }
 
 function sanitizePasswordAlgo(algorithm) {
@@ -507,6 +589,8 @@ function toClientAccount(account) {
     id: account.id,
     displayName: account.displayName,
     email: account.email,
+    role: sanitizeAccountRole(account.role, account.email),
+    characterLimitPerEdition: getAccountCharacterLimit(account),
     passwordSet: account.passwordSet !== false,
     emailVerified: Boolean(account.emailVerifiedAt),
     emailVerifiedAt: account.emailVerifiedAt || "",
@@ -641,6 +725,15 @@ function assertPersistableCharacterRecord(character) {
   validateSnapshotInput(character.snapshot);
 }
 
+function assertPersistableDeletedCharacterRecord(character) {
+  assertPersistableCharacterRecord(character);
+  if (character.deletedAt) sanitizeDateString(character.deletedAt, "");
+  if (character.expiresAt) sanitizeDateString(character.expiresAt, "");
+  if (character.deletedByAccountId && !isSafeRecordId(character.deletedByAccountId, "account")) {
+    throw new HttpError(400, "Exclusão do personagem inválida.");
+  }
+}
+
 function assertPersistableAuthProviders(providers) {
   normalizeAuthProviders(providers).forEach((provider) => {
     if (!OAUTH_PROVIDER_IDS.includes(provider.provider)) {
@@ -659,6 +752,8 @@ function assertPersistableAccountRecord(account) {
   }
   assertDisplayNameInput(account.displayName);
   assertEmailInput(account.email);
+  assertAccountRoleInput(account.role);
+  assertAccountLimitInput(account.characterLimitPerEdition);
   assertImportedPasswordRecord(account);
   if (account.emailVerifiedAt) {
     sanitizeDateString(account.emailVerifiedAt, "");
@@ -667,6 +762,10 @@ function assertPersistableAccountRecord(account) {
   const characters = normalizeCharacters(account.characters);
   EDITIONS.forEach((edition) => {
     characters[edition].forEach(assertPersistableCharacterRecord);
+  });
+  const deletedCharacters = normalizeDeletedCharacters(account.deletedCharacters);
+  EDITIONS.forEach((edition) => {
+    deletedCharacters[edition].forEach(assertPersistableDeletedCharacterRecord);
   });
 }
 
@@ -687,6 +786,76 @@ function getEditionBucket(account, edition) {
     account.characters[edition] = [];
   }
   return account.characters[edition];
+}
+
+function getDeletedEditionBucket(account, edition) {
+  if (!EDITIONS.includes(edition)) {
+    throw new HttpError(400, "Edição inválida.");
+  }
+  if (!account.deletedCharacters || typeof account.deletedCharacters !== "object") {
+    account.deletedCharacters = normalizeDeletedCharacters();
+  }
+  account.deletedCharacters = normalizeDeletedCharacters(account.deletedCharacters);
+  if (!Array.isArray(account.deletedCharacters[edition])) {
+    account.deletedCharacters[edition] = [];
+  }
+  return account.deletedCharacters[edition];
+}
+
+function softDeleteCharacter(account, edition, characterId, deletedByAccountId = "") {
+  const bucket = getEditionBucket(account, edition);
+  const index = bucket.findIndex((character) => character.id === characterId);
+  if (index < 0) {
+    throw new HttpError(404, "Personagem salvo não encontrado.");
+  }
+
+  const [character] = bucket.splice(index, 1);
+  const deletedAt = new Date().toISOString();
+  const deletedCharacter = {
+    ...character,
+    edition,
+    deletedAt,
+    expiresAt: new Date(Date.now() + DELETED_CHARACTER_RETENTION_MS).toISOString(),
+    deletedByAccountId: isSafeRecordId(deletedByAccountId, "account") ? deletedByAccountId : "",
+  };
+  const trash = getDeletedEditionBucket(account, edition)
+    .filter((item) => item.id !== deletedCharacter.id);
+  trash.unshift(deletedCharacter);
+  account.deletedCharacters[edition] = trash.slice(0, MAX_DELETED_CHARACTERS_PER_EDITION);
+  return deletedCharacter;
+}
+
+function restoreDeletedCharacter(account, edition, characterId) {
+  const trash = getDeletedEditionBucket(account, edition);
+  const index = trash.findIndex((character) => character.id === characterId);
+  if (index < 0) {
+    throw new HttpError(404, "Personagem apagado não encontrado ou expirado.");
+  }
+
+  const bucket = getEditionBucket(account, edition);
+  if (bucket.length >= getAccountCharacterLimit(account)) {
+    throw new HttpError(400, "Limite de personagens atingido. Aumente o limite da conta antes de recuperar.");
+  }
+  if (bucket.some((character) => character.id === characterId)) {
+    throw new HttpError(409, "Já existe um personagem ativo com este identificador.");
+  }
+
+  const [deletedCharacter] = trash.splice(index, 1);
+  const character = normalizeCharacterRecord({
+    ...deletedCharacter,
+    updatedAt: new Date().toISOString(),
+  }, edition);
+  bucket.push(character);
+  return character;
+}
+
+function purgeDeletedCharacter(account, edition, characterId) {
+  const trash = getDeletedEditionBucket(account, edition);
+  const nextTrash = trash.filter((character) => character.id !== characterId);
+  if (nextTrash.length === trash.length) {
+    throw new HttpError(404, "Personagem apagado não encontrado ou expirado.");
+  }
+  account.deletedCharacters[edition] = nextTrash;
 }
 
 function sanitizeCharacterName(name) {
@@ -880,6 +1049,40 @@ function validateDeleteAccountBody(body) {
   };
 }
 
+function assertAccountRoleInput(role) {
+  if (typeof role !== "string") {
+    throw new HttpError(400, "Permissão da conta inválida.");
+  }
+  const value = role.trim().toLowerCase();
+  if (!ACCOUNT_ROLES.has(value)) {
+    throw new HttpError(400, "Permissão da conta inválida.");
+  }
+  return value;
+}
+
+function assertAccountLimitInput(limit) {
+  const value = Number(limit);
+  if (!Number.isInteger(value) || value < MIN_ACCOUNT_LIMIT_PER_EDITION || value > MAX_ACCOUNT_LIMIT_PER_EDITION) {
+    throw new HttpError(400, `Use um limite entre ${MIN_ACCOUNT_LIMIT_PER_EDITION} e ${MAX_ACCOUNT_LIMIT_PER_EDITION} personagens por edição.`);
+  }
+  return value;
+}
+
+function validateAdminAccountPatchBody(body) {
+  const input = assertRequestBody(body, ["role", "characterLimitPerEdition"], [], "Atualização administrativa");
+  const output = {};
+  if (Object.hasOwn(input, "role")) {
+    output.role = assertAccountRoleInput(input.role);
+  }
+  if (Object.hasOwn(input, "characterLimitPerEdition")) {
+    output.characterLimitPerEdition = assertAccountLimitInput(input.characterLimitPerEdition);
+  }
+  if (!Object.keys(output).length) {
+    throw new HttpError(400, "Informe ao menos uma alteração.");
+  }
+  return output;
+}
+
 function validateMigrationBody(body) {
   const input = assertRequestBody(body, ["store"], ["store"], "Migração");
   const store = assertPlainObject(input.store, "Migração");
@@ -962,6 +1165,25 @@ function validateCharacterMigrationBody(body) {
 
 function validateCharacterDeleteBody(body) {
   const input = assertRequestBody(body, ["edition", "characterId"], ["edition", "characterId"], "Exclusão do personagem");
+  const characterId = readOptionalRecordId(input.characterId, "character", "Personagem");
+  if (!characterId) throw new HttpError(400, "Personagem inválido.");
+  return {
+    edition: assertEditionInput(input.edition),
+    characterId,
+  };
+}
+
+function validateAdminCharacterAddBody(body) {
+  const input = assertRequestBody(body, ["edition", "payload"], ["edition", "payload"], "Criação administrativa de personagem");
+  const edition = assertEditionInput(input.edition);
+  return {
+    edition,
+    payload: validateCharacterPayload(input.payload, { edition }),
+  };
+}
+
+function validateAdminCharacterTargetBody(body, label = "Personagem") {
+  const input = assertRequestBody(body, ["edition", "characterId"], ["edition", "characterId"], label);
   const characterId = readOptionalRecordId(input.characterId, "character", "Personagem");
   if (!characterId) throw new HttpError(400, "Personagem inválido.");
   return {
@@ -1070,6 +1292,7 @@ async function saveAccount(redis, account, { previousEmail = "", previousAuthPro
   assertPersistableAccountRecord(normalized);
   const nextProviders = normalizeAuthProviders(normalized.authProviders);
   await redis.set(keyAccount(normalized.id), normalized);
+  await redis.sadd(keyAccountsIndex(), normalized.id);
   await redis.set(keyEmail(normalized.email), normalized.id);
   for (const provider of nextProviders) {
     await redis.set(keyOAuthProvider(provider.provider, provider.providerAccountId), normalized.id);
@@ -1085,6 +1308,106 @@ async function saveAccount(redis, account, { previousEmail = "", previousAuthPro
     await redis.del(keyEmail(previousEmail));
   }
   return normalized;
+}
+
+async function requireAdminAccount(redis, req) {
+  const auth = await requireAuthenticatedAccount(redis, req);
+  if (!isAdminAccount(auth.account)) {
+    throw new HttpError(403, "Acesso administrativo necessário.");
+  }
+  return auth;
+}
+
+async function listAccountIds(redis) {
+  const ids = new Set();
+
+  if (typeof redis.listAccountIds === "function") {
+    const localIds = await redis.listAccountIds();
+    (Array.isArray(localIds) ? localIds : []).forEach((accountId) => {
+      if (isSafeRecordId(accountId, "account")) ids.add(accountId);
+    });
+  }
+
+  const indexedIds = await redis.smembers(keyAccountsIndex());
+  (Array.isArray(indexedIds) ? indexedIds : []).forEach((accountId) => {
+    if (isSafeRecordId(accountId, "account")) ids.add(accountId);
+  });
+
+  if (typeof redis.scan === "function") {
+    let cursor = "0";
+    let scans = 0;
+    do {
+      const [nextCursor, keys] = await redis.scan(cursor, {
+        match: `${STORE_PREFIX}:account:*`,
+        count: 200,
+      });
+      (Array.isArray(keys) ? keys : []).forEach((key) => {
+        const parsed = parseScannedAccountKey(key);
+        if (parsed) ids.add(parsed);
+      });
+      cursor = String(nextCursor || "0");
+      scans += 1;
+    } while (cursor !== "0" && scans < 1000);
+  }
+
+  return [...ids];
+}
+
+function parseScannedAccountKey(key) {
+  const prefix = `${STORE_PREFIX}:account:`;
+  const text = String(key || "");
+  if (!text.startsWith(prefix)) return "";
+  const accountId = text.slice(prefix.length);
+  return isSafeRecordId(accountId, "account") ? accountId : "";
+}
+
+async function listAdminAccounts(redis) {
+  const accountIds = await listAccountIds(redis);
+  const accounts = [];
+  for (const accountId of accountIds) {
+    const account = await getAccountById(redis, accountId);
+    if (account) {
+      accounts.push(account);
+      await redis.sadd(keyAccountsIndex(), account.id);
+    }
+  }
+  return accounts
+    .sort((left, right) => String(right.createdAt || "").localeCompare(String(left.createdAt || "")))
+    .map(toAdminAccountSummary);
+}
+
+function toAdminAccountSummary(account) {
+  const characters = normalizeCharacters(account.characters);
+  const deletedCharacters = normalizeDeletedCharacters(account.deletedCharacters);
+  const counts = Object.fromEntries(EDITIONS.map((edition) => [edition, characters[edition].length]));
+  const deletedCounts = Object.fromEntries(EDITIONS.map((edition) => [edition, deletedCharacters[edition].length]));
+  return {
+    id: account.id,
+    displayName: account.displayName,
+    email: account.email,
+    role: sanitizeAccountRole(account.role, account.email),
+    characterLimitPerEdition: getAccountCharacterLimit(account),
+    passwordSet: account.passwordSet !== false,
+    emailVerified: Boolean(account.emailVerifiedAt),
+    emailVerifiedAt: account.emailVerifiedAt || "",
+    createdAt: account.createdAt,
+    counts,
+    deletedCounts,
+  };
+}
+
+function toAdminAccountDetail(account) {
+  return {
+    ...toAdminAccountSummary(account),
+    authProviders: normalizeAuthProviders(account.authProviders).map((provider) => ({
+      provider: provider.provider,
+      label: getOAuthProviderLabel(provider.provider),
+      email: provider.email,
+      linkedAt: provider.linkedAt,
+    })),
+    characters: normalizeCharacters(account.characters),
+    deletedCharacters: normalizeDeletedCharacters(account.deletedCharacters),
+  };
 }
 
 async function recordCommunityCharacterCreatedSafe(redis, character) {
@@ -1517,12 +1840,15 @@ async function upsertOAuthAccount(redis, profile) {
       id: makeId("account"),
       displayName: sanitizeDisplayName(profile.displayName) || email.split("@")[0],
       email,
+      role: sanitizeAccountRole(ACCOUNT_ROLE_USER, email),
+      characterLimitPerEdition: DEFAULT_ACCOUNT_LIMIT_PER_EDITION,
       ...makePasswordRecord(randomBytes(32).toString("hex")),
       passwordSet: false,
       emailVerifiedAt: emailVerified ? now : "",
       authProviders: [],
       createdAt: now,
       characters: normalizeCharacters(),
+      deletedCharacters: normalizeDeletedCharacters(),
     };
 
     const reserved = await reserveEmail(redis, email, account.id);
@@ -1654,6 +1980,120 @@ async function handleAccountApiInternal(req, res, pathname) {
     return;
   }
 
+  if (pathname === "/api/admin/accounts" && method === "GET") {
+    await requireAdminAccount(redis, req);
+    const accounts = await listAdminAccounts(redis);
+    sendJson(res, 200, { accounts });
+    return;
+  }
+
+  const adminAccountMatch = pathname.match(/^\/api\/admin\/accounts\/([^/]+)$/);
+  if (adminAccountMatch && method === "GET") {
+    await requireAdminAccount(redis, req);
+    const accountId = readOptionalRecordId(adminAccountMatch[1], "account", "Conta");
+    const account = await getAccountById(redis, accountId);
+    if (!account) throw new HttpError(404, "Conta não encontrada.");
+    await redis.sadd(keyAccountsIndex(), account.id);
+    sendJson(res, 200, { account: toAdminAccountDetail(account) });
+    return;
+  }
+
+  if (adminAccountMatch && method === "PATCH") {
+    const input = validateAdminAccountPatchBody(body);
+    const { account: adminAccount } = await requireAdminAccount(redis, req);
+    const accountId = readOptionalRecordId(adminAccountMatch[1], "account", "Conta");
+    const account = await getAccountById(redis, accountId);
+    if (!account) throw new HttpError(404, "Conta não encontrada.");
+
+    if (Object.hasOwn(input, "role")) {
+      if (account.id === adminAccount.id && input.role !== ACCOUNT_ROLE_ADMIN) {
+        throw new HttpError(400, "Você não pode remover a própria permissão administrativa.");
+      }
+      if (isBootstrapAdminEmail(account.email) && input.role !== ACCOUNT_ROLE_ADMIN) {
+        throw new HttpError(400, "Esta conta é administradora fixa do sistema.");
+      }
+      account.role = input.role;
+    }
+    if (Object.hasOwn(input, "characterLimitPerEdition")) {
+      account.characterLimitPerEdition = input.characterLimitPerEdition;
+    }
+
+    await saveAccount(redis, account);
+    sendJson(res, 200, { account: toAdminAccountDetail(account) });
+    return;
+  }
+
+  const adminCharactersMatch = pathname.match(/^\/api\/admin\/accounts\/([^/]+)\/characters$/);
+  if (adminCharactersMatch && method === "POST") {
+    const input = validateAdminCharacterAddBody(body);
+    await requireAdminAccount(redis, req);
+    const accountId = readOptionalRecordId(adminCharactersMatch[1], "account", "Conta");
+    const account = await getAccountById(redis, accountId);
+    if (!account) throw new HttpError(404, "Conta não encontrada.");
+
+    const bucket = getEditionBucket(account, input.edition);
+    const characterLimit = getAccountCharacterLimit(account);
+    if (bucket.length >= characterLimit) {
+      throw new HttpError(400, `Limite de ${characterLimit} personagens salvos nesta edição atingido.`);
+    }
+
+    const now = new Date().toISOString();
+    const character = {
+      id: makeId("character"),
+      edition: input.edition,
+      ...input.payload,
+      createdAt: now,
+      updatedAt: now,
+    };
+    bucket.push(character);
+
+    await saveAccount(redis, account);
+    const communityStatsEvent = await recordCommunityCharacterCreatedSafe(redis, character);
+    sendJson(res, 200, { account: toAdminAccountDetail(account), character, communityStatsEvent });
+    return;
+  }
+
+  if (adminCharactersMatch && method === "DELETE") {
+    const input = validateAdminCharacterTargetBody(body, "Remoção administrativa de personagem");
+    const { account: adminAccount } = await requireAdminAccount(redis, req);
+    const accountId = readOptionalRecordId(adminCharactersMatch[1], "account", "Conta");
+    const account = await getAccountById(redis, accountId);
+    if (!account) throw new HttpError(404, "Conta não encontrada.");
+
+    const deletedCharacter = softDeleteCharacter(account, input.edition, input.characterId, adminAccount.id);
+    await saveAccount(redis, account);
+    sendJson(res, 200, { account: toAdminAccountDetail(account), deletedCharacter });
+    return;
+  }
+
+  const adminRestoreMatch = pathname.match(/^\/api\/admin\/accounts\/([^/]+)\/characters\/restore$/);
+  if (adminRestoreMatch && method === "POST") {
+    const input = validateAdminCharacterTargetBody(body, "Recuperação administrativa de personagem");
+    await requireAdminAccount(redis, req);
+    const accountId = readOptionalRecordId(adminRestoreMatch[1], "account", "Conta");
+    const account = await getAccountById(redis, accountId);
+    if (!account) throw new HttpError(404, "Conta não encontrada.");
+
+    const character = restoreDeletedCharacter(account, input.edition, input.characterId);
+    await saveAccount(redis, account);
+    sendJson(res, 200, { account: toAdminAccountDetail(account), character });
+    return;
+  }
+
+  const adminDeletedCharactersMatch = pathname.match(/^\/api\/admin\/accounts\/([^/]+)\/deleted-characters$/);
+  if (adminDeletedCharactersMatch && method === "DELETE") {
+    const input = validateAdminCharacterTargetBody(body, "Exclusão definitiva de personagem");
+    await requireAdminAccount(redis, req);
+    const accountId = readOptionalRecordId(adminDeletedCharactersMatch[1], "account", "Conta");
+    const account = await getAccountById(redis, accountId);
+    if (!account) throw new HttpError(404, "Conta não encontrada.");
+
+    purgeDeletedCharacter(account, input.edition, input.characterId);
+    await saveAccount(redis, account);
+    sendJson(res, 200, { account: toAdminAccountDetail(account) });
+    return;
+  }
+
   if (method === "POST" && pathname === "/api/accounts/register") {
     await assertRateLimit(redis, "register-ip", getClientIp(req), RATE_LIMITS.registerIp);
     const input = validateRegisterBody(body);
@@ -1662,10 +2102,13 @@ async function handleAccountApiInternal(req, res, pathname) {
       id: makeId("account"),
       displayName: input.displayName,
       email,
+      role: sanitizeAccountRole(ACCOUNT_ROLE_USER, email),
+      characterLimitPerEdition: DEFAULT_ACCOUNT_LIMIT_PER_EDITION,
       ...makePasswordRecord(input.password),
       emailVerifiedAt: "",
       createdAt: new Date().toISOString(),
       characters: normalizeCharacters(),
+      deletedCharacters: normalizeDeletedCharacters(),
     };
 
     const reserved = await reserveEmail(redis, email, account.id);
@@ -1881,6 +2324,7 @@ async function handleAccountApiInternal(req, res, pathname) {
     const providerKeys = normalizeAuthProviders(account.authProviders)
       .map((provider) => keyOAuthProvider(provider.provider, provider.providerAccountId));
     await redis.del(keyAccount(account.id), keyEmail(account.email), keyAccountSessions(account.id), ...providerKeys);
+    await redis.srem(keyAccountsIndex(), account.id);
     clearSessionCookie(req, res);
     sendJson(res, 200, { ok: true });
     return;
@@ -1907,8 +2351,9 @@ async function handleAccountApiInternal(req, res, pathname) {
       if (sourceIndex < 0) {
         throw new HttpError(404, "Personagem salvo não encontrado.");
       }
-      if (targetBucket.length >= ACCOUNT_LIMIT_PER_EDITION) {
-        throw new HttpError(400, `Limite de ${ACCOUNT_LIMIT_PER_EDITION} personagens salvos na edição 5.5e atingido.`);
+      const characterLimit = getAccountCharacterLimit(account);
+      if (targetBucket.length >= characterLimit) {
+        throw new HttpError(400, `Limite de ${characterLimit} personagens salvos na edição 5.5e atingido.`);
       }
 
       const now = new Date().toISOString();
@@ -1954,8 +2399,9 @@ async function handleAccountApiInternal(req, res, pathname) {
       character.snapshot = characterPayload.snapshot;
       character.updatedAt = now;
     } else {
-      if (bucket.length >= ACCOUNT_LIMIT_PER_EDITION) {
-        throw new HttpError(400, `Limite de ${ACCOUNT_LIMIT_PER_EDITION} personagens salvos nesta edição atingido.`);
+      const characterLimit = getAccountCharacterLimit(account);
+      if (bucket.length >= characterLimit) {
+        throw new HttpError(400, `Limite de ${characterLimit} personagens salvos nesta edição atingido.`);
       }
       character = {
         id: makeId("character"),
@@ -1978,15 +2424,7 @@ async function handleAccountApiInternal(req, res, pathname) {
   if (method === "DELETE" && pathname === "/api/characters") {
     const input = validateCharacterDeleteBody(body);
     const { account } = await requireAuthenticatedAccount(redis, req);
-    const bucket = getEditionBucket(account, input.edition);
-    const characterId = input.characterId;
-    if (!characterId) throw new HttpError(400, "Personagem inválido.");
-    const nextBucket = bucket.filter((character) => character.id !== characterId);
-    if (nextBucket.length === bucket.length) {
-      throw new HttpError(404, "Personagem salvo não encontrado.");
-    }
-
-    account.characters[input.edition] = nextBucket;
+    softDeleteCharacter(account, input.edition, input.characterId, account.id);
     await saveAccount(redis, account);
     sendJson(res, 200, { account: toClientAccount(account) });
     return;

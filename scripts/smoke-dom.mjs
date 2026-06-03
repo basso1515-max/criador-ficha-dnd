@@ -10,7 +10,7 @@ import { setTimeout as delay } from "node:timers/promises";
 const HOST = "127.0.0.1";
 const PAGE_TIMEOUT_MS = 12_000;
 const SERVER_TIMEOUT_MS = 30_000;
-const CHROME_TIMEOUT_MS = 10_000;
+const CHROME_TIMEOUT_MS = 30_000;
 
 const smokePages = [
   {

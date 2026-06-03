@@ -24,6 +24,11 @@ class LocalJsonAccountStore {
     return cloneJson(getStoredValue(store, key));
   }
 
+  async listAccountIds() {
+    const store = readStore(this.accountsFile);
+    return store.accounts.map((account) => String(account.id || "")).filter(Boolean);
+  }
+
   async set(key, value, options = {}) {
     const store = readStore(this.accountsFile);
     if (isNxOption(options) && getStoredValue(store, key) !== null) {
