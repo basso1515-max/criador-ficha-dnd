@@ -94,6 +94,20 @@
               </select>
             </label>
           </div>
+          <label class="saved-library-filter">
+            <span>Ordenar contas</span>
+            <select id="adminAccountSort">
+              <option value="attention-desc">Atenção primeiro</option>
+              <option value="created-desc">Mais recentes</option>
+              <option value="name-asc">Nome A-Z</option>
+              <option value="characters-desc">Mais personagens</option>
+              <option value="trash-desc">Mais lixeira</option>
+            </select>
+          </label>
+          <div class="admin-list-actions" aria-label="Ações da lista de contas">
+            <button id="adminNextAttention" type="button" class="secondary-button">Próxima atenção</button>
+            <button id="adminExportAccounts" type="button" class="ghost-button">Exportar CSV</button>
+          </div>
           <p id="adminAccountStatus" class="saved-library-result-status" aria-live="polite"></p>
           <div id="adminAccountList" class="admin-account-list"></div>
         </aside>
@@ -105,6 +119,10 @@
               <h2 id="adminSelectedTitle">Selecione uma conta</h2>
             </div>
             <strong id="adminSelectedEmail" class="admin-selected-email"></strong>
+          </div>
+          <div id="adminDetailActions" class="admin-detail-actions" hidden>
+            <button id="adminCopyEmail" type="button" class="secondary-button">Copiar e-mail</button>
+            <button id="adminExportAccount" type="button" class="ghost-button">Exportar conta</button>
           </div>
 
           <div id="adminEmptyDetail" class="account-empty-note">
@@ -148,6 +166,16 @@
               </div>
             </dl>
 
+            <section class="admin-edition-usage" aria-labelledby="adminEditionUsageTitle">
+              <div class="account-section-heading">
+                <div>
+                  <span>Capacidade</span>
+                  <h3 id="adminEditionUsageTitle">Uso por edição</h3>
+                </div>
+              </div>
+              <div id="adminEditionUsage" class="admin-edition-usage-list"></div>
+            </section>
+
             <form id="adminAccountForm" class="admin-account-form" method="post">
               <label>
                 <span>Permissão</span>
@@ -160,6 +188,11 @@
                 <span>Limite por edição</span>
                 <input id="adminAccountLimit" name="characterLimitPerEdition" type="number" min="0" max="100" step="1" />
               </label>
+              <div class="admin-limit-presets" aria-label="Atalhos de limite">
+                <button type="button" data-admin-limit-preset="10">10</button>
+                <button type="button" data-admin-limit-preset="15">15</button>
+                <button type="button" data-admin-limit-preset="20">20</button>
+              </div>
               <button type="submit" class="primary">Salvar conta</button>
             </form>
 
@@ -228,6 +261,20 @@
                   <h3 id="adminDeletedCharactersTitle">Apagados por até 15 dias</h3>
                 </div>
                 <strong id="adminDeletedCharactersCount">0 apagados</strong>
+              </div>
+              <div class="admin-character-tools admin-character-tools--trash" aria-label="Filtros de personagens apagados">
+                <label class="saved-library-filter">
+                  <span>Buscar na lixeira</span>
+                  <input id="adminDeletedCharacterSearch" type="search" placeholder="nome ou resumo" autocomplete="off" />
+                </label>
+                <label class="saved-library-filter">
+                  <span>Ordenar</span>
+                  <select id="adminDeletedCharacterSort">
+                    <option value="expires-asc">Expiram primeiro</option>
+                    <option value="deleted-desc">Apagados recentemente</option>
+                    <option value="name-asc">Nome A-Z</option>
+                  </select>
+                </label>
               </div>
               <div id="adminDeletedCharacters" class="admin-character-list"></div>
             </section>

@@ -27,6 +27,9 @@ const el = {
   search: document.getElementById("adminAccountSearch"),
   roleFilter: document.getElementById("adminRoleFilter"),
   statusFilter: document.getElementById("adminStatusFilter"),
+  accountSort: document.getElementById("adminAccountSort"),
+  nextAttention: document.getElementById("adminNextAttention"),
+  exportAccounts: document.getElementById("adminExportAccounts"),
   overviewAccounts: document.getElementById("adminOverviewAccounts"),
   overviewCharacters: document.getElementById("adminOverviewCharacters"),
   overviewDeleted: document.getElementById("adminOverviewDeleted"),
@@ -36,6 +39,9 @@ const el = {
   selectedRole: document.getElementById("adminSelectedRole"),
   selectedTitle: document.getElementById("adminSelectedTitle"),
   selectedEmail: document.getElementById("adminSelectedEmail"),
+  detailActions: document.getElementById("adminDetailActions"),
+  copyEmail: document.getElementById("adminCopyEmail"),
+  exportAccount: document.getElementById("adminExportAccount"),
   emptyDetail: document.getElementById("adminEmptyDetail"),
   detailContent: document.getElementById("adminDetailContent"),
   attention: document.getElementById("adminAttention"),
@@ -46,15 +52,19 @@ const el = {
   accountCreatedAt: document.getElementById("adminAccountCreatedAt"),
   accountAuthMethods: document.getElementById("adminAccountAuthMethods"),
   accountCapacity: document.getElementById("adminAccountCapacity"),
+  editionUsage: document.getElementById("adminEditionUsage"),
   accountForm: document.getElementById("adminAccountForm"),
   accountRole: document.getElementById("adminAccountRole"),
   accountLimit: document.getElementById("adminAccountLimit"),
+  limitPresets: Array.from(document.querySelectorAll("[data-admin-limit-preset]")),
   addCharacterForm: document.getElementById("adminAddCharacterForm"),
   characterSearch: document.getElementById("adminCharacterSearch"),
   characterEditionFilter: document.getElementById("adminCharacterEditionFilter"),
   characterSort: document.getElementById("adminCharacterSort"),
   activeCount: document.getElementById("adminActiveCharactersCount"),
   activeCharacters: document.getElementById("adminActiveCharacters"),
+  deletedCharacterSearch: document.getElementById("adminDeletedCharacterSearch"),
+  deletedCharacterSort: document.getElementById("adminDeletedCharacterSort"),
   deletedCount: document.getElementById("adminDeletedCharactersCount"),
   deletedCharacters: document.getElementById("adminDeletedCharacters"),
   status: document.getElementById("adminPageStatus"),
@@ -68,11 +78,16 @@ const accountFilters = {
   query: "",
   role: "all",
   status: "all",
+  sort: "attention-desc",
 };
 const characterFilters = {
   query: "",
   edition: "all",
   sort: "updated-desc",
+};
+const deletedCharacterFilters = {
+  query: "",
+  sort: "expires-asc",
 };
 
 function setStatus(message, tone = "info") {
@@ -140,7 +155,7 @@ function renderOverview() {
 }
 
 function renderAccountList() {
-  const visibleAccounts = accounts.filter(accountMatchesFilters);
+  const visibleAccounts = getVisibleAccounts();
 
   if (el.accountStatus) {
     const visibleLabel = `${visibleAccounts.length} de ${accounts.length} ${accounts.length === 1 ? "conta" : "contas"}`;
@@ -179,6 +194,7 @@ function renderDetail() {
   const account = selectedAccount;
   if (el.emptyDetail) el.emptyDetail.hidden = Boolean(account);
   if (el.detailContent) el.detailContent.hidden = !account;
+  if (el.detailActions) el.detailActions.hidden = !account;
   if (el.selectedTitle) el.selectedTitle.textContent = account?.displayName || "Selecione uma conta";
   if (el.selectedEmail) el.selectedEmail.textContent = account?.email || "";
   if (el.selectedRole) el.selectedRole.textContent = account ? (ROLE_LABELS[account.role] || account.role) : "Conta";
@@ -202,6 +218,9 @@ function renderDetail() {
   if (el.accountCapacity) {
     el.accountCapacity.textContent = `${account.characterLimitPerEdition} por edição · ${totals.capacity} no total`;
   }
+  if (el.editionUsage) {
+    el.editionUsage.innerHTML = EDITIONS.map((edition) => renderEditionUsage(account, edition)).join("");
+  }
   if (el.attention) {
     el.attention.hidden = !attentionItems.length;
     el.attention.innerHTML = attentionItems.length
@@ -217,7 +236,12 @@ function renderDetail() {
       ? `${activeCharacters.length} ${activeCharacters.length === 1 ? "salvo" : "salvos"}`
       : `${filteredActiveCharacters.length} de ${activeCharacters.length} salvos`;
   }
-  if (el.deletedCount) el.deletedCount.textContent = `${deletedCharacters.length} ${deletedCharacters.length === 1 ? "apagado" : "apagados"}`;
+  const filteredDeletedCharacters = filterAndSortDeletedCharacters(deletedCharacters);
+  if (el.deletedCount) {
+    el.deletedCount.textContent = filteredDeletedCharacters.length === deletedCharacters.length
+      ? `${deletedCharacters.length} ${deletedCharacters.length === 1 ? "apagado" : "apagados"}`
+      : `${filteredDeletedCharacters.length} de ${deletedCharacters.length} apagados`;
+  }
   if (el.activeCharacters) {
     el.activeCharacters.innerHTML = filteredActiveCharacters.length
       ? filteredActiveCharacters.map(renderActiveCharacter).join("")
@@ -226,10 +250,31 @@ function renderDetail() {
         : `<p class="account-empty-note">Nenhum personagem ativo nesta conta.</p>`;
   }
   if (el.deletedCharacters) {
-    el.deletedCharacters.innerHTML = deletedCharacters.length
-      ? sortDeletedCharacters(deletedCharacters).map(renderDeletedCharacter).join("")
-      : `<p class="account-empty-note">Nenhum personagem na lixeira.</p>`;
+    el.deletedCharacters.innerHTML = filteredDeletedCharacters.length
+      ? filteredDeletedCharacters.map(renderDeletedCharacter).join("")
+      : deletedCharacters.length
+        ? `<p class="account-empty-note">Nenhum personagem apagado encontrado com esses filtros.</p>`
+        : `<p class="account-empty-note">Nenhum personagem na lixeira.</p>`;
   }
+}
+
+function renderEditionUsage(account, edition) {
+  const count = Number(account.counts?.[edition] || 0);
+  const deletedCount = Number(account.deletedCounts?.[edition] || 0);
+  const limit = Math.max(0, Number(account.characterLimitPerEdition || 0));
+  const percent = limit > 0 ? Math.min(100, Math.round((count / limit) * 100)) : count > 0 ? 100 : 0;
+  const overLimit = limit >= 0 && count > limit;
+  return `
+    <article class="admin-edition-usage-item${overLimit ? " is-over-limit" : ""}">
+      <div>
+        <strong>${escapeHtml(EDITION_LABELS[edition] || edition)}</strong>
+        <span>${count}/${limit} ativos${deletedCount ? ` · ${deletedCount} apagados` : ""}</span>
+      </div>
+      <div class="admin-usage-bar" aria-hidden="true">
+        <span style="width: ${percent}%"></span>
+      </div>
+    </article>
+  `;
 }
 
 function renderActiveCharacter(character) {
@@ -289,6 +334,62 @@ el.statusFilter?.addEventListener("change", () => {
   renderAccountList();
 });
 
+el.accountSort?.addEventListener("change", () => {
+  accountFilters.sort = el.accountSort.value || "attention-desc";
+  renderAccountList();
+});
+
+el.nextAttention?.addEventListener("click", async () => {
+  const attentionAccounts = accounts.filter((account) => getAccountAttentionItems(account).length);
+  if (!attentionAccounts.length) {
+    setStatus("Nenhuma conta precisa de atenção agora.", "success");
+    return;
+  }
+
+  const currentIndex = attentionAccounts.findIndex((account) => account.id === selectedAccountId);
+  const nextAccount = attentionAccounts[(currentIndex + 1 + attentionAccounts.length) % attentionAccounts.length];
+  try {
+    await loadSelectedAccount(nextAccount.id);
+    setStatus("Conta com atenção carregada.", "info");
+  } catch (error) {
+    setStatus(error?.message || "Não foi possível abrir a próxima conta.", "warning");
+  }
+});
+
+el.exportAccounts?.addEventListener("click", () => {
+  const visibleAccounts = getVisibleAccounts();
+  if (!visibleAccounts.length) {
+    setStatus("Nenhuma conta visível para exportar.", "warning");
+    return;
+  }
+  exportAccountsCsv(visibleAccounts);
+  setStatus("CSV de contas exportado.", "success");
+});
+
+el.copyEmail?.addEventListener("click", async () => {
+  if (!selectedAccount?.email) return;
+  try {
+    await copyText(selectedAccount.email);
+    setStatus("E-mail copiado.", "success");
+  } catch {
+    setStatus("Não foi possível copiar o e-mail.", "warning");
+  }
+});
+
+el.exportAccount?.addEventListener("click", () => {
+  if (!selectedAccount) return;
+  exportAccountJson(selectedAccount);
+  setStatus("Dados da conta exportados.", "success");
+});
+
+el.limitPresets.forEach((button) => {
+  button.addEventListener("click", () => {
+    if (!el.accountLimit) return;
+    el.accountLimit.value = button.getAttribute("data-admin-limit-preset") || "10";
+    el.accountLimit.focus();
+  });
+});
+
 el.characterSearch?.addEventListener("input", () => {
   characterFilters.query = el.characterSearch.value;
   renderDetail();
@@ -301,6 +402,16 @@ el.characterEditionFilter?.addEventListener("change", () => {
 
 el.characterSort?.addEventListener("change", () => {
   characterFilters.sort = el.characterSort.value || "updated-desc";
+  renderDetail();
+});
+
+el.deletedCharacterSearch?.addEventListener("input", () => {
+  deletedCharacterFilters.query = el.deletedCharacterSearch.value;
+  renderDetail();
+});
+
+el.deletedCharacterSort?.addEventListener("change", () => {
+  deletedCharacterFilters.sort = el.deletedCharacterSort.value || "expires-asc";
   renderDetail();
 });
 
@@ -411,6 +522,31 @@ function accountMatchesFilters(account) {
   return roleMatches && queryMatches && statusMatches;
 }
 
+function getVisibleAccounts() {
+  return accounts.filter(accountMatchesFilters).sort(compareAccounts);
+}
+
+function compareAccounts(left, right) {
+  if (accountFilters.sort === "created-desc") {
+    return String(right.createdAt || "").localeCompare(String(left.createdAt || ""));
+  }
+  if (accountFilters.sort === "name-asc") {
+    return String(left.displayName || left.email || "").localeCompare(String(right.displayName || right.email || ""), "pt-BR");
+  }
+  if (accountFilters.sort === "characters-desc") {
+    return getAccountTotals(right).active - getAccountTotals(left).active
+      || String(left.displayName || left.email || "").localeCompare(String(right.displayName || right.email || ""), "pt-BR");
+  }
+  if (accountFilters.sort === "trash-desc") {
+    return getAccountTotals(right).deleted - getAccountTotals(left).deleted
+      || String(left.displayName || left.email || "").localeCompare(String(right.displayName || right.email || ""), "pt-BR");
+  }
+
+  return getAccountAttentionItems(right).length - getAccountAttentionItems(left).length
+    || getAccountTotals(right).usagePercent - getAccountTotals(left).usagePercent
+    || String(right.createdAt || "").localeCompare(String(left.createdAt || ""));
+}
+
 function getAccountTotals(account) {
   const active = EDITIONS.reduce((total, edition) => total + Number(account.counts?.[edition] || 0), 0);
   const deleted = EDITIONS.reduce((total, edition) => total + Number(account.deletedCounts?.[edition] || 0), 0);
@@ -484,6 +620,94 @@ function compareCharacters(left, right) {
 
 function sortDeletedCharacters(characters) {
   return [...characters].sort((left, right) => String(left.expiresAt || "").localeCompare(String(right.expiresAt || "")));
+}
+
+function filterAndSortDeletedCharacters(characters) {
+  const query = normalizeSearch(deletedCharacterFilters.query);
+  return [...characters]
+    .filter((character) => (
+      !query
+      || normalizeSearch(character.name).includes(query)
+      || normalizeSearch(character.summary).includes(query)
+    ))
+    .sort(compareDeletedCharacters);
+}
+
+function compareDeletedCharacters(left, right) {
+  if (deletedCharacterFilters.sort === "deleted-desc") {
+    return String(right.deletedAt || "").localeCompare(String(left.deletedAt || ""));
+  }
+  if (deletedCharacterFilters.sort === "name-asc") {
+    return String(left.name || "").localeCompare(String(right.name || ""), "pt-BR");
+  }
+  return String(left.expiresAt || "").localeCompare(String(right.expiresAt || ""));
+}
+
+function exportAccountsCsv(sourceAccounts) {
+  const rows = [
+    ["nome", "email", "permissao", "email_validado", "limite_por_edicao", "ativos", "apagados", "uso_percentual", "criada_em"],
+    ...sourceAccounts.map((account) => {
+      const totals = getAccountTotals(account);
+      return [
+        account.displayName || "",
+        account.email || "",
+        ROLE_LABELS[account.role] || account.role || "",
+        account.emailVerified ? "sim" : "nao",
+        String(account.characterLimitPerEdition || 0),
+        String(totals.active),
+        String(totals.deleted),
+        String(totals.usagePercent),
+        account.createdAt || "",
+      ];
+    }),
+  ];
+  downloadText(`sheetfy-contas-${getDateStamp()}.csv`, rows.map(formatCsvRow).join("\n"), "text/csv;charset=utf-8");
+}
+
+function exportAccountJson(account) {
+  const filenameEmail = String(account.email || "conta").replace(/[^a-z0-9_-]+/gi, "-").replace(/^-+|-+$/g, "") || "conta";
+  downloadText(
+    `sheetfy-conta-${filenameEmail}-${getDateStamp()}.json`,
+    JSON.stringify(account, null, 2),
+    "application/json;charset=utf-8",
+  );
+}
+
+function formatCsvRow(row) {
+  return row.map((cell) => `"${String(cell ?? "").replace(/"/g, "\"\"")}"`).join(",");
+}
+
+function downloadText(filename, text, type) {
+  const blob = new Blob([text], { type });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.append(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+async function copyText(text) {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(text);
+    return;
+  }
+  const input = document.createElement("textarea");
+  input.value = text;
+  input.setAttribute("readonly", "");
+  input.style.position = "fixed";
+  input.style.left = "-9999px";
+  document.body.append(input);
+  input.select();
+  const ok = document.execCommand("copy");
+  input.remove();
+  if (!ok) throw new Error("copy failed");
+}
+
+function getDateStamp() {
+  return new Date().toISOString().slice(0, 10);
 }
 
 function getDaysUntil(value) {
