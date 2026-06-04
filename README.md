@@ -239,6 +239,16 @@ KV_REST_API_URL
 KV_REST_API_TOKEN
 ```
 
+### Administradores
+
+O primeiro acesso administrativo é definido por variável de ambiente, não por e-mail fixo no código. Configure uma lista separada por vírgulas:
+
+```text
+ADMIN_EMAILS=admin@example.com,outro-admin@example.com
+```
+
+Quando uma conta é criada ou carregada com e-mail listado em `ADMIN_EMAILS`, ela recebe papel `admin` e não pode ter esse papel removido enquanto continuar na lista. Contas já salvas com `role: "admin"` continuam administradoras mesmo que a lista mude; para revogar uma conta existente, remova o e-mail da variável e altere o papel pelo painel admin. O alias legado `ACCOUNT_ADMIN_EMAILS` ainda é aceito por compatibilidade.
+
 ### E-mails De Conta
 
 Recuperação de senha e validação de conta usam links enviados por e-mail. O envio é feito pela API HTTP do Resend; configure:

@@ -38,7 +38,7 @@ const EDITIONS = ["5e", "5.5e-2024"];
 const ACCOUNT_ROLE_USER = "user";
 const ACCOUNT_ROLE_ADMIN = "admin";
 const ACCOUNT_ROLES = new Set([ACCOUNT_ROLE_USER, ACCOUNT_ROLE_ADMIN]);
-const DEFAULT_ADMIN_EMAILS = ["basso_0@hotmail.com"];
+const ADMIN_EMAIL_ENV_NAMES = ["ADMIN_EMAILS", "ACCOUNT_ADMIN_EMAILS"];
 const COOKIE_NAME = "dnd_sheet_session";
 const SESSION_TTL_SECONDS = 60 * 60 * 24 * 30;
 const PASSWORD_RESET_TTL_SECONDS = 60 * 60;
@@ -274,11 +274,11 @@ function sanitizeAccountLimit(value) {
 }
 
 function getBootstrapAdminEmails() {
-  const configured = String(process.env.ADMIN_EMAILS || process.env.ACCOUNT_ADMIN_EMAILS || "")
-    .split(",")
+  const configured = ADMIN_EMAIL_ENV_NAMES
+    .flatMap((name) => String(process.env[name] || "").split(","))
     .map(normalizeEmail)
     .filter(Boolean);
-  return new Set([...DEFAULT_ADMIN_EMAILS, ...configured].map(normalizeEmail));
+  return new Set(configured);
 }
 
 function isBootstrapAdminEmail(email) {

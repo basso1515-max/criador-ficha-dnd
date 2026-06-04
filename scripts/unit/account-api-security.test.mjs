@@ -156,96 +156,139 @@ test("OAuth callback does not auto-link an unbound provider account by e-mail", 
 
 test("admin can manage account limits and recover deleted characters", async () => {
   await withAccountStore(async () => {
-    const admin = await registerAccount({ email: "basso_0@hotmail.com" });
-    const user = await registerAccount({ email: "player-admin-target@example.test" });
-    assert.equal(admin.statusCode, 201);
-    assert.equal(user.statusCode, 201);
-    assert.equal(admin.data.account.role, "admin");
-    assert.equal(user.data.account.role, "user");
+    await withEnv({
+      ADMIN_EMAILS: "admin-security@example.test",
+      ACCOUNT_ADMIN_EMAILS: undefined,
+    }, async () => {
+      const admin = await registerAccount({ email: "admin-security@example.test" });
+      const user = await registerAccount({ email: "player-admin-target@example.test" });
+      assert.equal(admin.statusCode, 201);
+      assert.equal(user.statusCode, 201);
+      assert.equal(admin.data.account.role, "admin");
+      assert.equal(user.data.account.role, "user");
 
-    const adminCookie = getCookieHeader(admin, SESSION_COOKIE_NAME);
-    const userCookie = getCookieHeader(user, SESSION_COOKIE_NAME);
-    const userId = user.data.account.id;
+      const adminCookie = getCookieHeader(admin, SESSION_COOKIE_NAME);
+      const userCookie = getCookieHeader(user, SESSION_COOKIE_NAME);
+      const userId = user.data.account.id;
 
-    const forbidden = await callAccountApi("/api/admin/accounts", {
-      cookie: userCookie,
-    });
-    assert.equal(forbidden.statusCode, 403);
+      const forbidden = await callAccountApi("/api/admin/accounts", {
+        cookie: userCookie,
+      });
+      assert.equal(forbidden.statusCode, 403);
 
-    const list = await callAccountApi("/api/admin/accounts", {
-      cookie: adminCookie,
-    });
-    assert.equal(list.statusCode, 200);
-    assert.ok(list.data.accounts.some((account) => account.email === "player-admin-target@example.test"));
+      const list = await callAccountApi("/api/admin/accounts", {
+        cookie: adminCookie,
+      });
+      assert.equal(list.statusCode, 200);
+      assert.ok(list.data.accounts.some((account) => account.email === "player-admin-target@example.test"));
 
-    const patched = await callAccountApi(`/api/admin/accounts/${userId}`, {
-      method: "PATCH",
-      cookie: adminCookie,
-      body: {
-        role: "admin",
-        characterLimitPerEdition: 1,
-      },
-    });
-    assert.equal(patched.statusCode, 200);
-    assert.equal(patched.data.account.role, "admin");
-    assert.equal(patched.data.account.characterLimitPerEdition, 1);
-
-    const created = await callAccountApi(`/api/admin/accounts/${userId}/characters`, {
-      method: "POST",
-      cookie: adminCookie,
-      body: {
-        edition: "5e",
-        payload: {
-          name: "Ficha recuperável",
-          summary: "Criada pelo admin",
-          snapshot: {},
+      const patched = await callAccountApi(`/api/admin/accounts/${userId}`, {
+        method: "PATCH",
+        cookie: adminCookie,
+        body: {
+          role: "admin",
+          characterLimitPerEdition: 1,
         },
-      },
-    });
-    assert.equal(created.statusCode, 200);
-    assert.equal(created.data.account.counts["5e"], 1);
-    const characterId = created.data.character.id;
+      });
+      assert.equal(patched.statusCode, 200);
+      assert.equal(patched.data.account.role, "admin");
+      assert.equal(patched.data.account.characterLimitPerEdition, 1);
 
-    const limitReached = await callAccountApi(`/api/admin/accounts/${userId}/characters`, {
-      method: "POST",
-      cookie: adminCookie,
-      body: {
-        edition: "5e",
-        payload: {
-          name: "Ficha bloqueada",
-          summary: "",
-          snapshot: {},
+      const created = await callAccountApi(`/api/admin/accounts/${userId}/characters`, {
+        method: "POST",
+        cookie: adminCookie,
+        body: {
+          edition: "5e",
+          payload: {
+            name: "Ficha recuperável",
+            summary: "Criada pelo admin",
+            snapshot: {},
+          },
         },
-      },
-    });
-    assert.equal(limitReached.statusCode, 400);
-    assert.match(limitReached.data.message, /Limite de 1/);
+      });
+      assert.equal(created.statusCode, 200);
+      assert.equal(created.data.account.counts["5e"], 1);
+      const characterId = created.data.character.id;
 
-    const deleted = await callAccountApi(`/api/admin/accounts/${userId}/characters`, {
-      method: "DELETE",
-      cookie: adminCookie,
-      body: {
-        edition: "5e",
-        characterId,
-      },
-    });
-    assert.equal(deleted.statusCode, 200);
-    assert.equal(deleted.data.account.counts["5e"], 0);
-    assert.equal(deleted.data.account.deletedCounts["5e"], 1);
-    assert.equal(deleted.data.deletedCharacter.id, characterId);
+      const limitReached = await callAccountApi(`/api/admin/accounts/${userId}/characters`, {
+        method: "POST",
+        cookie: adminCookie,
+        body: {
+          edition: "5e",
+          payload: {
+            name: "Ficha bloqueada",
+            summary: "",
+            snapshot: {},
+          },
+        },
+      });
+      assert.equal(limitReached.statusCode, 400);
+      assert.match(limitReached.data.message, /Limite de 1/);
 
-    const restored = await callAccountApi(`/api/admin/accounts/${userId}/characters/restore`, {
-      method: "POST",
-      cookie: adminCookie,
-      body: {
-        edition: "5e",
-        characterId,
-      },
+      const deleted = await callAccountApi(`/api/admin/accounts/${userId}/characters`, {
+        method: "DELETE",
+        cookie: adminCookie,
+        body: {
+          edition: "5e",
+          characterId,
+        },
+      });
+      assert.equal(deleted.statusCode, 200);
+      assert.equal(deleted.data.account.counts["5e"], 0);
+      assert.equal(deleted.data.account.deletedCounts["5e"], 1);
+      assert.equal(deleted.data.deletedCharacter.id, characterId);
+
+      const restored = await callAccountApi(`/api/admin/accounts/${userId}/characters/restore`, {
+        method: "POST",
+        cookie: adminCookie,
+        body: {
+          edition: "5e",
+          characterId,
+        },
+      });
+      assert.equal(restored.statusCode, 200);
+      assert.equal(restored.data.account.counts["5e"], 1);
+      assert.equal(restored.data.account.deletedCounts["5e"], 0);
+      assert.equal(restored.data.character.id, characterId);
     });
-    assert.equal(restored.statusCode, 200);
-    assert.equal(restored.data.account.counts["5e"], 1);
-    assert.equal(restored.data.account.deletedCounts["5e"], 0);
-    assert.equal(restored.data.character.id, characterId);
+  });
+});
+
+test("admin bootstrap uses configured emails and keeps stored admin roles", async () => {
+  await withAccountStore(async () => {
+    await withEnv({
+      ADMIN_EMAILS: undefined,
+      ACCOUNT_ADMIN_EMAILS: undefined,
+    }, async () => {
+      const legacyHardcoded = await registerAccount({ email: "basso_0@hotmail.com" });
+      assert.equal(legacyHardcoded.statusCode, 201);
+      assert.equal(legacyHardcoded.data.account.role, "user");
+    });
+
+    await withEnv({
+      ADMIN_EMAILS: "env-admin@example.test, Second-Admin@Example.Test",
+      ACCOUNT_ADMIN_EMAILS: undefined,
+    }, async () => {
+      const configuredAdmin = await registerAccount({ email: "env-admin@example.test" });
+      const caseNormalizedAdmin = await registerAccount({ email: "second-admin@example.test" });
+      assert.equal(configuredAdmin.statusCode, 201);
+      assert.equal(caseNormalizedAdmin.statusCode, 201);
+      assert.equal(configuredAdmin.data.account.role, "admin");
+      assert.equal(caseNormalizedAdmin.data.account.role, "admin");
+
+      const configuredAdminCookie = getCookieHeader(configuredAdmin, SESSION_COOKIE_NAME);
+
+      await withEnv({
+        ADMIN_EMAILS: undefined,
+        ACCOUNT_ADMIN_EMAILS: undefined,
+      }, async () => {
+        const current = await callAccountApi("/api/account/current", {
+          cookie: configuredAdminCookie,
+        });
+        assert.equal(current.statusCode, 200);
+        assert.equal(current.data.account.role, "admin");
+      });
+    });
   });
 });
 
