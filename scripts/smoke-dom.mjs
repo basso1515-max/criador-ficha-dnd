@@ -34,6 +34,17 @@ const smokePages = [
     selectors: ["#userPageGuest", "#userPageContent", "#userPageAuthLink"],
   },
   {
+    name: "admin",
+    path: "/admin.html",
+    selectors: [
+      "#adminPageGuest",
+      "#adminPageContent",
+      "#adminAccountList",
+      "#adminAccountForm",
+      "#adminDeletedCharacters",
+    ],
+  },
+  {
     name: "5e",
     path: "/5e.html",
     selectors: [

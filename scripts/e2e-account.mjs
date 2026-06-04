@@ -75,6 +75,7 @@ async function main() {
   const serverPort = await getFreePort();
   const baseUrl = `http://${HOST}:${serverPort}`;
   tempDataDir = await mkdtemp(path.join(tmpdir(), "dnd-e2e-data-"));
+  const adminEmail = `admin-e2e-${Date.now()}@example.test`;
 
   const server = spawnChild(process.execPath, ["scripts/serve.mjs"], {
     env: {
@@ -84,6 +85,7 @@ async function main() {
       SERVER_DATA_DIR: tempDataDir,
       ACCOUNT_EMAIL_DEBUG_RESPONSE: "1",
       ACCOUNT_PUBLIC_BASE_URL: PRODUCTION_ACCOUNT_BASE_URL,
+      ACCOUNT_ADMIN_EMAILS: adminEmail,
       ...OAUTH_TEST_ENV,
     },
     stdio: ["ignore", "pipe", "pipe"],
@@ -366,6 +368,8 @@ async function main() {
   assert(weaponsAllTime.bordao === 1, "Estatísticas deveriam contar arma inicial estável do payload 5e.");
   assert(communityStats.data.privacy?.mode === "anonymous-aggregates", "Endpoint de estatísticas deve declarar agregação anônima.");
 
+  await assertAdminAccountManagementFlow(baseUrl, adminEmail);
+
   const deletedCharacter = await requestJson(baseUrl, "/api/characters", {
     method: "DELETE",
     jar,
@@ -516,6 +520,7 @@ async function main() {
     "salvamento e overwrite de personagem 5e",
     "migração duplicate e transfer para 5.5e",
     "estatísticas públicas anônimas",
+    "admin: promoção, limite e recuperação de personagem apagado",
     "exclusão de personagem",
     "atualização de perfil e senha",
     "recuperação de senha por e-mail",
@@ -523,6 +528,151 @@ async function main() {
   ].forEach((line) => console.log(`OK: ${line}`));
 
   terminateChild(server);
+}
+
+async function assertAdminAccountManagementFlow(baseUrl, adminEmail) {
+  const adminJar = new CookieJar();
+  const managedJar = new CookieJar();
+  const adminPassword = "SenhaE2E!Admin123456";
+  const managedPassword = "SenhaE2E!Managed123456";
+  const managedEmail = `managed-${Date.now()}@example.test`;
+
+  const managedRegistration = await requestJson(baseUrl, "/api/accounts/register", {
+    method: "POST",
+    jar: managedJar,
+    body: {
+      displayName: "Conta Gerenciada E2E",
+      email: managedEmail,
+      password: managedPassword,
+    },
+  });
+  assert(managedRegistration.data.account?.role === "user", "Conta gerenciada deveria começar como usuário comum.");
+
+  const forbiddenAdminList = await requestJson(baseUrl, "/api/admin/accounts", {
+    jar: managedJar,
+    expectedStatus: 403,
+  });
+  assert(forbiddenAdminList.statusCode === 403, "Usuário comum não deveria listar contas administrativas.");
+
+  const adminRegistration = await requestJson(baseUrl, "/api/accounts/register", {
+    method: "POST",
+    jar: adminJar,
+    body: {
+      displayName: "Admin E2E",
+      email: adminEmail,
+      password: adminPassword,
+    },
+  });
+  const adminAccount = adminRegistration.data.account;
+  assert(adminAccount?.role === "admin", "E-mail admin configurado deveria criar conta administradora.");
+
+  const accounts = await requestJson(baseUrl, "/api/admin/accounts", { jar: adminJar });
+  const managedSummary = accounts.data.accounts?.find((account) => account.email === managedEmail);
+  assert(managedSummary?.id, "Listagem admin deveria incluir a conta gerenciada.");
+
+  const promoted = await requestJson(baseUrl, `/api/admin/accounts/${managedSummary.id}`, {
+    method: "PATCH",
+    jar: adminJar,
+    body: {
+      role: "admin",
+      characterLimitPerEdition: 1,
+    },
+  });
+  assert(promoted.data.account?.role === "admin", "Admin deveria promover a conta gerenciada.");
+  assert(promoted.data.account?.characterLimitPerEdition === 1, "Admin deveria reduzir o limite por edição para 1.");
+
+  const managedCurrent = await requestJson(baseUrl, "/api/account/current", { jar: managedJar });
+  assert(managedCurrent.data.account?.role === "admin", "Sessão da conta promovida deveria refletir permissão admin.");
+  assert(managedCurrent.data.account?.characterLimitPerEdition === 1, "Sessão da conta promovida deveria refletir limite ajustado.");
+
+  const promotedAdminList = await requestJson(baseUrl, "/api/admin/accounts", { jar: managedJar });
+  assert(
+    promotedAdminList.data.accounts?.some((account) => account.email === adminEmail),
+    "Conta promovida deveria conseguir acessar a listagem admin."
+  );
+
+  const firstCharacter = await requestJson(baseUrl, "/api/characters", {
+    method: "POST",
+    jar: managedJar,
+    body: {
+      edition: "5e",
+      payload: makeE2eCharacterPayload("Arin do Limite", "Guerreiro 1 - limite admin", 1),
+    },
+  });
+  assert(firstCharacter.data.account.characters["5e"].length === 1, "Conta gerenciada deveria salvar o primeiro personagem.");
+
+  const rejectedSecondCharacter = await requestJson(baseUrl, "/api/characters", {
+    method: "POST",
+    jar: managedJar,
+    expectedStatus: 400,
+    body: {
+      edition: "5e",
+      payload: makeE2eCharacterPayload("Bryn Bloqueado", "Mago 1 - bloqueado pelo limite", 1),
+    },
+  });
+  assert(rejectedSecondCharacter.statusCode === 400, "Limite administrativo reduzido deveria bloquear segundo personagem.");
+
+  const increasedLimit = await requestJson(baseUrl, `/api/admin/accounts/${managedSummary.id}`, {
+    method: "PATCH",
+    jar: adminJar,
+    body: {
+      characterLimitPerEdition: 2,
+    },
+  });
+  assert(increasedLimit.data.account?.characterLimitPerEdition === 2, "Admin deveria aumentar o limite por edição para 2.");
+
+  const secondCharacter = await requestJson(baseUrl, "/api/characters", {
+    method: "POST",
+    jar: managedJar,
+    body: {
+      edition: "5e",
+      payload: makeE2eCharacterPayload("Bryn Restaurável", "Mago 1 - recuperação admin", 1),
+    },
+  });
+  assert(secondCharacter.data.account.characters["5e"].length === 2, "Limite aumentado deveria permitir o segundo personagem.");
+
+  const deletedByAdmin = await requestJson(baseUrl, `/api/admin/accounts/${managedSummary.id}/characters`, {
+    method: "DELETE",
+    jar: adminJar,
+    body: {
+      edition: "5e",
+      characterId: firstCharacter.data.character.id,
+    },
+  });
+  assert(deletedByAdmin.data.account.characters["5e"].length === 1, "Remoção admin deveria tirar o personagem da lista ativa.");
+  assert(deletedByAdmin.data.account.deletedCharacters["5e"].length === 1, "Remoção admin deveria enviar o personagem para a lixeira.");
+  assert(deletedByAdmin.data.deletedCharacter?.deletedByAccountId === adminAccount.id, "Lixeira deveria registrar o admin que apagou.");
+
+  const restoredByAdmin = await requestJson(baseUrl, `/api/admin/accounts/${managedSummary.id}/characters/restore`, {
+    method: "POST",
+    jar: adminJar,
+    body: {
+      edition: "5e",
+      characterId: firstCharacter.data.character.id,
+    },
+  });
+  assert(restoredByAdmin.data.character?.id === firstCharacter.data.character.id, "Recuperação admin deveria retornar o personagem restaurado.");
+  assert(restoredByAdmin.data.account.characters["5e"].length === 2, "Recuperação admin deveria devolver o personagem à lista ativa.");
+  assert(restoredByAdmin.data.account.deletedCharacters["5e"].length === 0, "Recuperação admin deveria limpar a lixeira.");
+
+  const restoredCurrent = await requestJson(baseUrl, "/api/account/current", { jar: managedJar });
+  assert(restoredCurrent.data.account.characters["5e"].length === 2, "Conta gerenciada deveria enxergar o personagem recuperado.");
+  assert(restoredCurrent.data.account.deletedCharacters["5e"].length === 0, "Conta gerenciada não deveria manter lixeira após recuperação admin.");
+}
+
+function makeE2eCharacterPayload(name, summary, level) {
+  return {
+    name,
+    summary,
+    snapshot: {
+      edition: "5e",
+      fields: {
+        nome: name,
+        classe: "guerreiro",
+        nivel: level,
+      },
+    },
+  };
 }
 
 function assertCommunityStatsFallbackForOldSnapshots() {
