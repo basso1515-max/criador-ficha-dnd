@@ -15120,7 +15120,7 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
 
     return {
       options: {
-        flatten: false,
+        flatten: true,
         dataUri: false,
         debug: false,
       },
