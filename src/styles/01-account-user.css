@@ -750,7 +750,8 @@ body[data-active-screen="user-page"] .account-page-status:not(:empty) {
 }
 
 .user-page-overview,
-.saved-library-panel {
+.saved-library-panel,
+.user-trash-panel {
   display: grid;
   gap: 16px;
 }
@@ -800,11 +801,14 @@ body[data-active-screen="user-page"] .account-page-status:not(:empty) {
 .user-page-title-row p,
 .saved-library-heading h2,
 .saved-library-heading p,
+.user-trash-heading h2,
+.user-trash-heading p,
 .user-page-character-item p,
 .user-page-account-card p,
 .user-page-edition-heading h3,
 .user-page-edition-heading p,
-.user-page-edition-empty p {
+.user-page-edition-empty p,
+.user-page-deleted-empty p {
   margin: 0;
 }
 
@@ -1162,6 +1166,35 @@ body[data-active-screen="user-page"] .account-page-status:not(:empty) {
   border: 1px solid rgba(90, 62, 36, 0.18);
   border-radius: 8px;
   background: rgba(255, 250, 238, 0.48);
+}
+
+.user-page-character-item--deleted {
+  border-color: rgba(139, 47, 32, 0.24);
+  background: rgba(255, 246, 238, 0.58);
+}
+
+.user-page-deleted-list {
+  display: grid;
+  gap: 10px;
+}
+
+.user-page-deleted-empty {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  border: 1px dashed rgba(139, 47, 32, 0.24);
+  border-radius: 8px;
+  background: rgba(255, 246, 238, 0.42);
+}
+
+.user-page-deleted-empty strong {
+  color: #8b2f20;
+  font-size: 17px;
+}
+
+.user-page-deleted-empty p {
+  color: var(--muted);
+  line-height: 1.4;
 }
 
 .user-page-edition-empty {

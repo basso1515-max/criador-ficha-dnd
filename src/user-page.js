@@ -6,9 +6,12 @@ import {
   getCurrentUser,
   hydrateAccountStorage,
   listCharactersForCurrentUser,
+  listDeletedCharactersForCurrentUser,
   migrateCharacterVersionForCurrentUser,
   logoutAccount,
+  purgeDeletedCharacterForCurrentUser,
   requestEmailVerification,
+  restoreDeletedCharacterForCurrentUser,
   unlinkAuthProviderForCurrentUser,
   updateCurrentAccount,
 } from "./account-storage.js";
@@ -73,6 +76,9 @@ const el = {
   libraryStatus: document.getElementById("userPageLibraryStatus"),
   empty: document.getElementById("userPageEmpty"),
   list: document.getElementById("userPageCharacterList"),
+  trashTotal: document.getElementById("userPageTrashTotal"),
+  trashStatus: document.getElementById("userPageTrashStatus"),
+  deletedList: document.getElementById("userPageDeletedCharacterList"),
   logout: document.getElementById("userPageLogout"),
   profileForm: document.getElementById("userProfileForm"),
   passwordForm: document.getElementById("userPasswordForm"),
@@ -174,6 +180,8 @@ function renderUserPage() {
   const counts = getAccountCounts();
   const charactersByEdition = getCharactersByEdition();
   const characters = EDITION_ORDER.flatMap((edition) => charactersByEdition[edition]);
+  const deletedCharactersByEdition = getDeletedCharactersByEdition();
+  const deletedCharacters = sortDeletedCharacters(EDITION_ORDER.flatMap((edition) => deletedCharactersByEdition[edition]));
   const visibleEditions = libraryFilters.edition === "all" ? EDITION_ORDER : [libraryFilters.edition];
   const filteredCharactersByEdition = getFilteredCharactersByEdition(charactersByEdition);
   const filteredCharacters = visibleEditions.flatMap((edition) => filteredCharactersByEdition[edition] || []);
@@ -232,11 +240,18 @@ function renderUserPage() {
       .map((edition) => renderEditionSection(edition, filteredCharactersByEdition[edition] || [], counts[edition], characterLimit))
       .join("");
   }
+  renderDeletedCharacters(deletedCharacters);
 }
 
 function getCharactersByEdition() {
   return Object.fromEntries(
     EDITION_ORDER.map((edition) => [edition, listCharactersForCurrentUser(edition)])
+  );
+}
+
+function getDeletedCharactersByEdition() {
+  return Object.fromEntries(
+    EDITION_ORDER.map((edition) => [edition, listDeletedCharactersForCurrentUser(edition)])
   );
 }
 
@@ -273,6 +288,14 @@ function sortCharacters(characters) {
     const rightTime = Number(new Date(right.updatedAt || right.createdAt || 0));
     const direction = libraryFilters.sort === "updated-asc" ? 1 : -1;
     return (leftTime - rightTime) * direction;
+  });
+}
+
+function sortDeletedCharacters(characters) {
+  return [...characters].sort((left, right) => {
+    const leftTime = Number(new Date(left.deletedAt || 0));
+    const rightTime = Number(new Date(right.deletedAt || 0));
+    return rightTime - leftTime;
   });
 }
 
@@ -544,6 +567,50 @@ function renderEditionFilteredEmptyState(meta) {
   `;
 }
 
+function renderDeletedCharacters(characters) {
+  const total = characters.length;
+  if (el.trashTotal) el.trashTotal.textContent = `${total} ${total === 1 ? "apagado" : "apagados"}`;
+  if (el.trashStatus) {
+    el.trashStatus.textContent = total
+      ? `${total} ${total === 1 ? "personagem apagado nos últimos 2 dias" : "personagens apagados nos últimos 2 dias"}.`
+      : "Nenhum personagem apagado nos últimos 2 dias.";
+  }
+  if (!el.deletedList) return;
+
+  el.deletedList.innerHTML = total
+    ? characters.map(renderDeletedCharacterCard).join("")
+    : `
+      <div class="user-page-deleted-empty">
+        <strong>Lixeira vazia</strong>
+        <p>Personagens apagados recentemente aparecerão aqui.</p>
+      </div>
+    `;
+}
+
+function renderDeletedCharacterCard(character) {
+  const meta = EDITION_META[character.edition] || EDITION_META["5e"];
+  const summary = character.summary || "Sem resumo principal.";
+  const deletedAt = formatDate(character.deletedAt);
+  const expiryLabel = formatExpiryLabel(character.expiresAt);
+
+  return `
+    <article class="user-page-character-item user-page-character-item--deleted">
+      <div class="user-page-character-heading">
+        <div>
+          <strong>${escapeHtml(character.name)}</strong>
+          <span>Apagado em ${escapeHtml(deletedAt)} · ${escapeHtml(expiryLabel)}</span>
+        </div>
+        <span class="edition-pill">${escapeHtml(meta.shortLabel)}</span>
+      </div>
+      <p>${escapeHtml(summary)}</p>
+      <div class="saved-character-actions">
+        <button type="button" class="secondary-button" data-user-character-restore="${escapeHtml(character.id)}" data-edition="${escapeHtml(character.edition)}">Recuperar</button>
+        <button type="button" class="danger-button" data-user-character-purge="${escapeHtml(character.id)}" data-edition="${escapeHtml(character.edition)}">Excluir definitivamente</button>
+      </div>
+    </article>
+  `;
+}
+
 el.logout?.addEventListener("click", async () => {
   await logoutAccount();
   renderUserPage();
@@ -654,14 +721,41 @@ el.list?.addEventListener("click", async (event) => {
 
   const characterId = button.getAttribute("data-user-character-delete");
   const edition = button.getAttribute("data-edition");
-  if (!window.confirm("Excluir este personagem salvo?")) return;
+  if (!window.confirm("Mover este personagem para a lixeira?")) return;
 
   try {
     await deleteCharacterForCurrentUser(edition, characterId);
     renderUserPage();
-    setStatus("Personagem excluído.", "success");
+    setStatus("Personagem movido para a lixeira.", "success");
   } catch (error) {
     setStatus(error?.message || "Não foi possível excluir o personagem.", "warning");
+  }
+});
+
+el.deletedList?.addEventListener("click", async (event) => {
+  const restoreButton = event.target.closest("[data-user-character-restore]");
+  const purgeButton = event.target.closest("[data-user-character-purge]");
+  const button = restoreButton || purgeButton;
+  if (!button) return;
+
+  const edition = button.getAttribute("data-edition");
+
+  try {
+    if (restoreButton) {
+      const characterId = restoreButton.getAttribute("data-user-character-restore");
+      const character = await restoreDeletedCharacterForCurrentUser(edition, characterId);
+      renderUserPage();
+      setStatus(`Personagem recuperado: ${character.name}.`, "success");
+      return;
+    }
+
+    const characterId = purgeButton.getAttribute("data-user-character-purge");
+    if (!window.confirm("Excluir definitivamente este personagem?")) return;
+    await purgeDeletedCharacterForCurrentUser(edition, characterId);
+    renderUserPage();
+    setStatus("Personagem excluído definitivamente.", "success");
+  } catch (error) {
+    setStatus(error?.message || "Não foi possível atualizar a lixeira.", "warning");
   }
 });
 
@@ -861,6 +955,20 @@ function formatDateOnly(value) {
   } catch {
     return date.toLocaleDateString();
   }
+}
+
+function formatExpiryLabel(value) {
+  const expiresAt = Number(new Date(value || 0));
+  if (!Number.isFinite(expiresAt) || expiresAt <= 0) return "expiração indefinida";
+
+  const remainingMs = expiresAt - Date.now();
+  if (remainingMs <= 0) return "expirado";
+
+  const hours = Math.ceil(remainingMs / (60 * 60 * 1000));
+  if (hours < 24) return `expira em ${hours} ${hours === 1 ? "hora" : "horas"}`;
+
+  const days = Math.ceil(hours / 24);
+  return `expira em ${days} ${days === 1 ? "dia" : "dias"}`;
 }
 
 function getInitials(value) {

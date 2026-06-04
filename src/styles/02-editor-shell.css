@@ -146,7 +146,8 @@
 }
 
 .saved-character-actions .secondary-button,
-.saved-character-actions .ghost-button {
+.saved-character-actions .ghost-button,
+.saved-character-actions .danger-button {
   min-height: 38px;
   padding: 8px 10px;
 }
@@ -811,7 +812,8 @@ button:hover { border-color: #5a3e24; }
   .account-submit-button,
   .user-save-controls .secondary-button,
   .saved-character-actions .secondary-button,
-  .saved-character-actions .ghost-button {
+  .saved-character-actions .ghost-button,
+  .saved-character-actions .danger-button {
     width: 100%;
   }
 

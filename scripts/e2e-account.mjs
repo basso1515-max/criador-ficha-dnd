@@ -375,6 +375,39 @@ async function main() {
     },
   });
   assert(deletedCharacter.data.account.characters["5.5e-2024"].length === 1, "Exclusão de personagem não atualizou a lista.");
+  assert(deletedCharacter.data.account.deletedCharacters["5.5e-2024"].length === 1, "Lixeira do usuário não recebeu personagem apagado.");
+
+  const restoredCharacter = await requestJson(baseUrl, "/api/characters/restore", {
+    method: "POST",
+    jar,
+    body: {
+      edition: "5.5e-2024",
+      characterId: duplicateTarget.id,
+    },
+  });
+  assert(restoredCharacter.data.account.characters["5.5e-2024"].length === 2, "Recuperação não devolveu personagem à lista.");
+  assert(restoredCharacter.data.account.deletedCharacters["5.5e-2024"].length === 0, "Recuperação não removeu personagem da lixeira.");
+
+  const deletedRestoredCharacter = await requestJson(baseUrl, "/api/characters", {
+    method: "DELETE",
+    jar,
+    body: {
+      edition: "5.5e-2024",
+      characterId: duplicateTarget.id,
+    },
+  });
+  assert(deletedRestoredCharacter.data.account.deletedCharacters["5.5e-2024"].length === 1, "Segunda exclusão não retornou personagem à lixeira.");
+
+  const purgedCharacter = await requestJson(baseUrl, "/api/deleted-characters", {
+    method: "DELETE",
+    jar,
+    body: {
+      edition: "5.5e-2024",
+      characterId: duplicateTarget.id,
+    },
+  });
+  assert(purgedCharacter.data.account.characters["5.5e-2024"].length === 1, "Exclusão definitiva não deveria restaurar personagem.");
+  assert(purgedCharacter.data.account.deletedCharacters["5.5e-2024"].length === 0, "Exclusão definitiva não limpou a lixeira.");
 
   const updatedProfile = await requestJson(baseUrl, "/api/account/current", {
     method: "PATCH",

@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { EventEmitter } from "node:events";
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
@@ -292,18 +292,153 @@ test("admin bootstrap uses configured emails and keeps stored admin roles", asyn
   });
 });
 
+test("user can manage only recently deleted own characters", async () => {
+  await withAccountStore(async ({ accountsFile }) => {
+    const registered = await registerAccount({ email: "player-trash@example.test" });
+    assert.equal(registered.statusCode, 201);
+    const cookie = getCookieHeader(registered, SESSION_COOKIE_NAME);
+
+    const created = await callAccountApi("/api/characters", {
+      method: "POST",
+      cookie,
+      body: {
+        edition: "5e",
+        payload: {
+          name: "Ficha da lixeira",
+          summary: "Recuperável pelo usuário",
+          snapshot: {},
+        },
+      },
+    });
+    assert.equal(created.statusCode, 200);
+    const characterId = created.data.character.id;
+
+    const deleted = await callAccountApi("/api/characters", {
+      method: "DELETE",
+      cookie,
+      body: {
+        edition: "5e",
+        characterId,
+      },
+    });
+    assert.equal(deleted.statusCode, 200);
+    assert.equal(deleted.data.account.characters["5e"].length, 0);
+    assert.equal(deleted.data.account.deletedCharacters["5e"].length, 1);
+
+    const restored = await callAccountApi("/api/characters/restore", {
+      method: "POST",
+      cookie,
+      body: {
+        edition: "5e",
+        characterId,
+      },
+    });
+    assert.equal(restored.statusCode, 200);
+    assert.equal(restored.data.account.characters["5e"].length, 1);
+    assert.equal(restored.data.account.deletedCharacters["5e"].length, 0);
+    assert.equal(restored.data.character.id, characterId);
+
+    const deletedAgain = await callAccountApi("/api/characters", {
+      method: "DELETE",
+      cookie,
+      body: {
+        edition: "5e",
+        characterId,
+      },
+    });
+    assert.equal(deletedAgain.statusCode, 200);
+    assert.equal(deletedAgain.data.account.deletedCharacters["5e"].length, 1);
+
+    const purged = await callAccountApi("/api/deleted-characters", {
+      method: "DELETE",
+      cookie,
+      body: {
+        edition: "5e",
+        characterId,
+      },
+    });
+    assert.equal(purged.statusCode, 200);
+    assert.equal(purged.data.account.characters["5e"].length, 0);
+    assert.equal(purged.data.account.deletedCharacters["5e"].length, 0);
+
+    const staleCreated = await callAccountApi("/api/characters", {
+      method: "POST",
+      cookie,
+      body: {
+        edition: "5e",
+        payload: {
+          name: "Ficha antiga na retenção",
+          summary: "Fora da janela do usuário",
+          snapshot: {},
+        },
+      },
+    });
+    assert.equal(staleCreated.statusCode, 200);
+    const staleCharacterId = staleCreated.data.character.id;
+
+    const staleDeleted = await callAccountApi("/api/characters", {
+      method: "DELETE",
+      cookie,
+      body: {
+        edition: "5e",
+        characterId: staleCharacterId,
+      },
+    });
+    assert.equal(staleDeleted.statusCode, 200);
+
+    await mutateStoredAccount(accountsFile, registered.data.account.id, (account) => {
+      const staleDeletedCharacter = account.deletedCharacters["5e"].find((character) => character.id === staleCharacterId);
+      staleDeletedCharacter.deletedAt = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString();
+      staleDeletedCharacter.expiresAt = new Date(Date.now() + 12 * 24 * 60 * 60 * 1000).toISOString();
+    });
+
+    const current = await callAccountApi("/api/account/current", { cookie });
+    assert.equal(current.statusCode, 200);
+    assert.equal(current.data.account.deletedCharacters["5e"].length, 0);
+
+    const staleRestore = await callAccountApi("/api/characters/restore", {
+      method: "POST",
+      cookie,
+      body: {
+        edition: "5e",
+        characterId: staleCharacterId,
+      },
+    });
+    assert.equal(staleRestore.statusCode, 404);
+
+    const stalePurge = await callAccountApi("/api/deleted-characters", {
+      method: "DELETE",
+      cookie,
+      body: {
+        edition: "5e",
+        characterId: staleCharacterId,
+      },
+    });
+    assert.equal(stalePurge.statusCode, 404);
+  });
+});
+
 async function withAccountStore(callback) {
   const dataDir = await mkdtemp(path.join(tmpdir(), "dnd-account-security-"));
+  const accountsFile = path.join(dataDir, "accounts.json");
   configureAccountApiStore(createLocalJsonAccountStore({
-    accountsFile: path.join(dataDir, "accounts.json"),
+    accountsFile,
   }));
 
   try {
-    return await callback();
+    return await callback({ accountsFile, dataDir });
   } finally {
     configureAccountApiStore(null);
     await rm(dataDir, { recursive: true, force: true });
   }
+}
+
+async function mutateStoredAccount(accountsFile, accountId, mutator) {
+  const store = JSON.parse(await readFile(accountsFile, "utf8"));
+  const account = store.accounts.find((item) => item.id === accountId);
+  assert.ok(account, "Conta não encontrada no arquivo local.");
+  mutator(account);
+  await writeFile(accountsFile, JSON.stringify(store, null, 2));
 }
 
 async function withEnv(values, callback) {

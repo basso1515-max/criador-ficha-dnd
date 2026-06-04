@@ -206,6 +206,7 @@ html[data-theme="dark"] .user-page-stats span,
 html[data-theme="dark"] .user-page-edition-section,
 html[data-theme="dark"] .user-page-edition-heading strong,
 html[data-theme="dark"] .user-page-edition-empty,
+html[data-theme="dark"] .user-page-deleted-empty,
 html[data-theme="dark"] .user-page-character-item,
 html[data-theme="dark"] .edition-pill,
 html[data-theme="dark"] .saved-character-item,
@@ -299,6 +300,7 @@ html[data-theme="dark"] .account-current-panel,
 html[data-theme="dark"] .account-section-panel,
 html[data-theme="dark"] .legal-page-panel,
 html[data-theme="dark"] .saved-library-panel,
+html[data-theme="dark"] .user-trash-panel,
 html[data-theme="dark"] .user-page-overview,
 html[data-theme="dark"] .user-page-edition-section,
 html[data-theme="dark"] .user-page-account-card,
@@ -508,7 +510,9 @@ html[data-theme="dark"] .admin-attention-chip {
 }
 
 html[data-theme="dark"] .admin-edition-usage-item.is-over-limit,
-html[data-theme="dark"] .admin-character-item--deleted {
+html[data-theme="dark"] .admin-character-item--deleted,
+html[data-theme="dark"] .user-page-character-item--deleted,
+html[data-theme="dark"] .user-page-deleted-empty {
   border-color: rgba(255, 143, 125, 0.36);
   background:
     radial-gradient(circle at top left, rgba(255, 143, 125, 0.13), transparent 32%),

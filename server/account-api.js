@@ -34,6 +34,8 @@ const MAX_STORED_CHARACTERS_PER_EDITION = 200;
 const MAX_DELETED_CHARACTERS_PER_EDITION = 200;
 const DELETED_CHARACTER_RETENTION_DAYS = 15;
 const DELETED_CHARACTER_RETENTION_MS = DELETED_CHARACTER_RETENTION_DAYS * 24 * 60 * 60 * 1000;
+const USER_DELETED_CHARACTER_VISIBLE_DAYS = 2;
+const USER_DELETED_CHARACTER_VISIBLE_MS = USER_DELETED_CHARACTER_VISIBLE_DAYS * 24 * 60 * 60 * 1000;
 const EDITIONS = ["5e", "5.5e-2024"];
 const ACCOUNT_ROLE_USER = "user";
 const ACCOUNT_ROLE_ADMIN = "admin";
@@ -600,6 +602,7 @@ function toClientAccount(account) {
     })),
     createdAt: account.createdAt,
     characters: normalizeCharacters(account.characters),
+    deletedCharacters: getUserVisibleDeletedCharacters(account),
   };
 }
 
@@ -856,6 +859,32 @@ function purgeDeletedCharacter(account, edition, characterId) {
     throw new HttpError(404, "Personagem apagado não encontrado ou expirado.");
   }
   account.deletedCharacters[edition] = nextTrash;
+}
+
+function getUserVisibleDeletedCharacters(account) {
+  const deletedCharacters = normalizeDeletedCharacters(account.deletedCharacters);
+  const now = Date.now();
+  return Object.fromEntries(EDITIONS.map((edition) => [
+    edition,
+    deletedCharacters[edition].filter((character) => isUserVisibleDeletedCharacter(character, now)),
+  ]));
+}
+
+function isUserVisibleDeletedCharacter(character, now = Date.now()) {
+  const deletedAt = Date.parse(character?.deletedAt || "");
+  const expiresAt = Date.parse(character?.expiresAt || "");
+  return Number.isFinite(deletedAt)
+    && deletedAt >= now - USER_DELETED_CHARACTER_VISIBLE_MS
+    && Number.isFinite(expiresAt)
+    && expiresAt > now;
+}
+
+function assertUserVisibleDeletedCharacter(account, edition, characterId) {
+  const character = getDeletedEditionBucket(account, edition)
+    .find((item) => item.id === characterId);
+  if (!character || !isUserVisibleDeletedCharacter(character)) {
+    throw new HttpError(404, "Personagem apagado não encontrado ou expirado.");
+  }
 }
 
 function sanitizeCharacterName(name) {
@@ -1163,14 +1192,18 @@ function validateCharacterMigrationBody(body) {
   };
 }
 
-function validateCharacterDeleteBody(body) {
-  const input = assertRequestBody(body, ["edition", "characterId"], ["edition", "characterId"], "Exclusão do personagem");
+function validateCharacterTargetBody(body, label = "Personagem") {
+  const input = assertRequestBody(body, ["edition", "characterId"], ["edition", "characterId"], label);
   const characterId = readOptionalRecordId(input.characterId, "character", "Personagem");
   if (!characterId) throw new HttpError(400, "Personagem inválido.");
   return {
     edition: assertEditionInput(input.edition),
     characterId,
   };
+}
+
+function validateCharacterDeleteBody(body) {
+  return validateCharacterTargetBody(body, "Exclusão do personagem");
 }
 
 function validateAdminCharacterAddBody(body) {
@@ -1183,13 +1216,7 @@ function validateAdminCharacterAddBody(body) {
 }
 
 function validateAdminCharacterTargetBody(body, label = "Personagem") {
-  const input = assertRequestBody(body, ["edition", "characterId"], ["edition", "characterId"], label);
-  const characterId = readOptionalRecordId(input.characterId, "character", "Personagem");
-  if (!characterId) throw new HttpError(400, "Personagem inválido.");
-  return {
-    edition: assertEditionInput(input.edition),
-    characterId,
-  };
+  return validateCharacterTargetBody(body, label);
 }
 
 function assertEditionInput(edition) {
@@ -2425,6 +2452,26 @@ async function handleAccountApiInternal(req, res, pathname) {
     const input = validateCharacterDeleteBody(body);
     const { account } = await requireAuthenticatedAccount(redis, req);
     softDeleteCharacter(account, input.edition, input.characterId, account.id);
+    await saveAccount(redis, account);
+    sendJson(res, 200, { account: toClientAccount(account) });
+    return;
+  }
+
+  if (method === "POST" && pathname === "/api/characters/restore") {
+    const input = validateCharacterTargetBody(body, "Recuperação do personagem");
+    const { account } = await requireAuthenticatedAccount(redis, req);
+    assertUserVisibleDeletedCharacter(account, input.edition, input.characterId);
+    const character = restoreDeletedCharacter(account, input.edition, input.characterId);
+    await saveAccount(redis, account);
+    sendJson(res, 200, { account: toClientAccount(account), character });
+    return;
+  }
+
+  if (method === "DELETE" && pathname === "/api/deleted-characters") {
+    const input = validateCharacterTargetBody(body, "Exclusão definitiva de personagem");
+    const { account } = await requireAuthenticatedAccount(redis, req);
+    assertUserVisibleDeletedCharacter(account, input.edition, input.characterId);
+    purgeDeletedCharacter(account, input.edition, input.characterId);
     await saveAccount(redis, account);
     sendJson(res, 200, { account: toClientAccount(account) });
     return;

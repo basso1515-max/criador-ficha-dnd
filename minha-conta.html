@@ -123,6 +123,7 @@
 
           <nav class="user-page-section-nav" aria-label="Navegação da conta">
             <a href="#userLibrary">Biblioteca</a>
+            <a href="#userTrash">Lixeira</a>
             <a href="#userSettings">Configurações</a>
             <a href="./privacidade.html">Privacidade</a>
           </nav>
@@ -165,6 +166,18 @@
           <p id="userPageLibraryStatus" class="saved-library-result-status" aria-live="polite"></p>
           <p id="userPageEmpty" class="note subtle">Nenhum personagem salvo ainda.</p>
           <div id="userPageCharacterList" class="user-page-character-list"></div>
+        </section>
+
+        <section id="userTrash" class="account-section-panel user-trash-panel" aria-label="Lixeira de personagens">
+          <div class="account-section-heading user-trash-heading">
+            <div>
+              <span>Lixeira</span>
+              <h2>Personagens apagados</h2>
+            </div>
+            <strong id="userPageTrashTotal" class="saved-library-total">0 apagados</strong>
+          </div>
+          <p id="userPageTrashStatus" class="saved-library-result-status" aria-live="polite"></p>
+          <div id="userPageDeletedCharacterList" class="user-page-deleted-list"></div>
         </section>
 
         <section id="userSettings" class="account-section-panel user-settings-panel" aria-label="Gerenciar conta">

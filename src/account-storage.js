@@ -27,6 +27,13 @@ export const ACCOUNT_ROLE_ADMIN = "admin";
  * @property {string} updatedAt
  */
 /**
+ * @typedef {CharacterRecord & {
+ *   deletedAt: string,
+ *   expiresAt: string,
+ *   deletedByAccountId?: string
+ * }} DeletedCharacterRecord
+ */
+/**
  * @typedef {object} AuthProviderRecord
  * @property {string} provider
  * @property {string} [label]
@@ -50,6 +57,7 @@ export const ACCOUNT_ROLE_ADMIN = "admin";
  * @property {AuthProviderRecord[]} [authProviders]
  * @property {string} createdAt
  * @property {Record<Edition, CharacterRecord[]>} characters
+ * @property {Record<Edition, DeletedCharacterRecord[]>} deletedCharacters
  */
 /** @typedef {{ version: number, accounts: AccountRecord[] }} LegacyStore */
 /** @typedef {"pending" | "server" | "unavailable"} StorageMode */
@@ -207,6 +215,7 @@ function normalizeAccountRecord(account) {
     passwordHash: String(account.passwordHash || ""),
     createdAt: String(account.createdAt || new Date().toISOString()),
     characters: normalizeCharacters(account.characters),
+    deletedCharacters: normalizeDeletedCharacters(account.deletedCharacters),
   };
 }
 
@@ -233,6 +242,7 @@ function normalizeClientAccount(account) {
       : [],
     createdAt: String(account.createdAt || ""),
     characters: normalizeCharacters(account.characters),
+    deletedCharacters: normalizeDeletedCharacters(account.deletedCharacters),
   };
 }
 
@@ -363,6 +373,21 @@ function getEditionBucket(account, edition) {
 }
 
 /**
+ * @param {AccountRecord} account
+ * @param {Edition} edition
+ * @returns {DeletedCharacterRecord[]}
+ */
+function getDeletedEditionBucket(account, edition) {
+  if (!isRecord(account.deletedCharacters)) {
+    account.deletedCharacters = normalizeDeletedCharacters();
+  }
+  if (!Array.isArray(account.deletedCharacters[edition])) {
+    account.deletedCharacters[edition] = [];
+  }
+  return account.deletedCharacters[edition];
+}
+
+/**
  * @param {unknown} name
  * @returns {string}
  */
@@ -385,6 +410,14 @@ function sanitizeCharacterSummary(summary) {
  */
 function sortCharacters(characters) {
   return [...characters].sort((a, b) => String(b.updatedAt || "").localeCompare(String(a.updatedAt || "")));
+}
+
+/**
+ * @param {DeletedCharacterRecord[]} characters
+ * @returns {DeletedCharacterRecord[]}
+ */
+function sortDeletedCharacters(characters) {
+  return [...characters].sort((a, b) => String(b.deletedAt || "").localeCompare(String(a.deletedAt || "")));
 }
 
 /**
@@ -650,6 +683,18 @@ export function listAllCharactersForCurrentUser() {
 
 /**
  * @param {Edition} edition
+ * @returns {DeletedCharacterRecord[]}
+ */
+export function listDeletedCharactersForCurrentUser(edition) {
+  const account = currentAccount;
+  if (!account) return [];
+
+  return sortDeletedCharacters(getDeletedEditionBucket(account, edition))
+    .map((character) => ({ ...character }));
+}
+
+/**
+ * @param {Edition} edition
  * @param {CharacterSavePayload} payload
  * @param {{ overwriteId?: string }} [options]
  */
@@ -749,6 +794,47 @@ export async function deleteCharacterForCurrentUser(edition, characterId) {
     body: {
       edition,
       characterId,
+    },
+  });
+  currentAccount = normalizeClientAccount(data.account);
+}
+
+/**
+ * @param {Edition} edition
+ * @param {unknown} characterId
+ */
+export async function restoreDeletedCharacterForCurrentUser(edition, characterId) {
+  await ensureServerReady();
+  if (!currentAccount) {
+    throw new Error("Entre em uma conta para recuperar personagens.");
+  }
+
+  const data = await requestApi("/api/characters/restore", {
+    method: "POST",
+    body: {
+      edition,
+      characterId: String(characterId || "").trim(),
+    },
+  });
+  currentAccount = normalizeClientAccount(data.account);
+  return normalizeCharacterRecord(data.character, edition) || { ...data.character };
+}
+
+/**
+ * @param {Edition} edition
+ * @param {unknown} characterId
+ */
+export async function purgeDeletedCharacterForCurrentUser(edition, characterId) {
+  await ensureServerReady();
+  if (!currentAccount) {
+    throw new Error("Entre em uma conta para excluir personagens definitivamente.");
+  }
+
+  const data = await requestApi("/api/deleted-characters", {
+    method: "DELETE",
+    body: {
+      edition,
+      characterId: String(characterId || "").trim(),
     },
   });
   currentAccount = normalizeClientAccount(data.account);
