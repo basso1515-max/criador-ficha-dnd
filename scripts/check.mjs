@@ -1,6 +1,7 @@
 import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
+import { isDeepStrictEqual } from "node:util";
 import { CLASSES as CLASSES_5E } from "../src/data/5e/classes.js";
 import { MAGIAS as MAGIAS_5E } from "../src/data/5e/magias.js";
 import { SUBCLASSES as SUBCLASSES_5E } from "../src/data/5e/subclasses.js";
@@ -31,11 +32,23 @@ import {
   WARLOCK_PACT_BOONS_5E,
 } from "../src/data/warlock-invocations.js";
 import {
+  collectGrantedSpellIdsByLevel,
+  DRUID_CIRCLE_GRANTED_SPELL_IDS_2024,
+  DRUID_LAND_CIRCLE_SPELL_IDS_2024,
+  DRUID_LAND_CIRCLE_SPELL_IDS_5E,
+  DRUID_SUBCLASS_GRANTED_SPELL_IDS_5E,
+  PALADIN_OATH_GRANTED_SPELL_IDS_2024,
+  PALADIN_OATH_GRANTED_SPELL_IDS_5E,
+} from "../src/data/granted-spell-sources.js";
+import {
+  DRUID_LAND_CIRCLE_TERRAIN_OPTIONS_2024,
   FEATURE_CHOICE_DEFINITIONS_2024,
 } from "../src/editors/2024/feature-config.js";
 import {
   FEATURE_CHOICE_DEFINITIONS_5E,
+  DRUID_LAND_CIRCLE_SPELLS,
   RACIAL_SPELL_SOURCE_DEFINITIONS,
+  SUBCLASS_GRANTED_SPELL_SOURCE_DEFINITIONS,
 } from "../src/editors/5e/feature-config.js";
 
 const root = process.cwd();
@@ -911,32 +924,36 @@ function validateWarlockData() {
   console.log("OK: dados estruturais do Bruxo");
 }
 
-const PALADIN_OATH_SPELLS_2024 = {
-  "paladino-devocao": ["protecao-contra-o-bem-e-o-mal", "escudo-da-fe", "ajuda", "zona-da-verdade", "farol-de-esperanca", "dissipar-magia", "movimento-livre", "guardiao-da-fe", "comunhao", "golpe-de-chama"],
-  "paladino-gloria": ["disparo-guia", "heroismo", "melhorar-habilidade", "arma-magica", "velocidade", "protecao-contra-energia", "compulsao", "movimento-livre", "comunhao", "golpe-de-chama"],
-  "paladino-vinganca": ["perdicao", "marca-do-cacador", "imobilizar-pessoa", "passo-da-neblina", "velocidade", "protecao-contra-energia", "banimento", "porta-dimensional", "imobilizar-monstro", "espionagem"],
-  "paladino-ancioes": ["golpe-prendedor", "falar-com-animais", "raio-de-lua", "passo-da-neblina", "crescer-plantas", "protecao-contra-energia", "tempestade-de-gelo", "pele-de-pedra", "comunhao-com-a-natureza", "passo-de-arvore"],
-};
-
-const PALADIN_OATH_SPELLS_5E_REQUESTED = {
-  "paladino-gloria": ["disparo-guia", "heroismo", "melhorar-habilidade", "arma-magica", "velocidade", "protecao-contra-energia", "compulsao", "movimento-livre", "comunhao", "golpe-de-chama"],
-  "paladino-vinganca": ["perdicao", "marca-do-cacador", "imobilizar-pessoa", "passo-da-neblina", "velocidade", "protecao-contra-energia", "banimento", "porta-dimensional", "imobilizar-monstro", "espionagem"],
-  "paladino-ancioes": ["golpe-prendedor", "falar-com-animais", "raio-de-lua", "passo-da-neblina", "crescer-plantas", "protecao-contra-energia", "tempestade-de-gelo", "pele-de-pedra", "comunhao-com-a-natureza", "passo-de-arvore"],
-};
-
-const DRUID_LAND_CIRCLE_SPELLS_2024 = {
-  arido: ["nublar", "maos-flamejantes", "disparo-de-fogo", "bola-de-fogo", "praga", "muralha-de-pedra"],
-  polar: ["neblina", "imobilizar-pessoa", "raio-de-gelo", "tempestade-de-granizo", "tempestade-de-gelo", "cone-de-frio"],
-  temperado: ["passo-da-neblina", "toque-chocante", "sono", "relampago", "movimento-livre", "passo-de-arvore"],
-  tropical: ["disparo-acido", "raio-do-enjoo", "teia", "nevoa-fetida", "metamorfose", "praga-de-insetos"],
-};
-
 function normalizeFeatureName(name = "") {
   return String(name || "")
     .normalize("NFD")
     .replace(/\p{Diacritic}/gu, "")
     .toLowerCase()
     .trim();
+}
+
+const PALADIN_OATH_FEATURE_VALIDATION_IDS_5E = new Set([
+  "paladino-gloria",
+  "paladino-vinganca",
+  "paladino-ancioes",
+]);
+
+function validateGrantedSpellDefinitionRefs(edition, sourceLabel, definition, spellIds, errors) {
+  collectGrantedSpellIdsByLevel(definition).forEach((spellId) => {
+    if (!spellIds.has(spellId)) {
+      errors.push(`${edition}: ${sourceLabel} referencia magia ausente (${spellId}).`);
+    }
+  });
+}
+
+function validateEditorDefinitionUsesSharedUnlocks(edition, sourceLabel, expectedUnlocks, editorDefinition, errors) {
+  if (!editorDefinition) {
+    errors.push(`${edition}: ${sourceLabel} sem fonte automatica no editor.`);
+    return;
+  }
+  if (!isDeepStrictEqual(editorDefinition.unlocks, expectedUnlocks)) {
+    errors.push(`${edition}: ${sourceLabel} diverge do catalogo compartilhado de magias concedidas.`);
+  }
 }
 
 function validatePaladinOathSpellData() {
@@ -946,44 +963,38 @@ function validatePaladinOathSpellData() {
   const subclasses5e = listRecords(SUBCLASSES_5E);
   const subclasses2024 = listRecords(SUBCLASSES_2024);
   const script5e = readEditorSource("5e");
-  const script2024 = readEditorSource("2024");
-  const oathMap2024 = extractConstObjectBlock(script2024, "PALADIN_OATH_GRANTED_SPELL_IDS_2024");
-  const grantedSpellBlock5e = extractConstObjectBlock(script5e, "SUBCLASS_GRANTED_SPELL_SOURCE_DEFINITIONS");
 
-  Object.entries(PALADIN_OATH_SPELLS_2024).forEach(([subclassId, spellIds]) => {
-    if (!oathMap2024.includes(`"${subclassId}"`)) {
-      errors.push(`2024: ${subclassId} sem mapa de magias de juramento do Paladino.`);
-    }
+  Object.entries(PALADIN_OATH_GRANTED_SPELL_IDS_2024).forEach(([subclassId, definition]) => {
     const subclass = subclasses2024.find((item) => item.id === subclassId);
     const summary = FEATURE_SUMMARIES_2024?.subclasses?.[subclassId]?.["Magias do Juramento"] || "";
     if (!subclass) errors.push(`2024: subclasse ausente (${subclassId}).`);
     if (!summary) errors.push(`2024: ${subclassId} sem resumo hover de Magias do Juramento.`);
-    spellIds.forEach((spellId) => {
-      if (!spellIds2024.has(spellId)) errors.push(`2024: ${subclassId} referencia magia ausente (${spellId}).`);
-      if (!script2024.includes(`"${spellId}"`)) errors.push(`2024: ${subclassId} nao registra ${spellId} no fluxo de magias.`);
-    });
+    validateGrantedSpellDefinitionRefs("2024", `${subclassId}/Magias do Juramento`, definition, spellIds2024, errors);
   });
 
-  Object.entries(PALADIN_OATH_SPELLS_5E_REQUESTED).forEach(([subclassId, spellIds]) => {
+  Object.entries(PALADIN_OATH_GRANTED_SPELL_IDS_5E).forEach(([subclassId, definition]) => {
     const subclass = subclasses5e.find((item) => item.id === subclassId);
     if (!subclass) {
       errors.push(`5e: subclasse ausente (${subclassId}).`);
       return;
     }
 
-    const hasFeature = getFeaturesAtLevel(subclass, 3)
-      .some((feature) => normalizeFeatureName(feature?.nome) === "magias de juramento");
-    if (!hasFeature) errors.push(`5e: ${subclassId} sem feature visivel Magias de Juramento no nivel 3.`);
-    if (!script5e.includes(`case "${subclassId}:magias de juramento":`)) {
-      errors.push(`5e: ${subclassId} sem hover explicativo de Magias de Juramento.`);
+    if (PALADIN_OATH_FEATURE_VALIDATION_IDS_5E.has(subclassId)) {
+      const hasFeature = getFeaturesAtLevel(subclass, 3)
+        .some((feature) => normalizeFeatureName(feature?.nome) === "magias de juramento");
+      if (!hasFeature) errors.push(`5e: ${subclassId} sem feature visivel Magias de Juramento no nivel 3.`);
+      if (!script5e.includes(`case "${subclassId}:magias de juramento":`)) {
+        errors.push(`5e: ${subclassId} sem hover explicativo de Magias de Juramento.`);
+      }
     }
-    if (!grantedSpellBlock5e.includes(`"${subclassId}"`)) {
-      errors.push(`5e: ${subclassId} sem fonte automatica de magias de juramento.`);
-    }
-    spellIds.forEach((spellId) => {
-      if (!spellIds5e.has(spellId)) errors.push(`5e: ${subclassId} referencia magia ausente (${spellId}).`);
-      if (!grantedSpellBlock5e.includes(`"${spellId}"`)) errors.push(`5e: ${subclassId} nao registra ${spellId} no mapa de juramento.`);
-    });
+    validateEditorDefinitionUsesSharedUnlocks(
+      "5e",
+      `${subclassId}/Magias de Juramento`,
+      definition,
+      SUBCLASS_GRANTED_SPELL_SOURCE_DEFINITIONS[subclassId],
+      errors,
+    );
+    validateGrantedSpellDefinitionRefs("5e", `${subclassId}/Magias de Juramento`, definition, spellIds5e, errors);
   });
 
   if (errors.length) {
@@ -1004,8 +1015,6 @@ function validateDruidCircleSpellData() {
   const html2024 = readFileSync(path.join(root, "5.5e-2024.html"), "utf8");
   const script5e = readEditorSource("5e");
   const script2024 = readEditorSource("2024");
-  const landMap2024 = extractConstObjectBlock(script2024, "DRUID_LAND_CIRCLE_SPELL_IDS_2024");
-  const circleMap2024 = extractConstObjectBlock(script2024, "DRUID_CIRCLE_GRANTED_SPELL_IDS_2024");
 
   [
     "subclassDetailChoicesPanel2024",
@@ -1036,24 +1045,35 @@ function validateDruidCircleSpellData() {
   if (!landSubclass) errors.push("2024: subclasse druida-terra ausente.");
   if (!landSummary) errors.push("2024: druida-terra sem resumo hover de Magias do Círculo da Terra.");
 
-  Object.entries(DRUID_LAND_CIRCLE_SPELLS_2024).forEach(([terrain, spellIds]) => {
-    if (!landMap2024.includes(terrain)) errors.push(`2024: terreno ${terrain} sem mapa de magias do Círculo da Terra.`);
-    spellIds.forEach((spellId) => {
-      if (!spellIds2024.has(spellId)) errors.push(`2024: Círculo da Terra/${terrain} referencia magia ausente (${spellId}).`);
-      if (!landMap2024.includes(`"${spellId}"`)) errors.push(`2024: Círculo da Terra/${terrain} nao registra ${spellId} no fluxo de magias.`);
-    });
+  const terrainOptions2024 = new Set(DRUID_LAND_CIRCLE_TERRAIN_OPTIONS_2024.map((option) => option.value));
+  Object.entries(DRUID_LAND_CIRCLE_SPELL_IDS_2024).forEach(([terrain, definition]) => {
+    if (!terrainOptions2024.has(terrain)) {
+      errors.push(`2024: terreno ${terrain} tem mapa de magias, mas nao aparece nas opcoes do Círculo da Terra.`);
+    }
+    validateGrantedSpellDefinitionRefs("2024", `Círculo da Terra/${terrain}`, definition, spellIds2024, errors);
+  });
+  terrainOptions2024.forEach((terrain) => {
+    if (!DRUID_LAND_CIRCLE_SPELL_IDS_2024[terrain]) {
+      errors.push(`2024: terreno ${terrain} sem mapa de magias do Círculo da Terra.`);
+    }
   });
 
-  ["druida-lua", "druida-estrelas", "druida-mar"].forEach((subclassId) => {
+  Object.entries(DRUID_CIRCLE_GRANTED_SPELL_IDS_2024).forEach(([subclassId, definition]) => {
     const subclass = subclasses2024.find((item) => item.id === subclassId);
     if (!subclass) {
       errors.push(`2024: subclasse ausente (${subclassId}).`);
       return;
     }
+    validateGrantedSpellDefinitionRefs("2024", `${subclassId}/Magias do Círculo`, definition, spellIds2024, errors);
+  });
+
+  ["druida-lua", "druida-estrelas", "druida-mar"].forEach((subclassId) => {
+    const subclass = subclasses2024.find((item) => item.id === subclassId);
+    if (!subclass) return;
     const hasCircleSpellsFeature = Object.values(subclass.features || {})
       .flat()
       .some((feature) => normalizeFeatureName(feature?.nome).includes("magias do circulo"));
-    if (hasCircleSpellsFeature && !circleMap2024.includes(`"${subclassId}"`)) {
+    if (hasCircleSpellsFeature && !DRUID_CIRCLE_GRANTED_SPELL_IDS_2024[subclassId]) {
       errors.push(`2024: ${subclassId} tem Magias do Circulo, mas nao tem mapa automatico.`);
     }
   });
@@ -1077,18 +1097,21 @@ function validateDruidCircleSpellData() {
     if (!script5e.includes(marker)) errors.push(`5e: fluxo equivalente do Círculo da Terra sem marcador ${marker}.`);
   });
 
-  [
-    "imobilizar-pessoa",
-    "crescer-espinhos",
-    "tempestade-de-granizo",
-    "movimento-livre",
-    "cone-de-frio",
-    "praga",
-    "muralha-de-pedra",
-    "passo-de-arvore",
-  ].forEach((spellId) => {
-    if (!spellIds5e.has(spellId)) errors.push(`5e: Círculo da Terra referencia magia ausente (${spellId}).`);
-    if (!script5e.includes(`"${spellId}"`)) errors.push(`5e: Círculo da Terra nao registra ${spellId} no mapa de terreno.`);
+  if (!isDeepStrictEqual(DRUID_LAND_CIRCLE_SPELLS, DRUID_LAND_CIRCLE_SPELL_IDS_5E)) {
+    errors.push("5e: mapa do Círculo da Terra diverge do catalogo compartilhado.");
+  }
+  Object.entries(DRUID_LAND_CIRCLE_SPELL_IDS_5E).forEach(([terrain, definition]) => {
+    validateGrantedSpellDefinitionRefs("5e", `Círculo da Terra/${terrain}`, definition, spellIds5e, errors);
+  });
+  Object.entries(DRUID_SUBCLASS_GRANTED_SPELL_IDS_5E).forEach(([subclassId, definition]) => {
+    validateEditorDefinitionUsesSharedUnlocks(
+      "5e",
+      `${subclassId}/magias de Druida`,
+      definition,
+      SUBCLASS_GRANTED_SPELL_SOURCE_DEFINITIONS[subclassId],
+      errors,
+    );
+    validateGrantedSpellDefinitionRefs("5e", `${subclassId}/magias de Druida`, definition, spellIds5e, errors);
   });
 
   if (errors.length) {

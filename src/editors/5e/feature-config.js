@@ -12,6 +12,11 @@ import {
   RANGER_NATURAL_EXPLORER_BY_LEVEL_5E,
   RANGER_NATURAL_EXPLORER_OPTIONS_5E,
 } from "../../data/subclass-learned-options.js";
+import {
+  DRUID_LAND_CIRCLE_SPELL_IDS_5E,
+  DRUID_SUBCLASS_GRANTED_SPELL_IDS_5E,
+  PALADIN_OATH_GRANTED_SPELL_IDS_5E,
+} from "../../data/granted-spell-sources.js";
 
 export const SORCERER_METAMAGIC_OPTIONS_BY_LEVEL_5E = [
   0, 0, 0, 2, 2, 2, 2, 2, 2, 2,
@@ -393,56 +398,7 @@ export const DIVINE_SOUL_AFFINITY_OPTIONS = [
   { value: "caos", label: "Caos" },
   { value: "neutralidade", label: "Neutralidade" },
 ];
-export const DRUID_LAND_CIRCLE_SPELLS = {
-  artico: {
-    3: ["imobilizar-pessoa", "crescer-espinhos"],
-    5: ["tempestade-de-granizo", "lentidao"],
-    7: ["movimento-livre", "tempestade-de-gelo"],
-    9: ["comunhao-com-a-natureza", "cone-de-frio"],
-  },
-  costa: {
-    3: ["reflexos", "passo-da-neblina"],
-    5: ["respirar-agua", "andar-na-agua"],
-    7: ["controlar-agua", "movimento-livre"],
-    9: ["conjurar-elementais", "espionagem"],
-  },
-  deserto: {
-    3: ["nublar", "silencio"],
-    5: ["criar-alimentos", "protecao-contra-energia"],
-    7: ["praga", "terreno-alucinatorio"],
-    9: ["praga-de-insetos", "muralha-de-pedra"],
-  },
-  floresta: {
-    3: ["pele-de-arvore", "patas-de-aranha"],
-    5: ["convocar-relampago", "crescer-plantas"],
-    7: ["adivinhacao", "movimento-livre"],
-    9: ["comunhao-com-a-natureza", "passo-de-arvore"],
-  },
-  pastagem: {
-    3: ["invisibilidade", "passos-sem-pegadas"],
-    5: ["luz-do-dia", "velocidade"],
-    7: ["adivinhacao", "movimento-livre"],
-    9: ["sonho", "praga-de-insetos"],
-  },
-  montanha: {
-    3: ["patas-de-aranha", "crescer-espinhos"],
-    5: ["relampago", "moldar-se-a-pedra"],
-    7: ["moldar-pedra", "pele-de-pedra"],
-    9: ["passar-parede", "muralha-de-pedra"],
-  },
-  pantano: {
-    3: ["escuridao", "flecha-acida"],
-    5: ["andar-na-agua", "nevoa-fetida"],
-    7: ["movimento-livre", "localizar-criatura"],
-    9: ["praga-de-insetos", "espionagem"],
-  },
-  subterraneo: {
-    3: ["patas-de-aranha", "teia"],
-    5: ["forma-gasosa", "nevoa-fetida"],
-    7: ["invisibilidade-maior", "moldar-pedra"],
-    9: ["nevoa-mortal", "praga-de-insetos"],
-  },
-};
+export const DRUID_LAND_CIRCLE_SPELLS = DRUID_LAND_CIRCLE_SPELL_IDS_5E;
 export const DIVINE_SOUL_AFFINITY_SPELLS = {
   bem: "curar-ferimentos",
   mal: "infligir-ferimentos",
@@ -1183,6 +1139,34 @@ export const SUBCLASS_SPELL_LIST_AUGMENTS = {
     allowedClassIds: ["clerigo"],
   },
 };
+
+export const DRUID_SUBCLASS_GRANTED_SPELL_SOURCE_DEFINITIONS = {
+  "druida-estrelas": {
+    featureLabel: "Mapa Estelar",
+    sourceClassId: "druida",
+    ability: "sab",
+    unlocks: DRUID_SUBCLASS_GRANTED_SPELL_IDS_5E["druida-estrelas"],
+  },
+  "druida-fogo-selvagem": {
+    featureLabel: "Magias do Círculo",
+    sourceClassId: "druida",
+    ability: "sab",
+    unlocks: DRUID_SUBCLASS_GRANTED_SPELL_IDS_5E["druida-fogo-selvagem"],
+  },
+};
+
+export const PALADIN_OATH_GRANTED_SPELL_SOURCE_DEFINITIONS = Object.fromEntries(
+  Object.entries(PALADIN_OATH_GRANTED_SPELL_IDS_5E).map(([subclassId, unlocks]) => [
+    subclassId,
+    {
+      featureLabel: "Magias de Juramento",
+      sourceClassId: "paladino",
+      ability: "car",
+      unlocks,
+    },
+  ]),
+);
+
 export const SUBCLASS_GRANTED_SPELL_SOURCE_DEFINITIONS = {
   "bardo-espiritos": {
     featureLabel: "Sussurros Espirituais",
@@ -1408,26 +1392,7 @@ export const SUBCLASS_GRANTED_SPELL_SOURCE_DEFINITIONS = {
       9: ["curar-ferimentos-em-massa", "ressuscitar-os-mortos"],
     },
   },
-  "druida-estrelas": {
-    featureLabel: "Mapa Estelar",
-    sourceClassId: "druida",
-    ability: "sab",
-    unlocks: {
-      2: ["orientacao", "disparo-guia"],
-    },
-  },
-  "druida-fogo-selvagem": {
-    featureLabel: "Magias do Círculo",
-    sourceClassId: "druida",
-    ability: "sab",
-    unlocks: {
-      2: ["maos-flamejantes", "curar-ferimentos"],
-      3: ["esfera-flamejante", "raio-ardente"],
-      5: ["crescer-plantas", "revificar"],
-      7: ["aura-da-vida", "escudo-de-fogo"],
-      9: ["golpe-de-chama", "curar-ferimentos-em-massa"],
-    },
-  },
+  ...DRUID_SUBCLASS_GRANTED_SPELL_SOURCE_DEFINITIONS,
   "feiticeiro-lunar": {
     featureLabel: "Magias Lunares",
     sourceClassId: "feiticeiro",
@@ -1448,114 +1413,7 @@ export const SUBCLASS_GRANTED_SPELL_SOURCE_DEFINITIONS = {
       3: ["escuridao"],
     },
   },
-  "paladino-ancioes": {
-    featureLabel: "Magias de Juramento",
-    sourceClassId: "paladino",
-    ability: "car",
-    unlocks: {
-      3: ["golpe-prendedor", "falar-com-animais"],
-      5: ["raio-de-lua", "passo-da-neblina"],
-      9: ["crescer-plantas", "protecao-contra-energia"],
-      13: ["tempestade-de-gelo", "pele-de-pedra"],
-      17: ["comunhao-com-a-natureza", "passo-de-arvore"],
-    },
-  },
-  "paladino-conquista": {
-    featureLabel: "Magias de Juramento",
-    sourceClassId: "paladino",
-    ability: "car",
-    unlocks: {
-      3: ["armadura-de-agathys", "comando"],
-      5: ["imobilizar-pessoa", "arma-espiritual"],
-      9: ["rogar-maldicao", "medo"],
-      13: ["dominar-besta", "pele-de-pedra"],
-      17: ["nevoa-mortal", "dominar-pessoa"],
-    },
-  },
-  "paladino-coroa": {
-    featureLabel: "Magias de Juramento",
-    sourceClassId: "paladino",
-    ability: "car",
-    unlocks: {
-      3: ["comando", "compelir-duelo"],
-      5: ["elo-protetor", "zona-da-verdade"],
-      9: ["aura-da-vitalidade", "guardioes-espirituais"],
-      13: ["banimento", "guardiao-da-fe"],
-      17: ["circulo-de-poder", "missao"],
-    },
-  },
-  "paladino-devocao": {
-    featureLabel: "Magias de Juramento",
-    sourceClassId: "paladino",
-    ability: "car",
-    unlocks: {
-      3: ["protecao-contra-o-bem-e-o-mal", "santuario"],
-      5: ["restauracao-menor", "zona-da-verdade"],
-      9: ["farol-de-esperanca", "dissipar-magia"],
-      13: ["movimento-livre", "guardiao-da-fe"],
-      17: ["comunhao", "golpe-de-chama"],
-    },
-  },
-  "paladino-gloria": {
-    featureLabel: "Magias de Juramento",
-    sourceClassId: "paladino",
-    ability: "car",
-    unlocks: {
-      3: ["disparo-guia", "heroismo"],
-      5: ["melhorar-habilidade", "arma-magica"],
-      9: ["velocidade", "protecao-contra-energia"],
-      13: ["compulsao", "movimento-livre"],
-      17: ["comunhao", "golpe-de-chama"],
-    },
-  },
-  "paladino-quebrador-de-juramento": {
-    featureLabel: "Magias de Juramento",
-    sourceClassId: "paladino",
-    ability: "car",
-    unlocks: {
-      3: ["repreensao-infernal", "infligir-ferimentos"],
-      5: ["coroa-de-loucura", "escuridao"],
-      9: ["animar-mortos", "rogar-maldicao"],
-      13: ["praga", "confusao"],
-      17: ["contagio", "dominar-pessoa"],
-    },
-  },
-  "paladino-redencao": {
-    featureLabel: "Magias de Juramento",
-    sourceClassId: "paladino",
-    ability: "car",
-    unlocks: {
-      3: ["santuario", "sono"],
-      5: ["acalmar-emocoes", "imobilizar-pessoa"],
-      9: ["contramagica", "padrao-hipnotico"],
-      13: ["esfera-resiliente", "pele-de-pedra"],
-      17: ["imobilizar-monstro", "muralha-de-energia"],
-    },
-  },
-  "paladino-vigilantes": {
-    featureLabel: "Magias de Juramento",
-    sourceClassId: "paladino",
-    ability: "car",
-    unlocks: {
-      3: ["alarme", "detectar-magia"],
-      5: ["raio-de-lua", "ver-invisibilidade"],
-      9: ["contramagica", "antideteccao"],
-      13: ["aura-da-pureza", "banimento"],
-      17: ["imobilizar-monstro", "espionagem"],
-    },
-  },
-  "paladino-vinganca": {
-    featureLabel: "Magias de Juramento",
-    sourceClassId: "paladino",
-    ability: "car",
-    unlocks: {
-      3: ["perdicao", "marca-do-cacador"],
-      5: ["imobilizar-pessoa", "passo-da-neblina"],
-      9: ["velocidade", "protecao-contra-energia"],
-      13: ["banimento", "porta-dimensional"],
-      17: ["imobilizar-monstro", "espionagem"],
-    },
-  },
+  ...PALADIN_OATH_GRANTED_SPELL_SOURCE_DEFINITIONS,
   "patrulheiro-andarilho-feerico": {
     featureLabel: "Magia de Andarilho Feérico",
     sourceClassId: "patrulheiro",
