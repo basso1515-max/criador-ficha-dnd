@@ -6,6 +6,7 @@ import { createServer as createNetServer } from "node:net";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
+import { PDFDocument } from "pdf-lib";
 
 const HOST = "127.0.0.1";
 const SERVER_TIMEOUT_MS = 8_000;
@@ -109,6 +110,14 @@ async function main() {
   assertIncludes(allText, "Maestria em Arma", "secao de maestrias");
   formState.masteryLabels.forEach((label) => assertIncludes(allText, label, `maestria ${label}`));
 
+  const finalPdf = await evaluate(cdp, "window.__DND_SHEET_2024_TEST_HOOKS__.generatePdfBase64()", 45_000);
+  assert(finalPdf?.base64, "Hook de PDF final 2024 nao retornou base64.");
+  assert(finalPdf.pdfState?.nome === "Teste PDF 2024", "PDF final 2024 perdeu o estado preenchido do personagem.");
+  const finalPdfBytes = Buffer.from(finalPdf.base64, "base64");
+  assert(finalPdfBytes.length > PDF_2024_MIN_BYTE_LENGTH, "PDF final 2024 parece pequeno demais.");
+  const finalPdfDoc = await PDFDocument.load(finalPdfBytes);
+  assert(finalPdfDoc.getForm().getFields().length === 0, "PDF final 2024 deve sair achatado para visualizadores mobile.");
+
   const spellcasterState = await evaluate(cdp, fillDruidLand2024PdfFixtureScript());
   assert(spellcasterState.previewHasLandTerrain, "Preview nao registrou o terreno Arido do Circulo da Terra.");
   ["Nublar", "Maos Flamejantes", "Raio de Fogo", "Bola de Fogo"].forEach((spellName) => {
@@ -127,6 +136,10 @@ async function main() {
   assertIncludes(spellcasterText, "Maos Flamejantes", "magia concedida Maos Flamejantes");
   assertIncludes(spellcasterText, "Raio de Fogo", "magia concedida Raio de Fogo");
   assertIncludes(spellcasterText, "Bola de Fogo", "magia concedida Bola de Fogo");
+  const spellcasterHistoryText = spellcasterPdf.fieldTexts["BACKSTORY / PERSONALITY"] || "";
+  assertIncludes(spellcasterHistoryText, "Div.: Mielikki - Simb.: Folha de carvalho -", "resumo de divindade sem separador incompatível");
+  assertIncludes(spellcasterHistoryText, "Dom.: Natureza", "dominio da divindade");
+  assert(!spellcasterHistoryText.includes("•"), "Resumo de divindade ainda contem separador incompatível para o PDF.");
 
   if (consoleProblems.length) {
     throw new Error(`Erros no console:\n${consoleProblems.map((item) => `- ${item}`).join("\n")}`);
@@ -142,6 +155,7 @@ async function main() {
     "resumos de recursos 2024 carregados sob demanda durante a geracao",
     "PDF gerado em memoria pelo mesmo motor do editor",
     "campos finais do PDF contem nome, classe, nivel, maestrias e magias",
+    "PDF final 2024 sai sem campos editaveis para evitar renderizacao bugada no celular",
   ].forEach((line) => console.log(`OK: ${line}`));
 
   cdp.close();
@@ -304,6 +318,8 @@ function fillDruidLand2024PdfFixtureScript() {
       chooseSelectByText("#raca2024", "humano");
       setValue("#appearance2024", "Viajante coberto por poeira vermelha e simbolos druidicos.");
       setValue("#notes2024", "Personagem usado para validar exportacao PDF 2024 com magias concedidas.");
+      setValue("#divindadeInput2024", "Mielikki");
+      setValue("#divindade2024", "Mielikki");
 
       ["for", "des", "con", "int", "sab", "car"].forEach((ability) => {
         const input = document.querySelector('[name="base-' + ability + '"]');

@@ -14060,6 +14060,10 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
     window.setTimeout(() => URL.revokeObjectURL(url), 60000);
   }
 
+  function flattenPdfFormForMobile2024(form) {
+    form.flatten({ updateFieldAppearances: false });
+  }
+
   async function ensureSpellCatalogForCurrentMagic2024({ refreshUi = true } = {}) {
     const context = buildSpellcastingContext2024({ syncSelections: false });
     if (!context.sources.length || isSpellCatalogLoaded2024()) return false;
@@ -14151,6 +14155,7 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
       const font = await pdfDoc.embedFont(window.PDFLib.StandardFonts.Helvetica);
       applyPdfExportState2024({ form, pdfMap, pdfState, font });
       form.updateFieldAppearances(font);
+      flattenPdfFormForMobile2024(form);
       writeLoadingTab2024(
         loadingTab,
         "Finalizando o PDF...",
@@ -14220,7 +14225,7 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
       form.updateFieldAppearances(font);
 
       if (overrides.flatten) {
-        form.flatten({ updateFieldAppearances: false });
+        flattenPdfFormForMobile2024(form);
       }
 
       return { form, pdfDoc, pdfState };
@@ -14231,7 +14236,10 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
         return buildPdfExportState2024();
       },
       async generatePdfSnapshot(overrides = {}) {
-        const { form, pdfDoc, pdfState } = await buildGeneratedPdf(overrides);
+        const { form, pdfDoc, pdfState } = await buildGeneratedPdf({
+          ...overrides,
+          flatten: overrides.flatten ?? false,
+        });
         const pdfBytes = await pdfDoc.save({ updateFieldAppearances: false });
         return {
           byteLength: pdfBytes.byteLength,
@@ -14240,7 +14248,10 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
         };
       },
       async generatePdfBase64(overrides = {}) {
-        const { pdfDoc, pdfState } = await buildGeneratedPdf(overrides);
+        const { pdfDoc, pdfState } = await buildGeneratedPdf({
+          ...overrides,
+          flatten: overrides.flatten ?? true,
+        });
         return {
           base64: await pdfDoc.saveAsBase64({ updateFieldAppearances: false }),
           pdfState: summarizePdfState(pdfState),
