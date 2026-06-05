@@ -1,4 +1,5 @@
 import {
+  DELETED_CHARACTER_RETENTION_DAYS,
   deleteCharacterForCurrentUser,
   deleteCurrentAccount,
   getAccountCounts,
@@ -182,6 +183,7 @@ function renderUserPage() {
   const characters = EDITION_ORDER.flatMap((edition) => charactersByEdition[edition]);
   const deletedCharactersByEdition = getDeletedCharactersByEdition();
   const deletedCharacters = sortDeletedCharacters(EDITION_ORDER.flatMap((edition) => deletedCharactersByEdition[edition]));
+  const usageByEdition = getUsageByEdition(charactersByEdition, deletedCharactersByEdition, getCharacterLimitPerEdition(user));
   const visibleEditions = libraryFilters.edition === "all" ? EDITION_ORDER : [libraryFilters.edition];
   const filteredCharactersByEdition = getFilteredCharactersByEdition(charactersByEdition);
   const filteredCharacters = visibleEditions.flatMap((edition) => filteredCharactersByEdition[edition] || []);
@@ -192,16 +194,19 @@ function renderUserPage() {
   if (el.adminLink) el.adminLink.hidden = user?.role !== "admin";
   if (!user) return;
   const characterLimit = getCharacterLimitPerEdition(user);
+  const totalUsedSlots = EDITION_ORDER.reduce((total, edition) => total + usageByEdition[edition].used, 0);
 
   if (el.name) el.name.textContent = user.displayName || "Minha conta";
   if (el.email) el.email.textContent = user.email || "";
   if (el.avatar) el.avatar.textContent = getInitials(user.displayName || user.email || "?");
   if (el.capacity) {
     const totalLimit = characterLimit * EDITION_ORDER.length;
-    const freeSlots = Math.max(0, totalLimit - characters.length);
+    const freeSlots = Math.max(0, totalLimit - totalUsedSlots);
     el.capacity.textContent = `${freeSlots} ${freeSlots === 1 ? "vaga livre" : "vagas livres"}`;
   }
-  if (el.capacityText) el.capacityText.textContent = `Limite de ${characterLimit} personagens por edição.`;
+  if (el.capacityText) {
+    el.capacityText.textContent = `Limite de ${characterLimit} personagens por edição, incluindo a lixeira por até ${DELETED_CHARACTER_RETENTION_DAYS} dias.`;
+  }
   if (el.adminLink) el.adminLink.hidden = user.role !== "admin";
   if (el.authMethods) el.authMethods.textContent = getAuthMethodLabel(user);
   if (el.securityState) el.securityState.textContent = getSecurityStateLabel(user);
@@ -214,8 +219,8 @@ function renderUserPage() {
   if (el.resendVerification) el.resendVerification.hidden = Boolean(user.emailVerified);
   if (el.createdAt) el.createdAt.textContent = formatDateOnly(user.createdAt);
   renderLastActivity(characters);
-  if (el.count5e) el.count5e.textContent = `${counts["5e"]}/${characterLimit}`;
-  if (el.count2024) el.count2024.textContent = `${counts["5.5e-2024"]}/${characterLimit}`;
+  if (el.count5e) el.count5e.textContent = `${usageByEdition["5e"].used}/${characterLimit}`;
+  if (el.count2024) el.count2024.textContent = `${usageByEdition["5.5e-2024"].used}/${characterLimit}`;
   if (el.total) el.total.textContent = `${characters.length} ${characters.length === 1 ? "salvo" : "salvos"}`;
   syncLibraryControls();
 
@@ -237,7 +242,7 @@ function renderUserPage() {
   }
   if (el.list) {
     el.list.innerHTML = visibleEditions
-      .map((edition) => renderEditionSection(edition, filteredCharactersByEdition[edition] || [], counts[edition], characterLimit))
+      .map((edition) => renderEditionSection(edition, filteredCharactersByEdition[edition] || [], usageByEdition[edition], characterLimit))
       .join("");
   }
   renderDeletedCharacters(deletedCharacters);
@@ -253,6 +258,20 @@ function getDeletedCharactersByEdition() {
   return Object.fromEntries(
     EDITION_ORDER.map((edition) => [edition, listDeletedCharactersForCurrentUser(edition)])
   );
+}
+
+function getUsageByEdition(charactersByEdition, deletedCharactersByEdition, characterLimit) {
+  return Object.fromEntries(EDITION_ORDER.map((edition) => {
+    const active = (charactersByEdition[edition] || []).length;
+    const deleted = (deletedCharactersByEdition[edition] || []).length;
+    const used = active + deleted;
+    return [edition, {
+      active,
+      deleted,
+      free: Math.max(0, characterLimit - used),
+      used,
+    }];
+  }));
 }
 
 function getFilteredCharactersByEdition(charactersByEdition) {
@@ -516,14 +535,23 @@ function renderCharacterCard(character) {
   `;
 }
 
-function renderEditionSection(edition, characters, count, characterLimit) {
+function renderEditionSection(edition, characters, usage, characterLimit) {
   const meta = EDITION_META[edition] || EDITION_META["5e"];
   const safeSlug = escapeHtml(meta.slug);
-  const freeSlots = Math.max(0, characterLimit - Number(count || 0));
+  const activeCount = Number(usage?.active || 0);
+  const deletedCount = Number(usage?.deleted || 0);
+  const usedSlots = Number(usage?.used || activeCount);
+  const freeSlots = Math.max(0, Number(usage?.free ?? characterLimit - usedSlots));
+  const limitLabel = deletedCount ? `${usedSlots}/${characterLimit}` : `${activeCount}/${characterLimit}`;
+  const freeLabel = freeSlots > 0
+    ? `${freeSlots} ${freeSlots === 1 ? "vaga livre" : "vagas livres"}`
+    : deletedCount
+      ? "Limite atingido com lixeira"
+      : "Limite atingido";
   const hasActiveFilters = Boolean(libraryFilters.query.trim()) || libraryFilters.edition !== "all";
   const listContent = characters.length
     ? characters.map(renderCharacterCard).join("")
-    : hasActiveFilters && Number(count || 0) > 0
+    : hasActiveFilters && activeCount > 0
       ? renderEditionFilteredEmptyState(meta)
       : renderEditionEmptyState(meta);
 
@@ -535,11 +563,11 @@ function renderEditionSection(edition, characters, count, characterLimit) {
           <h3 id="userPageEdition${safeSlug}">${escapeHtml(meta.label)}</h3>
           <p>${escapeHtml(meta.description)}</p>
         </div>
-        <strong>${escapeHtml(String(count || 0))}/${characterLimit}</strong>
+        <strong>${escapeHtml(limitLabel)}</strong>
       </div>
       <div class="user-page-edition-actions">
         <a class="secondary-button" href="${escapeHtml(meta.editor)}">${escapeHtml(meta.newLabel)}</a>
-        <span>${freeSlots > 0 ? `${freeSlots} ${freeSlots === 1 ? "vaga livre" : "vagas livres"}` : "Limite atingido"}</span>
+        <span>${escapeHtml(freeLabel)}${deletedCount ? ` · ${deletedCount} na lixeira` : ""}</span>
       </div>
       <div class="user-page-edition-list">
         ${listContent}
@@ -572,8 +600,8 @@ function renderDeletedCharacters(characters) {
   if (el.trashTotal) el.trashTotal.textContent = `${total} ${total === 1 ? "apagado" : "apagados"}`;
   if (el.trashStatus) {
     el.trashStatus.textContent = total
-      ? `${total} ${total === 1 ? "personagem apagado nos últimos 2 dias" : "personagens apagados nos últimos 2 dias"}.`
-      : "Nenhum personagem apagado nos últimos 2 dias.";
+      ? `${total} ${total === 1 ? "personagem na lixeira conta" : "personagens na lixeira contam"} no limite até a exclusão automática.`
+      : "Nenhum personagem na lixeira.";
   }
   if (!el.deletedList) return;
 
@@ -582,7 +610,7 @@ function renderDeletedCharacters(characters) {
     : `
       <div class="user-page-deleted-empty">
         <strong>Lixeira vazia</strong>
-        <p>Personagens apagados recentemente aparecerão aqui.</p>
+        <p>Personagens apagados aparecerão aqui por até ${DELETED_CHARACTER_RETENTION_DAYS} dias.</p>
       </div>
     `;
 }

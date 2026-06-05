@@ -238,6 +238,22 @@ test("admin can manage account limits and recover deleted characters", async () 
       assert.equal(deleted.data.account.deletedCounts["5e"], 1);
       assert.equal(deleted.data.deletedCharacter.id, characterId);
 
+      const blockedByTrash = await callAccountApi(`/api/admin/accounts/${userId}/characters`, {
+        method: "POST",
+        cookie: adminCookie,
+        body: {
+          edition: "5e",
+          payload: {
+            name: "Ficha bloqueada pela lixeira",
+            summary: "",
+            snapshot: {},
+          },
+        },
+      });
+      assert.equal(blockedByTrash.statusCode, 400);
+      assert.match(blockedByTrash.data.message, /lixeira/i);
+      assert.match(blockedByTrash.data.message, /exclua definitivamente/i);
+
       const restored = await callAccountApi(`/api/admin/accounts/${userId}/characters/restore`, {
         method: "POST",
         cookie: adminCookie,
@@ -292,11 +308,14 @@ test("admin bootstrap uses configured emails and keeps stored admin roles", asyn
   });
 });
 
-test("user can manage only recently deleted own characters", async () => {
+test("user character limit includes deleted characters until trash is purged", async () => {
   await withAccountStore(async ({ accountsFile }) => {
     const registered = await registerAccount({ email: "player-trash@example.test" });
     assert.equal(registered.statusCode, 201);
     const cookie = getCookieHeader(registered, SESSION_COOKIE_NAME);
+    await mutateStoredAccount(accountsFile, registered.data.account.id, (account) => {
+      account.characterLimitPerEdition = 1;
+    });
 
     const created = await callAccountApi("/api/characters", {
       method: "POST",
@@ -324,6 +343,22 @@ test("user can manage only recently deleted own characters", async () => {
     assert.equal(deleted.statusCode, 200);
     assert.equal(deleted.data.account.characters["5e"].length, 0);
     assert.equal(deleted.data.account.deletedCharacters["5e"].length, 1);
+
+    const blockedByTrash = await callAccountApi("/api/characters", {
+      method: "POST",
+      cookie,
+      body: {
+        edition: "5e",
+        payload: {
+          name: "Ficha acima do limite",
+          summary: "Deve ser bloqueada enquanto a lixeira ocupa a vaga",
+          snapshot: {},
+        },
+      },
+    });
+    assert.equal(blockedByTrash.statusCode, 400);
+    assert.match(blockedByTrash.data.message, /lixeira/i);
+    assert.match(blockedByTrash.data.message, /exclua definitivamente/i);
 
     const restored = await callAccountApi("/api/characters/restore", {
       method: "POST",
@@ -394,19 +429,9 @@ test("user can manage only recently deleted own characters", async () => {
 
     const current = await callAccountApi("/api/account/current", { cookie });
     assert.equal(current.statusCode, 200);
-    assert.equal(current.data.account.deletedCharacters["5e"].length, 0);
+    assert.equal(current.data.account.deletedCharacters["5e"].length, 1);
 
-    const staleRestore = await callAccountApi("/api/characters/restore", {
-      method: "POST",
-      cookie,
-      body: {
-        edition: "5e",
-        characterId: staleCharacterId,
-      },
-    });
-    assert.equal(staleRestore.statusCode, 404);
-
-    const stalePurge = await callAccountApi("/api/deleted-characters", {
+    const retainedPurge = await callAccountApi("/api/deleted-characters", {
       method: "DELETE",
       cookie,
       body: {
@@ -414,7 +439,53 @@ test("user can manage only recently deleted own characters", async () => {
         characterId: staleCharacterId,
       },
     });
-    assert.equal(stalePurge.statusCode, 404);
+    assert.equal(retainedPurge.statusCode, 200);
+    assert.equal(retainedPurge.data.account.deletedCharacters["5e"].length, 0);
+
+    const expiredCreated = await callAccountApi("/api/characters", {
+      method: "POST",
+      cookie,
+      body: {
+        edition: "5e",
+        payload: {
+          name: "Ficha expirada",
+          summary: "Fora da retenção",
+          snapshot: {},
+        },
+      },
+    });
+    assert.equal(expiredCreated.statusCode, 200);
+    const expiredCharacterId = expiredCreated.data.character.id;
+
+    const expiredDeleted = await callAccountApi("/api/characters", {
+      method: "DELETE",
+      cookie,
+      body: {
+        edition: "5e",
+        characterId: expiredCharacterId,
+      },
+    });
+    assert.equal(expiredDeleted.statusCode, 200);
+
+    await mutateStoredAccount(accountsFile, registered.data.account.id, (account) => {
+      const expiredDeletedCharacter = account.deletedCharacters["5e"].find((character) => character.id === expiredCharacterId);
+      expiredDeletedCharacter.deletedAt = new Date(Date.now() - 16 * 24 * 60 * 60 * 1000).toISOString();
+      expiredDeletedCharacter.expiresAt = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+    });
+
+    const expiredCurrent = await callAccountApi("/api/account/current", { cookie });
+    assert.equal(expiredCurrent.statusCode, 200);
+    assert.equal(expiredCurrent.data.account.deletedCharacters["5e"].length, 0);
+
+    const expiredRestore = await callAccountApi("/api/characters/restore", {
+      method: "POST",
+      cookie,
+      body: {
+        edition: "5e",
+        characterId: expiredCharacterId,
+      },
+    });
+    assert.equal(expiredRestore.statusCode, 404);
   });
 });
 

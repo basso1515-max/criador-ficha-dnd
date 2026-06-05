@@ -6,6 +6,7 @@ import {
   getCurrentUser,
   hydrateAccountStorage,
   listCharactersForCurrentUser,
+  listDeletedCharactersForCurrentUser,
   loginAccount,
   logoutAccount,
   registerAccount,
@@ -377,7 +378,12 @@ function renderUserArea({ edition, elements, saveButtons, state }) {
 function getUserAreaViewModel(edition, state) {
   const user = getCurrentUser();
   const saves = user ? listCharactersForCurrentUser(edition) : [];
+  const deletedSaves = user ? listDeletedCharactersForCurrentUser(edition) : [];
   const characterLimit = getCharacterLimitPerEdition(user);
+  const usedSlots = saves.length + deletedSaves.length;
+  const deletedCountLabel = deletedSaves.length
+    ? ` (${deletedSaves.length} na lixeira)`
+    : "";
   const activeCharacter = state.selectedCharacterId
     ? saves.find((character) => character.id === state.selectedCharacterId)
     : null;
@@ -387,12 +393,12 @@ function getUserAreaViewModel(edition, state) {
   return {
     accountEmail: user?.email || "",
     accountName: user?.displayName || "",
-    countLabel: user ? `${saves.length}/${characterLimit} salvos` : "Sem conta",
+    countLabel: user ? `${usedSlots}/${characterLimit} usados${deletedCountLabel}` : "Sem conta",
     activeCharacter,
     canManageCharacter: showSavedPanel,
     hasUser: Boolean(user),
     saves,
-    saveDisabled: !user || saves.length >= characterLimit,
+    saveDisabled: !user || usedSlots >= characterLimit,
     selectedCharacter,
     showEmptyState: false,
     showSavedPanel,

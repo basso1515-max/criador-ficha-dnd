@@ -34,8 +34,6 @@ const MAX_STORED_CHARACTERS_PER_EDITION = 200;
 const MAX_DELETED_CHARACTERS_PER_EDITION = 200;
 const DELETED_CHARACTER_RETENTION_DAYS = 15;
 const DELETED_CHARACTER_RETENTION_MS = DELETED_CHARACTER_RETENTION_DAYS * 24 * 60 * 60 * 1000;
-const USER_DELETED_CHARACTER_VISIBLE_DAYS = 2;
-const USER_DELETED_CHARACTER_VISIBLE_MS = USER_DELETED_CHARACTER_VISIBLE_DAYS * 24 * 60 * 60 * 1000;
 const EDITIONS = ["5e", "5.5e-2024"];
 const ACCOUNT_ROLE_USER = "user";
 const ACCOUNT_ROLE_ADMIN = "admin";
@@ -293,6 +291,53 @@ function isAdminAccount(account) {
 
 function getAccountCharacterLimit(account) {
   return sanitizeAccountLimit(account?.characterLimitPerEdition);
+}
+
+function getEditionCharacterUsage(account, edition) {
+  const activeCount = getEditionBucket(account, edition).length;
+  const deletedCharacters = getDeletedEditionBucket(account, edition);
+  return {
+    activeCount,
+    deletedCount: deletedCharacters.length,
+    totalCount: activeCount + deletedCharacters.length,
+    deletedCharacters,
+  };
+}
+
+function assertCanAddCharacterToEdition(account, edition, scopeLabel = "nesta edição") {
+  const characterLimit = getAccountCharacterLimit(account);
+  const usage = getEditionCharacterUsage(account, edition);
+  if (usage.totalCount < characterLimit) return;
+
+  throw new HttpError(400, buildCharacterLimitMessage({
+    characterLimit,
+    deletedCharacters: usage.deletedCharacters,
+    deletedCount: usage.deletedCount,
+    scopeLabel,
+  }));
+}
+
+function buildCharacterLimitMessage({ characterLimit, deletedCharacters, deletedCount, scopeLabel }) {
+  if (deletedCount > 0) {
+    return `Limite de ${characterLimit} personagens por edição atingido. Fichas na lixeira também contam neste limite; aguarde a exclusão automática da lixeira ${formatDeletedCharacterLimitWait(deletedCharacters)} ou exclua definitivamente fichas pela lixeira para liberar espaço.`;
+  }
+  return `Limite de ${characterLimit} personagens salvos ${scopeLabel} atingido.`;
+}
+
+function formatDeletedCharacterLimitWait(deletedCharacters) {
+  const soonestExpiry = deletedCharacters
+    .map((character) => Date.parse(character?.expiresAt || ""))
+    .filter((time) => Number.isFinite(time) && time > Date.now())
+    .sort((left, right) => left - right)[0];
+  if (!soonestExpiry) return `após ${DELETED_CHARACTER_RETENTION_DAYS} dias`;
+
+  const remainingHours = Math.max(1, Math.ceil((soonestExpiry - Date.now()) / (60 * 60 * 1000)));
+  if (remainingHours < 24) {
+    return `em até ${remainingHours} ${remainingHours === 1 ? "hora" : "horas"}`;
+  }
+
+  const remainingDays = Math.ceil(remainingHours / 24);
+  return `em até ${remainingDays} ${remainingDays === 1 ? "dia" : "dias"}`;
 }
 
 function sanitizePasswordAlgo(algorithm) {
@@ -871,11 +916,8 @@ function getUserVisibleDeletedCharacters(account) {
 }
 
 function isUserVisibleDeletedCharacter(character, now = Date.now()) {
-  const deletedAt = Date.parse(character?.deletedAt || "");
   const expiresAt = Date.parse(character?.expiresAt || "");
-  return Number.isFinite(deletedAt)
-    && deletedAt >= now - USER_DELETED_CHARACTER_VISIBLE_MS
-    && Number.isFinite(expiresAt)
+  return Number.isFinite(expiresAt)
     && expiresAt > now;
 }
 
@@ -2059,10 +2101,7 @@ async function handleAccountApiInternal(req, res, pathname) {
     if (!account) throw new HttpError(404, "Conta não encontrada.");
 
     const bucket = getEditionBucket(account, input.edition);
-    const characterLimit = getAccountCharacterLimit(account);
-    if (bucket.length >= characterLimit) {
-      throw new HttpError(400, `Limite de ${characterLimit} personagens salvos nesta edição atingido.`);
-    }
+    assertCanAddCharacterToEdition(account, input.edition, "nesta edição");
 
     const now = new Date().toISOString();
     const character = {
@@ -2378,10 +2417,7 @@ async function handleAccountApiInternal(req, res, pathname) {
       if (sourceIndex < 0) {
         throw new HttpError(404, "Personagem salvo não encontrado.");
       }
-      const characterLimit = getAccountCharacterLimit(account);
-      if (targetBucket.length >= characterLimit) {
-        throw new HttpError(400, `Limite de ${characterLimit} personagens salvos na edição 5.5e atingido.`);
-      }
+      assertCanAddCharacterToEdition(account, targetEdition, "na edição 5.5e");
 
       const now = new Date().toISOString();
       const characterPayload = input.payload;
@@ -2426,10 +2462,7 @@ async function handleAccountApiInternal(req, res, pathname) {
       character.snapshot = characterPayload.snapshot;
       character.updatedAt = now;
     } else {
-      const characterLimit = getAccountCharacterLimit(account);
-      if (bucket.length >= characterLimit) {
-        throw new HttpError(400, `Limite de ${characterLimit} personagens salvos nesta edição atingido.`);
-      }
+      assertCanAddCharacterToEdition(account, input.edition, "nesta edição");
       character = {
         id: makeId("character"),
         edition: input.edition,

@@ -183,7 +183,7 @@ function renderAccountButton(account) {
       </span>
       <span class="admin-account-meta">
         <b>${escapeHtml(ROLE_LABELS[account.role] || account.role)}</b>
-        <small>${totals.active}/${totals.capacity} salvos</small>
+        <small>${totals.usage}/${totals.capacity} usados</small>
         ${attentionItems.length ? `<small class="admin-attention-chip">${escapeHtml(attentionItems[0])}</small>` : ""}
       </span>
     </button>
@@ -216,7 +216,7 @@ function renderDetail() {
   if (el.accountCreatedAt) el.accountCreatedAt.textContent = formatDate(account.createdAt);
   if (el.accountAuthMethods) el.accountAuthMethods.textContent = getAuthMethodsLabel(account);
   if (el.accountCapacity) {
-    el.accountCapacity.textContent = `${account.characterLimitPerEdition} por edição · ${totals.capacity} no total`;
+    el.accountCapacity.textContent = `${account.characterLimitPerEdition} por edição · ${totals.capacity} no total, incluindo lixeira`;
   }
   if (el.editionUsage) {
     el.editionUsage.innerHTML = EDITIONS.map((edition) => renderEditionUsage(account, edition)).join("");
@@ -262,13 +262,14 @@ function renderEditionUsage(account, edition) {
   const count = Number(account.counts?.[edition] || 0);
   const deletedCount = Number(account.deletedCounts?.[edition] || 0);
   const limit = Math.max(0, Number(account.characterLimitPerEdition || 0));
-  const percent = limit > 0 ? Math.min(100, Math.round((count / limit) * 100)) : count > 0 ? 100 : 0;
-  const overLimit = limit >= 0 && count > limit;
+  const used = count + deletedCount;
+  const percent = limit > 0 ? Math.min(100, Math.round((used / limit) * 100)) : used > 0 ? 100 : 0;
+  const overLimit = limit >= 0 && used > limit;
   return `
     <article class="admin-edition-usage-item${overLimit ? " is-over-limit" : ""}">
       <div>
         <strong>${escapeHtml(EDITION_LABELS[edition] || edition)}</strong>
-        <span>${count}/${limit} ativos${deletedCount ? ` · ${deletedCount} apagados` : ""}</span>
+        <span>${used}/${limit} usados · ${count} ativos${deletedCount ? ` · ${deletedCount} apagados` : ""}</span>
       </div>
       <div class="admin-usage-bar" aria-hidden="true">
         <span style="width: ${percent}%"></span>
@@ -550,16 +551,17 @@ function compareAccounts(left, right) {
 function getAccountTotals(account) {
   const active = EDITIONS.reduce((total, edition) => total + Number(account.counts?.[edition] || 0), 0);
   const deleted = EDITIONS.reduce((total, edition) => total + Number(account.deletedCounts?.[edition] || 0), 0);
+  const usage = active + deleted;
   const perEditionLimit = Math.max(0, Number(account.characterLimitPerEdition || 0));
   const capacity = perEditionLimit * EDITIONS.length;
-  const usagePercent = capacity > 0 ? Math.round((active / capacity) * 100) : active > 0 ? 100 : 0;
-  return { active, capacity, deleted, usagePercent };
+  const usagePercent = capacity > 0 ? Math.round((usage / capacity) * 100) : usage > 0 ? 100 : 0;
+  return { active, capacity, deleted, usage, usagePercent };
 }
 
 function isNearOrOverLimit(totals) {
   return totals.capacity > 0
-    ? totals.active >= Math.ceil(totals.capacity * 0.85)
-    : totals.active > 0;
+    ? totals.usage >= Math.ceil(totals.capacity * 0.85)
+    : totals.usage > 0;
 }
 
 function getAccountAttentionItems(account) {
@@ -567,7 +569,7 @@ function getAccountAttentionItems(account) {
   const items = [];
   if (!account.emailVerified) items.push("E-mail pendente");
   if (totals.deleted > 0) items.push(`${totals.deleted} ${totals.deleted === 1 ? "personagem apagado" : "personagens apagados"}`);
-  if (totals.active > totals.capacity) items.push("Acima do limite");
+  if (totals.usage > totals.capacity) items.push("Acima do limite");
   else if (isNearOrOverLimit(totals)) items.push("Perto do limite");
   if (account.passwordSet === false && !account.authProviders?.length) items.push("Sem método de login ativo");
   return items;
