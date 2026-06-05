@@ -2,6 +2,12 @@
 
 Analise feita em 2026-06-05 sobre os PRs `#1`, `#2`, `#3`, `#4` e `#5` do repositorio `basso1515-max/criador-ficha-dnd`.
 
+## Atualizacao De Execucao
+
+- `#2` e `#4` foram fechados em 2026-06-05 como duplicados/obsoletos do `#3`, que ja tinha instalado o Vercel Web Analytics.
+- `#5` foi fechado em 2026-06-05 como obsoleto. A branch ainda mirava `codex/user-accounts-saves` e o diff contra `main` reverteria partes atuais do projeto, incluindo admin, testes, docs e a arquitetura dividida dos editores.
+- A funcionalidade central do `#5` ja existe em `main`: `src/data/warlock-invocations.js`, paineis de Invocacoes Misticas em `5e.html` e `5.5e-2024.html`, validacoes em `scripts/check.mjs` e cobertura em `scripts/smoke-dom.mjs`/e2e PDF.
+
 ## Evidencias Usadas
 
 - `#1` (`[codex] Add local account character saves`) juntou area do usuario, contas locais, persistencia de personagens e parte das escolhas de Bruxo. O PR terminou com `+1639/-11647`, tocou `src/account-storage.js`, `src/script.js`, `src/script-2024.js`, dados de classe e arquivos temporarios removidos.
@@ -34,7 +40,7 @@ Analise feita em 2026-06-05 sobre os PRs `#1`, `#2`, `#3`, `#4` e `#5` do reposi
 
    Evidencia: `#2` e `#4` parecem duplicar o Analytics ja mesclado em `#3`; `#5` ainda mira `codex/user-accounts-saves`, embora `#1` ja tenha sido mesclado em `main`.
 
-   Proxima execucao recomendada: fechar `#2` e `#4` como substituidos por `#3`; depois atualizar ou recriar `#5` contra `main`, mantendo apenas o que ainda nao esta no codigo atual.
+   Executado: `#2`, `#4` e `#5` foram fechados. Para `#5`, a decisao foi nao recriar um PR limpo porque o `main` ja contem a funcionalidade de Bruxo em uma arquitetura mais atual e testada.
 
 5. **Validador antes de feature, nao depois**
 
