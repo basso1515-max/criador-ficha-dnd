@@ -116,6 +116,7 @@ async function main() {
   const finalPdfBytes = Buffer.from(finalPdf.base64, "base64");
   assert(finalPdfBytes.length > PDF_2024_MIN_BYTE_LENGTH, "PDF final 2024 parece pequeno demais.");
   const finalPdfDoc = await PDFDocument.load(finalPdfBytes);
+  assert(finalPdfDoc.getPageCount() === 2, `PDF final 2024 deve preservar 2 paginas, mas gerou ${finalPdfDoc.getPageCount()}.`);
   assert(finalPdfDoc.getForm().getFields().length === 0, "PDF final 2024 deve sair achatado para visualizadores mobile.");
 
   const spellcasterState = await evaluate(cdp, fillDruidLand2024PdfFixtureScript());
@@ -155,6 +156,7 @@ async function main() {
     "resumos de recursos 2024 carregados sob demanda durante a geracao",
     "PDF gerado em memoria pelo mesmo motor do editor",
     "campos finais do PDF contem nome, classe, nivel, maestrias e magias",
+    "PDF final 2024 preserva as duas paginas da ficha",
     "PDF final 2024 sai sem campos editaveis para evitar renderizacao bugada no celular",
   ].forEach((line) => console.log(`OK: ${line}`));
 

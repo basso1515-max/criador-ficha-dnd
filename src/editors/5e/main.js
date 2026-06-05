@@ -16682,12 +16682,23 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
         </style>
         <script>
           window.__sheetLoadingBridgeReady = false;
+          const shouldOpenPdfDirectly = () => {
+            const userAgent = navigator.userAgent || "";
+            const platform = navigator.platform || "";
+            return /iPad|iPhone|iPod/.test(userAgent)
+              || (platform === "MacIntel" && navigator.maxTouchPoints > 1);
+          };
           const renderPdf = (payload) => {
             if (!payload || payload.type !== "render-pdf" || !payload.url) return;
 
             // Usar o nome do personagem para nomear o arquivo quando salvar
             const nomePersonagem = payload.nomePersonagem || "Ficha D&D";
             document.title = nomePersonagem + " - D&D 5e";
+
+            if (shouldOpenPdfDirectly()) {
+              window.location.replace(payload.url);
+              return;
+            }
 
             const viewer = document.getElementById("pdfViewer");
             if (viewer) {

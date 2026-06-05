@@ -13911,11 +13911,22 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
         </style>
         <script>
           window.__sheetLoadingBridgeReady = false;
+          const shouldOpenPdfDirectly = () => {
+            const userAgent = navigator.userAgent || "";
+            const platform = navigator.platform || "";
+            return /iPad|iPhone|iPod/.test(userAgent)
+              || (platform === "MacIntel" && navigator.maxTouchPoints > 1);
+          };
           const renderPdf = (payload) => {
             if (!payload || payload.type !== "render-pdf" || !payload.url) return;
 
             const nomePersonagem = payload.nomePersonagem || "Ficha D&D";
             document.title = nomePersonagem + " - D&D 5.5e";
+
+            if (shouldOpenPdfDirectly()) {
+              window.location.replace(payload.url);
+              return;
+            }
 
             const viewer = document.getElementById("pdfViewer");
             if (viewer) {

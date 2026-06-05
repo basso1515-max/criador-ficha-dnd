@@ -172,6 +172,34 @@ function validateLazyLoadedCatalogs() {
 
 validateLazyLoadedCatalogs();
 
+function validateMobilePdfViewerFallback() {
+  const errors = [];
+  const editorFiles = [
+    ["src/editors/5e/main.js", "5e"],
+    ["src/editors/2024/main.js", "2024"],
+  ];
+
+  editorFiles.forEach(([file, edition]) => {
+    const source = readFileSync(path.join(root, file), "utf8");
+    if (!source.includes("shouldOpenPdfDirectly")) {
+      errors.push(`${file}: fluxo ${edition} nao possui fallback de abertura direta de PDF no iOS.`);
+    }
+    if (!source.includes("iPad|iPhone|iPod") || !source.includes("navigator.maxTouchPoints")) {
+      errors.push(`${file}: fallback de PDF no iOS deve cobrir iPhone, iPad e iPadOS em modo desktop.`);
+    }
+  });
+
+  if (errors.length) {
+    console.error("\nValidacao do fallback mobile de PDF falhou:");
+    errors.forEach((error) => console.error(`- ${error}`));
+    process.exit(1);
+  }
+
+  console.log("OK: fallback mobile de visualizacao PDF");
+}
+
+validateMobilePdfViewerFallback();
+
 function collectScriptFiles(relativeDir) {
   const absoluteDir = path.join(root, relativeDir);
   if (!existsSync(absoluteDir)) {
