@@ -6,6 +6,8 @@ import {
   FEATURE_CHOICE_METAMAGIC_OPTIONS_2024,
   FEATURE_CHOICE_SKILL_OPTION_IDS_2024,
 } from "../../src/editors/2024/feature-config.js";
+import { CLASSES as CLASSES_2024 } from "../../src/data/5.5e/classes.js";
+import { SUBCLASSES as SUBCLASSES_2024 } from "../../src/data/5.5e/subclasses.js";
 import {
   ARMORER_ARMOR_MODEL_OPTIONS_5E,
   ARTIFICER_INFUSION_CATALOG,
@@ -21,6 +23,8 @@ import {
   TOTEMIC_ATTUNEMENT_OPTIONS_5E,
   WILD_MAGIC_SURGE_OPTIONS_5E,
 } from "../../src/editors/5e/feature-config.js";
+import { CLASSES as CLASSES_5E } from "../../src/data/5e/classes.js";
+import { SUBCLASSES as SUBCLASSES_5E } from "../../src/data/5e/subclasses.js";
 import {
   RANGER_NATURAL_EXPLORER_BY_LEVEL_5E,
   RANGER_NATURAL_EXPLORER_OPTIONS_5E,
@@ -39,6 +43,107 @@ function getDefinition(definitions = [], id) {
   assert.ok(definition, `definition ${id} should exist`);
   return definition;
 }
+
+function records(collection) {
+  return Array.isArray(collection) ? collection : Object.values(collection || {});
+}
+
+function assertFeatureChoiceCatalogContract({
+  edition,
+  definitions,
+  classes,
+  subclasses,
+  optionSets,
+}) {
+  const classIds = new Set(records(classes).map((item) => item.id));
+  const subclassIds = new Set(records(subclasses).map((item) => item.id));
+  const groups = [
+    { key: "classes", sourceKind: "class", validIds: classIds },
+    { key: "subclasses", sourceKind: "subclass", validIds: subclassIds },
+  ];
+
+  groups.forEach(({ key, sourceKind, validIds }) => {
+    Object.entries(definitions[key] || {}).forEach(([sourceId, sourceDefinitions]) => {
+      assert.equal(validIds.has(sourceId), true, `${edition}:${sourceKind}:${sourceId} should exist in catalog`);
+      assert.ok(Array.isArray(sourceDefinitions), `${edition}:${sourceKind}:${sourceId} definitions should be array`);
+      assert.ok(sourceDefinitions.length > 0, `${edition}:${sourceKind}:${sourceId} definitions should not be empty`);
+
+      const seenDefinitionIds = new Set();
+      sourceDefinitions.forEach((definition) => {
+        const context = `${edition}:${sourceKind}:${sourceId}:${definition?.id || "missing-id"}`;
+        assert.ok(definition.id, `${context} should have id`);
+        assert.equal(seenDefinitionIds.has(definition.id), false, `${context} should not duplicate id`);
+        seenDefinitionIds.add(definition.id);
+
+        assert.ok(Number.isInteger(definition.minLevel), `${context} should have integer minLevel`);
+        assert.ok(definition.minLevel >= 1 && definition.minLevel <= 20, `${context} minLevel should be 1-20`);
+        assert.ok(definition.featureLabel, `${context} should have featureLabel`);
+        assert.ok(definition.selectionLabel, `${context} should have selectionLabel`);
+        assert.ok(definition.help, `${context} should have help`);
+        assert.equal(typeof definition.required, "boolean", `${context} should declare required boolean`);
+
+        if ("disallowDuplicates" in definition) {
+          assert.equal(typeof definition.disallowDuplicates, "boolean", `${context} disallowDuplicates should be boolean`);
+        }
+        if ("picks" in definition) {
+          assert.ok(Number.isInteger(definition.picks) && definition.picks > 0, `${context} picks should be positive integer`);
+        }
+        if ("picksByLevel" in definition) {
+          assert.equal(definition.picksByLevel.length, 21, `${context} picksByLevel should cover levels 0-20`);
+          definition.picksByLevel.forEach((value, level) => {
+            assert.ok(Number.isInteger(value) && value >= 0, `${context} picksByLevel[${level}] should be non-negative integer`);
+          });
+        }
+
+        const hasStaticOptions = "options" in definition;
+        const hasDynamicOptionSet = "optionSet" in definition;
+        assert.notEqual(hasStaticOptions, hasDynamicOptionSet, `${context} should use exactly one option source`);
+
+        if (hasStaticOptions) {
+          assert.ok(Array.isArray(definition.options), `${context} options should be array`);
+          assert.ok(definition.options.length > 0, `${context} options should not be empty`);
+          const seenOptionValues = new Set();
+          definition.options.forEach((option) => {
+            assert.ok(option.value, `${context} option should have value`);
+            assert.ok(option.label, `${context} option ${option.value || "missing-value"} should have label`);
+            assert.ok(option.summary, `${context} option ${option.value || "missing-value"} should have summary`);
+            assert.equal(seenOptionValues.has(option.value), false, `${context} option ${option.value} should be unique`);
+            seenOptionValues.add(option.value);
+          });
+        }
+
+        if (hasDynamicOptionSet) {
+          assert.equal(optionSets.has(definition.optionSet), true, `${context} should use known optionSet`);
+        }
+        if (definition.optionSet === "wizard-spells") {
+          assert.ok(Number.isInteger(definition.spellLevel), `${context} wizard-spells should declare spellLevel`);
+          assert.ok(definition.spellLevel >= 1 && definition.spellLevel <= 9, `${context} spellLevel should be 1-9`);
+          assert.equal(definition.grantsSelectedSpell, true, `${context} should grant selected spell`);
+        }
+        if (definition.optionSet === "wizard-scholar-skills") {
+          assert.equal(definition.grantsSelectedExpertise, true, `${context} should grant selected expertise`);
+        }
+      });
+    });
+  });
+}
+
+test("catalogos de escolhas de recurso mantem contrato estrutural", () => {
+  assertFeatureChoiceCatalogContract({
+    edition: "5e",
+    definitions: FEATURE_CHOICE_DEFINITIONS_5E,
+    classes: CLASSES_5E,
+    subclasses: SUBCLASSES_5E,
+    optionSets: new Set(["wizard-spells"]),
+  });
+  assertFeatureChoiceCatalogContract({
+    edition: "2024",
+    definitions: FEATURE_CHOICE_DEFINITIONS_2024,
+    classes: CLASSES_2024,
+    subclasses: SUBCLASSES_2024,
+    optionSets: new Set(["wizard-scholar-skills", "wizard-spells"]),
+  });
+});
 
 test("config 2024 de escolhas de recurso cobre contratos modelados", () => {
   const { classes, subclasses } = FEATURE_CHOICE_DEFINITIONS_2024;

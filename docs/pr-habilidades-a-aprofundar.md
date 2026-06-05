@@ -9,6 +9,7 @@ Analise feita em 2026-06-05 sobre os PRs `#1`, `#2`, `#3`, `#4` e `#5` do reposi
 - A funcionalidade central do `#5` ja existe em `main`: `src/data/warlock-invocations.js`, paineis de Invocacoes Misticas em `5e.html` e `5.5e-2024.html`, validacoes em `scripts/check.mjs` e cobertura em `scripts/smoke-dom.mjs`/e2e PDF.
 - Foi adicionada cobertura unitária dedicada em `scripts/unit/warlock-invocations.test.mjs` para contratos de catalogo, progressao, prerequisitos e filtros de opcoes.
 - `scripts/check.mjs` passou a validar os catalogos `FEATURE_CHOICE_DEFINITIONS_5E` e `FEATURE_CHOICE_DEFINITIONS_2024`, incluindo vinculo com classes/subclasses existentes, campos obrigatorios, options/optionSet e tabelas por nivel.
+- `scripts/unit/feature-config.test.mjs` agora tambem cobre o contrato estrutural desses catalogos de escolhas de recurso na suite unitária.
 
 ## Evidencias Usadas
 
@@ -24,7 +25,7 @@ Analise feita em 2026-06-05 sobre os PRs `#1`, `#2`, `#3`, `#4` e `#5` do reposi
 
    Evidencia: `#5` concentra invocacoes, pactos, validacao estrutural, UI 5e/2024 e exportacao em um unico PR grande. Isso indica que o proximo aprofundamento deve ser transformar novas escolhas de classe em dados pequenos, validadores e adaptadores de UI por edicao.
 
-   Executado: `scripts/check.mjs` agora falha cedo quando uma escolha de recurso referencia classe/subclasse ausente, mistura `options` e `optionSet`, omite campos obrigatorios, duplica ids ou usa `picksByLevel` fora do contrato de niveis 0 a 20.
+   Executado: `scripts/check.mjs` e `scripts/unit/feature-config.test.mjs` agora falham cedo quando uma escolha de recurso referencia classe/subclasse ausente, mistura `options` e `optionSet`, omite campos obrigatorios, duplica ids ou usa `picksByLevel` fora do contrato de niveis 0 a 20.
 
 2. **Observabilidade com cobertura de paginas**
 
