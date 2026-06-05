@@ -7,6 +7,7 @@ Analise feita em 2026-06-05 sobre os PRs `#1`, `#2`, `#3`, `#4` e `#5` do reposi
 - `#2` e `#4` foram fechados em 2026-06-05 como duplicados/obsoletos do `#3`, que ja tinha instalado o Vercel Web Analytics.
 - `#5` foi fechado em 2026-06-05 como obsoleto. A branch ainda mirava `codex/user-accounts-saves` e o diff contra `main` reverteria partes atuais do projeto, incluindo admin, testes, docs e a arquitetura dividida dos editores.
 - A funcionalidade central do `#5` ja existe em `main`: `src/data/warlock-invocations.js`, paineis de Invocacoes Misticas em `5e.html` e `5.5e-2024.html`, validacoes em `scripts/check.mjs` e cobertura em `scripts/smoke-dom.mjs`/e2e PDF.
+- Foi adicionada cobertura unitária dedicada em `scripts/unit/warlock-invocations.test.mjs` para contratos de catalogo, progressao, prerequisitos e filtros de opcoes.
 
 ## Evidencias Usadas
 
@@ -46,4 +47,4 @@ Analise feita em 2026-06-05 sobre os PRs `#1`, `#2`, `#3`, `#4` e `#5` do reposi
 
    Evidencia: `#5` adicionou `Add warlock structural validation` como commit separado apos a primeira implementacao. Esse e um bom sinal, mas o padrao pode ficar ainda melhor se o validador nascer antes ou junto com o catalogo.
 
-   Pratica especifica: para cada catalogo novo, incluir no mesmo PR uma validacao em `scripts/check.mjs` e ao menos um teste unitario que cubra duplicidade, referencias ausentes e regras de prerequisito.
+   Executado: alem da validacao estrutural em `scripts/check.mjs`, o catalogo de Bruxo agora tem teste unitario dedicado cobrindo duplicidade, referencias ausentes, progressao por nivel, Arcanum Mistico e filtros por pacto, truque e invocacao previa.
