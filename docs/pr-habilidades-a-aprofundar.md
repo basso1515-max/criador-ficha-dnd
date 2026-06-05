@@ -8,6 +8,7 @@ Analise feita em 2026-06-05 sobre os PRs `#1`, `#2`, `#3`, `#4` e `#5` do reposi
 - `#5` foi fechado em 2026-06-05 como obsoleto. A branch ainda mirava `codex/user-accounts-saves` e o diff contra `main` reverteria partes atuais do projeto, incluindo admin, testes, docs e a arquitetura dividida dos editores.
 - A funcionalidade central do `#5` ja existe em `main`: `src/data/warlock-invocations.js`, paineis de Invocacoes Misticas em `5e.html` e `5.5e-2024.html`, validacoes em `scripts/check.mjs` e cobertura em `scripts/smoke-dom.mjs`/e2e PDF.
 - Foi adicionada cobertura unitária dedicada em `scripts/unit/warlock-invocations.test.mjs` para contratos de catalogo, progressao, prerequisitos e filtros de opcoes.
+- `scripts/check.mjs` passou a validar os catalogos `FEATURE_CHOICE_DEFINITIONS_5E` e `FEATURE_CHOICE_DEFINITIONS_2024`, incluindo vinculo com classes/subclasses existentes, campos obrigatorios, options/optionSet e tabelas por nivel.
 
 ## Evidencias Usadas
 
@@ -23,7 +24,7 @@ Analise feita em 2026-06-05 sobre os PRs `#1`, `#2`, `#3`, `#4` e `#5` do reposi
 
    Evidencia: `#5` concentra invocacoes, pactos, validacao estrutural, UI 5e/2024 e exportacao em um unico PR grande. Isso indica que o proximo aprofundamento deve ser transformar novas escolhas de classe em dados pequenos, validadores e adaptadores de UI por edicao.
 
-   Pratica especifica: antes de adicionar outra classe/subclasse complexa, criar primeiro o catalogo em `src/data`, depois regras puras em `src/editors/*/*-rules.js`, testes em `scripts/unit` e so entao ligar a UI. Evitar que a primeira implementacao nasca direto em `src/editors/5e/main.js` ou `src/editors/2024/main.js`.
+   Executado: `scripts/check.mjs` agora falha cedo quando uma escolha de recurso referencia classe/subclasse ausente, mistura `options` e `optionSet`, omite campos obrigatorios, duplica ids ou usa `picksByLevel` fora do contrato de niveis 0 a 20.
 
 2. **Observabilidade com cobertura de paginas**
 

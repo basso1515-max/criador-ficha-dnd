@@ -30,7 +30,13 @@ import {
   WARLOCK_MYSTIC_ARCANUM_SLOTS_2024,
   WARLOCK_PACT_BOONS_5E,
 } from "../src/data/warlock-invocations.js";
-import { RACIAL_SPELL_SOURCE_DEFINITIONS } from "../src/editors/5e/feature-config.js";
+import {
+  FEATURE_CHOICE_DEFINITIONS_2024,
+} from "../src/editors/2024/feature-config.js";
+import {
+  FEATURE_CHOICE_DEFINITIONS_5E,
+  RACIAL_SPELL_SOURCE_DEFINITIONS,
+} from "../src/editors/5e/feature-config.js";
 
 const root = process.cwd();
 const requiredFiles = [
@@ -583,6 +589,138 @@ function validateCatalogReferenceIntegrity() {
   }
 
   console.log("OK: referencias de catalogos");
+}
+
+function validateFeatureChoiceOptions(edition, sourceKind, sourceId, definition, errors) {
+  const hasStaticOptions = "options" in definition;
+  const hasDynamicOptionSet = "optionSet" in definition;
+  const context = `${edition}: ${sourceKind} ${sourceId}/${definition.id}`;
+
+  if (hasStaticOptions && hasDynamicOptionSet) {
+    errors.push(`${context} mistura options e optionSet; escolha uma fonte de opcoes.`);
+  }
+  if (!hasStaticOptions && !hasDynamicOptionSet) {
+    errors.push(`${context} sem options ou optionSet.`);
+  }
+
+  if (hasStaticOptions) {
+    if (!Array.isArray(definition.options) || !definition.options.length) {
+      errors.push(`${context} deve ter options nao vazio.`);
+      return;
+    }
+
+    const seenValues = new Set();
+    definition.options.forEach((option, index) => {
+      const optionContext = `${context}/option[${index}]`;
+      if (!option?.value) errors.push(`${optionContext} sem value.`);
+      if (!option?.label) errors.push(`${optionContext} sem label.`);
+      if (!option?.summary) errors.push(`${optionContext} sem summary.`);
+      if (option?.value) {
+        if (seenValues.has(option.value)) {
+          errors.push(`${context} tem option duplicada (${option.value}).`);
+        }
+        seenValues.add(option.value);
+      }
+    });
+  }
+}
+
+function validateFeatureChoiceDefinitionCatalog() {
+  const errors = [];
+  const datasets = [
+    {
+      edition: "5e",
+      definitions: FEATURE_CHOICE_DEFINITIONS_5E,
+      classes: CLASSES_5E,
+      subclasses: SUBCLASSES_5E,
+      optionSets: new Set(["wizard-spells"]),
+    },
+    {
+      edition: "2024",
+      definitions: FEATURE_CHOICE_DEFINITIONS_2024,
+      classes: CLASSES_2024,
+      subclasses: SUBCLASSES_2024,
+      optionSets: new Set(["wizard-scholar-skills", "wizard-spells"]),
+    },
+  ];
+
+  datasets.forEach(({ edition, definitions, classes, subclasses, optionSets }) => {
+    const classIds = new Set(listRecords(classes).map((item) => item.id));
+    const subclassIds = new Set(listRecords(subclasses).map((item) => item.id));
+    const groups = [
+      { key: "classes", sourceKind: "classe", validIds: classIds },
+      { key: "subclasses", sourceKind: "subclasse", validIds: subclassIds },
+    ];
+
+    groups.forEach(({ key, sourceKind, validIds }) => {
+      Object.entries(definitions?.[key] || {}).forEach(([sourceId, sourceDefinitions]) => {
+        if (!validIds.has(sourceId)) {
+          errors.push(`${edition}: ${sourceKind} de escolhas ausente no catalogo (${sourceId}).`);
+        }
+        if (!Array.isArray(sourceDefinitions) || !sourceDefinitions.length) {
+          errors.push(`${edition}: ${sourceKind} ${sourceId} deve listar escolhas em array nao vazio.`);
+          return;
+        }
+
+        const seenDefinitionIds = new Set();
+        sourceDefinitions.forEach((definition) => {
+          const context = `${edition}: ${sourceKind} ${sourceId}/${definition?.id || "sem-id"}`;
+          if (!definition?.id) errors.push(`${context} sem id.`);
+          if (definition?.id && seenDefinitionIds.has(definition.id)) {
+            errors.push(`${edition}: ${sourceKind} ${sourceId} tem escolha duplicada (${definition.id}).`);
+          }
+          if (definition?.id) seenDefinitionIds.add(definition.id);
+
+          if (!Number.isInteger(definition?.minLevel) || definition.minLevel < 1 || definition.minLevel > 20) {
+            errors.push(`${context} deve ter minLevel inteiro entre 1 e 20.`);
+          }
+          ["featureLabel", "selectionLabel", "help"].forEach((field) => {
+            if (!definition?.[field]) errors.push(`${context} sem ${field}.`);
+          });
+          if (typeof definition?.required !== "boolean") {
+            errors.push(`${context} deve declarar required booleano.`);
+          }
+          if ("disallowDuplicates" in definition && typeof definition.disallowDuplicates !== "boolean") {
+            errors.push(`${context} deve declarar disallowDuplicates booleano.`);
+          }
+          if ("picks" in definition && (!Number.isInteger(definition.picks) || definition.picks < 1)) {
+            errors.push(`${context} deve ter picks inteiro positivo.`);
+          }
+          if ("picksByLevel" in definition) {
+            if (!Array.isArray(definition.picksByLevel) || definition.picksByLevel.length !== 21) {
+              errors.push(`${context} deve ter picksByLevel cobrindo niveis 0 a 20.`);
+            } else if (definition.picksByLevel.some((value) => !Number.isInteger(value) || value < 0)) {
+              errors.push(`${context} deve ter picksByLevel somente com inteiros nao negativos.`);
+            }
+          }
+          if ("optionSet" in definition && !optionSets.has(definition.optionSet)) {
+            errors.push(`${context} usa optionSet desconhecido (${definition.optionSet}).`);
+          }
+          if (definition?.optionSet === "wizard-spells") {
+            if (!Number.isInteger(definition.spellLevel) || definition.spellLevel < 1 || definition.spellLevel > 9) {
+              errors.push(`${context} usa wizard-spells sem spellLevel valido.`);
+            }
+            if (definition.grantsSelectedSpell !== true) {
+              errors.push(`${context} usa wizard-spells sem grantsSelectedSpell.`);
+            }
+          }
+          if (definition?.optionSet === "wizard-scholar-skills" && definition.grantsSelectedExpertise !== true) {
+            errors.push(`${context} usa wizard-scholar-skills sem grantsSelectedExpertise.`);
+          }
+
+          validateFeatureChoiceOptions(edition, sourceKind, sourceId, definition, errors);
+        });
+      });
+    });
+  });
+
+  if (errors.length) {
+    console.error("\nValidacao dos catalogos de escolhas de recursos falhou:");
+    errors.forEach((error) => console.error(`- ${error}`));
+    process.exit(1);
+  }
+
+  console.log("OK: catalogos de escolhas de recursos");
 }
 
 function validateWarlockData() {
@@ -1204,6 +1342,7 @@ function validateArtificerInfusionEngine5e() {
 }
 
 validateCatalogReferenceIntegrity();
+validateFeatureChoiceDefinitionCatalog();
 validateWarlockData();
 validatePaladinOathSpellData();
 validateDruidCircleSpellData();
