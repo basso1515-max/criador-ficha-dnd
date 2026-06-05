@@ -3,7 +3,7 @@
     "version": "5.5e",
     "route": "5e-2024",
     "template": "./assets/pdf/5.5e/ficha5.5e.pdf",
-    "notes": "Mapeamento inicial da ficha 5.5e/2024 com compatibilidade parcial para o schema legado da 5e."
+    "notes": "Mapeamento da ficha oficial D&D 2024 em PT-BR; os campos do PDF foram normalizados para preservar o contrato de exportação existente."
   },
   "texto": {
     "nome": "Name",

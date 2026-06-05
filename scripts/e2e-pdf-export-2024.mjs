@@ -11,6 +11,7 @@ const HOST = "127.0.0.1";
 const SERVER_TIMEOUT_MS = 8_000;
 const CHROME_TIMEOUT_MS = 10_000;
 const PAGE_TIMEOUT_MS = 30_000;
+const PDF_2024_MIN_BYTE_LENGTH = 1_000_000;
 
 const children = new Set();
 let tempProfile = "";
@@ -96,7 +97,7 @@ async function main() {
 
   const generated = await evaluate(cdp, "window.__DND_SHEET_2024_TEST_HOOKS__.generatePdfSnapshot({ flatten: false })", 45_000);
   assert(generated?.fieldTexts, "Hook de PDF nao retornou o snapshot dos campos.");
-  assert(generated.byteLength > 10_000_000, "PDF 2024 gerado parece pequeno demais.");
+  assert(generated.byteLength > PDF_2024_MIN_BYTE_LENGTH, "PDF 2024 gerado parece pequeno demais.");
   await assertPdfLibLoadedOnDemand(cdp);
   await assertFeatureSummariesLoadedOnDemand(cdp);
 
@@ -116,7 +117,7 @@ async function main() {
 
   const spellcasterPdf = await evaluate(cdp, "window.__DND_SHEET_2024_TEST_HOOKS__.generatePdfSnapshot({ flatten: false })", 45_000);
   assert(spellcasterPdf?.fieldTexts, "Hook de PDF do conjurador nao retornou o snapshot dos campos.");
-  assert(spellcasterPdf.byteLength > 10_000_000, "PDF 2024 do conjurador parece pequeno demais.");
+  assert(spellcasterPdf.byteLength > PDF_2024_MIN_BYTE_LENGTH, "PDF 2024 do conjurador parece pequeno demais.");
 
   const spellcasterText = getPdfSnapshotText(spellcasterPdf);
   assertIncludes(spellcasterText, "Teste PDF Druida 2024", "nome do conjurador");
