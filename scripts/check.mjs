@@ -96,6 +96,39 @@ function validatePdfLibBundle() {
 
 validatePdfLibBundle();
 
+function validateHtmlAnalyticsCoverage() {
+  const errors = [];
+  const htmlFiles = readdirSync(root, { withFileTypes: true })
+    .filter((entry) => entry.isFile() && /\.html$/i.test(entry.name))
+    .map((entry) => entry.name)
+    .sort((a, b) => a.localeCompare(b));
+
+  htmlFiles.forEach((file) => {
+    const html = readFileSync(path.join(root, file), "utf8");
+    const analyticsScripts = [...html.matchAll(/<script\b[^>]*\bsrc=["']\.\/src\/analytics\.js["'][^>]*>/g)];
+
+    if (analyticsScripts.length !== 1) {
+      errors.push(`${file}: deve carregar exatamente uma vez ./src/analytics.js.`);
+      return;
+    }
+
+    const scriptTag = analyticsScripts[0][0];
+    if (!/\btype=["']module["']/.test(scriptTag) || !/\bdefer\b/.test(scriptTag)) {
+      errors.push(`${file}: analytics.js deve ser carregado como module defer.`);
+    }
+  });
+
+  if (errors.length) {
+    console.error("\nValidacao de analytics nos HTMLs falhou:");
+    errors.forEach((error) => console.error(`- ${error}`));
+    process.exit(1);
+  }
+
+  console.log("OK: analytics presente nos HTMLs raiz");
+}
+
+validateHtmlAnalyticsCoverage();
+
 function validateLazyLoadedCatalogs() {
   const errors = [];
   const editor2024 = readFileSync(path.join(root, "src/editors/2024/main.js"), "utf8");
