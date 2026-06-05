@@ -2054,7 +2054,9 @@ body[data-active-screen="user-page"] .account-page-status:not(:empty) {
   }
 
   .admin-account-list {
-    max-height: 360px;
+    max-height: none;
+    overflow: visible;
+    padding-right: 0;
   }
 
   .admin-account-form {
@@ -2095,6 +2097,87 @@ body[data-active-screen="user-page"] .account-page-status:not(:empty) {
 
   .admin-character-actions {
     justify-content: stretch;
+  }
+}
+
+@media (max-width: 520px) {
+  .admin-page-shell {
+    gap: 0;
+    padding-bottom: 28px;
+  }
+
+  .admin-page-shell .container {
+    padding-inline: 12px;
+  }
+
+  .admin-page-intro {
+    gap: 8px;
+  }
+
+  .admin-page-intro p {
+    font-size: 17px;
+  }
+
+  .admin-account-list-panel,
+  .admin-detail-panel,
+  .admin-detail-content,
+  .admin-character-section,
+  .admin-account-form,
+  .admin-add-character-form {
+    gap: 12px;
+  }
+
+  .admin-account-list-panel,
+  .admin-detail-panel {
+    padding: 14px;
+  }
+
+  .admin-list-actions,
+  .admin-detail-actions,
+  .admin-character-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .admin-list-actions .secondary-button,
+  .admin-list-actions .ghost-button,
+  .admin-detail-actions .secondary-button,
+  .admin-detail-actions .ghost-button,
+  .admin-character-actions .secondary-button,
+  .admin-character-actions .ghost-button,
+  .admin-account-form .primary,
+  .admin-add-character-form .secondary-button {
+    width: 100%;
+  }
+
+  .admin-account-item,
+  .admin-character-item {
+    min-height: 0;
+    padding: 12px;
+  }
+
+  .admin-account-item {
+    gap: 8px;
+  }
+
+  .admin-account-item > span,
+  .admin-account-meta {
+    gap: 4px;
+  }
+
+  .admin-account-meta b {
+    font-size: 14px;
+  }
+
+  .admin-attention-chip {
+    max-width: 100%;
+    border-radius: 8px;
+    white-space: normal;
+  }
+
+  .admin-limit-presets {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
