@@ -274,20 +274,40 @@ const smokePages = [
           dispatch(select, "change");
         };
         const featProgressionModeSelects5e = () => Array.from(document.querySelectorAll('#featChoicesContainer select[data-feat-asi-slot-key][data-feat-asi-field="mode"]'));
-        const assertLevel19FeatSlots5e = (className, expectedCount) => {
-          setClassLevel(className, 19);
+        const assertLevelFeatSlots5e = (className, level, expectedCount, requiredSlotKey) => {
+          setClassLevel(className, level);
           const slots = featProgressionModeSelects5e();
-          assert(!document.querySelector("#featChoicesPanel")?.hidden, "Painel de talentos 5e não abriu no nível 19 para " + className + ".");
-          assert(slots.length === expectedCount, className + " 5e nível 19 deveria ter " + expectedCount + " controle(s) de ASI/talento; obteve " + slots.length + ".");
+          assert(!document.querySelector("#featChoicesPanel")?.hidden, "Painel de talentos 5e não abriu no nível " + level + " para " + className + ".");
+          assert(slots.length === expectedCount, className + " 5e nível " + level + " deveria ter " + expectedCount + " controle(s) de ASI/talento; obteve " + slots.length + ".");
           assert(
-            slots.some((select) => (select.getAttribute("data-feat-asi-slot-key") || "").includes("asi-19")),
-            className + " 5e nível 19 não abriu o controle asi-19."
+            slots.some((select) => (select.getAttribute("data-feat-asi-slot-key") || "").includes(requiredSlotKey)),
+            className + " 5e nível " + level + " não abriu o controle " + requiredSlotKey + "."
           );
           assert(
             slots.every((select) => Array.from(select.options).some((option) => option.value === "asi") && Array.from(select.options).some((option) => option.value === "feat")),
-            className + " 5e nível 19 não ofereceu a alternância entre Aumento de atributo e Talento opcional."
+            className + " 5e nível " + level + " não ofereceu a alternância entre Aumento de atributo e Talento opcional."
           );
         };
+        const assertLevel19FeatSlots5e = (className, expectedCount) => assertLevelFeatSlots5e(className, 19, expectedCount, "asi-19");
+
+        const level16FeatSlotExpectations5e = [
+          ["Artífice", 4],
+          ["Bárbaro", 4],
+          ["Bardo", 4],
+          ["Bruxo", 4],
+          ["Clérigo", 4],
+          ["Druida", 4],
+          ["Feiticeiro", 4],
+          ["Guerreiro", 6],
+          ["Ladino", 5],
+          ["Mago", 4],
+          ["Monge", 4],
+          ["Paladino", 4],
+          ["Patrulheiro", 4],
+        ];
+        for (const [className, expectedCount] of level16FeatSlotExpectations5e) {
+          assertLevelFeatSlots5e(className, 16, expectedCount, "asi-16");
+        }
 
         const level17ClassExpectations5e = [
           { className: "Bruxo", expected: ["Arcano Místico (9º círculo)"] },
@@ -1001,6 +1021,39 @@ const smokePages = [
           assert(match, "Preview de atributo 2024 ausente para " + ability + ": " + previewText);
           return Number(match[1]);
         };
+
+        const featSlots2024 = (type) => Array.from(document.querySelectorAll('#featChoices2024 article[data-feat-slot-type="' + type + '"] select[data-feat-choice-id]'));
+        const assertLevel16FeatSlots2024 = async (classId, expectedCount) => {
+          setClassLevel(classId, 16);
+          await waitForLazyCatalogs2024();
+          const featSlots = featSlots2024("feat");
+          assert(featSlots.length === expectedCount, classId + " 2024 nível 16 deveria ter " + expectedCount + " slot(s) de talento/ASI; obteve " + featSlots.length + ".");
+          assert(
+            featSlots.some((select) => (select.getAttribute("data-feat-choice-id") || "").endsWith("-16")),
+            classId + " 2024 nível 16 não abriu o slot de classe no nível 16."
+          );
+          assert(
+            featSlots.some((select) => Array.from(select.options).some((option) => option.value === "aumento-no-valor-de-atributo")),
+            classId + " 2024 nível 16 não listou Aumento no Valor de Atributo como escolha."
+          );
+        };
+        const level16FeatSlotExpectations2024 = [
+          ["barbaro", 4],
+          ["bardo", 4],
+          ["bruxo", 4],
+          ["clerigo", 4],
+          ["druida", 4],
+          ["feiticeiro", 4],
+          ["guerreiro", 6],
+          ["ladino", 5],
+          ["mago", 4],
+          ["monge", 4],
+          ["paladino", 4],
+          ["guardiao", 4],
+        ];
+        for (const [classId, expectedCount] of level16FeatSlotExpectations2024) {
+          await assertLevel16FeatSlots2024(classId, expectedCount);
+        }
 
         const level17ClassExpectations2024 = [
           { classId: "barbaro", expected: ["Golpe Brutal Aprimorado (17º nível)"] },
