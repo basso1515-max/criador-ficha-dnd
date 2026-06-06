@@ -273,6 +273,21 @@ const smokePages = [
           select.value = configurationValue;
           dispatch(select, "change");
         };
+        const featProgressionModeSelects5e = () => Array.from(document.querySelectorAll('#featChoicesContainer select[data-feat-asi-slot-key][data-feat-asi-field="mode"]'));
+        const assertLevel19FeatSlots5e = (className, expectedCount) => {
+          setClassLevel(className, 19);
+          const slots = featProgressionModeSelects5e();
+          assert(!document.querySelector("#featChoicesPanel")?.hidden, "Painel de talentos 5e não abriu no nível 19 para " + className + ".");
+          assert(slots.length === expectedCount, className + " 5e nível 19 deveria ter " + expectedCount + " controle(s) de ASI/talento; obteve " + slots.length + ".");
+          assert(
+            slots.some((select) => (select.getAttribute("data-feat-asi-slot-key") || "").includes("asi-19")),
+            className + " 5e nível 19 não abriu o controle asi-19."
+          );
+          assert(
+            slots.every((select) => Array.from(select.options).some((option) => option.value === "asi") && Array.from(select.options).some((option) => option.value === "feat")),
+            className + " 5e nível 19 não ofereceu a alternância entre Aumento de atributo e Talento opcional."
+          );
+        };
 
         const level20FeatureExpectations5e = [
           ["Artífice", "Alma do Artífice"],
@@ -298,6 +313,9 @@ const smokePages = [
             "Preview 5e nível 20 não registrou " + expectedFeature + " para " + className + "."
           );
         }
+        assertLevel19FeatSlots5e("Bárbaro", 5);
+        assertLevel19FeatSlots5e("Guerreiro", 7);
+        assertLevel19FeatSlots5e("Ladino", 6);
 
         setClassLevel("Artífice", 2);
         assert(!document.querySelector("#artificerInfusionsPanel")?.hidden, "Painel de infusões de Artifice nao abriu no nível 2.");
@@ -906,6 +924,35 @@ const smokePages = [
           { classId: "paladino", subclassId: "paladino-devocao", expected: ["Recurso final do juramento", "Mãos Consagradas: 100", "Canalizar Divindade: 3", "Nimbo Sagrado"] },
           { classId: "guardiao", expected: ["Matador de Inimigos Favoritos", "Inimigo Favorito: 6", "Magias preparadas: 15", "Marca do Predador causa d10"] },
         ];
+        const level19EpicFeatClasses2024 = [
+          "barbaro",
+          "bardo",
+          "bruxo",
+          "clerigo",
+          "druida",
+          "feiticeiro",
+          "guerreiro",
+          "ladino",
+          "mago",
+          "monge",
+          "paladino",
+          "guardiao",
+        ];
+        for (const classId of level19EpicFeatClasses2024) {
+          setClassLevel(classId, 19);
+          await waitForLazyCatalogs2024();
+          const epicSlots = Array.from(document.querySelectorAll('#featChoices2024 article[data-feat-slot-type="epic"] select[data-feat-choice-id]'));
+          assert(epicSlots.length === 1, classId + " 2024 nível 19 deveria abrir 1 slot de Dádiva Épica; obteve " + epicSlots.length + ".");
+          assert(
+            Array.from(epicSlots[0].options).some((option) => option.value === "dadiva-da-fortitude"),
+            classId + " 2024 nível 19 não listou Dádiva da Fortitude."
+          );
+          const level19Text = [
+            document.querySelector("#classInfo2024")?.textContent || "",
+            document.querySelector("#preview2024")?.textContent || "",
+          ].join(" ");
+          assert(textIncludes(level19Text, "Dádiva Épica"), classId + " 2024 nível 19 não registrou Dádiva Épica no resumo/preview.");
+        }
         for (const expectation of level20SummaryExpectations2024) {
           setClassLevel(expectation.classId, 20);
           if (expectation.subclassId) {
