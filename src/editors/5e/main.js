@@ -565,6 +565,14 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
   const FIGHTING_STYLE_CUSTOM_SELECT_PREFIX = "fighting-style:";
   const LANGUAGE_CUSTOM_SELECT_PREFIX = "language-slot:";
   const EQUIPMENT_CUSTOM_SELECT_PREFIX = "equipment-choice:";
+  const CLASS_CAPSTONE_ABILITY_BONUSES_5E = {
+    barbaro: {
+      minLevel: 20,
+      source: "Campeão Primal",
+      maxScore: 24,
+      bonuses: { for: 4, con: 4 },
+    },
+  };
   let featCustomSelectKeys = [];
   let featureChoiceCustomSelectKeys = [];
   let subclassProficiencyChoiceCustomSelectKeys = [];
@@ -12962,7 +12970,43 @@ function getSelectedSubclassData() {
     const improved = applyAbilityScoreImprovements(subraceAttrs, state.asi);
     const classIncreases = applyFeatAbilityIncreases5e(improved.attrs, state?.selectedFeatAbilityIncreases);
     const featAttrs = applyAttributeBonuses(classIncreases.attrs, collectFixedFeatAbilityBonuses(state?.selectedFeats, state?.selectedFeatDetails));
-    return { attrs: featAttrs, warnings: [...improved.warnings, ...classIncreases.warnings] };
+    const capstoneAttrs = applyClassCapstoneAbilityBonuses5e(featAttrs, state);
+    return { attrs: capstoneAttrs, warnings: [...improved.warnings, ...classIncreases.warnings] };
+  }
+
+  function collectClassCapstoneAbilityBonusEntries5e(state = {}) {
+    const classEntries = Array.isArray(state?.classEntries) && state.classEntries.length
+      ? getResolvedClassEntries(state)
+      : [{
+          classId: state?.classData?.id || "",
+          classData: state?.classData || null,
+          classLabel: state?.classData?.nome || state?.classe || "Classe",
+          level: state?.nivel || 0,
+        }].filter((entry) => entry.classId && entry.level > 0);
+
+    return classEntries.flatMap((entry) => {
+      const rule = CLASS_CAPSTONE_ABILITY_BONUSES_5E[entry.classId];
+      if (!rule || Number(entry.level || 0) < Number(rule.minLevel || 20)) return [];
+
+      return Object.entries(rule.bonuses || {}).map(([ability, amount]) => ({
+        ability,
+        amount: Number(amount || 0),
+        source: `${entry.classLabel || entry.classData?.nome || "Classe"} - ${rule.source}`,
+        maxScore: Number(rule.maxScore || 24),
+      }));
+    });
+  }
+
+  function applyClassCapstoneAbilityBonuses5e(baseAttrs, state = {}) {
+    const attrs = { ...baseAttrs };
+    collectClassCapstoneAbilityBonusEntries5e(state).forEach((entry) => {
+      const ability = entry?.ability;
+      if (!ability || !Object.prototype.hasOwnProperty.call(attrs, ability)) return;
+      const currentValue = Number(attrs[ability] || 0);
+      const maxScore = clampInt(entry?.maxScore || 24, 1, 30);
+      attrs[ability] = Math.min(maxScore, Math.max(1, currentValue + Number(entry?.amount || 0)));
+    });
+    return attrs;
   }
 
   function applyFeatAbilityIncreases5e(baseAttrs, increases = []) {
@@ -13028,7 +13072,8 @@ function getSelectedSubclassData() {
       const ability = entry?.ability;
       if (!ability || !Object.prototype.hasOwnProperty.call(attrs, ability)) return;
       const currentValue = Number(attrs[ability] || 0);
-      const nextValue = Math.min(maxScore, Math.max(1, currentValue + Number(entry?.amount || 0)));
+      const entryMaxScore = Number.isFinite(entry?.maxScore) ? Number(entry.maxScore) : maxScore;
+      const nextValue = Math.min(entryMaxScore, Math.max(1, currentValue + Number(entry?.amount || 0)));
       const appliedAmount = nextValue - currentValue;
       if (!appliedAmount) return;
 
@@ -13154,6 +13199,7 @@ function getSelectedSubclassData() {
     applyAbilityPreviewEntries5e(attrs, breakdowns, collectFlexibleAsiBreakdownEntries5e(state));
     applyAbilityPreviewEntries5e(attrs, breakdowns, collectFeatAbilityIncreaseBreakdownEntries5e(state?.selectedFeatAbilityIncreases));
     applyAbilityPreviewEntries5e(attrs, breakdowns, collectFeatAbilityBreakdownEntries5e(state?.selectedFeats, state?.selectedFeatDetails));
+    applyAbilityPreviewEntries5e(attrs, breakdowns, collectClassCapstoneAbilityBonusEntries5e(state));
 
     return {
       base: state?.attrs || {},

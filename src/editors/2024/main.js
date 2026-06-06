@@ -402,6 +402,20 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
   const SUBCLASS_FIGHTING_STYLE_SLOT_LEVELS = {
     "guerreiro-campeao": [7],
   };
+  const CLASS_CAPSTONE_ABILITY_BONUSES_2024 = {
+    barbaro: {
+      minLevel: 20,
+      source: "Campeão Primal",
+      maxScore: 25,
+      bonuses: { for: 4, con: 4 },
+    },
+    monge: {
+      minLevel: 20,
+      source: "Corpo e Mente",
+      maxScore: 25,
+      bonuses: { des: 4, sab: 4 },
+    },
+  };
   const SPELLCASTING_CLASS_LEVELS = {
     bardo: 1,
     bruxo: 1,
@@ -1422,7 +1436,8 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
       const rages = BARBARIAN_PROGRESSION_2024.rages[level] || 0;
       const rageDamage = BARBARIAN_PROGRESSION_2024.rageDamage[level] || 0;
       const masteries = BARBARIAN_PROGRESSION_2024.weaponMastery[level] || 0;
-      return `Fúrias: ${rages}. Dano de Fúria: +${rageDamage}. Maestrias de arma: ${masteries}.`;
+      const primalChampion = level >= 20 ? " Campeão Primal: +4 FOR e +4 CON, máximo 25, aplicado aos atributos finais." : "";
+      return `Fúrias: ${rages}. Dano de Fúria: +${rageDamage}. Maestrias de arma: ${masteries}.${primalChampion}`;
     },
     bardo(level) {
       const bardicDie = BARD_BARDIC_DIE_BY_LEVEL_2024[level] || 6;
@@ -1488,7 +1503,8 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
       const layOnHandsPool = level * 5;
       const aura = level >= 18 ? "Aura: 9 m" : level >= 6 ? "Aura: 3 m" : "Aura: —";
       const radiantStrikes = level >= 11 ? " Golpes Radiantes: +1d8 radiante em ataques corpo a corpo." : "";
-      return `Mãos Consagradas: ${layOnHandsPool} PV. Canalizar Divindade: ${channelDivinity ? `${channelDivinity} uso(s)` : "—"}. Maestrias de arma: 2. Magias preparadas: ${prepared}. ${aura}.${radiantStrikes}`;
+      const oathCapstone = level >= 20 ? " Recurso final do juramento: vem da subclasse escolhida." : "";
+      return `Mãos Consagradas: ${layOnHandsPool} PV. Canalizar Divindade: ${channelDivinity ? `${channelDivinity} uso(s)` : "—"}. Maestrias de arma: 2. Magias preparadas: ${prepared}. ${aura}.${radiantStrikes}${oathCapstone}`;
     },
     ladino(level) {
       const sneakAttackDice = ROGUE_SNEAK_ATTACK_DICE_BY_LEVEL_2024[level] || 0;
@@ -1524,7 +1540,8 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
       const movementFeet = MONK_PROGRESSION_2024.unarmoredMovementFeet[level] || 0;
       const focusText = focusPoints ? `${focusPoints} ponto(s)` : "—";
       const movementText = movementFeet ? `+${formatDistanceFromFeet2024(movementFeet)}` : "—";
-      return `Artes Marciais: d${martialArtsDie}. Foco: ${focusText}. Movimento sem Armadura: ${movementText}. CD do Foco: 8 + SAB + prof.`;
+      const bodyAndMind = level >= 20 ? " Corpo e Mente: +4 DES e +4 SAB, máximo 25, aplicado aos atributos finais." : "";
+      return `Artes Marciais: d${martialArtsDie}. Foco: ${focusText}. Movimento sem Armadura: ${movementText}. CD do Foco: 8 + SAB + prof.${bodyAndMind}`;
     },
   };
 
@@ -5272,10 +5289,27 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
     });
   }
 
+  function buildClassCapstoneAbilityBonusEntries2024(classEntries = getResolvedClassEntries2024()) {
+    return normalizeClassEntriesArgument2024(classEntries)
+      .flatMap((entry) => {
+        const rule = CLASS_CAPSTONE_ABILITY_BONUSES_2024[entry.classId];
+        if (!rule || Number(entry.level || 0) < Number(rule.minLevel || 20)) return [];
+
+        return Object.entries(rule.bonuses || {}).map(([ability, amount]) => ({
+          ability,
+          amount: Number(amount || 0),
+          source: `${entry.classLabel || entry.classData?.nome || "Classe"} - ${rule.source}`,
+          detail: `+${Number(amount || 0)} ${formatAbilityLabel(ability)}`,
+          maxScore: Number(rule.maxScore || 25),
+        }));
+      });
+  }
+
   function calculateEffectiveAbilityScores2024({
     baseScores: rawBaseScores = {},
     backgroundBonuses = {},
     featBonuses = {},
+    classFeatureBonuses = {},
   } = {}) {
     const baseScores = normalizeAbilityScoreMap2024(rawBaseScores);
     const scores = {};
@@ -5300,14 +5334,28 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
     };
     applyAbilityBonusEntriesToScores2024(scores, breakdowns, selectedFeatBonuses.entries);
 
+    const selectedClassFeatureBonuses = {
+      entries: [],
+      complete: true,
+      valid: true,
+      ...classFeatureBonuses,
+    };
+    applyAbilityBonusEntriesToScores2024(scores, breakdowns, selectedClassFeatureBonuses.entries);
+
     const baseComplete = ABILITY_ORDER.every((ability) => Number.isFinite(baseScores[ability]));
     return {
       baseScores,
       scores,
       breakdowns,
       baseComplete,
-      complete: baseComplete && selectedBonuses.complete && selectedBonuses.valid && selectedFeatBonuses.complete && selectedFeatBonuses.valid,
-      valid: selectedBonuses.valid && selectedFeatBonuses.valid,
+      complete: baseComplete
+        && selectedBonuses.complete
+        && selectedBonuses.valid
+        && selectedFeatBonuses.complete
+        && selectedFeatBonuses.valid
+        && selectedClassFeatureBonuses.complete
+        && selectedClassFeatureBonuses.valid,
+      valid: selectedBonuses.valid && selectedFeatBonuses.valid && selectedClassFeatureBonuses.valid,
       featBonusesComplete: selectedFeatBonuses.complete,
       featBonusesValid: selectedFeatBonuses.valid,
     };
@@ -5318,6 +5366,11 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
       baseScores: getBaseAbilityScores(),
       backgroundBonuses: buildBackgroundAbilityBonusEntries2024(),
       featBonuses: getSelectedFeatAbilityBonusState2024(),
+      classFeatureBonuses: {
+        entries: buildClassCapstoneAbilityBonusEntries2024(),
+        complete: true,
+        valid: true,
+      },
     });
   }
 
@@ -5326,6 +5379,11 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
       baseScores: getBaseAbilityScores(),
       backgroundBonuses: buildBackgroundAbilityBonusEntries2024(),
       featBonuses: getSelectedFeatAbilityBonusState2024({ featValueMap, detailValues }),
+      classFeatureBonuses: {
+        entries: buildClassCapstoneAbilityBonusEntries2024(),
+        complete: true,
+        valid: true,
+      },
     });
   }
 

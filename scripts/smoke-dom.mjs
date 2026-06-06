@@ -92,6 +92,12 @@ const smokePages = [
           setValue("#classe", className, ["change"]);
           setValue("#nivel", level, ["input", "change"]);
         };
+        const readAbilityTotal5e = (ability) => {
+          const previewText = document.querySelector('.attrs .attr[data-ability="' + ability + '"] .attr-total-preview')?.textContent || "";
+          const match = previewText.match(/Total\\s+(\\d+)/);
+          assert(match, "Preview de atributo 5e ausente para " + ability + ": " + previewText);
+          return Number(match[1]);
+        };
         const featureSelects = () => Array.from(document.querySelectorAll("#featureChoicesContainer select[data-feature-choice-slot-key]"));
         const selectsForFeature = (featureId) => featureSelects()
           .filter((select) => (select.getAttribute("data-feature-choice-slot-key") || "").includes(":feature-choice:class:" + featureId + ":"));
@@ -329,6 +335,17 @@ const smokePages = [
         assert(selectsForFeatureKind("subclass", "wild-magic-surge").length === 1, "Magia Selvagem 5e não abriu Surto de Magia Selvagem.");
         chooseFeatureKind("subclass", "wild-magic-surge", "teleporte-instavel");
         assertFeatureChoiceResolved("1/1", ["Surto de Magia Selvagem", "Teleporte instável"]);
+
+        setClassLevel("Bárbaro", 19);
+        const barbarianStrengthBeforeCapstone5e = readAbilityTotal5e("for");
+        const barbarianConBeforeCapstone5e = readAbilityTotal5e("con");
+        setClassLevel("Bárbaro", 20);
+        assert(
+          readAbilityTotal5e("for") === Math.min(24, barbarianStrengthBeforeCapstone5e + 4)
+            && readAbilityTotal5e("con") === Math.min(24, barbarianConBeforeCapstone5e + 4),
+          "Campeão Primal 5e não aplicou +4 FOR/+4 CON aos atributos finais."
+        );
+        assert((document.querySelector("#preview")?.textContent || "").includes("Campeão Primal"), "Preview 5e não registrou Campeão Primal.");
 
         setClassLevel("Bruxo", 6);
         setValue("#arquetipo", "bruxo-genio", ["change"]);
@@ -837,6 +854,35 @@ const smokePages = [
           input.value = ability === "sab" || ability === "int" || ability === "car" ? "16" : "10";
           input.dispatchEvent(new Event("input", { bubbles: true }));
         });
+        const readAbilityTotal2024 = (ability) => {
+          const input = document.querySelector('[name="base-' + ability + '"]');
+          const previewText = input?.closest(".attr")?.querySelector(".attr-total-preview")?.textContent || "";
+          const match = previewText.match(/Total\\s+(\\d+)/);
+          assert(match, "Preview de atributo 2024 ausente para " + ability + ": " + previewText);
+          return Number(match[1]);
+        };
+
+        setClassLevel("barbaro", 19);
+        const barbarianStrengthBeforeCapstone = readAbilityTotal2024("for");
+        const barbarianConBeforeCapstone = readAbilityTotal2024("con");
+        setClassLevel("barbaro", 20);
+        assert(
+          readAbilityTotal2024("for") === Math.min(25, barbarianStrengthBeforeCapstone + 4)
+            && readAbilityTotal2024("con") === Math.min(25, barbarianConBeforeCapstone + 4),
+          "Campeão Primal não aplicou +4 FOR/+4 CON aos atributos finais 2024."
+        );
+        assert((document.querySelector("#classInfo2024")?.textContent || "").includes("Campeão Primal"), "Resumo 2024 não explicou o bônus de Campeão Primal.");
+
+        setClassLevel("monge", 19);
+        const monkDexBeforeCapstone = readAbilityTotal2024("des");
+        const monkWisBeforeCapstone = readAbilityTotal2024("sab");
+        setClassLevel("monge", 20);
+        assert(
+          readAbilityTotal2024("des") === Math.min(25, monkDexBeforeCapstone + 4)
+            && readAbilityTotal2024("sab") === Math.min(25, monkWisBeforeCapstone + 4),
+          "Corpo e Mente não aplicou +4 DES/+4 SAB aos atributos finais 2024."
+        );
+        assert((document.querySelector("#classInfo2024")?.textContent || "").includes("Corpo e Mente"), "Resumo 2024 não explicou o bônus de Corpo e Mente.");
 
         assertFeatureSlots("clerigo", 7, [["divine-order", 1], ["blessed-strikes", 1]]);
         chooseFeature("divine-order", "taumaturgo");

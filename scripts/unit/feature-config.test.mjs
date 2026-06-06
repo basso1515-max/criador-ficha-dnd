@@ -48,6 +48,25 @@ function records(collection) {
   return Array.isArray(collection) ? collection : Object.values(collection || {});
 }
 
+test("datasets de classe cobrem recursos de nivel 20", () => {
+  records(CLASSES_5E).forEach((cls) => {
+    assert.ok(cls.features?.[20]?.length, `classe 5e ${cls.id} deve declarar recurso de nivel 20`);
+  });
+
+  records(CLASSES_2024).forEach((cls) => {
+    if (cls.id === "paladino") {
+      const paladinSubclasses = records(SUBCLASSES_2024).filter((subclass) => subclass.classeBase === "paladino");
+      assert.ok(paladinSubclasses.length, "paladino 2024 deve ter subclasses");
+      paladinSubclasses.forEach((subclass) => {
+        assert.ok(subclass.features?.[20]?.length, `subclasse ${subclass.id} deve declarar recurso de juramento de nivel 20`);
+      });
+      return;
+    }
+
+    assert.ok(cls.features?.[20]?.length, `classe 2024 ${cls.id} deve declarar recurso de nivel 20`);
+  });
+});
+
 function assertFeatureChoiceCatalogContract({
   edition,
   definitions,

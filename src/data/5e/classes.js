@@ -1,5 +1,5 @@
 // classes.js
-export const DATASET_VERSION = "0.2.3";
+export const DATASET_VERSION = "0.2.4";
 export const META_CLASSES = {
   dataset: "dnd5e-ptbr",
   version: DATASET_VERSION,
@@ -10,6 +10,7 @@ export const META_CLASSES = {
     drs: "https://aventureirosdosreinos.com/documento-de-referencia-de-sistema-drs/"
   },
   changelog: [
+    "0.2.4: Inclusão dos recursos de classe de nível 20 no dataset 5e legado para melhorar resumos e exportação de personagens épicos.",
     "0.2.3: Remoção de subclasses HB e UA sem publicação oficial do dataset principal, mantendo apenas material oficialmente publicado e sincronizando as listas de subclasses por classe.",
     "0.2.2: Reclassificação de entradas HB inspiradas em material oficial/UA (incluindo Plane Shift: Kaladesh), atualização das fontes reimpressas do monge e redução do conjunto restante de HB para entradas realmente autorais.",
     "0.2.1: Substituição de entradas HB confusas por subclasses oficiais equivalentes e remoção de duplicatas oficiais redundantes.",
@@ -62,6 +63,16 @@ export const CLASSES = {
             "Mantém um número limitado de infusões ativas; esse limite aumenta com o nível."
           ]
         }
+      ],
+      20: [
+        {
+          nome: "Alma do Artífice",
+          descricao: "Sua ligação com itens mágicos reforça salvaguardas e permite sacrificar uma infusão para resistir a cair.",
+          detalhes: [
+            "Adiciona bônus às salvaguardas conforme seus itens mágicos sintonizados.",
+            "Ao cair a 0 PV, pode encerrar uma infusão para ficar com 1 PV em vez disso."
+          ]
+        }
       ]
     },
     subclasses: [
@@ -104,6 +115,15 @@ export const CLASSES = {
           nome: "Defesa sem Armadura",
           descricao: "Sem armadura, sua CA usa Destreza e Constituição; você ainda pode usar escudo.",
           detalhes: []
+        }
+      ],
+      20: [
+        {
+          nome: "Campeão Primal",
+          descricao: "Força e Constituição aumentam em 4, até o máximo de 24.",
+          detalhes: [
+            "A ficha aplica esse aumento automaticamente aos atributos finais de Bárbaro 20."
+          ]
         }
       ]
     },
@@ -153,6 +173,13 @@ export const CLASSES = {
         {
           nome: "Conjuração",
           descricao: "Conjura magias usando Carisma.",
+          detalhes: []
+        }
+      ],
+      20: [
+        {
+          nome: "Inspiração Superior",
+          descricao: "Ao rolar iniciativa sem usos de Inspiração Bárdica, recupera um uso.",
           detalhes: []
         }
       ]
@@ -247,6 +274,15 @@ export const CLASSES = {
           nome: "Arcano Místico (9º círculo)",
           descricao: "Escolhe uma magia de bruxo de 9º círculo para conjurar uma vez por descanso longo."
         }
+      ],
+      20: [
+        {
+          nome: "Mestre Sobrenatural",
+          descricao: "Pode suplicar ao patrono por 1 minuto para recuperar todos os espaços de Magia de Pacto gastos.",
+          detalhes: [
+            "Após usar esse recurso, só pode usá-lo novamente depois de um descanso longo."
+          ]
+        }
       ]
     },
     subclasses: [
@@ -306,6 +342,13 @@ export const CLASSES = {
             "Usos: aumentam com o nível.",
             "Os efeitos dependem do domínio escolhido."
           ]
+        }
+      ],
+      20: [
+        {
+          nome: "Intervenção Divina Aprimorada",
+          descricao: "Sua Intervenção Divina passa a ter sucesso automaticamente.",
+          detalhes: []
         }
       ]
     },
@@ -370,6 +413,13 @@ export const CLASSES = {
             "Você não perde a capacidade de conjurar magias que não exijam concentração enquanto estiver em forma, salvo regras específicas."
           ]
         }
+      ],
+      20: [
+        {
+          nome: "Arquidruida",
+          descricao: "Pode usar Forma Selvagem sem limite e conjurar muitas magias de druida ignorando componentes verbais, somáticos e materiais sem custo consumido.",
+          detalhes: []
+        }
       ]
     },
     subclasses: [
@@ -423,6 +473,13 @@ export const CLASSES = {
           detalhes: [
             "Pontos de feitiçaria: igual ao seu nível de feiticeiro; recupera em descanso longo."
           ]
+        }
+      ],
+      20: [
+        {
+          nome: "Restauração Feiticeira",
+          descricao: "Recupera 4 pontos de feitiçaria ao terminar um descanso curto.",
+          detalhes: []
         }
       ]
     },
@@ -479,6 +536,13 @@ export const CLASSES = {
           nome: "Investida de Ação (Action Surge)",
           descricao: "Ganha uma ação adicional no turno.",
           detalhes: ["Usos: 1 por descanso curto; 2 no nível 17."]
+        }
+      ],
+      20: [
+        {
+          nome: "Ataque Extra (3)",
+          descricao: "Pode atacar quatro vezes ao usar a ação de Ataque.",
+          detalhes: []
         }
       ]
     },
@@ -540,6 +604,15 @@ export const CLASSES = {
           descricao: "Como ação bônus, pode usar Dash, Disengage ou Hide.",
           detalhes: []
         }
+      ],
+      20: [
+        {
+          nome: "Golpe de Sorte",
+          descricao: "Transforma um ataque falho em acerto ou trata um teste de atributo falho como 20.",
+          detalhes: [
+            "Recupera o uso em descanso curto ou longo."
+          ]
+        }
       ]
     },
     subclasses: [
@@ -588,6 +661,15 @@ export const CLASSES = {
           nome: "Conjuração",
           descricao: "Prepara magias usando Inteligência.",
           detalhes: []
+        }
+      ],
+      20: [
+        {
+          nome: "Magias Assinatura",
+          descricao: "Escolhe duas magias de 3º círculo do grimório; elas ficam sempre preparadas e podem ser conjuradas uma vez sem gastar espaço por descanso curto ou longo.",
+          detalhes: [
+            "A ficha abre seletores dedicados para registrar essas duas magias e enviá-las ao bloco de magia/PDF."
+          ]
         }
       ]
     },
@@ -651,6 +733,13 @@ export const CLASSES = {
         {
           nome: "Movimento sem Armadura",
           descricao: "Seu deslocamento aumenta enquanto estiver sem armadura e sem escudo.",
+          detalhes: []
+        }
+      ],
+      20: [
+        {
+          nome: "Eu Perfeito",
+          descricao: "Ao rolar iniciativa sem pontos de Ki, recupera 4 pontos de Ki.",
           detalhes: []
         }
       ]
@@ -735,6 +824,15 @@ export const CLASSES = {
           descricao: "O juramento define suas habilidades e magias adicionais.",
           detalhes: ["Efeitos específicos dependem do juramento escolhido."]
         }
+      ],
+      20: [
+        {
+          nome: "Característica de Juramento",
+          descricao: "Recebe a característica final do juramento sagrado escolhido.",
+          detalhes: [
+            "A ficha puxa o efeito concreto da subclasse de Paladino selecionada."
+          ]
+        }
       ]
     },
     subclasses: [
@@ -797,6 +895,13 @@ export const CLASSES = {
         {
           nome: "Estilo de Luta",
           descricao: "Escolha um estilo de combate com bônus específicos.",
+          detalhes: []
+        }
+      ],
+      20: [
+        {
+          nome: "Algoz de Inimigos",
+          descricao: "Uma vez em cada turno, pode somar Sabedoria ao ataque ou dano contra um inimigo favorito.",
           detalhes: []
         }
       ]
