@@ -274,6 +274,31 @@ const smokePages = [
           dispatch(select, "change");
         };
 
+        const level20FeatureExpectations5e = [
+          ["Artífice", "Alma do Artífice"],
+          ["Bárbaro", "Campeão Primal"],
+          ["Bardo", "Inspiração Superior"],
+          ["Bruxo", "Mestre Sobrenatural"],
+          ["Clérigo", "Intervenção Divina Aprimorada"],
+          ["Druida", "Arquidruida"],
+          ["Feiticeiro", "Restauração Feiticeira"],
+          ["Guerreiro", "Ataque Extra (3)"],
+          ["Ladino", "Golpe de Sorte"],
+          ["Mago", "Magias Assinatura"],
+          ["Monge", "Eu Perfeito"],
+          ["Paladino", "Característica de Juramento"],
+          ["Patrulheiro", "Algoz de Inimigos"],
+        ];
+        for (const [className, expectedFeature] of level20FeatureExpectations5e) {
+          setClassLevel(className, 20);
+          await waitForLazyCatalogs();
+          const previewTextForClass = document.querySelector("#preview")?.textContent || "";
+          assert(
+            textIncludes(previewTextForClass, expectedFeature),
+            "Preview 5e nível 20 não registrou " + expectedFeature + " para " + className + "."
+          );
+        }
+
         setClassLevel("Artífice", 2);
         assert(!document.querySelector("#artificerInfusionsPanel")?.hidden, "Painel de infusões de Artifice nao abriu no nível 2.");
         assert(infusionKnownSelects().length === 4, "Artífice nível 2 não exibiu 4 infusões conhecidas.");
@@ -847,6 +872,11 @@ const smokePages = [
           dispatch(select, "change");
           return option.value;
         };
+        const normalizeSmokeText = (value) => String(value || "")
+          .normalize("NFD")
+          .replace(/[\\u0300-\\u036f]/g, "")
+          .toLowerCase();
+        const textIncludes = (value, expected) => normalizeSmokeText(value).includes(normalizeSmokeText(expected));
 
         ["for", "des", "con", "int", "sab", "car"].forEach((ability) => {
           const input = document.querySelector('[name="base-' + ability + '"]');
@@ -861,6 +891,38 @@ const smokePages = [
           assert(match, "Preview de atributo 2024 ausente para " + ability + ": " + previewText);
           return Number(match[1]);
         };
+
+        const level20SummaryExpectations2024 = [
+          { classId: "barbaro", expected: ["Campeão Primal", "Fúrias: 6", "Dano de Fúria: +4", "Maestrias de arma: 4"] },
+          { classId: "bardo", expected: ["Palavras de Criação", "Inspiração de Bardo: d12", "Magias preparadas: 22"] },
+          { classId: "bruxo", expected: ["Mestre Místico", "Invocações: 10", "Espaços de pacto: 4 de 5º círculo", "Astúcia Mágica recupera 4"] },
+          { classId: "clerigo", expected: ["Intervenção Divina Maior", "Canalizar Divindade: 4", "Magias preparadas: 22"] },
+          { classId: "druida", expected: ["Arquidruida", "Forma Selvagem: 4 uso(s)", "Magias preparadas: 22"] },
+          { classId: "feiticeiro", expected: ["Apoteose Arcana", "Pontos de Feitiçaria: 20", "Metamagias conhecidas: 6", "Magias preparadas: 22"] },
+          { classId: "guerreiro", expected: ["Três Ataques Extras", "Recuperar Fôlego: 4", "Maestrias de arma: 6", "Ataques por ação Atacar: 4", "Surto de Ação: 2", "Indomável: 3"] },
+          { classId: "ladino", expected: ["Golpe de Sorte", "Ataque Furtivo: 10d6", "Maestrias de arma: 2"] },
+          { classId: "mago", expected: ["Magias Assinatura", "Grimório: pelo menos 44", "Magias preparadas: 25"] },
+          { classId: "monge", expected: ["Corpo e Mente", "Artes Marciais: d12", "Foco: 20", "Movimento sem Armadura"] },
+          { classId: "paladino", subclassId: "paladino-devocao", expected: ["Recurso final do juramento", "Mãos Consagradas: 100", "Canalizar Divindade: 3", "Nimbo Sagrado"] },
+          { classId: "guardiao", expected: ["Matador de Inimigos Favoritos", "Inimigo Favorito: 6", "Magias preparadas: 15", "Marca do Predador causa d10"] },
+        ];
+        for (const expectation of level20SummaryExpectations2024) {
+          setClassLevel(expectation.classId, 20);
+          if (expectation.subclassId) {
+            setValue("#subclasse2024", expectation.subclassId, ["change"]);
+          }
+          await waitForLazyCatalogs2024();
+          const summaryText = [
+            document.querySelector("#classInfo2024")?.textContent || "",
+            document.querySelector("#preview2024")?.textContent || "",
+          ].join(" ");
+          expectation.expected.forEach((expectedText) => {
+            assert(
+              textIncludes(summaryText, expectedText),
+              "Resumo/preview 2024 nível 20 não registrou " + expectedText + " para " + expectation.classId + "."
+            );
+          });
+        }
 
         setClassLevel("barbaro", 19);
         const barbarianStrengthBeforeCapstone = readAbilityTotal2024("for");
