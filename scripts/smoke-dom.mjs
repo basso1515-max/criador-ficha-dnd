@@ -289,6 +289,67 @@ const smokePages = [
           );
         };
 
+        const level17ClassExpectations5e = [
+          { className: "Bruxo", expected: ["Arcano Místico (9º círculo)"] },
+        ];
+        for (const expectation of level17ClassExpectations5e) {
+          setClassLevel(expectation.className, 17);
+          await waitForLazyCatalogs();
+          const previewTextForClass = document.querySelector("#preview")?.textContent || "";
+          expectation.expected.forEach((expectedText) => {
+            assert(
+              textIncludes(previewTextForClass, expectedText),
+              "Preview 5e nível 17 não registrou " + expectedText + " para " + expectation.className + "."
+            );
+          });
+        }
+
+        const level17SubclassExpectations5e = [
+          { className: "Clérigo", subclassId: "clerigo-arcano", expected: "Maestria Arcana" },
+          { className: "Clérigo", subclassId: "clerigo-enganacao", expected: "Duplicidade Perfeita" },
+          { className: "Clérigo", subclassId: "clerigo-forja", expected: "Corpo de Ferro" },
+          { className: "Clérigo", subclassId: "clerigo-guerra", expected: "Avatar da Batalha" },
+          { className: "Clérigo", subclassId: "clerigo-luz", expected: "Aura Solar" },
+          { className: "Clérigo", subclassId: "clerigo-morte", expected: "Mestre da Morte" },
+          { className: "Clérigo", subclassId: "clerigo-natureza", expected: "Mestre da Natureza" },
+          { className: "Clérigo", subclassId: "clerigo-ordem", expected: "Ordem Suprema" },
+          { className: "Clérigo", subclassId: "clerigo-paz", expected: "Unidade Suprema" },
+          { className: "Clérigo", subclassId: "clerigo-sepultura", expected: "Guardião das Almas" },
+          { className: "Clérigo", subclassId: "clerigo-tempestade", expected: "Tempestade Viva" },
+          { className: "Clérigo", subclassId: "clerigo-vida", expected: "Cura Suprema" },
+          { className: "Clérigo", subclassId: "clerigo-conhecimento", expected: "Conhecimento Supremo" },
+          { className: "Clérigo", subclassId: "clerigo-crepusculo", expected: "Escudo do Crepúsculo" },
+          { className: "Ladino", subclassId: "ladino-assassino", expected: "Golpe Mortal" },
+          { className: "Ladino", subclassId: "ladino-batedor", expected: "Golpe Súbito" },
+          { className: "Ladino", subclassId: "ladino-duelista", expected: "Mestre Duelista" },
+          { className: "Ladino", subclassId: "ladino-faca-alma", expected: "Golpe Mental" },
+          { className: "Ladino", subclassId: "ladino-fantasma", expected: "Morte Roubada" },
+          { className: "Ladino", subclassId: "ladino-inquiridor", expected: "Mente Superior" },
+          { className: "Ladino", subclassId: "ladino-ladrao", expected: "Reflexos Rápidos" },
+          { className: "Ladino", subclassId: "ladino-mentor", expected: "Alma da Enganação" },
+          { className: "Ladino", subclassId: "ladino-trapaceiro-arcano", expected: "Ladrão de Magia" },
+          { className: "Monge", subclassId: "monge-alma-solar", expected: "Escudo Solar" },
+          { className: "Monge", subclassId: "monge-forma-astral", expected: "Forma Completa" },
+          { className: "Monge", subclassId: "monge-misericordia", expected: "Mestre da Misericórdia" },
+          { className: "Monge", subclassId: "monge-morte-ampla", expected: "Toque da Morte Longa" },
+          { className: "Monge", subclassId: "monge-palma-aberta", expected: "Palma Vibrante" },
+          { className: "Monge", subclassId: "monge-sombras", expected: "Forma Sombria" },
+          { className: "Monge", subclassId: "monge-dragao", expected: "Presença Dracônica" },
+          { className: "Monge", subclassId: "monge-kensei", expected: "Precisão Mortal" },
+          { className: "Monge", subclassId: "monge-mestre-bebado", expected: "Frenesi Intoxicante" },
+          { className: "Monge", subclassId: "monge-quatro-elementos", expected: "Mestre dos Elementos" },
+        ];
+        for (const expectation of level17SubclassExpectations5e) {
+          setClassLevel(expectation.className, 17);
+          setValue("#arquetipo", expectation.subclassId, ["change"]);
+          await waitForLazyCatalogs();
+          const previewTextForSubclass = document.querySelector("#preview")?.textContent || "";
+          assert(
+            textIncludes(previewTextForSubclass, expectation.expected),
+            "Preview 5e nível 17 não registrou " + expectation.expected + " para " + expectation.subclassId + "."
+          );
+        }
+
         const level18SubclassExpectations5e = [
           { className: "Feiticeiro", subclassId: "feiticeiro-alma-favorecida", expected: "Recuperação Transcendente" },
           { className: "Feiticeiro", subclassId: "feiticeiro-alma-mecanica", expected: "Perfeição Arcana" },
@@ -940,6 +1001,56 @@ const smokePages = [
           assert(match, "Preview de atributo 2024 ausente para " + ability + ": " + previewText);
           return Number(match[1]);
         };
+
+        const level17ClassExpectations2024 = [
+          { classId: "barbaro", expected: ["Golpe Brutal Aprimorado (17º nível)"] },
+          { classId: "bruxo", expected: ["Arcana Mística (9º círculo)"] },
+          { classId: "feiticeiro", expected: ["Metamagia Superior"] },
+          { classId: "guerreiro", expected: ["Surto de Ação Aprimorado", "Indomável Superior"] },
+          { classId: "guardiao", expected: ["Caçador Preciso"] },
+        ];
+        for (const expectation of level17ClassExpectations2024) {
+          setClassLevel(expectation.classId, 17);
+          await waitForLazyCatalogs2024();
+          const level17ClassText = [
+            document.querySelector("#classInfo2024")?.textContent || "",
+            document.querySelector("#preview2024")?.textContent || "",
+          ].join(" ");
+          expectation.expected.forEach((expectedText) => {
+            assert(
+              textIncludes(level17ClassText, expectedText),
+              "Resumo/preview 2024 nível 17 não registrou " + expectedText + " para " + expectation.classId + "."
+            );
+          });
+        }
+
+        const level17SubclassExpectations2024 = [
+          { classId: "clerigo", subclassId: "clerigo-guerra", expected: "Avatar da Guerra" },
+          { classId: "clerigo", subclassId: "clerigo-luz", expected: "Coroa de Luz" },
+          { classId: "clerigo", subclassId: "clerigo-enganacao", expected: "Duplicidade Aprimorada" },
+          { classId: "clerigo", subclassId: "clerigo-vida", expected: "Cura Suprema" },
+          { classId: "ladino", subclassId: "ladino-faca-alma", expected: "Rasgar a Mente" },
+          { classId: "ladino", subclassId: "ladino-assassino", expected: "Golpe Mortal" },
+          { classId: "ladino", subclassId: "ladino-ladrao", expected: "Reflexos de Ladrão" },
+          { classId: "ladino", subclassId: "ladino-trapaceiro-arcano", expected: "Ladrão de Magias" },
+          { classId: "monge", subclassId: "monge-palma-aberta", expected: "Palma Vibrante" },
+          { classId: "monge", subclassId: "monge-misericordia", expected: "Mão da Misericórdia Suprema" },
+          { classId: "monge", subclassId: "monge-sombras", expected: "Manto das Sombras" },
+          { classId: "monge", subclassId: "monge-quatro-elementos", expected: "Epítome Elemental" },
+        ];
+        for (const expectation of level17SubclassExpectations2024) {
+          setClassLevel(expectation.classId, 17);
+          setValue("#subclasse2024", expectation.subclassId, ["change"]);
+          await waitForLazyCatalogs2024();
+          const level17SubclassText = [
+            document.querySelector("#classInfo2024")?.textContent || "",
+            document.querySelector("#preview2024")?.textContent || "",
+          ].join(" ");
+          assert(
+            textIncludes(level17SubclassText, expectation.expected),
+            "Resumo/preview 2024 nível 17 não registrou " + expectation.expected + " para " + expectation.subclassId + "."
+          );
+        }
 
         const level18ClassExpectations2024 = [
           { classId: "barbaro", expected: "Força Indomável" },
