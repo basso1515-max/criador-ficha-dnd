@@ -290,6 +290,65 @@ const smokePages = [
         };
         const assertLevel19FeatSlots5e = (className, expectedCount) => assertLevelFeatSlots5e(className, 19, expectedCount, "asi-19");
 
+        const level15ClassExpectations5e = [
+          { className: "Bruxo", expected: ["Arcano Místico (8º círculo)"] },
+        ];
+        for (const expectation of level15ClassExpectations5e) {
+          setClassLevel(expectation.className, 15);
+          await waitForLazyCatalogs();
+          const previewTextForClass = document.querySelector("#preview")?.textContent || "";
+          expectation.expected.forEach((expectedText) => {
+            assert(
+              textIncludes(previewTextForClass, expectedText),
+              "Preview 5e nível 15 não registrou " + expectedText + " para " + expectation.className + "."
+            );
+          });
+        }
+
+        const level15SubclassExpectations5e = [
+          { className: "Artífice", subclassId: "artifice-alquimista", expected: "Mestre Alquimista" },
+          { className: "Artífice", subclassId: "artifice-armeiro", expected: "Armadura Perfeita" },
+          { className: "Artífice", subclassId: "artifice-artilheiro", expected: "Fortaleza Arcana" },
+          { className: "Artífice", subclassId: "artifice-ferreiro-batalha", expected: "Construto Supremo" },
+          { className: "Guerreiro", subclassId: "guerreiro-arqueiro-arcano", expected: "Tiro Constante" },
+          { className: "Guerreiro", subclassId: "guerreiro-campeao", expected: "Crítico Superior" },
+          { className: "Guerreiro", subclassId: "guerreiro-cavaleiro", expected: "Investida Feroz" },
+          { className: "Guerreiro", subclassId: "guerreiro-cavaleiro-arcano", expected: "Investida Arcana" },
+          { className: "Guerreiro", subclassId: "guerreiro-cavaleiro-do-eco", expected: "Eco Aprimorado" },
+          { className: "Guerreiro", subclassId: "guerreiro-cavaleiro-runico", expected: "Maestria Rúnica" },
+          { className: "Guerreiro", subclassId: "guerreiro-guerreiro-psiquico", expected: "Golpe Telecinético" },
+          { className: "Guerreiro", subclassId: "guerreiro-mestre-de-batalha", expected: "Implacável" },
+          { className: "Guerreiro", subclassId: "guerreiro-porta-estandarte", expected: "Baluarte" },
+          { className: "Guerreiro", subclassId: "guerreiro-samurai", expected: "Golpe Rápido" },
+          { className: "Paladino", subclassId: "paladino-conquista", expected: "Espírito Invencível" },
+          { className: "Paladino", subclassId: "paladino-coroa", expected: "Guarda Inabalável" },
+          { className: "Paladino", subclassId: "paladino-devocao", expected: "Pureza de Espírito" },
+          { className: "Paladino", subclassId: "paladino-gloria", expected: "Corpo Perfeito" },
+          { className: "Paladino", subclassId: "paladino-redencao", expected: "Espírito Protetor" },
+          { className: "Paladino", subclassId: "paladino-vinganca", expected: "Alma da Vingança" },
+          { className: "Paladino", subclassId: "paladino-ancioes", expected: "Guardião Imortal" },
+          { className: "Paladino", subclassId: "paladino-vigilantes", expected: "Vigilância Constante" },
+          { className: "Paladino", subclassId: "paladino-quebrador-de-juramento", expected: "Resistência Sobrenatural" },
+          { className: "Patrulheiro", subclassId: "patrulheiro-andarilho-horizonte", expected: "Defesa Espectral" },
+          { className: "Patrulheiro", subclassId: "patrulheiro-andarilho-feerico", expected: "Forma Feérica" },
+          { className: "Patrulheiro", subclassId: "patrulheiro-cacador", expected: "Defesa Superior do Caçador" },
+          { className: "Patrulheiro", subclassId: "patrulheiro-exterminador", expected: "Matador Supremo" },
+          { className: "Patrulheiro", subclassId: "patrulheiro-enxame", expected: "Forma de Enxame" },
+          { className: "Patrulheiro", subclassId: "patrulheiro-dracos", expected: "Dragão Supremo" },
+          { className: "Patrulheiro", subclassId: "patrulheiro-mestre-feras", expected: "Vínculo Perfeito" },
+          { className: "Patrulheiro", subclassId: "patrulheiro-perseguidor", expected: "Desaparecimento" },
+        ];
+        for (const expectation of level15SubclassExpectations5e) {
+          setClassLevel(expectation.className, 15);
+          setValue("#arquetipo", expectation.subclassId, ["change"]);
+          await waitForLazyCatalogs();
+          const previewTextForSubclass = document.querySelector("#preview")?.textContent || "";
+          assert(
+            textIncludes(previewTextForSubclass, expectation.expected),
+            "Preview 5e nível 15 não registrou " + expectation.expected + " para " + expectation.subclassId + "."
+          );
+        }
+
         const level16FeatSlotExpectations5e = [
           ["Artífice", 4],
           ["Bárbaro", 4],
@@ -1021,6 +1080,56 @@ const smokePages = [
           assert(match, "Preview de atributo 2024 ausente para " + ability + ": " + previewText);
           return Number(match[1]);
         };
+
+        const level15ClassExpectations2024 = [
+          { classId: "barbaro", expected: ["Fúria Persistente"] },
+          { classId: "bruxo", expected: ["Arcana Mística (8º círculo)"] },
+          { classId: "druida", expected: ["Fúria Elemental Aprimorada"] },
+          { classId: "ladino", expected: ["Mente Escorregadia"] },
+          { classId: "monge", expected: ["Foco Perfeito"] },
+        ];
+        for (const expectation of level15ClassExpectations2024) {
+          setClassLevel(expectation.classId, 15);
+          await waitForLazyCatalogs2024();
+          const level15ClassText = [
+            document.querySelector("#classInfo2024")?.textContent || "",
+            document.querySelector("#preview2024")?.textContent || "",
+          ].join(" ");
+          expectation.expected.forEach((expectedText) => {
+            assert(
+              textIncludes(level15ClassText, expectedText),
+              "Resumo/preview 2024 nível 15 não registrou " + expectedText + " para " + expectation.classId + "."
+            );
+          });
+        }
+
+        const level15SubclassExpectations2024 = [
+          { classId: "guardiao", subclassId: "guardiao-andarilho-feerico", expected: "Andarilho Nebuloso" },
+          { classId: "guardiao", subclassId: "guardiao-cacador", expected: "Defesa Superior do Caçador" },
+          { classId: "guardiao", subclassId: "guardiao-mestre-feras", expected: "Compartilhar Magias" },
+          { classId: "guardiao", subclassId: "guardiao-perseguidor", expected: "Esquiva Sombria" },
+          { classId: "guerreiro", subclassId: "guerreiro-campeao", expected: "Crítico Superior" },
+          { classId: "guerreiro", subclassId: "guerreiro-cavaleiro-arcano", expected: "Investida Mística" },
+          { classId: "guerreiro", subclassId: "guerreiro-guerreiro-psiquico", expected: "Baluarte de Energia" },
+          { classId: "guerreiro", subclassId: "guerreiro-mestre-de-batalha", expected: "Implacável" },
+          { classId: "paladino", subclassId: "paladino-devocao", expected: "Destruição Protetora" },
+          { classId: "paladino", subclassId: "paladino-gloria", expected: "Defesa Gloriosa" },
+          { classId: "paladino", subclassId: "paladino-vinganca", expected: "Alma da Vingança" },
+          { classId: "paladino", subclassId: "paladino-ancioes", expected: "Sentinela Imortal" },
+        ];
+        for (const expectation of level15SubclassExpectations2024) {
+          setClassLevel(expectation.classId, 15);
+          setValue("#subclasse2024", expectation.subclassId, ["change"]);
+          await waitForLazyCatalogs2024();
+          const level15SubclassText = [
+            document.querySelector("#classInfo2024")?.textContent || "",
+            document.querySelector("#preview2024")?.textContent || "",
+          ].join(" ");
+          assert(
+            textIncludes(level15SubclassText, expectation.expected),
+            "Resumo/preview 2024 nível 15 não registrou " + expectation.expected + " para " + expectation.subclassId + "."
+          );
+        }
 
         const featSlots2024 = (type) => Array.from(document.querySelectorAll('#featChoices2024 article[data-feat-slot-type="' + type + '"] select[data-feat-choice-id]'));
         const assertLevel16FeatSlots2024 = async (classId, expectedCount) => {
