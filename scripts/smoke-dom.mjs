@@ -289,6 +289,37 @@ const smokePages = [
           );
         };
 
+        const level18SubclassExpectations5e = [
+          { className: "Feiticeiro", subclassId: "feiticeiro-alma-favorecida", expected: "Recuperação Transcendente" },
+          { className: "Feiticeiro", subclassId: "feiticeiro-alma-mecanica", expected: "Perfeição Arcana" },
+          { className: "Feiticeiro", subclassId: "feiticeiro-tempestade", expected: "Tempestade Viva" },
+          { className: "Feiticeiro", subclassId: "feiticeiro-sombras", expected: "Forma Sombria" },
+          { className: "Feiticeiro", subclassId: "feiticeiro-lunar", expected: "Forma Lunar" },
+          { className: "Feiticeiro", subclassId: "feiticeiro-draconico", expected: "Presença Dracônica" },
+          { className: "Feiticeiro", subclassId: "feiticeiro-magia-selvagem", expected: "Surto Supremo" },
+          { className: "Feiticeiro", subclassId: "feiticeiro-mente-aberrante", expected: "Mente Suprema" },
+          { className: "Guerreiro", subclassId: "guerreiro-arqueiro-arcano", expected: "Tiro Aprimorado Superior" },
+          { className: "Guerreiro", subclassId: "guerreiro-campeao", expected: "Sobrevivente" },
+          { className: "Guerreiro", subclassId: "guerreiro-cavaleiro", expected: "Defensor Vigilante" },
+          { className: "Guerreiro", subclassId: "guerreiro-cavaleiro-arcano", expected: "Magia de Guerra Aprimorada" },
+          { className: "Guerreiro", subclassId: "guerreiro-cavaleiro-do-eco", expected: "Legião de Ecos" },
+          { className: "Guerreiro", subclassId: "guerreiro-cavaleiro-runico", expected: "Forma do Colosso" },
+          { className: "Guerreiro", subclassId: "guerreiro-guerreiro-psiquico", expected: "Mestre Psíquico" },
+          { className: "Guerreiro", subclassId: "guerreiro-mestre-de-batalha", expected: "Superioridade Suprema" },
+          { className: "Guerreiro", subclassId: "guerreiro-porta-estandarte", expected: "Surto Inspirador Aprimorado" },
+          { className: "Guerreiro", subclassId: "guerreiro-samurai", expected: "Força Antes da Morte" },
+        ];
+        for (const expectation of level18SubclassExpectations5e) {
+          setClassLevel(expectation.className, 18);
+          setValue("#arquetipo", expectation.subclassId, ["change"]);
+          await waitForLazyCatalogs();
+          const previewTextForSubclass = document.querySelector("#preview")?.textContent || "";
+          assert(
+            textIncludes(previewTextForSubclass, expectation.expected),
+            "Preview 5e nível 18 não registrou " + expectation.expected + " para " + expectation.subclassId + "."
+          );
+        }
+
         const level20FeatureExpectations5e = [
           ["Artífice", "Alma do Artífice"],
           ["Bárbaro", "Campeão Primal"],
@@ -909,6 +940,53 @@ const smokePages = [
           assert(match, "Preview de atributo 2024 ausente para " + ability + ": " + previewText);
           return Number(match[1]);
         };
+
+        const level18ClassExpectations2024 = [
+          { classId: "barbaro", expected: "Força Indomável" },
+          { classId: "bardo", expected: "Inspiração Superior" },
+          { classId: "druida", expected: "Magias Bestiais" },
+          { classId: "ladino", expected: "Elusivo" },
+          { classId: "mago", expected: "Maestria de Magias" },
+          { classId: "monge", expected: "Defesa Superior" },
+          { classId: "paladino", expected: "Aura Expandida" },
+          { classId: "guardiao", expected: "Sentidos Selvagens" },
+        ];
+        for (const expectation of level18ClassExpectations2024) {
+          setClassLevel(expectation.classId, 18);
+          await waitForLazyCatalogs2024();
+          const level18ClassText = [
+            document.querySelector("#classInfo2024")?.textContent || "",
+            document.querySelector("#preview2024")?.textContent || "",
+          ].join(" ");
+          assert(
+            textIncludes(level18ClassText, expectation.expected),
+            "Resumo/preview 2024 nível 18 não registrou " + expectation.expected + " para " + expectation.classId + "."
+          );
+        }
+
+        const level18SubclassExpectations2024 = [
+          { classId: "feiticeiro", subclassId: "feiticeiro-mente-aberrante", expected: "Implosão de Distorção" },
+          { classId: "feiticeiro", subclassId: "feiticeiro-draconico", expected: "Companheiro Dracônico" },
+          { classId: "feiticeiro", subclassId: "feiticeiro-alma-mecanica", expected: "Cavalgada Mecânica" },
+          { classId: "feiticeiro", subclassId: "feiticeiro-magia-selvagem", expected: "Surto Domado" },
+          { classId: "guerreiro", subclassId: "guerreiro-campeao", expected: "Sobrevivente" },
+          { classId: "guerreiro", subclassId: "guerreiro-cavaleiro-arcano", expected: "Magia de Guerra Aprimorada" },
+          { classId: "guerreiro", subclassId: "guerreiro-guerreiro-psiquico", expected: "Mestre Telecinético" },
+          { classId: "guerreiro", subclassId: "guerreiro-mestre-de-batalha", expected: "Superioridade em Combate Suprema" },
+        ];
+        for (const expectation of level18SubclassExpectations2024) {
+          setClassLevel(expectation.classId, 18);
+          setValue("#subclasse2024", expectation.subclassId, ["change"]);
+          await waitForLazyCatalogs2024();
+          const level18SubclassText = [
+            document.querySelector("#classInfo2024")?.textContent || "",
+            document.querySelector("#preview2024")?.textContent || "",
+          ].join(" ");
+          assert(
+            textIncludes(level18SubclassText, expectation.expected),
+            "Resumo/preview 2024 nível 18 não registrou " + expectation.expected + " para " + expectation.subclassId + "."
+          );
+        }
 
         const level20SummaryExpectations2024 = [
           { classId: "barbaro", expected: ["Campeão Primal", "Fúrias: 6", "Dano de Fúria: +4", "Maestrias de arma: 4"] },
