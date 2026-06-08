@@ -41,6 +41,24 @@ test("fitPdfTextToField preserva texto multiline que cabe no campo", () => {
   assert.equal(layout.fontSize, 8);
 });
 
+test("fitPdfTextToField troca separadores incompatíveis antes de aplicar no PDF", () => {
+  const layout = fitPdfTextToField(
+    "Div.: Mielikki \u2022 Símb.: Folha de carvalho \u2022 Dom.: Natureza",
+    makeTextField({ width: 400, height: 40 }),
+    fakeFont,
+    {
+      minSize: 8,
+      maxSize: 8,
+      step: 1,
+      paddingX: 2,
+      paddingY: 2,
+      lineHeightFactor: 1,
+    }
+  );
+
+  assert.equal(layout.text, "Div.: Mielikki - Símb.: Folha de carvalho - Dom.: Natureza");
+});
+
 test("fitPdfTextToField trunca texto multiline que excede o campo no tamanho minimo", () => {
   const longText = Array.from({ length: 40 }, (_, index) => `Linha ${index + 1} com texto suficiente`).join("\n");
   const layout = fitPdfTextToField(

@@ -5,6 +5,7 @@ import {
   getCharacterLimitPerEdition,
   getCurrentUser,
   hydrateAccountStorage,
+  listDeletedCharactersForCurrentUser,
   loginAccount,
   logoutAccount,
   registerAccount,
@@ -64,13 +65,15 @@ function renderAccountPage() {
   const user = getCurrentUser();
   const counts = getAccountCounts();
   const characterLimit = getCharacterLimitPerEdition(user);
+  const used5e = counts["5e"] + (user ? listDeletedCharactersForCurrentUser("5e").length : 0);
+  const used2024 = counts["5.5e-2024"] + (user ? listDeletedCharactersForCurrentUser("5.5e-2024").length : 0);
 
   if (el.currentPanel) el.currentPanel.hidden = !user;
   if (el.authSection) el.authSection.hidden = Boolean(user);
   if (el.currentName) el.currentName.textContent = user?.displayName || "";
   if (el.currentEmail) el.currentEmail.textContent = user?.email || "";
-  if (el.count5e) el.count5e.textContent = `${counts["5e"]}/${characterLimit}`;
-  if (el.count2024) el.count2024.textContent = `${counts["5.5e-2024"]}/${characterLimit}`;
+  if (el.count5e) el.count5e.textContent = `${used5e}/${characterLimit}`;
+  if (el.count2024) el.count2024.textContent = `${used2024}/${characterLimit}`;
   if (el.continueLink) {
     el.continueLink.href = returnTo || "./minha-conta.html";
     el.continueLink.textContent = returnTo ? "Continuar" : "Minha conta";

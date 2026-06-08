@@ -4,26 +4,20 @@ import {
   BATTLE_MASTER_MANEUVERS_2024,
   BATTLE_MASTER_MANEUVERS_BY_LEVEL_2024,
 } from "../../data/subclass-learned-options.js";
+import {
+  DRUID_CIRCLE_GRANTED_SPELL_IDS_2024,
+  DRUID_LAND_CIRCLE_SPELL_IDS_2024,
+  PALADIN_OATH_GRANTED_SPELL_IDS_2024,
+} from "../../data/granted-spell-sources.js";
+
+export {
+  DRUID_CIRCLE_GRANTED_SPELL_IDS_2024,
+  DRUID_LAND_CIRCLE_SPELL_IDS_2024,
+  PALADIN_OATH_GRANTED_SPELL_IDS_2024,
+};
 
 export const DRUID_WILD_SHAPE_USES_BY_LEVEL_2024 = [0, 0, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4];
 export const DRUID_DRUIDIC_GRANTED_SPELL_IDS_2024 = ["falar-com-animais"];
-export const DRUID_CIRCLE_GRANTED_SPELL_IDS_2024 = {
-  "druida-lua": {
-    3: ["curar-ferimentos", "raio-de-lua", "fagulha-estelar"],
-    5: ["conjurar-animais"],
-    7: ["fonte-do-luar"],
-    9: ["curar-ferimentos-em-massa"],
-  },
-  "druida-estrelas": {
-    3: ["orientacao", "disparo-guia"],
-  },
-  "druida-mar": {
-    3: ["neblina", "lufada-de-vento", "raio-de-gelo", "esmigalhar", "onda-de-trovao"],
-    5: ["relampago", "respirar-agua"],
-    7: ["controlar-agua", "tempestade-de-gelo"],
-    9: ["conjurar-elementais", "imobilizar-monstro"],
-  },
-};
 export const DRUID_LAND_CIRCLE_TERRAIN_OPTIONS_2024 = [
   {
     value: "arido",
@@ -46,32 +40,6 @@ export const DRUID_LAND_CIRCLE_TERRAIN_OPTIONS_2024 = [
     summary: "Selvas e áreas úmidas; libera magias de ácido, veneno, teias e transformação.",
   },
 ];
-export const DRUID_LAND_CIRCLE_SPELL_IDS_2024 = {
-  arido: {
-    3: ["nublar", "maos-flamejantes", "disparo-de-fogo"],
-    5: ["bola-de-fogo"],
-    7: ["praga"],
-    9: ["muralha-de-pedra"],
-  },
-  polar: {
-    3: ["neblina", "imobilizar-pessoa", "raio-de-gelo"],
-    5: ["tempestade-de-granizo"],
-    7: ["tempestade-de-gelo"],
-    9: ["cone-de-frio"],
-  },
-  temperado: {
-    3: ["passo-da-neblina", "toque-chocante", "sono"],
-    5: ["relampago"],
-    7: ["movimento-livre"],
-    9: ["passo-de-arvore"],
-  },
-  tropical: {
-    3: ["disparo-acido", "raio-do-enjoo", "teia"],
-    5: ["nevoa-fetida"],
-    7: ["metamorfose"],
-    9: ["praga-de-insetos"],
-  },
-};
 export const SUBCLASS_DETAIL_DEFINITIONS_2024 = {
   "druida-terra": {
     minClassLevel: 3,
@@ -252,40 +220,10 @@ export const WIZARD_SUBCLASS_GRANTED_SPELL_IDS_2024 = {
   },
 };
 export const PALADIN_CHANNEL_DIVINITY_BY_LEVEL_2024 = [0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3];
-export const PALADIN_DEVOTION_GRANTED_SPELL_IDS_2024 = {
-  3: ["protecao-contra-o-bem-e-o-mal", "escudo-da-fe"],
-  5: ["ajuda", "zona-da-verdade"],
-  9: ["farol-de-esperanca", "dissipar-magia"],
-  13: ["movimento-livre", "guardiao-da-fe"],
-  17: ["comunhao", "golpe-de-chama"],
-};
-export const PALADIN_GLORY_GRANTED_SPELL_IDS_2024 = {
-  3: ["disparo-guia", "heroismo"],
-  5: ["melhorar-habilidade", "arma-magica"],
-  9: ["velocidade", "protecao-contra-energia"],
-  13: ["compulsao", "movimento-livre"],
-  17: ["comunhao", "golpe-de-chama"],
-};
-export const PALADIN_VENGEANCE_GRANTED_SPELL_IDS_2024 = {
-  3: ["perdicao", "marca-do-cacador"],
-  5: ["imobilizar-pessoa", "passo-da-neblina"],
-  9: ["velocidade", "protecao-contra-energia"],
-  13: ["banimento", "porta-dimensional"],
-  17: ["imobilizar-monstro", "espionagem"],
-};
-export const PALADIN_ANCIENTS_GRANTED_SPELL_IDS_2024 = {
-  3: ["golpe-prendedor", "falar-com-animais"],
-  5: ["raio-de-lua", "passo-da-neblina"],
-  9: ["crescer-plantas", "protecao-contra-energia"],
-  13: ["tempestade-de-gelo", "pele-de-pedra"],
-  17: ["comunhao-com-a-natureza", "passo-de-arvore"],
-};
-export const PALADIN_OATH_GRANTED_SPELL_IDS_2024 = {
-  "paladino-devocao": PALADIN_DEVOTION_GRANTED_SPELL_IDS_2024,
-  "paladino-gloria": PALADIN_GLORY_GRANTED_SPELL_IDS_2024,
-  "paladino-vinganca": PALADIN_VENGEANCE_GRANTED_SPELL_IDS_2024,
-  "paladino-ancioes": PALADIN_ANCIENTS_GRANTED_SPELL_IDS_2024,
-};
+export const PALADIN_DEVOTION_GRANTED_SPELL_IDS_2024 = PALADIN_OATH_GRANTED_SPELL_IDS_2024["paladino-devocao"];
+export const PALADIN_GLORY_GRANTED_SPELL_IDS_2024 = PALADIN_OATH_GRANTED_SPELL_IDS_2024["paladino-gloria"];
+export const PALADIN_VENGEANCE_GRANTED_SPELL_IDS_2024 = PALADIN_OATH_GRANTED_SPELL_IDS_2024["paladino-vinganca"];
+export const PALADIN_ANCIENTS_GRANTED_SPELL_IDS_2024 = PALADIN_OATH_GRANTED_SPELL_IDS_2024["paladino-ancioes"];
 export const ROGUE_SNEAK_ATTACK_DICE_BY_LEVEL_2024 = [0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10];
 export const RANGER_FAVORED_ENEMY_BY_LEVEL_2024 = [0, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6];
 export const WARLOCK_PATRON_GRANTED_SPELL_IDS_2024 = {

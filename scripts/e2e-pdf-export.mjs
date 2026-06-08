@@ -113,6 +113,7 @@ async function main() {
 
   const flattened = await evaluate(cdp, "window.__DND_SHEET_5E_TEST_HOOKS__.generatePdfBase64({ flatten: true })", 45_000);
   const flattenedPdfDoc = await PDFDocument.load(Buffer.from(flattened.base64, "base64"));
+  assert(flattenedPdfDoc.getPageCount() === 3, `PDF final 5e deve preservar 3 paginas, mas gerou ${flattenedPdfDoc.getPageCount()}.`);
   assert(flattenedPdfDoc.getForm().getFields().length === 0, "PDF final 5e deve sair achatado para visualizadores mobile.");
 
   if (consoleProblems.length) {
@@ -127,6 +128,7 @@ async function main() {
     "pdf-lib carregado sob demanda durante a geracao",
     "PDF gerado em memoria pelo mesmo motor do editor",
     "campos finais do PDF contem nome, classe, infusao, alvo e resistencia",
+    "PDF final 5e preserva as tres paginas da ficha",
     "PDF final 5e sai sem campos editaveis para evitar renderizacao bugada no celular",
   ].forEach((line) => console.log(`OK: ${line}`));
 

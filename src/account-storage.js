@@ -12,6 +12,7 @@ import {
 import { trackCommunityCharacterCreated } from "./analytics.js";
 
 export const ACCOUNT_LIMIT_PER_EDITION = 10;
+export const DELETED_CHARACTER_RETENTION_DAYS = 15;
 export const ACCOUNT_ROLE_ADMIN = "admin";
 
 /** @typedef {"5e" | "5.5e-2024"} Edition */

@@ -21,8 +21,37 @@ function getPdfWidgetRect(field) {
   return null;
 }
 
+const PDF_TEXT_SAFE_REPLACEMENTS = new Map([
+  ["\u00a0", " "],
+  ["\u2007", " "],
+  ["\u202f", " "],
+  ["\u2022", " - "],
+  ["\u2010", "-"],
+  ["\u2011", "-"],
+  ["\u2012", "-"],
+  ["\u2013", "-"],
+  ["\u2014", "-"],
+  ["\u2212", "-"],
+  ["\u2026", "..."],
+  ["\u2018", "'"],
+  ["\u2019", "'"],
+  ["\u201c", '"'],
+  ["\u201d", '"'],
+  ["\u00d7", "x"],
+  ["\u2264", "<="],
+  ["\u2265", ">="],
+]);
+
+function normalizePdfTextGlyphs(text) {
+  let normalized = String(text ?? "");
+  PDF_TEXT_SAFE_REPLACEMENTS.forEach((replacement, character) => {
+    normalized = normalized.replaceAll(character, replacement);
+  });
+  return normalized;
+}
+
 function normalizePdfTextValue(text, multiline = false) {
-  const raw = String(text ?? "").replaceAll("\r\n", "\n").replaceAll("\r", "\n").trim();
+  const raw = normalizePdfTextGlyphs(text).replaceAll("\r\n", "\n").replaceAll("\r", "\n").trim();
   return multiline ? raw : raw.replaceAll(/\s+/g, " ");
 }
 

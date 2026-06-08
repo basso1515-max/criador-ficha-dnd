@@ -27,6 +27,7 @@ import { createLevelUpAssistant } from "../../level-up-assistant.js";
 import { createMigrationReviewAssistant } from "../../migration-review-assistant.js";
 import { saveCharacterForCurrentUser } from "../../account-storage.js";
 import { initializeEditorA11y } from "../../shared/a11y.js";
+import { getResolvedThemeContext } from "../../shared/loading-theme.js";
 import { ensurePdfLibLoaded } from "../../shared/pdf-lib-loader.js";
 import { escapeHtml, normalizePt, slugify } from "../../shared/text-utils.js";
 import { createFloatingSubmitButtonController } from "../floating-submit-ui.js";
@@ -400,6 +401,20 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
   };
   const SUBCLASS_FIGHTING_STYLE_SLOT_LEVELS = {
     "guerreiro-campeao": [7],
+  };
+  const CLASS_CAPSTONE_ABILITY_BONUSES_2024 = {
+    barbaro: {
+      minLevel: 20,
+      source: "Campeão Primal",
+      maxScore: 25,
+      bonuses: { for: 4, con: 4 },
+    },
+    monge: {
+      minLevel: 20,
+      source: "Corpo e Mente",
+      maxScore: 25,
+      bonuses: { des: 4, sab: 4 },
+    },
   };
   const SPELLCASTING_CLASS_LEVELS = {
     bardo: 1,
@@ -1421,7 +1436,8 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
       const rages = BARBARIAN_PROGRESSION_2024.rages[level] || 0;
       const rageDamage = BARBARIAN_PROGRESSION_2024.rageDamage[level] || 0;
       const masteries = BARBARIAN_PROGRESSION_2024.weaponMastery[level] || 0;
-      return `Fúrias: ${rages}. Dano de Fúria: +${rageDamage}. Maestrias de arma: ${masteries}.`;
+      const primalChampion = level >= 20 ? " Campeão Primal: +4 FOR e +4 CON, máximo 25, aplicado aos atributos finais." : "";
+      return `Fúrias: ${rages}. Dano de Fúria: +${rageDamage}. Maestrias de arma: ${masteries}.${primalChampion}`;
     },
     bardo(level) {
       const bardicDie = BARD_BARDIC_DIE_BY_LEVEL_2024[level] || 6;
@@ -1487,7 +1503,8 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
       const layOnHandsPool = level * 5;
       const aura = level >= 18 ? "Aura: 9 m" : level >= 6 ? "Aura: 3 m" : "Aura: —";
       const radiantStrikes = level >= 11 ? " Golpes Radiantes: +1d8 radiante em ataques corpo a corpo." : "";
-      return `Mãos Consagradas: ${layOnHandsPool} PV. Canalizar Divindade: ${channelDivinity ? `${channelDivinity} uso(s)` : "—"}. Maestrias de arma: 2. Magias preparadas: ${prepared}. ${aura}.${radiantStrikes}`;
+      const oathCapstone = level >= 20 ? " Recurso final do juramento: vem da subclasse escolhida." : "";
+      return `Mãos Consagradas: ${layOnHandsPool} PV. Canalizar Divindade: ${channelDivinity ? `${channelDivinity} uso(s)` : "—"}. Maestrias de arma: 2. Magias preparadas: ${prepared}. ${aura}.${radiantStrikes}${oathCapstone}`;
     },
     ladino(level) {
       const sneakAttackDice = ROGUE_SNEAK_ATTACK_DICE_BY_LEVEL_2024[level] || 0;
@@ -1523,7 +1540,8 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
       const movementFeet = MONK_PROGRESSION_2024.unarmoredMovementFeet[level] || 0;
       const focusText = focusPoints ? `${focusPoints} ponto(s)` : "—";
       const movementText = movementFeet ? `+${formatDistanceFromFeet2024(movementFeet)}` : "—";
-      return `Artes Marciais: d${martialArtsDie}. Foco: ${focusText}. Movimento sem Armadura: ${movementText}. CD do Foco: 8 + SAB + prof.`;
+      const bodyAndMind = level >= 20 ? " Corpo e Mente: +4 DES e +4 SAB, máximo 25, aplicado aos atributos finais." : "";
+      return `Artes Marciais: d${martialArtsDie}. Foco: ${focusText}. Movimento sem Armadura: ${movementText}. CD do Foco: 8 + SAB + prof.${bodyAndMind}`;
     },
   };
 
@@ -5271,10 +5289,27 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
     });
   }
 
+  function buildClassCapstoneAbilityBonusEntries2024(classEntries = getResolvedClassEntries2024()) {
+    return normalizeClassEntriesArgument2024(classEntries)
+      .flatMap((entry) => {
+        const rule = CLASS_CAPSTONE_ABILITY_BONUSES_2024[entry.classId];
+        if (!rule || Number(entry.level || 0) < Number(rule.minLevel || 20)) return [];
+
+        return Object.entries(rule.bonuses || {}).map(([ability, amount]) => ({
+          ability,
+          amount: Number(amount || 0),
+          source: `${entry.classLabel || entry.classData?.nome || "Classe"} - ${rule.source}`,
+          detail: `+${Number(amount || 0)} ${formatAbilityLabel(ability)}`,
+          maxScore: Number(rule.maxScore || 25),
+        }));
+      });
+  }
+
   function calculateEffectiveAbilityScores2024({
     baseScores: rawBaseScores = {},
     backgroundBonuses = {},
     featBonuses = {},
+    classFeatureBonuses = {},
   } = {}) {
     const baseScores = normalizeAbilityScoreMap2024(rawBaseScores);
     const scores = {};
@@ -5299,14 +5334,28 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
     };
     applyAbilityBonusEntriesToScores2024(scores, breakdowns, selectedFeatBonuses.entries);
 
+    const selectedClassFeatureBonuses = {
+      entries: [],
+      complete: true,
+      valid: true,
+      ...classFeatureBonuses,
+    };
+    applyAbilityBonusEntriesToScores2024(scores, breakdowns, selectedClassFeatureBonuses.entries);
+
     const baseComplete = ABILITY_ORDER.every((ability) => Number.isFinite(baseScores[ability]));
     return {
       baseScores,
       scores,
       breakdowns,
       baseComplete,
-      complete: baseComplete && selectedBonuses.complete && selectedBonuses.valid && selectedFeatBonuses.complete && selectedFeatBonuses.valid,
-      valid: selectedBonuses.valid && selectedFeatBonuses.valid,
+      complete: baseComplete
+        && selectedBonuses.complete
+        && selectedBonuses.valid
+        && selectedFeatBonuses.complete
+        && selectedFeatBonuses.valid
+        && selectedClassFeatureBonuses.complete
+        && selectedClassFeatureBonuses.valid,
+      valid: selectedBonuses.valid && selectedFeatBonuses.valid && selectedClassFeatureBonuses.valid,
       featBonusesComplete: selectedFeatBonuses.complete,
       featBonusesValid: selectedFeatBonuses.valid,
     };
@@ -5317,6 +5366,11 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
       baseScores: getBaseAbilityScores(),
       backgroundBonuses: buildBackgroundAbilityBonusEntries2024(),
       featBonuses: getSelectedFeatAbilityBonusState2024(),
+      classFeatureBonuses: {
+        entries: buildClassCapstoneAbilityBonusEntries2024(),
+        complete: true,
+        valid: true,
+      },
     });
   }
 
@@ -5325,6 +5379,11 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
       baseScores: getBaseAbilityScores(),
       backgroundBonuses: buildBackgroundAbilityBonusEntries2024(),
       featBonuses: getSelectedFeatAbilityBonusState2024({ featValueMap, detailValues }),
+      classFeatureBonuses: {
+        entries: buildClassCapstoneAbilityBonusEntries2024(),
+        complete: true,
+        valid: true,
+      },
     });
   }
 
@@ -13796,9 +13855,10 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
   }
 
   function buildLoadingTabHtml2024(title, body, isError = false) {
+    const loadingTheme = getResolvedThemeContext();
     return `
       <!doctype html>
-      <html lang="pt-BR">
+      <html lang="pt-BR" data-theme-mode="${loadingTheme.mode}" data-theme="${loadingTheme.theme}">
       <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width,initial-scale=1" />
@@ -13807,29 +13867,75 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
         <link href="https://fonts.googleapis.com/css2?family=Uncial+Antiqua&display=swap" rel="stylesheet" />
         <style>
-          :root { color-scheme: light; }
+          :root {
+            color-scheme: light;
+            --popup-page-bg:
+              radial-gradient(circle at top, rgba(255, 235, 197, 0.9), rgba(244, 239, 228, 0) 42%),
+              linear-gradient(180deg, #f5efe3 0%, #eadbc0 100%);
+            --popup-text: #2f2415;
+            --popup-heading: #8b5e34;
+            --popup-muted: #6c5a46;
+            --popup-error-text: #9f1f1f;
+            --popup-panel-bg: rgba(255, 255, 255, 0.92);
+            --popup-panel-border: #d7c5a9;
+            --popup-panel-shadow: 0 20px 45px rgba(80, 55, 20, 0.12);
+            --popup-d20-shadow: 0 18px 24px rgba(47, 36, 74, 0.22);
+            --popup-d20-face: #756a84;
+            --popup-d20-face-center: #867b97;
+            --popup-d20-stroke: rgba(243, 238, 248, 0.95);
+            --popup-d20-num: #f3efe8;
+            --popup-caption: #65587b;
+            --popup-viewer-bg: #fff;
+            --popup-action-border: #c7ae87;
+            --popup-action-text: #5a3e24;
+            --popup-action-bg: rgba(255, 249, 238, 0.95);
+            --popup-action-hover-bg: rgba(255, 243, 220, 0.98);
+          }
+          :root[data-theme="dark"] {
+            color-scheme: dark;
+            --popup-page-bg:
+              radial-gradient(circle at 12% 0%, rgba(217, 167, 102, 0.14), transparent 34%),
+              radial-gradient(circle at 88% 8%, rgba(127, 37, 31, 0.18), transparent 32%),
+              linear-gradient(180deg, #17120e 0%, #100d0a 100%);
+            --popup-text: #f4ead5;
+            --popup-heading: #f4bf73;
+            --popup-muted: #d8c8aa;
+            --popup-error-text: #ffb4a9;
+            --popup-panel-bg: rgba(36, 28, 20, 0.94);
+            --popup-panel-border: rgba(232, 201, 153, 0.28);
+            --popup-panel-shadow: 0 24px 54px rgba(0, 0, 0, 0.42);
+            --popup-d20-shadow: 0 20px 28px rgba(0, 0, 0, 0.46);
+            --popup-d20-face: #4b405d;
+            --popup-d20-face-center: #5b4f6f;
+            --popup-d20-stroke: rgba(244, 191, 115, 0.34);
+            --popup-d20-num: #fff7e7;
+            --popup-caption: #f4bf73;
+            --popup-viewer-bg: #100d0a;
+            --popup-action-border: rgba(232, 201, 153, 0.36);
+            --popup-action-text: #fff7e7;
+            --popup-action-bg: rgba(255, 246, 224, 0.08);
+            --popup-action-hover-bg: rgba(255, 246, 224, 0.14);
+          }
           html, body { margin: 0; min-height: 100%; }
           body {
             font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-            background:
-              radial-gradient(circle at top, rgba(255, 235, 197, 0.9), rgba(244, 239, 228, 0) 42%),
-              linear-gradient(180deg, #f5efe3 0%, #eadbc0 100%);
-            color: #2f2415;
+            background: var(--popup-page-bg);
+            color: var(--popup-text);
           }
           .box {
             max-width: 720px;
             margin: 40px auto;
-            border: 1px solid #d7c5a9;
+            border: 1px solid var(--popup-panel-border);
             border-radius: 16px;
             padding: 24px;
-            background: rgba(255,255,255,.92);
-            box-shadow: 0 20px 45px rgba(80, 55, 20, .12);
+            background: var(--popup-panel-bg);
+            box-shadow: var(--popup-panel-shadow);
             text-align: center;
           }
-          .muted { color: #6c5a46; }
+          .muted { color: ${isError ? "var(--popup-error-text)" : "var(--popup-muted)"}; }
           h1 {
             margin: 0 0 10px;
-            color: #8b5e34;
+            color: var(--popup-heading);
             font-size: 30px;
             font-family: "Uncial Antiqua", cursive;
           }
@@ -13837,7 +13943,7 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
             margin: 0;
             font-size: 20px;
             line-height: 1.5;
-            color: ${isError ? "#9f1f1f" : "#5a3e24"};
+            color: ${isError ? "var(--popup-error-text)" : "var(--popup-text)"};
           }
           .popup-d20-stage {
             width: 210px;
@@ -13847,21 +13953,21 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
             width: 190px;
             display: block;
             margin: 0 auto;
-            filter: drop-shadow(0 18px 24px rgba(47, 36, 74, 0.22));
+            filter: drop-shadow(var(--popup-d20-shadow));
             animation: popup-d20-spin 5.4s ease-in-out infinite;
             transform-origin: 50% 50%;
           }
           .popup-d20-face {
-            fill: #756a84;
-            stroke: rgba(243, 238, 248, 0.95);
+            fill: var(--popup-d20-face);
+            stroke: var(--popup-d20-stroke);
             stroke-width: 14;
             stroke-linejoin: round;
           }
           .popup-d20-face-center {
-            fill: #867b97;
+            fill: var(--popup-d20-face-center);
           }
           .popup-d20-num {
-            fill: #f3efe8;
+            fill: var(--popup-d20-num);
             font-family: Georgia, "Times New Roman", serif;
             font-weight: 700;
             text-anchor: middle;
@@ -13872,11 +13978,11 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
           .popup-d20-num-small { font-size: 28px; }
           .popup-d20-caption {
             margin: 0 0 8px;
-            color: #65587b;
+            color: var(--popup-caption);
             font-family: 'Uncial Antiqua', cursive;
-            letter-spacing: 0.06em;
+            letter-spacing: 0;
           }
-          .viewer { display: none; width: 100vw; height: 100vh; border: 0; background: #fff; }
+          .viewer { display: none; width: 100vw; height: 100vh; border: 0; background: var(--popup-viewer-bg); }
           body.ready .box { display: none; }
           body.ready .viewer { display: block; }
           .popup-actions {
@@ -13888,17 +13994,17 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
           }
           .popup-action {
             appearance: none;
-            border: 1px solid #c7ae87;
+            border: 1px solid var(--popup-action-border);
             border-radius: 999px;
             padding: 10px 16px;
             font: inherit;
             font-weight: 600;
-            color: #5a3e24;
-            background: rgba(255, 249, 238, 0.95);
+            color: var(--popup-action-text);
+            background: var(--popup-action-bg);
             cursor: pointer;
           }
           .popup-action:hover {
-            background: rgba(255, 243, 220, 0.98);
+            background: var(--popup-action-hover-bg);
           }
           @keyframes popup-d20-spin {
             0% { transform: rotate(-8deg) scale(1); }
@@ -13911,11 +14017,22 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
         </style>
         <script>
           window.__sheetLoadingBridgeReady = false;
+          const shouldOpenPdfDirectly = () => {
+            const userAgent = navigator.userAgent || "";
+            const platform = navigator.platform || "";
+            return /iPad|iPhone|iPod/.test(userAgent)
+              || (platform === "MacIntel" && navigator.maxTouchPoints > 1);
+          };
           const renderPdf = (payload) => {
             if (!payload || payload.type !== "render-pdf" || !payload.url) return;
 
             const nomePersonagem = payload.nomePersonagem || "Ficha D&D";
             document.title = nomePersonagem + " - D&D 5.5e";
+
+            if (shouldOpenPdfDirectly()) {
+              window.location.replace(payload.url);
+              return;
+            }
 
             const viewer = document.getElementById("pdfViewer");
             if (viewer) {
@@ -14060,6 +14177,10 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
     window.setTimeout(() => URL.revokeObjectURL(url), 60000);
   }
 
+  function flattenPdfFormForMobile2024(form) {
+    form.flatten({ updateFieldAppearances: false });
+  }
+
   async function ensureSpellCatalogForCurrentMagic2024({ refreshUi = true } = {}) {
     const context = buildSpellcastingContext2024({ syncSelections: false });
     if (!context.sources.length || isSpellCatalogLoaded2024()) return false;
@@ -14151,6 +14272,7 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
       const font = await pdfDoc.embedFont(window.PDFLib.StandardFonts.Helvetica);
       applyPdfExportState2024({ form, pdfMap, pdfState, font });
       form.updateFieldAppearances(font);
+      flattenPdfFormForMobile2024(form);
       writeLoadingTab2024(
         loadingTab,
         "Finalizando o PDF...",
@@ -14220,7 +14342,7 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
       form.updateFieldAppearances(font);
 
       if (overrides.flatten) {
-        form.flatten({ updateFieldAppearances: false });
+        flattenPdfFormForMobile2024(form);
       }
 
       return { form, pdfDoc, pdfState };
@@ -14231,7 +14353,10 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
         return buildPdfExportState2024();
       },
       async generatePdfSnapshot(overrides = {}) {
-        const { form, pdfDoc, pdfState } = await buildGeneratedPdf(overrides);
+        const { form, pdfDoc, pdfState } = await buildGeneratedPdf({
+          ...overrides,
+          flatten: overrides.flatten ?? false,
+        });
         const pdfBytes = await pdfDoc.save({ updateFieldAppearances: false });
         return {
           byteLength: pdfBytes.byteLength,
@@ -14240,7 +14365,10 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
         };
       },
       async generatePdfBase64(overrides = {}) {
-        const { pdfDoc, pdfState } = await buildGeneratedPdf(overrides);
+        const { pdfDoc, pdfState } = await buildGeneratedPdf({
+          ...overrides,
+          flatten: overrides.flatten ?? true,
+        });
         return {
           base64: await pdfDoc.saveAsBase64({ updateFieldAppearances: false }),
           pdfState: summarizePdfState(pdfState),
