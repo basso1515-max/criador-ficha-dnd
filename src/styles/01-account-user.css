@@ -153,6 +153,7 @@ body[data-active-screen="user-page"] .account-page-status:not(:empty) {
 .account-edition-heading div {
   display: grid;
   gap: 4px;
+  min-width: 0;
 }
 
 .account-section-heading span {
@@ -1741,11 +1742,11 @@ body[data-active-screen="user-page"] .account-page-status:not(:empty) {
 }
 
 .admin-character-tools {
-  grid-template-columns: minmax(220px, 1fr) minmax(150px, 0.35fr) minmax(170px, 0.4fr);
+  grid-template-columns: minmax(240px, 1fr) minmax(150px, 0.35fr) minmax(210px, 0.5fr);
 }
 
 .admin-character-tools--trash {
-  grid-template-columns: minmax(220px, 1fr) minmax(170px, 0.36fr);
+  grid-template-columns: minmax(260px, 1fr) minmax(210px, 0.42fr);
 }
 
 .admin-account-list {
@@ -1758,10 +1759,10 @@ body[data-active-screen="user-page"] .account-page-status:not(:empty) {
 
 .admin-account-item {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 10px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
   width: 100%;
-  min-height: 96px;
+  min-height: 108px;
   padding: 10px;
   border: 1px solid rgba(90, 62, 36, 0.16);
   border-radius: 8px;
@@ -1777,8 +1778,7 @@ body[data-active-screen="user-page"] .account-page-status:not(:empty) {
   background: rgba(253, 246, 227, 0.88);
 }
 
-.admin-account-item > span,
-.admin-account-meta {
+.admin-account-item > span:not(.admin-account-meta) {
   display: grid;
   gap: 3px;
   min-width: 0;
@@ -1811,7 +1811,13 @@ body[data-active-screen="user-page"] .account-page-status:not(:empty) {
 }
 
 .admin-account-meta {
-  text-align: right;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px 8px;
+  flex-wrap: wrap;
+  min-width: 0;
+  text-align: left;
 }
 
 .admin-selected-email {
@@ -1938,7 +1944,7 @@ body[data-active-screen="user-page"] .account-page-status:not(:empty) {
 }
 
 .admin-add-character-form {
-  grid-template-columns: 1fr repeat(3, minmax(0, 1fr)) auto;
+  grid-template-columns: minmax(120px, 0.75fr) minmax(140px, 0.8fr) minmax(170px, 1fr) auto;
 }
 
 .admin-account-form label,
@@ -1991,6 +1997,7 @@ body[data-active-screen="user-page"] .account-page-status:not(:empty) {
 
 .admin-add-character-form .account-form-heading {
   align-self: center;
+  grid-column: 1 / -1;
 }
 
 .admin-add-character-form .account-form-heading h3,
@@ -2004,6 +2011,16 @@ body[data-active-screen="user-page"] .account-page-status:not(:empty) {
 .admin-character-list {
   display: grid;
   gap: 10px;
+}
+
+.admin-character-section .account-section-heading {
+  align-items: end;
+}
+
+.admin-character-section .account-section-heading > strong {
+  flex: 0 0 auto;
+  padding-bottom: 4px;
+  white-space: nowrap;
 }
 
 .admin-character-item {
