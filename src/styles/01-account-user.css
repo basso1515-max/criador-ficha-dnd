@@ -1751,7 +1751,7 @@ body[data-active-screen="user-page"] .account-page-status:not(:empty) {
 
 .admin-account-list {
   display: grid;
-  gap: 8px;
+  gap: 10px;
   max-height: 68vh;
   overflow: auto;
   padding-right: 4px;
@@ -1761,8 +1761,9 @@ body[data-active-screen="user-page"] .account-page-status:not(:empty) {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 8px;
+  align-content: start;
   width: 100%;
-  min-height: 108px;
+  min-height: 136px;
   padding: 10px;
   border: 1px solid rgba(90, 62, 36, 0.16);
   border-radius: 8px;
@@ -1799,7 +1800,7 @@ body[data-active-screen="user-page"] .account-page-status:not(:empty) {
 }
 
 .admin-attention-chip {
-  justify-self: end;
+  justify-self: start;
   width: fit-content;
   max-width: 170px;
   padding: 4px 8px;
@@ -1811,13 +1812,16 @@ body[data-active-screen="user-page"] .account-page-status:not(:empty) {
 }
 
 .admin-account-meta {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
-  justify-content: flex-start;
-  gap: 6px 8px;
-  flex-wrap: wrap;
+  gap: 5px 8px;
   min-width: 0;
   text-align: left;
+}
+
+.admin-account-meta .admin-attention-chip {
+  grid-column: 1 / -1;
 }
 
 .admin-selected-email {
