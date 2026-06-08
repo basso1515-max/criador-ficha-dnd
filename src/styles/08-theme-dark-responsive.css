@@ -208,6 +208,9 @@ html[data-theme="dark"] .user-page-edition-heading strong,
 html[data-theme="dark"] .user-page-edition-empty,
 html[data-theme="dark"] .user-page-deleted-empty,
 html[data-theme="dark"] .user-page-character-item,
+html[data-theme="dark"] .admin-character-section,
+html[data-theme="dark"] .admin-character-section .admin-character-tools,
+html[data-theme="dark"] .admin-character-section .account-section-heading > strong,
 html[data-theme="dark"] .edition-pill,
 html[data-theme="dark"] .saved-character-item,
 html[data-theme="dark"] .account-character-item,
@@ -230,6 +233,10 @@ html[data-theme="dark"] .spellbook-level-count {
 html[data-theme="dark"] body[data-active-screen="user-page"] .account-page-status:not(:empty) {
   background: rgba(19, 24, 30, 0.94);
   box-shadow: 0 18px 42px rgba(0, 0, 0, 0.34);
+}
+
+html[data-theme="dark"] .admin-character-section .account-section-heading {
+  border-bottom-color: rgba(217, 167, 102, 0.18);
 }
 
 html[data-theme="dark"] .account-page-status.status-success {
