@@ -759,6 +759,44 @@ html[data-theme="dark"] .version-home-screen {
     radial-gradient(circle at bottom right, rgba(180, 35, 47, 0.14), transparent 34%);
 }
 
+html[data-theme="dark"] .home-contact-strip {
+  border-color: rgba(232, 201, 153, 0.2);
+  border-left-color: #60d4be;
+  background:
+    linear-gradient(180deg, rgba(35, 27, 20, 0.9), rgba(20, 18, 16, 0.9)),
+    var(--dark-surface);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+html[data-theme="dark"] .home-contact-copy h2 {
+  color: var(--dark-accent);
+}
+
+html[data-theme="dark"] .home-contact-copy .version-option-tag {
+  border-color: rgba(96, 212, 190, 0.24);
+  background: rgba(96, 212, 190, 0.1);
+  color: #9ee9d9;
+}
+
+html[data-theme="dark"] .home-contact-copy p {
+  color: var(--dark-muted);
+}
+
+html[data-theme="dark"] .home-contact-copy a {
+  color: #60d4be;
+}
+
+html[data-theme="dark"] .home-contact-button-accent {
+  border-color: rgba(96, 212, 190, 0.34);
+  background: rgba(96, 212, 190, 0.1);
+  color: #9ee9d9;
+}
+
+html[data-theme="dark"] .home-contact-button-accent:hover {
+  border-color: rgba(96, 212, 190, 0.5);
+  background: rgba(96, 212, 190, 0.14);
+}
+
 html[data-theme="dark"] body[data-active-screen="home"] .version-option:first-child {
   border-color: rgba(255, 188, 112, 0.34);
   background:
