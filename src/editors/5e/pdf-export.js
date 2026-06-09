@@ -1,3 +1,5 @@
+import { promptPdfExportChoice, shouldFlattenPdfExport } from "../pdf-export-choice.js";
+
 export function bindPdfSubmit5e({
   form,
   generatePdf,
@@ -5,9 +7,17 @@ export function bindPdfSubmit5e({
   setStatus,
   writeErrorScreen,
   writeLoadingScreen,
+  requestPdfExportChoice = promptPdfExportChoice,
 } = {}) {
   form?.addEventListener("submit", async (event) => {
     event.preventDefault();
+
+    const exportChoice = await requestPdfExportChoice?.({ defaultChoice: "definitivo" });
+    if (exportChoice === null || exportChoice === undefined) {
+      setStatus("Exportação de PDF cancelada.");
+      return;
+    }
+
     const tab = window.open("", "_blank");
     if (!tab) {
       alert("O navegador bloqueou a abertura de nova aba (popup). Habilite popups para este site e tente de novo.");
@@ -33,7 +43,7 @@ export function bindPdfSubmit5e({
     setStatus("Gerando PDF da ficha 5e...");
 
     try {
-      await generatePdf(tab);
+      await generatePdf(tab, { flatten: shouldFlattenPdfExport(exportChoice) });
     } catch (error) {
       console.error(error);
       writeErrorScreen(tab, error);

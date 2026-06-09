@@ -16093,7 +16093,14 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
     const state = overrides.state || collectState();
     if (!state.nome) throw new Error("Informe o nome do personagem.");
 
-    setStatus(state.options.debug ? "Gerando PDF (DEBUG VISUAL)..." : "Gerando PDF...");
+    const exportOptions = {
+      ...state.options,
+      flatten: overrides.flatten ?? state.options.flatten,
+      debug: overrides.debug ?? state.options.debug,
+      dataUri: overrides.dataUri ?? state.options.dataUri,
+    };
+
+    setStatus(exportOptions.debug ? "Gerando PDF (DEBUG VISUAL)..." : "Gerando PDF...");
 
     const yieldLoadingTask = () =>
       new Promise((resolve) => {
@@ -16137,7 +16144,7 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
     const pdfDoc = await PDFLib.PDFDocument.load(templateBytes);
     const form = pdfDoc.getForm();
 
-    if (state.options.debug) {
+    if (exportOptions.debug) {
       fillFormWithFieldNames(form);
 
       try {
@@ -16147,11 +16154,11 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
         try { form.updateFieldAppearances(); } catch {}
       }
 
-      if (state.options.flatten) {
+      if (exportOptions.flatten) {
         form.flatten({ updateFieldAppearances: false });
       }
 
-      await openPdfInTab(tab, pdfDoc, { ...state.options, nomePersonagem: overrides.nomePersonagem || state.nome });
+      await openPdfInTab(tab, pdfDoc, { ...exportOptions, nomePersonagem: overrides.nomePersonagem || state.nome });
       setStatus("DEBUG VISUAL gerado! (Veja a nova aba)");
       return;
     }
@@ -16181,7 +16188,7 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
       try { form.updateFieldAppearances(); } catch {}
     }
 
-    if (state.options.flatten) {
+    if (exportOptions.flatten) {
       form.flatten({ updateFieldAppearances: false });
     }
 
@@ -16190,7 +16197,7 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
       "A ficha já está preenchida. Falta só gerar o arquivo final e abrir nesta aba."
     );
 
-    await openPdfInTab(tab, pdfDoc, { ...state.options, nomePersonagem: overrides.nomePersonagem || state.nome });
+    await openPdfInTab(tab, pdfDoc, { ...exportOptions, nomePersonagem: overrides.nomePersonagem || state.nome });
     setStatus("PDF gerado! (Veja a nova aba)");
   }
 

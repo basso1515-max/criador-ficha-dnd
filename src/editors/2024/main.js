@@ -166,6 +166,7 @@ import { bindEquipmentUiEvents2024 } from "./equipment-ui.js";
 import { bindFeatureChoiceEvents2024, renderFeatureChoicePanels2024 } from "./feature-choices-ui.js";
 import { applyPdfExportState2024 } from "./pdf-apply.js";
 import { bindPdfSubmit2024 } from "./pdf-export.js";
+import { promptPdfExportChoice, shouldFlattenPdfExport } from "../pdf-export-choice.js";
 import { bindSpellsUiEvents2024, createSpellSelectionStore2024 } from "./spells-ui.js";
 import { ensureSpellCatalogLoaded } from "../spell-catalog-loader.js";
 import { initializeUserArea2024 } from "./user-area-ui.js";
@@ -14205,6 +14206,13 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
   async function handlePdfSubmit(event) {
     event.preventDefault();
 
+    const exportChoice = await promptPdfExportChoice({ defaultChoice: "definitivo" });
+    if (exportChoice === null || exportChoice === undefined) {
+      setStatus2024("Exportação de PDF cancelada.", "info");
+      return;
+    }
+
+    const flatten = shouldFlattenPdfExport(exportChoice);
     const loadingTab = openLoadingTab2024();
     if (!loadingTab) {
       setStatus2024("O navegador bloqueou a nova aba. Libere pop-ups para abrir o PDF automaticamente.", "warning");
@@ -14279,7 +14287,9 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
       const font = await pdfDoc.embedFont(window.PDFLib.StandardFonts.Helvetica);
       applyPdfExportState2024({ form, pdfMap, pdfState, font });
       form.updateFieldAppearances(font);
-      flattenPdfFormForMobile2024(form);
+      if (flatten) {
+        flattenPdfFormForMobile2024(form);
+      }
       writeLoadingTab2024(
         loadingTab,
         "Finalizando o PDF...",
