@@ -49,6 +49,7 @@ export const ACCOUNT_ROLE_ADMIN = "admin";
  * @property {string} email
  * @property {string} [role]
  * @property {number} [characterLimitPerEdition]
+ * @property {Record<Edition, number>} [characterLimitsByEdition]
  * @property {string} [passwordAlgo]
  * @property {string} [passwordSalt]
  * @property {string} [passwordHash]
@@ -211,6 +212,7 @@ function normalizeAccountRecord(account) {
     email: normalizeEmail(account.email || ""),
     role: String(account.role || "user").trim().toLowerCase() || "user",
     characterLimitPerEdition: normalizeAccountLimit(account.characterLimitPerEdition),
+    characterLimitsByEdition: normalizeEditionLimits(account.characterLimitsByEdition),
     passwordAlgo: String(account.passwordAlgo || "sha256").trim() || "sha256",
     passwordSalt: String(account.passwordSalt || ""),
     passwordHash: String(account.passwordHash || ""),
@@ -232,6 +234,7 @@ function normalizeClientAccount(account) {
     email: normalizeEmail(account.email || ""),
     role: String(account.role || "user").trim().toLowerCase() || "user",
     characterLimitPerEdition: normalizeAccountLimit(account.characterLimitPerEdition),
+    characterLimitsByEdition: normalizeEditionLimits(account.characterLimitsByEdition),
     passwordSet: account.passwordSet !== false,
     emailVerified: Boolean(account.emailVerified || account.emailVerifiedAt),
     emailVerifiedAt: String(account.emailVerifiedAt || ""),
@@ -263,6 +266,19 @@ function normalizeAccountLimit(limit) {
 }
 
 /**
+ * @param {unknown} limits
+ * @returns {Record<Edition, number>}
+ */
+function normalizeEditionLimits(limits) {
+  const source = isRecord(limits) ? limits : {};
+  return Object.fromEntries(
+    Object.entries(source)
+      .filter(([edition]) => isEdition(edition))
+      .map(([edition, value]) => [edition, normalizeAccountLimit(value)])
+  );
+}
+
+/**
  * @param {AccountRecord | null} account
  */
 function toPublicUser(account) {
@@ -273,6 +289,7 @@ function toPublicUser(account) {
     email: account.email,
     role: account.role || "user",
     characterLimitPerEdition: normalizeAccountLimit(account.characterLimitPerEdition),
+    characterLimitsByEdition: normalizeEditionLimits(account.characterLimitsByEdition),
     passwordSet: account.passwordSet !== false,
     emailVerified: Boolean(account.emailVerified || account.emailVerifiedAt),
     emailVerifiedAt: account.emailVerifiedAt || "",
@@ -539,7 +556,10 @@ export function getCurrentUser() {
 /**
  * @param {any} [account]
  */
-export function getCharacterLimitPerEdition(account = currentAccount) {
+export function getCharacterLimitPerEdition(account = currentAccount, edition = "") {
+  if (edition && account?.characterLimitsByEdition && Object.hasOwn(account.characterLimitsByEdition, edition)) {
+    return normalizeAccountLimit(account.characterLimitsByEdition[edition]);
+  }
   return normalizeAccountLimit(account?.characterLimitPerEdition);
 }
 
@@ -938,9 +958,10 @@ export async function updateAdminAccount(accountId, input = {}) {
   await ensureServerReady();
   assertCurrentAdmin();
   const body = {};
-  const { role, characterLimitPerEdition } = input;
+  const { role, characterLimitPerEdition, characterLimitsByEdition } = input;
   if (role !== undefined) body.role = String(role || "").trim().toLowerCase();
   if (characterLimitPerEdition !== undefined) body.characterLimitPerEdition = Number(characterLimitPerEdition);
+  if (characterLimitsByEdition !== undefined) body.characterLimitsByEdition = characterLimitsByEdition;
   const data = await requestApi(`/api/admin/accounts/${encodeURIComponent(String(accountId || "").trim())}`, {
     method: "PATCH",
     body,
@@ -1039,6 +1060,7 @@ function normalizeAdminAccount(account) {
     email: normalizeEmail(account.email || ""),
     role: String(account.role || "user").trim().toLowerCase() || "user",
     characterLimitPerEdition: normalizeAccountLimit(account.characterLimitPerEdition),
+    characterLimitsByEdition: normalizeEditionLimits(account.characterLimitsByEdition),
     passwordSet: account.passwordSet !== false,
     emailVerified: Boolean(account.emailVerified || account.emailVerifiedAt),
     emailVerifiedAt: String(account.emailVerifiedAt || ""),

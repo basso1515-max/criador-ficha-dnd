@@ -215,6 +215,7 @@ function normalizeAccountRecord(account) {
     email,
     role: sanitizeAccountRole(account.role, email),
     characterLimitPerEdition: sanitizeAccountLimit(account.characterLimitPerEdition),
+    characterLimitsByEdition: normalizeEditionLimitOverrides(account.characterLimitsByEdition),
     passwordAlgo: sanitizePasswordAlgo(account.passwordAlgo),
     passwordSalt: sanitizePasswordSecret(account.passwordSalt),
     passwordHash: sanitizePasswordSecret(account.passwordHash),
@@ -273,6 +274,15 @@ function sanitizeAccountLimit(value) {
   return Math.min(MAX_ACCOUNT_LIMIT_PER_EDITION, Math.max(MIN_ACCOUNT_LIMIT_PER_EDITION, Math.trunc(number)));
 }
 
+function normalizeEditionLimitOverrides(limits) {
+  const source = isPlainObject(limits) ? limits : {};
+  return Object.fromEntries(
+    Object.entries(source)
+      .filter(([edition]) => EDITIONS.includes(edition))
+      .map(([edition, value]) => [edition, sanitizeAccountLimit(value)])
+  );
+}
+
 function getBootstrapAdminEmails() {
   const configured = ADMIN_EMAIL_ENV_NAMES
     .flatMap((name) => String(process.env[name] || "").split(","))
@@ -289,7 +299,10 @@ function isAdminAccount(account) {
   return sanitizeAccountRole(account?.role, account?.email) === ACCOUNT_ROLE_ADMIN;
 }
 
-function getAccountCharacterLimit(account) {
+function getAccountCharacterLimit(account, edition = "") {
+  if (edition && isPlainObject(account?.characterLimitsByEdition) && Object.hasOwn(account.characterLimitsByEdition, edition)) {
+    return sanitizeAccountLimit(account.characterLimitsByEdition[edition]);
+  }
   return sanitizeAccountLimit(account?.characterLimitPerEdition);
 }
 
@@ -305,7 +318,7 @@ function getEditionCharacterUsage(account, edition) {
 }
 
 function assertCanAddCharacterToEdition(account, edition, scopeLabel = "nesta edição") {
-  const characterLimit = getAccountCharacterLimit(account);
+  const characterLimit = getAccountCharacterLimit(account, edition);
   const usage = getEditionCharacterUsage(account, edition);
   if (usage.totalCount < characterLimit) return;
 
@@ -638,6 +651,7 @@ function toClientAccount(account) {
     email: account.email,
     role: sanitizeAccountRole(account.role, account.email),
     characterLimitPerEdition: getAccountCharacterLimit(account),
+    characterLimitsByEdition: normalizeEditionLimitOverrides(account.characterLimitsByEdition),
     passwordSet: account.passwordSet !== false,
     emailVerified: Boolean(account.emailVerifiedAt),
     emailVerifiedAt: account.emailVerifiedAt || "",
@@ -1140,7 +1154,7 @@ function assertAccountLimitInput(limit) {
 }
 
 function validateAdminAccountPatchBody(body) {
-  const input = assertRequestBody(body, ["role", "characterLimitPerEdition"], [], "Atualização administrativa");
+  const input = assertRequestBody(body, ["role", "characterLimitPerEdition", "characterLimitsByEdition"], [], "Atualização administrativa");
   const output = {};
   if (Object.hasOwn(input, "role")) {
     output.role = assertAccountRoleInput(input.role);
@@ -1148,9 +1162,23 @@ function validateAdminAccountPatchBody(body) {
   if (Object.hasOwn(input, "characterLimitPerEdition")) {
     output.characterLimitPerEdition = assertAccountLimitInput(input.characterLimitPerEdition);
   }
+  if (Object.hasOwn(input, "characterLimitsByEdition")) {
+    output.characterLimitsByEdition = validateEditionLimitOverrides(input.characterLimitsByEdition);
+  }
   if (!Object.keys(output).length) {
     throw new HttpError(400, "Informe ao menos uma alteração.");
   }
+  return output;
+}
+
+function validateEditionLimitOverrides(value) {
+  const input = assertPlainObject(value, "Limites por edição");
+  const output = {};
+  EDITIONS.forEach((edition) => {
+    if (Object.hasOwn(input, edition)) {
+      output[edition] = assertAccountLimitInput(input[edition]);
+    }
+  });
   return output;
 }
 
@@ -2085,6 +2113,9 @@ async function handleAccountApiInternal(req, res, pathname) {
     }
     if (Object.hasOwn(input, "characterLimitPerEdition")) {
       account.characterLimitPerEdition = input.characterLimitPerEdition;
+    }
+    if (Object.hasOwn(input, "characterLimitsByEdition")) {
+      account.characterLimitsByEdition = input.characterLimitsByEdition;
     }
 
     await saveAccount(redis, account);
