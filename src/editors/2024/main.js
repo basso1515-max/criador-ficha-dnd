@@ -167,6 +167,7 @@ import { bindFeatureChoiceEvents2024, renderFeatureChoicePanels2024 } from "./fe
 import { applyPdfExportState2024 } from "./pdf-apply.js";
 import { bindPdfSubmit2024 } from "./pdf-export.js";
 import { bindSpellsUiEvents2024, createSpellSelectionStore2024 } from "./spells-ui.js";
+import { ensureSpellCatalogLoaded } from "../spell-catalog-loader.js";
 import { initializeUserArea2024 } from "./user-area-ui.js";
 
 (() => {
@@ -9110,7 +9111,12 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
     updatePreview();
   }
 
-  function applyRandomSpellSelections2024({ overwrite = false } = {}) {
+  async function applyRandomSpellSelections2024({ overwrite = false } = {}) {
+    await ensureSpellCatalogLoaded({
+      isLoaded: isSpellCatalogLoaded2024,
+      loadCatalog: loadSpellCatalog2024,
+    });
+
     const context = buildSpellcastingContext2024();
     const sources = Array.isArray(context.sources) ? context.sources : [];
     if (!sources.length) return;
@@ -9176,10 +9182,10 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
     updatePreview();
   }
 
-  function randomizeSheet2024({ mode = "all" } = {}) {
+  async function randomizeSheet2024({ mode = "all" } = {}) {
     const overwrite = mode === "all";
-    withDeferredHeavyUi2024(() => {
-      try {
+    try {
+      withDeferredHeavyUi2024(() => {
         applyRandomIdentitySelections2024({ overwrite });
         applyRandomAttributes2024({ overwrite });
         applyRandomAbilityBonuses2024({ overwrite });
@@ -9193,20 +9199,21 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
         applyRandomSubclassDetailChoices2024({ overwrite });
         applyRandomCompanionChoices2024({ overwrite });
         applyRandomEquipmentChoices2024({ overwrite });
-        applyRandomSpellSelections2024({ overwrite });
-        applyRandomWarlockInvocationDetailChoices2024({ overwrite: false });
-        updatePreview();
-        setStatus2024(
-          overwrite
-            ? "Ficha 5.5e aleatorizada com sucesso."
-            : "Os campos pendentes da ficha 5.5e foram aleatorizados.",
-          "success"
-        );
-      } catch (error) {
-        console.error("Erro ao aleatorizar a ficha 5.5e:", error);
-        setStatus2024("Não foi possível aleatorizar a ficha 5.5e.", "warning");
-      }
-    });
+      });
+
+      await applyRandomSpellSelections2024({ overwrite });
+      applyRandomWarlockInvocationDetailChoices2024({ overwrite: false });
+      updatePreview();
+      setStatus2024(
+        overwrite
+          ? "Ficha 5.5e aleatorizada com sucesso."
+          : "Os campos pendentes da ficha 5.5e foram aleatorizados.",
+        "success"
+      );
+    } catch (error) {
+      console.error("Erro ao aleatorizar a ficha 5.5e:", error);
+      setStatus2024("Não foi possível aleatorizar a ficha 5.5e.", "warning");
+    }
   }
 
   function getSpeciesChoiceDefinitions(race, subrace) {

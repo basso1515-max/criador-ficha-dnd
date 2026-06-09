@@ -144,6 +144,7 @@ import { bindPdfSubmit5e } from "./pdf-export.js";
 import { bindSpellsUiEvents5e, createSpellSelectionStore } from "./spells-ui.js";
 import { initializeUserArea5e } from "./user-area-ui.js";
 import { initializeVersionPicker5e } from "./version-picker-ui.js";
+import { ensureSpellCatalogLoaded } from "../spell-catalog-loader.js";
 
 const DEFAULT_TEMPLATE_URL = "./assets/pdf/5e/ficha5e.pdf";
 const PDF_MAP_URL = "./assets/pdf/5e/pdf-map.json";
@@ -9322,11 +9323,11 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     updateAttributeMethodUi();
   }
 
-  function randomizeSheet({ mode = "all" } = {}) {
+  async function randomizeSheet({ mode = "all" } = {}) {
     const overwrite = mode === "all";
 
-    withDeferredHeavyUi(() => {
-      try {
+    try {
+      withDeferredHeavyUi(() => {
         setStatus(overwrite ? "Aleatorizando toda a ficha..." : "Aleatorizando o restante da ficha...");
 
         if (overwrite) clearRandomizationState();
@@ -9339,16 +9340,18 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
         applyRandomChoicePanels({ overwrite });
         applyRandomFlavorFields({ overwrite });
         syncAutoManagedTextareas();
-        commitCharacterStateMutation("randomize");
+      });
 
-        setStatus(overwrite
-          ? "Aleatorização completa da ficha concluída."
-          : "Restante da ficha preenchido com escolhas aleatórias.");
-      } catch (error) {
-        console.error("Erro ao aleatorizar a ficha:", error);
-        setStatus("Não foi possível aleatorizar a ficha.");
-      }
-    });
+      await fillRandomSpellSelections({ overwrite });
+      commitCharacterStateMutation("randomize");
+
+      setStatus(overwrite
+        ? "Aleatorização completa da ficha concluída."
+        : "Restante da ficha preenchido com escolhas aleatórias.");
+    } catch (error) {
+      console.error("Erro ao aleatorizar a ficha:", error);
+      setStatus("Não foi possível aleatorizar a ficha.");
+    }
   }
 
   function applyRandomBaseSelections({ overwrite = false } = {}) {
@@ -9596,7 +9599,6 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     fillRandomExpertiseChoices({ overwrite });
     fillRandomFightingStyleChoices({ overwrite });
     fillRandomEquipmentChoices({ overwrite });
-    fillRandomSpellSelections({ overwrite });
   }
 
   function hasSpellcastingPrerequisite(state) {
@@ -10185,8 +10187,13 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     commitCharacterStateMutation("equipment:random");
   }
 
-  function fillRandomSpellSelections({ overwrite = false } = {}) {
+  async function fillRandomSpellSelections({ overwrite = false } = {}) {
     if (overwrite) spellSelectionState.clear();
+
+    await ensureSpellCatalogLoaded({
+      isLoaded: isSpellCatalogLoaded,
+      loadCatalog: loadSpellCatalog,
+    });
 
     const context = buildSpellcastingContext(collectState({ skipAutoTextareaSync: true }));
     const sourceMap = new Map(context.sources.map((source) => [source.sourceKey, source]));
@@ -10243,6 +10250,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     }
 
     renderWarlockInvocationChoices();
+    renderMagicSection();
     commitCharacterStateMutation("spells:random");
   }
 
