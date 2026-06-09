@@ -74,6 +74,7 @@ let accounts = [];
 let selectedAccount = null;
 let selectedAccountId = "";
 let statusTimer = 0;
+const editionLimitInputs = Object.fromEntries(EDITIONS.map((edition) => [edition, document.querySelector(`[data-admin-edition-limit="${edition}"]`)]));
 const accountFilters = {
   query: "",
   role: "all",
@@ -202,6 +203,12 @@ function renderDetail() {
 
   if (el.accountRole) el.accountRole.value = account.role || "user";
   if (el.accountLimit) el.accountLimit.value = String(account.characterLimitPerEdition || 0);
+  EDITIONS.forEach((edition) => {
+    const input = editionLimitInputs[edition];
+    if (!input) return;
+    const override = account.characterLimitsByEdition?.[edition];
+    input.value = override === undefined || override === null || String(override).trim() === "" ? "" : String(override);
+  });
 
   const activeCharacters = EDITIONS.flatMap((edition) => (account.characters?.[edition] || []).map((character) => ({ ...character, edition })));
   const deletedCharacters = EDITIONS.flatMap((edition) => (account.deletedCharacters?.[edition] || []).map((character) => ({ ...character, edition })));
@@ -261,15 +268,16 @@ function renderDetail() {
 function renderEditionUsage(account, edition) {
   const count = Number(account.counts?.[edition] || 0);
   const deletedCount = Number(account.deletedCounts?.[edition] || 0);
-  const limit = Math.max(0, Number(account.characterLimitPerEdition || 0));
+  const limit = getEditionLimit(account, edition);
   const used = count + deletedCount;
   const percent = limit > 0 ? Math.min(100, Math.round((used / limit) * 100)) : used > 0 ? 100 : 0;
   const overLimit = limit >= 0 && used > limit;
+  const limitSource = hasEditionLimitOverride(account, edition) ? "cota específica" : "cota padrão";
   return `
     <article class="admin-edition-usage-item${overLimit ? " is-over-limit" : ""}">
       <div>
         <strong>${escapeHtml(EDITION_LABELS[edition] || edition)}</strong>
-        <span>${used}/${limit} usados · ${count} ativos${deletedCount ? ` · ${deletedCount} apagados` : ""}</span>
+        <span>${used}/${limit} usados · ${count} ativos${deletedCount ? ` · ${deletedCount} apagados` : ""} · ${limitSource}</span>
       </div>
       <div class="admin-usage-bar" aria-hidden="true">
         <span style="width: ${percent}%"></span>
@@ -430,10 +438,19 @@ el.accountForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
   if (!selectedAccount) return;
 
+  const characterLimitsByEdition = {};
+  EDITIONS.forEach((edition) => {
+    const value = String(editionLimitInputs[edition]?.value || "").trim();
+    if (value) {
+      characterLimitsByEdition[edition] = Number(value);
+    }
+  });
+
   try {
     selectedAccount = await updateAdminAccount(selectedAccount.id, {
       role: el.accountRole?.value || "user",
-      characterLimitPerEdition: Number(el.accountLimit?.value || 0),
+      characterLimitPerEdition: parseOptionalInteger(el.accountLimit?.value),
+      characterLimitsByEdition,
     });
     await loadAccounts({ keepSelection: true });
     setStatus("Conta atualizada.", "success");
@@ -552,8 +569,7 @@ function getAccountTotals(account) {
   const active = EDITIONS.reduce((total, edition) => total + Number(account.counts?.[edition] || 0), 0);
   const deleted = EDITIONS.reduce((total, edition) => total + Number(account.deletedCounts?.[edition] || 0), 0);
   const usage = active + deleted;
-  const perEditionLimit = Math.max(0, Number(account.characterLimitPerEdition || 0));
-  const capacity = perEditionLimit * EDITIONS.length;
+  const capacity = EDITIONS.reduce((total, edition) => total + getEditionLimit(account, edition), 0);
   const usagePercent = capacity > 0 ? Math.round((usage / capacity) * 100) : usage > 0 ? 100 : 0;
   return { active, capacity, deleted, usage, usagePercent };
 }
@@ -673,6 +689,23 @@ function exportAccountJson(account) {
     JSON.stringify(account, null, 2),
     "application/json;charset=utf-8",
   );
+}
+
+function getEditionLimit(account, edition) {
+  const override = account?.characterLimitsByEdition?.[edition];
+  if (override !== undefined && override !== null && String(override).trim() !== "") {
+    return Math.max(0, Number(override));
+  }
+  return Math.max(0, Number(account?.characterLimitPerEdition || 0));
+}
+
+function hasEditionLimitOverride(account, edition) {
+  return Boolean(account?.characterLimitsByEdition && Object.hasOwn(account.characterLimitsByEdition, edition) && String(account.characterLimitsByEdition[edition] ?? "").trim() !== "");
+}
+
+function parseOptionalInteger(value) {
+  const text = String(value ?? "").trim();
+  return text === "" ? undefined : Number(text);
 }
 
 function formatCsvRow(row) {
