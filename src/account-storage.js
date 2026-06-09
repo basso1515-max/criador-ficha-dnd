@@ -271,11 +271,10 @@ function normalizeAccountLimit(limit) {
  */
 function normalizeEditionLimits(limits) {
   const source = isRecord(limits) ? limits : {};
-  return Object.fromEntries(
-    Object.entries(source)
-      .filter(([edition]) => isEdition(edition))
-      .map(([edition, value]) => [edition, normalizeAccountLimit(value)])
-  );
+  return EDITIONS.reduce((result, edition) => {
+    result[edition] = normalizeAccountLimit(source[edition]);
+    return result;
+  }, /** @type {Record<Edition, number>} */ ({}));
 }
 
 /**
@@ -952,7 +951,7 @@ export async function getAdminAccount(accountId) {
 
 /**
  * @param {unknown} accountId
- * @param {{ role?: unknown, characterLimitPerEdition?: unknown }} [input]
+ * @param {{ role?: unknown, characterLimitPerEdition?: unknown, characterLimitsByEdition?: Record<string, unknown> }} [input]
  */
 export async function updateAdminAccount(accountId, input = {}) {
   await ensureServerReady();
