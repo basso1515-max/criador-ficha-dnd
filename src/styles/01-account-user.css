@@ -1980,7 +1980,7 @@ body[data-active-screen="user-page"] .account-page-status:not(:empty) {
 .admin-account-form,
 .admin-add-character-form {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr)) auto auto;
+  grid-template-columns: repeat(2, minmax(180px, 1fr));
   gap: 12px;
   align-items: end;
   padding: 14px;
@@ -1991,6 +1991,10 @@ body[data-active-screen="user-page"] .account-page-status:not(:empty) {
 
 .admin-add-character-form {
   grid-template-columns: minmax(120px, 0.75fr) minmax(140px, 0.8fr) minmax(170px, 1fr) auto;
+}
+
+.admin-account-form .account-empty-note {
+  grid-column: 1 / -1;
 }
 
 .admin-account-form label,
@@ -2012,7 +2016,13 @@ body[data-active-screen="user-page"] .account-page-status:not(:empty) {
 .admin-account-form select,
 .admin-add-character-form input,
 .admin-add-character-form select {
+  min-width: 0;
   width: 100%;
+}
+
+.admin-account-form .primary {
+  justify-self: end;
+  width: min(100%, 260px);
 }
 
 .admin-limit-presets {
