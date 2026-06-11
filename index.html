@@ -11,6 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=EB+Garamond:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Libre+Baskerville:wght@400;700&family=Uncial+Antiqua&display=swap" rel="stylesheet">
   <script type="module" defer src="./src/analytics.js"></script>
   <script type="module" defer src="./src/theme.js"></script>
+  <script type="module" defer src="./src/contact-links.js"></script>
   <script type="module" defer src="./src/home.js"></script>
 </head>
 
@@ -121,26 +122,23 @@
         <div class="home-contact-copy">
           <p class="version-option-tag">COMUNIDADE</p>
           <h2 id="homeContactTitle">Ajude o Sheetfy a melhorar</h2>
-          <p>
-            Encontrou um erro de regra, teve problema usando o site, quer sugerir uma melhoria ou apoiar o projeto?
-            Escreva para <a href="mailto:sheetfy.ctt@gmail.com">sheetfy.ctt@gmail.com</a>.
-          </p>
+          <p data-contact-block="homeContact"></p>
         </div>
         <div class="home-contact-actions" aria-label="Opções de contato">
           <a
-            href="mailto:sheetfy.ctt@gmail.com?subject=Feedback%20sobre%20o%20Sheetfy&body=Oi!%20Quero%20deixar%20um%20feedback%20sobre%20o%20Sheetfy.%0A%0A"
+            data-contact-action="feedback"
             class="secondary-button home-contact-button"
           >
             Enviar feedback
           </a>
           <a
-            href="mailto:sheetfy.ctt@gmail.com?subject=Erro%20ou%20bug%20no%20Sheetfy&body=Oi!%20Encontrei%20um%20erro%20no%20Sheetfy.%0A%0APagina%20ou%20edicao:%0AO%20que%20aconteceu:%0AO%20que%20eu%20esperava:%0A"
+            data-contact-action="bug"
             class="secondary-button home-contact-button"
           >
             Apontar erro
           </a>
           <a
-            href="mailto:sheetfy.ctt@gmail.com?subject=Quero%20apoiar%20o%20Sheetfy&body=Oi!%20Quero%20saber%20como%20posso%20apoiar%20ou%20fazer%20uma%20doacao%20para%20o%20Sheetfy.%0A%0A"
+            data-contact-action="support"
             class="secondary-button home-contact-button home-contact-button-accent"
           >
             Apoiar / doar
