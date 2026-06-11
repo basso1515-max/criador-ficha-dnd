@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 
 const root = process.cwd();
@@ -145,7 +145,10 @@ function resolveLocalAsset(fromFile, specifier) {
 }
 
 function sumFileBytes(files) {
-  return [...files].reduce((sum, file) => sum + statSync(path.join(root, file)).size, 0);
+  return [...files].reduce((sum, file) => {
+    const source = readFileSync(path.join(root, file), "utf8").replace(/\r\n/g, "\n");
+    return sum + Buffer.byteLength(source);
+  }, 0);
 }
 
 function normalizeRelativePath(file) {
