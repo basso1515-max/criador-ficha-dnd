@@ -92,6 +92,30 @@ export const DOMINIOS = {
 
 export const DIVINDADES = {
   //Forgotten Realms
+    "akadi": { 
+        id: "akadi",
+        nome: "Akadi", 
+        domínio: "Tempestade", 
+        alinhamento: "Neutro",
+        símbolo: "Nuvem",
+        descricaoCurta: "Deusa do ar e do movimento, Akadi é adorada por aqueles que buscam a liberdade dos ventos e os céus abertos."
+    },
+    "amaunator": { 
+        id: "amaunator",
+        nome: "Amaunator", 
+        domínio: "Luz, Vida", 
+        alinhamento: "Leal e Neutro",
+        símbolo: "Sol dourado",
+        descricaoCurta: "Deus do sol e da lei, Amaunator é adorado por aqueles que valorizam a ordem estrita, a justiça implacável e a burocracia divina."
+    },
+    "asmodeus": { 
+        id: "asmodeus",
+        nome: "Asmodeus", 
+        domínio: "Conhecimento, Enganação", 
+        alinhamento: "Leal e Maligno",
+        símbolo: "Três triângulos invertidos dispostos em um longo triângulo",
+        descricaoCurta: "Deus do pecado e lorde supremo dos Nove Infernos, Asmodeus é adorado por aqueles que buscam poder através de pactos obscuros e opressão."
+    },
     "auril": { 
         id: "auril",
         nome: "Auril", 
@@ -107,6 +131,14 @@ export const DIVINDADES = {
         alinhamento: "Leal e Neutro", 
         símbolo: "Mão esquerda apontando para cima, envolta por chamas azuis",
         descricaoCurta: "Deus dos magos e da magia, Azuth é o patrono dos feiticeiros e magos. Ele é conhecido por sua sabedoria e por proteger aqueles que buscam o conhecimento arcano, mas também é temido por sua impaciência com os incompetentes."
+    },
+    "bahamut": { 
+        id: "bahamut",
+        nome: "Bahamut", 
+        domínio: "Vida, Guerra", 
+        alinhamento: "Leal e Bom",
+        símbolo: "A cabeça de um dragão de platina",
+        descricaoCurta: "Deus da justiça e criador dos dragões metálicos, Bahamut é adorado por aqueles que buscam proteger os fracos e lutar por ideais nobres."
     },
     "bane": { 
         id: "bane",
@@ -132,6 +164,14 @@ export const DIVINDADES = {
         símbolo: "Caveira rodeada por um anel de gostas de sangue",
         descricaoCurta: "Deus do assassinato e da violência, Bhaal é adorado por aqueles que buscam poder através do medo e da morte. Ele é conhecido por sua crueldade e sede de sangue."    
     },
+    "cavaleira_vermelha": { 
+        id: "cavaleira_vermelha",
+        nome: "Cavaleira Vermelha", 
+        domínio: "Guerra", 
+        alinhamento: "Leal e Neutro",
+        símbolo: "Peça de xadrez de cavalo vermelho com estrelas no lugar dos olhos",
+        descricaoCurta: "Deusa da estratégia e do planejamento tático, a Cavaleira Vermelha é adorada por comandantes e guerreiros que valorizam a inteligência no campo de batalha."
+    },
     "chauntea": { 
         id: "chauntea",
         nome: "Chauntea", 
@@ -147,6 +187,14 @@ export const DIVINDADES = {
         alinhamento: "Caótico e Maligno", 
         símbolo: "Crânio sem mandíbula num sol negro ou púrpura",
         descricaoCurta: "Deus da enganação e da traição, Cyric é adorado por aqueles que buscam manipular os outros e obter vantagem através do engano."
+    },
+    "corellon": { 
+        id: "corellon",
+        nome: "Corellon Larethian", 
+        domínio: "Luz, Magia", 
+        alinhamento: "Caótico e Bom",
+        símbolo: "Estrela prateada ou meia lua",
+        descricaoCurta: "Deus da arte, da magia e patrono dos elfos, Corellon é adorado por aqueles que buscam a beleza, a liberdade e a perfeição artística."
     },
     "deneir": { 
         id: "deneir",
@@ -164,6 +212,14 @@ export const DIVINDADES = {
         símbolo: "Cachoeira caindo dentro de um poço",
         descricaoCurta: "Deusa da natureza e da vida, Eldath é adorada por aqueles que buscam proteger e preservar a natureza."
     },
+    "garl_glittergold": { 
+        id: "garl_glittergold",
+        nome: "Garl Glittergold", 
+        domínio: "Enganação", 
+        alinhamento: "Leal e Bom",
+        símbolo: "Pepita de ouro sorridente",
+        descricaoCurta: "Deus da sorte, trapaça e padroeiro dos gnomos, Garl é adorado por aqueles que buscam resolver problemas com astúcia, humor e ilusões."
+    },
     "gond": { 
         id: "gond",
         nome: "Gond", 
@@ -171,6 +227,22 @@ export const DIVINDADES = {
         alinhamento: "Neutro", 
         símbolo: "Roda dentada com quatro raias",
         descricaoCurta: "Deus do conhecimento e da sabedoria, Gond é adorado por aqueles que buscam aprender e compreender os segredos do mundo."
+    },
+    "grumbar": { 
+        id: "grumbar",
+        nome: "Grumbar", 
+        domínio: "Conhecimento", 
+        alinhamento: "Neutro",
+        símbolo: "Montanha",
+        descricaoCurta: "Deus da terra e da resistência, Grumbar é adorado por aqueles que valorizam a estabilidade, a solidez e as tradições imutáveis."
+    },
+    "gruumsh": { 
+        id: "gruumsh",
+        nome: "Gruumsh", 
+        domínio: "Guerra, Tempestade", 
+        alinhamento: "Caótico e Maligno",
+        símbolo: "Olho triangular que não pisca",
+        descricaoCurta: "Deus da destruição e senhor dos orcs, Gruumsh é adorado por aqueles que buscam subjugar os fracos e provar sua força inquestionável em combate."
     },
     "helm": { 
         id: "helm",
@@ -180,6 +252,14 @@ export const DIVINDADES = {
         símbolo: "Olho aberto sobre uma manopla esquerda",
         descricaoCurta: "Deus da proteção e da vigilância, Helm é adorado por aqueles que buscam segurança e proteção. Ele é conhecido por sua lealdade e por proteger aqueles que confiam nele."
     },
+    "hoar": { 
+        id: "hoar",
+        nome: "Hoar", 
+        domínio: "Guerra", 
+        alinhamento: "Leal e Neutro",
+        símbolo: "Moeda com duas faces",
+        descricaoCurta: "Deus da vingança e da retribuição, Hoar é adorado por aqueles que buscam fazer justiça com as próprias mãos quando as leis oficiais falham."
+    },
     "ilmater": { 
         id: "ilmater",
         nome: "Ilmater", 
@@ -188,6 +268,22 @@ export const DIVINDADES = {
         símbolo: "Mãos com os pulsos atados com faixas vermelhas",
         descricaoCurta: "Deus da proteção e da cura, Ilmater é adorado por aqueles que buscam alívio do sofrimento e da morte."
     },
+    "istishia": { 
+        id: "istishia",
+        nome: "Istishia", 
+        domínio: "Tempestade", 
+        alinhamento: "Neutro",
+        símbolo: "Onda",
+        descricaoCurta: "Deus da água e da purificação, Istishia é adorado por aqueles que buscam a transformação gradual, a flexibilidade e a superação de obstáculos."
+    },
+    "jergal": { 
+        id: "jergal",
+        nome: "Jergal", 
+        domínio: "Conhecimento, Morte", 
+        alinhamento: "Leal e Neutro",
+        símbolo: "Crânio sem mandíbula e uma pena de escrever",
+        descricaoCurta: "Antigo deus da morte e atual Escriba dos Mortos, Jergal é adorado por aqueles que buscam registrar o destino de todas as coisas e a inevitabilidade do fim."
+    },
     "kelemvor": { 
         id: "kelemvor",
         nome: "Kelemvor", 
@@ -195,6 +291,14 @@ export const DIVINDADES = {
         alinhamento: "Leal e Neutro", 
         símbolo: "Braço esquelético segurando uma balança",
         descricaoCurta: "Deus da morte e do julgamento, Kelemvor é adorado por aqueles que buscam justiça após a morte."
+    },
+    "kossuth": { 
+        id: "kossuth",
+        nome: "Kossuth", 
+        domínio: "Luz", 
+        alinhamento: "Neutro",
+        símbolo: "Chama",
+        descricaoCurta: "Deus do fogo e da purificação, Kossuth é adorado por aqueles que buscam o poder destrutivo e renovador das chamas."
     },
     "lathander": { 
         id: "lathander",
@@ -219,6 +323,14 @@ export const DIVINDADES = {
         alinhamento: "Caótico e Bom", 
         símbolo: "Triângulo de três estrelas e seis pontas",
         descricaoCurta: "Deusa da vida, Lliira é adorada por aqueles que buscam proteção e renovação."
+    },
+    "lolth": { 
+        id: "lolth",
+        nome: "Lolth", 
+        domínio: "Enganação, Morte", 
+        alinhamento: "Caótico e Maligno",
+        símbolo: "Uma aranha negra com o rosto de uma fêmea drow",
+        descricaoCurta: "Deusa das aranhas e rainha dos drow, Lolth é adorada por aqueles que buscam ascender ao poder através da traição, do medo e da teia de intrigas."
     },
     "loviatar": { 
         id: "loviatar",
@@ -252,6 +364,23 @@ export const DIVINDADES = {
         símbolo: "Folha de carvalho",
         descricaoCurta: "Deusa da natureza e da floresta, Mielikki é adorada por aqueles que buscam proteger o ambiente natural."
     },
+    "milil": { 
+        id: "milil",
+        nome: "Milil", 
+        domínio: "Luz", 
+        alinhamento: "Neutro e Bom",
+        símbolo: "Harpa de cinco cordas feita de folhas",
+        descricaoCurta: "Deus da poesia e da canção, Milil é adorado por bardos, artistas e aqueles que buscam a inspiração e a preservação da história através da arte."
+    },
+    "moradin": {
+        id: "moradin",
+        nome: "Moradin",
+        domínio: "Conhecimento, Proteção",
+        alinhamento: "Leal e Bom",
+        símbolo: "Martelo de guerra e bigorna flamejante atrás",
+        descricaoCurta: "Deus dos anões, da criação e da proteção, Moradin é adorado por aqueles que buscam força e resistência. Ele é conhecido por sua habilidade em forjar armas e armaduras poderosas."
+    },
+    
     "myrkul": { 
         id: "myrkul",
         nome: "Myrkul", 
@@ -276,8 +405,8 @@ export const DIVINDADES = {
         símbolo: "Pergaminho em branco",
         descricaoCurta: "Deus do conhecimento e da sabedoria, Oghma é adorado por aqueles que buscam expandir seus limites intelectuais."
     },
-    "svavras": { 
-        id: "svavras",
+    "savras": { 
+        id: "savras",
         nome: "Savras", 
         domínio: "Conhecimento", 
         alinhamento: "Leal e Neutro", 
@@ -340,11 +469,19 @@ export const DIVINDADES = {
         símbolo: "Uma espada em chamas erguida",
         descricaoCurta: "Deus do tempo e da guerra, Tempus é adorado por aqueles que buscam dominar o tempo e a batalha."
     },
+    "tiamat": { 
+        id: "tiamat",
+        nome: "Tiamat", 
+        domínio: "Enganação", 
+        alinhamento: "Leal e Maligno",
+        símbolo: "A cabeça de um dragão com cinco faces (ou garras)",
+        descricaoCurta: "Deusa da ganância e rainha dos dragões cromáticos, Tiamat é adorada por aqueles que buscam o domínio absoluto e o acúmulo de riquezas."
+    },
     "torm": { 
         id: "torm",
         nome: "Torm", 
         domínio: "Guerra",
-        alinhamento: "Caotico e Bom",
+        alinhamento: "Leal e Bom",
         símbolo: "Manopla direita branca",
         descricaoCurta: "Deus da guerra e da justiça, Torm é adorado por aqueles que buscam proteger os inocentes e lutar contra o mal."
     },
@@ -372,6 +509,14 @@ export const DIVINDADES = {
         símbolo: "Onda bifurcada para a direita e esquerda",
         descricaoCurta: "Deusa do mar e das tempestades, Umberlee é adorado por aqueles que buscam dominar o mar e causar destruição."
     },
+    "valkur": { 
+        id: "valkur",
+        nome: "Valkur", 
+        domínio: "Tempestade, Guerra", 
+        alinhamento: "Caótico e Bom",
+        símbolo: "Nuvem com três raios",
+        descricaoCurta: "Deus dos marinheiros e protetor dos navios, Valkur é adorado por aqueles que buscam viagens marítimas seguras e a proteção contra a fúria das tempestades."
+    },
     "waukeen":{ 
         id: "waukeen",
         nome: "Waukeen", 
@@ -379,5 +524,13 @@ export const DIVINDADES = {
         alinhamento: "Neutro", 
         símbolo: "Moeda com o perfil de Waukeen virado para a esquerda",
         descricaoCurta: "Deusa do conhecimento e da enganação, Waukeen é adorada por aqueles que buscam manipular a mente e obter vantagem através do engano."
+    },
+    "yondalla": { 
+        id: "yondalla",
+        nome: "Yondalla", 
+        domínio: "Vida", 
+        alinhamento: "Leal e Bom",
+        símbolo: "Escudo com uma cornucópia",
+        descricaoCurta: "Deusa da proteção e matriarca dos halflings, Yondalla é adorada por aqueles que buscam a segurança do lar, a harmonia e a defesa da família."
     }
 };
