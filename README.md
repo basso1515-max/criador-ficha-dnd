@@ -177,6 +177,14 @@ Roda a bateria principal: validação estrutural, orçamento de performance inic
 
 Os testes de DOM/PDF usam Chrome ou Edge em modo headless. Se o executável não for encontrado automaticamente, defina `CHROME_PATH` conforme o exemplo em `.env.example`.
 
+Para evitar que o GitHub CI quebre depois de um `Commit & Sync`, ative o hook local de pre-push:
+
+```powershell
+npm run hooks:install
+```
+
+Depois disso, qualquer push feito pelo VS Code ou pelo terminal roda `npm test` antes de enviar commits. Se a suíte falhar, o push é bloqueado localmente e o log mostra o mesmo tipo de erro que apareceria no GitHub Actions.
+
 ```powershell
 npm run serve:watchdog
 ```

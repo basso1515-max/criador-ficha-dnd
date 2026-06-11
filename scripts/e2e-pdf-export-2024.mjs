@@ -8,11 +8,14 @@ import path from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import { PDFDocument } from "pdf-lib";
 
+import { DIVINDADES } from "../src/data/5.5e/divindades.js";
+
 const HOST = "127.0.0.1";
 const SERVER_TIMEOUT_MS = 8_000;
 const CHROME_TIMEOUT_MS = 10_000;
 const PAGE_TIMEOUT_MS = 30_000;
 const PDF_2024_MIN_BYTE_LENGTH = 1_000_000;
+const PDF_2024_DIVINITY_FIXTURE_ID = "mielikki";
 
 const children = new Set();
 let tempProfile = "";
@@ -27,6 +30,7 @@ const normalize = (value) => String(value || "")
   .toLowerCase();
 
 async function main() {
+  const divinityFixture = getRequiredDivinityFixture();
   const serverPort = await getFreePort();
   const chromePort = await getFreePort();
   const baseUrl = `http://${HOST}:${serverPort}`;
@@ -138,8 +142,8 @@ async function main() {
   assertIncludes(spellcasterText, "Raio de Fogo", "magia concedida Raio de Fogo");
   assertIncludes(spellcasterText, "Bola de Fogo", "magia concedida Bola de Fogo");
   const spellcasterHistoryText = spellcasterPdf.fieldTexts["BACKSTORY / PERSONALITY"] || "";
-  assertIncludes(spellcasterHistoryText, "Div.: Mielikki - Simb.: Folha de carvalho -", "resumo de divindade sem separador incompatível");
-  assertIncludes(spellcasterHistoryText, "Dom.: Natureza", "dominio da divindade");
+  assertIncludes(spellcasterHistoryText, `Div.: ${divinityFixture.nome} - Simb.: ${divinityFixture.símbolo} -`, "resumo de divindade sem separador incompatível");
+  assertIncludes(spellcasterHistoryText, `Dom.: ${divinityFixture.domínio}`, "dominio da divindade");
   assert(!spellcasterHistoryText.includes("•"), "Resumo de divindade ainda contem separador incompatível para o PDF.");
 
   if (consoleProblems.length) {
@@ -169,6 +173,13 @@ function assertIncludes(haystack, needle, label) {
   if (!normalize(haystack).includes(normalize(needle))) {
     throw new Error(`PDF nao contem ${label}: ${needle}`);
   }
+}
+
+function getRequiredDivinityFixture() {
+  const divinity = DIVINDADES[PDF_2024_DIVINITY_FIXTURE_ID];
+  assert(divinity, `Divindade fixture ausente no catalogo 2024: ${PDF_2024_DIVINITY_FIXTURE_ID}`);
+  assert(divinity.nome && divinity.símbolo && divinity.domínio, `Divindade fixture incompleta: ${PDF_2024_DIVINITY_FIXTURE_ID}`);
+  return divinity;
 }
 
 function getPdfSnapshotText(snapshot) {
@@ -274,6 +285,7 @@ function fillBarbarian2024PdfFixtureScript() {
 }
 
 function fillDruidLand2024PdfFixtureScript() {
+  const divinityName = JSON.stringify(getRequiredDivinityFixture().nome);
   return String.raw`
     (async () => {
       const assert = (condition, message) => {
@@ -320,8 +332,9 @@ function fillDruidLand2024PdfFixtureScript() {
       chooseSelectByText("#raca2024", "humano");
       setValue("#appearance2024", "Viajante coberto por poeira vermelha e simbolos druidicos.");
       setValue("#notes2024", "Personagem usado para validar exportacao PDF 2024 com magias concedidas.");
-      setValue("#divindadeInput2024", "Mielikki");
-      setValue("#divindade2024", "Mielikki");
+      const divinityName = ${divinityName};
+      setValue("#divindadeInput2024", divinityName);
+      setValue("#divindade2024", divinityName);
 
       ["for", "des", "con", "int", "sab", "car"].forEach((ability) => {
         const input = document.querySelector('[name="base-' + ability + '"]');

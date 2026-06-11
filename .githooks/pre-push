@@ -1,0 +1,10 @@
+#!/bin/sh
+set -eu
+
+if [ "${SKIP_PRE_PUSH_TESTS:-}" = "1" ]; then
+  echo "Skipping pre-push test suite because SKIP_PRE_PUSH_TESTS=1."
+  exit 0
+fi
+
+echo "Running npm test before push..."
+npm test

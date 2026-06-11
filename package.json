@@ -15,6 +15,7 @@
     "test:pdf:2024": "node scripts/e2e-pdf-export-2024.mjs",
     "test:pdf": "npm run test:pdf:5e && npm run test:pdf:2024",
     "test": "npm run check && npm run typecheck && npm run perf:budget && npm run test:unit && npm run smoke:dom && npm run test:e2e && npm run test:pdf",
+    "hooks:install": "node scripts/install-git-hooks.mjs",
     "serve": "node scripts/serve.mjs",
     "serve:watchdog": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/server-watchdog.ps1",
     "server:install-startup": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/install-server-startup.ps1",
