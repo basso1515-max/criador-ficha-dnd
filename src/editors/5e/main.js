@@ -144,6 +144,12 @@ import { bindPdfSubmit5e } from "./pdf-export.js";
 import { bindSpellsUiEvents5e, createSpellSelectionStore } from "./spells-ui.js";
 import { initializeUserArea5e } from "./user-area-ui.js";
 import { initializeVersionPicker5e } from "./version-picker-ui.js";
+import {
+  buildPendingChoiceDiagnostics,
+  focusChoiceDiagnosticTarget,
+  focusChoiceDiagnosticsPanel,
+  renderPendingChoiceDiagnosticsPanel,
+} from "../pending-choice-diagnostics.js";
 import { ensureSpellCatalogLoaded } from "../spell-catalog-loader.js";
 
 const DEFAULT_TEMPLATE_URL = "./assets/pdf/5e/ficha5e.pdf";
@@ -543,6 +549,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     btnCopiarInspecao: $("btnCopiarInspecao"),
     debugOut: $("debugOut"),
     debugTableWrap: $("debugTableWrap"),
+    preview: $("preview"),
   };
 
   let lastInspectionJson = "";
@@ -917,6 +924,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       onMagicSpellHoverEnd,
       onMagicSlotUsageInput,
     });
+    bindChoiceDiagnosticsNavigation5e();
 
     bindPdfSubmit5e({
       form: el.form,
@@ -925,6 +933,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       setStatus,
       writeErrorScreen,
       writeLoadingScreen,
+      beforeExport: () => showChoiceDiagnosticsBeforeAction5e("exportar PDF"),
     });
 
     initializeUserArea5e({
@@ -934,6 +943,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       getCharacterName: () => String(el.nome?.value || "").trim(),
       getCharacterSummary: buildSavedCharacterSummary,
       setStatus,
+      beforeSave: () => showChoiceDiagnosticsBeforeAction5e("salvar"),
     });
 
     pdfMapLoadPromise = loadActivePdfMap();
@@ -9145,6 +9155,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       || normalized.includes("escolha a classe principal")
       || normalized.includes("aceita apenas")
       || normalized.includes("informe o nome")
+      || normalized.includes("revise")
     ) {
       return "warning";
     }
@@ -16879,6 +16890,168 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
     tab.document.close();
   }
 
+  function collectSubclassDetailPendingLines5e(classEntries = []) {
+    const sources = collectSubclassDetailSources(classEntries);
+    const selections = getCurrentSubclassDetailSelectionMap();
+    const pending = [];
+
+    sources.forEach((source) => {
+      let selectedCount = 0;
+      for (let slotIndex = 0; slotIndex < source.picks; slotIndex += 1) {
+        const value = String(selections.get(buildSubclassDetailSlotKey(source, slotIndex)) || "").trim();
+        if (value && (source.options || []).some((option) => option.value === value)) selectedCount += 1;
+      }
+      if (selectedCount < source.picks) {
+        pending.push(`Configure ${source.label || "o detalhe"} de ${source.subclassLabel} (${selectedCount}/${source.picks}).`);
+      }
+    });
+
+    return pending;
+  }
+
+  function collectSkillChoicePendingLines5e() {
+    const skillContext = collectSkillRuleContext();
+    const selected = getSelectedSkillKeys();
+    const extraSelected = Array.from(selected).filter((skillKey) => !skillContext.fixedSkills.has(skillKey));
+    const totalChoiceSlots = skillContext.choiceSources.reduce((total, source) => total + source.picks, 0);
+    const allowedChoiceSkills = new Set(skillContext.choiceSources.flatMap((source) => source.pool));
+    const invalidOutsideRules = extraSelected.filter((skillKey) => !allowedChoiceSkills.has(skillKey));
+    const allocationIsValid = canAllocateSkillSelection(extraSelected, skillContext.choiceSources);
+
+    if (invalidOutsideRules.length) {
+      return [`Revise as perícias escolhidas: ${formatList(invalidOutsideRules.map(skillKeyToLabel))} não pertence às opções oficiais atuais.`];
+    }
+    if (extraSelected.length > totalChoiceSlots) {
+      return ["Revise as perícias escolhidas: a build atual tem mais perícias marcadas do que o permitido pelas classes."];
+    }
+    if (!allocationIsValid) {
+      return ["As perícias marcadas não fecham corretamente as escolhas das classes atuais."];
+    }
+    if (totalChoiceSlots && extraSelected.length < totalChoiceSlots) {
+      return [`Complete as escolhas de perícias das classes (${extraSelected.length}/${totalChoiceSlots}).`];
+    }
+    return [];
+  }
+
+  function collectWarlockInvocationPendingLines5e(classEntries = []) {
+    if (!isWarlockCatalogLoaded()) return [];
+
+    const pending = [];
+    const invocationSelections = getCurrentWarlockInvocationSelectionMap();
+    const pactSelections = getCurrentWarlockPactBoonSelectionMap();
+
+    getWarlockClassEntriesForChoices(classEntries).forEach((entry) => {
+      const requiredInvocations = getWarlockInvocationCountByLevel(entry.level, WARLOCK_INVOCATIONS_BY_LEVEL_5E);
+      if (entry.level >= 3 && !pactSelections.get(buildWarlockPactBoonSlotKey(entry))) {
+        pending.push(`Escolha a Dádiva do Pacto de ${entry.classLabel}.`);
+      }
+      if (!requiredInvocations) return;
+
+      const selectedCount = Array.from({ length: requiredInvocations }, (_, slotIndex) => (
+        getWarlockInvocationById(WARLOCK_INVOCATIONS_5E, invocationSelections.get(buildWarlockInvocationSlotKey(entry, slotIndex)) || "")
+      )).filter(Boolean).length;
+
+      if (selectedCount < requiredInvocations) {
+        pending.push(`Complete as Invocações Místicas de ${entry.classLabel} (${selectedCount}/${requiredInvocations}).`);
+      }
+    });
+
+    return pending;
+  }
+
+  function collectFightingStylePendingLines5e(state) {
+    const grants = Array.isArray(state?.fightingStyleGrants) ? state.fightingStyleGrants : [];
+    if (!grants.length) return [];
+
+    const selections = getCurrentFightingStyleSelectionMap();
+    const totalChoices = grants.reduce((sum, grant) => sum + grant.picks, 0);
+    const selectedCount = grants.reduce((total, grant) => {
+      let count = 0;
+      for (let slotIndex = 0; slotIndex < grant.picks; slotIndex += 1) {
+        const styleId = selections.get(buildFightingStyleSlotKey(grant, slotIndex)) || "";
+        if (FIGHTING_STYLE_DEFINITIONS[styleId]) count += 1;
+      }
+      return total + count;
+    }, 0);
+
+    return selectedCount < totalChoices
+      ? [`Escolha o estilo de luta liberado pela classe/subclasse (${selectedCount}/${totalChoices}).`]
+      : [];
+  }
+
+  function collectClassChoicePendingLines5e(state) {
+    const pending = [];
+    const classEntries = getResolvedClassEntries(state);
+    const primaryClass = state?.classData || null;
+    const primarySubclass = state?.subclassData || null;
+
+    if (!primaryClass) {
+      pending.push("Escolha a classe.");
+    } else {
+      const unlockLevel = getSubclassUnlockLevel(primaryClass);
+      const primaryLevel = state?.nivelClassePrincipal || getPrimaryAssignedLevel();
+      if (unlockLevel && primaryLevel >= unlockLevel && !primarySubclass) {
+        pending.push(`Escolha a subclasse de ${primaryClass.nome} para este nível.`);
+      }
+    }
+
+    classEntries
+      .filter((entry) => !entry.isPrimary)
+      .forEach((entry) => {
+        const unlockLevel = getSubclassUnlockLevel(entry.classData);
+        if (unlockLevel && entry.level >= unlockLevel && !entry.subclassData) {
+          pending.push(`Escolha a subclasse de ${entry.classData.nome} na multiclasse atual.`);
+        }
+      });
+
+    pending.push(
+      ...collectSkillChoicePendingLines5e(),
+      ...collectWarlockInvocationPendingLines5e(classEntries),
+      ...collectFightingStylePendingLines5e(state),
+      ...collectFeatureChoicePendingLines(state),
+      ...collectSubclassDetailPendingLines5e(classEntries),
+      ...collectSubclassProficiencyChoicePendingLines(state),
+      ...collectArtificerInfusionPendingLines(state),
+      ...collectCompanionChoicePendingLines(state),
+    );
+
+    return pending;
+  }
+
+  function getChoiceDiagnostics5e(state = collectState({ skipAutoTextareaSync: true })) {
+    return buildPendingChoiceDiagnostics(collectClassChoicePendingLines5e(state), { edition: "5e" });
+  }
+
+  function renderChoiceDiagnosticsPanel5e(state) {
+    return renderPendingChoiceDiagnosticsPanel(getChoiceDiagnostics5e(state), {
+      id: "choiceDiagnosticsPanel5e",
+      editionLabel: "5e",
+    });
+  }
+
+  function bindChoiceDiagnosticsNavigation5e() {
+    if (!el.preview) return;
+    el.preview.addEventListener("click", (event) => {
+      const button = event.target?.closest?.("[data-choice-diagnostic-target]");
+      if (!button) return;
+      const targetId = button.getAttribute("data-choice-diagnostic-target") || "";
+      if (focusChoiceDiagnosticTarget(targetId, document)) {
+        setStatus("Revise a pendência no painel indicado pelo diagnóstico.");
+      }
+    });
+  }
+
+  function showChoiceDiagnosticsBeforeAction5e(actionLabel) {
+    atualizarPreview();
+    const diagnostics = getChoiceDiagnostics5e();
+    if (diagnostics.length) {
+      const countLabel = diagnostics.length === 1 ? "1 pendência" : `${diagnostics.length} pendências`;
+      setStatus(`Revise ${countLabel} de classe/subclasse antes de ${actionLabel}.`);
+      focusChoiceDiagnosticsPanel(document);
+    }
+    return diagnostics;
+  }
+
   function atualizarPreview() {
     if (isDeferringHeavyUi()) {
       deferHeavyUiRefresh("preview");
@@ -16897,12 +17070,6 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
     const attackPreview = (ficha.ataques?.linhas || [])
       .map((linha) => `${linha.nome} (${linha.bonusAtaque}; ${linha.danoTipo})`)
       .join(", ");
-    const featureChoicePending = [
-      ...collectFeatureChoicePendingLines(state),
-      ...collectSubclassProficiencyChoicePendingLines(state),
-      ...collectArtificerInfusionPendingLines(state),
-      ...collectCompanionChoicePendingLines(state),
-    ];
 
     preview.innerHTML = `
       <h3>${ficha.texto.nome || "Sem nome"}</h3>
@@ -16933,7 +17100,7 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
       </ul>
 
       <p><strong>Perícias proficientes:</strong> ${proficientSkills.length ? proficientSkills.join(", ") : "Nenhuma"}</p>
-      ${featureChoicePending.length ? `<p><strong>Pendências de recursos:</strong> ${escapeHtml(featureChoicePending.join(" ")).replaceAll("\n", "<br>")}</p>` : ""}
+      ${renderChoiceDiagnosticsPanel5e(state)}
       <p><strong>Ataques:</strong> ${escapeHtml(attackPreview || "Nenhum ataque automático").replaceAll("\n", "<br>")}</p>
       <p><strong>Ataques & Conjuração:</strong> ${escapeHtml(ficha.ataques?.resumo || "-").replaceAll("\n", "<br>")}</p>
       <p><strong>Características & Talentos:</strong><br>${escapeHtml(ficha.texto.caracteristicasETalentos || "-").replaceAll("\n", "<br>")}</p>

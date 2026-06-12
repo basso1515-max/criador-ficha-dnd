@@ -7,6 +7,7 @@ export function initializeUserArea5e({
   getCharacterName,
   getCharacterSummary,
   setStatus,
+  beforeSave,
 }) {
   return initializeUserArea({
     edition: "5e",
@@ -42,5 +43,6 @@ export function initializeUserArea5e({
     getCharacterName,
     getCharacterSummary,
     setStatus,
+    beforeSave,
   });
 }

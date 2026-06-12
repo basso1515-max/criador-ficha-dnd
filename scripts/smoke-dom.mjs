@@ -47,7 +47,7 @@ const smokePages = [
   {
     name: "5e-save-overwrite",
     path: "/5e.html",
-    selectors: ["#quickSaveCharacter5e", "#nome"],
+    selectors: ["#quickSaveCharacter5e", "#nome", "#choiceDiagnosticsPanel5e"],
     setup: `
       (async () => {
         const assert = (condition, message) => {
@@ -112,6 +112,7 @@ const smokePages = [
       "#skillsExtra input[data-skill]",
       ".attr-total-preview:not([hidden])",
       "#btnRandomizeAll",
+      "#choiceDiagnosticsPanel5e",
     ],
     setup: `
       (async () => {
@@ -1022,6 +1023,7 @@ const smokePages = [
       "#quickSaveCharacter2024",
       "[data-language-choice-input]",
       "#btnRandomizeAll2024",
+      "#choiceDiagnosticsPanel2024",
     ],
     setup: `
       (async () => {

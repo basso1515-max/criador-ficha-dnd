@@ -7,6 +7,7 @@ export function initializeUserArea2024({
   getCharacterName,
   getCharacterSummary,
   setStatus,
+  beforeSave,
   onCharacterLoaded,
 }) {
   return initializeUserArea({
@@ -43,6 +44,7 @@ export function initializeUserArea2024({
     getCharacterName,
     getCharacterSummary,
     setStatus,
+    beforeSave,
     onCharacterLoaded,
   });
 }

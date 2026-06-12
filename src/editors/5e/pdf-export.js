@@ -7,10 +7,17 @@ export function bindPdfSubmit5e({
   setStatus,
   writeErrorScreen,
   writeLoadingScreen,
+  beforeExport,
   requestPdfExportChoice = promptPdfExportChoice,
 } = {}) {
   form?.addEventListener("submit", async (event) => {
     event.preventDefault();
+
+    try {
+      beforeExport?.({ edition: "5e" });
+    } catch (error) {
+      console.error("Erro ao preparar diagnostico antes de exportar PDF 5e:", error);
+    }
 
     const exportChoice = await requestPdfExportChoice?.({ defaultChoice: "definitivo" });
     if (exportChoice === null || exportChoice === undefined) {

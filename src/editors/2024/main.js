@@ -170,6 +170,12 @@ import { promptPdfExportChoice, shouldFlattenPdfExport } from "../pdf-export-cho
 import { bindSpellsUiEvents2024, createSpellSelectionStore2024 } from "./spells-ui.js";
 import { ensureSpellCatalogLoaded } from "../spell-catalog-loader.js";
 import { initializeUserArea2024 } from "./user-area-ui.js";
+import {
+  buildPendingChoiceDiagnostics,
+  focusChoiceDiagnosticTarget,
+  focusChoiceDiagnosticsPanel,
+  renderPendingChoiceDiagnosticsPanel,
+} from "../pending-choice-diagnostics.js";
 
 (() => {
   "use strict";
@@ -1110,6 +1116,7 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
       onMagicSpellHoverEnd: onMagicSpellHoverEnd2024,
       onMagicSlotUsageInput: onMagicSlotUsageInput2024,
     });
+    bindChoiceDiagnosticsNavigation2024();
     bindPdfSubmit2024(el.form, handlePdfSubmit);
 
     migrationReviewAssistant2024 = createMigrationReviewAssistant({
@@ -1125,6 +1132,7 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
       getCharacterName: () => String(el.nome?.value || "").trim(),
       getCharacterSummary: buildSavedCharacterSummary2024,
       setStatus: setStatus2024,
+      beforeSave: () => showChoiceDiagnosticsBeforeAction2024("salvar"),
       onCharacterLoaded: handleMigratedCharacterLoaded2024,
     });
 
@@ -7521,6 +7529,7 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
     const expertiseSkillIds = getSelectedExpertiseSkillIds2024({ background, race, classEntries });
     const perceptionBonus = getSkillBonusValue("percepcao", effectiveAbilityScores.scores, skillSet, proficiencyBonus, expertiseSkillIds);
     const pending = collectPendingChoices();
+    const choiceDiagnostics = getChoiceDiagnostics2024(pending);
     const spellContext = lastMagicContext2024 || buildSpellcastingContext2024();
     const spellPageData = getSpellPageData2024(spellContext);
     const selectedSpellEntries = getUniqueSelectedSpellEntries2024(getSelectedSpellEntries2024(spellContext));
@@ -7541,6 +7550,7 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
       background,
       classDistribution,
       classEntries,
+      choiceDiagnostics,
       cls,
       companionChoiceSummary,
       currencyBreakdown,
@@ -7794,6 +7804,40 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
     ].filter(Boolean);
   }
 
+  function getChoiceDiagnostics2024(pending = collectPendingChoices()) {
+    return buildPendingChoiceDiagnostics(pending, { edition: "5.5e-2024" });
+  }
+
+  function renderChoiceDiagnosticsPanel2024(previewState) {
+    return renderPendingChoiceDiagnosticsPanel(previewState.choiceDiagnostics || [], {
+      id: "choiceDiagnosticsPanel2024",
+      editionLabel: "5.5e/2024",
+    });
+  }
+
+  function bindChoiceDiagnosticsNavigation2024() {
+    if (!el.preview) return;
+    el.preview.addEventListener("click", (event) => {
+      const button = event.target?.closest?.("[data-choice-diagnostic-target]");
+      if (!button) return;
+      const targetId = button.getAttribute("data-choice-diagnostic-target") || "";
+      if (focusChoiceDiagnosticTarget(targetId, document)) {
+        setStatus2024("Revise a pendência no painel indicado pelo diagnóstico.", "warning");
+      }
+    });
+  }
+
+  function showChoiceDiagnosticsBeforeAction2024(actionLabel) {
+    updatePreview();
+    const diagnostics = getChoiceDiagnostics2024();
+    if (diagnostics.length) {
+      const countLabel = diagnostics.length === 1 ? "1 pendência" : `${diagnostics.length} pendências`;
+      setStatus2024(`Revise ${countLabel} de classe/subclasse antes de ${actionLabel}.`, "warning");
+      focusChoiceDiagnosticsPanel(document);
+    }
+    return diagnostics;
+  }
+
   function buildPreviewHtml2024(previewState) {
     const noteItems = buildNotePreviewItems2024();
     return [
@@ -7805,6 +7849,7 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
       renderPreviewCard("Conjuração", buildSpellPreviewItems2024(previewState)),
       renderPreviewCard("Pacotes iniciais", buildEquipmentPreviewItems2024(previewState)),
       noteItems.length ? renderPreviewCard("Notas da personagem", noteItems) : "",
+      renderChoiceDiagnosticsPanel2024(previewState),
       previewState.pending.length
         ? renderPreviewCard("Pendências", previewState.pending.map((item) => previewBullet(item)))
         : renderPreviewCard("Pendências", [previewBullet("Sem pendências nas escolhas principais desta prévia.")]),
@@ -14205,6 +14250,8 @@ import { initializeUserArea2024 } from "./user-area-ui.js";
 
   async function handlePdfSubmit(event) {
     event.preventDefault();
+
+    showChoiceDiagnosticsBeforeAction2024("exportar PDF");
 
     const exportChoice = await promptPdfExportChoice({ defaultChoice: "definitivo" });
     if (exportChoice === null || exportChoice === undefined) {

@@ -114,6 +114,7 @@ export function initializeUserArea({
   getCharacterName,
   getCharacterSummary,
   setStatus,
+  beforeSave,
   onCharacterLoaded,
 }) {
   if (!edition || !form || !elements?.root) return;
@@ -258,6 +259,15 @@ export function initializeUserArea({
 
     try {
       const activeCharacter = getActiveCharacter();
+      try {
+        beforeSave?.({
+          action: activeCharacter ? "update" : "save",
+          activeCharacter,
+          edition,
+        });
+      } catch (error) {
+        console.error("Erro ao preparar diagnostico antes de salvar:", error);
+      }
       const saved = await saveCharacterForCurrentUser(
         edition,
         buildPayload(),
