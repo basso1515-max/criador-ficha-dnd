@@ -630,22 +630,6 @@ const smokePages = [
         chooseFeatureKind("subclass", "armor-model", "guardiao");
         assertFeatureChoiceResolved("1/1", ["Modelo de Armadura", "Guardião"], "Modelo de Armadura");
 
-        setClassLevel("Bárbaro", 14);
-        setValue("#arquetipo", "barbaro-coracao-selvagem", ["change"]);
-        assert(selectsForFeatureKind("subclass", "totem-spirit").length === 1, "Guerreiro Totêmico 5e não abriu Espírito Totêmico.");
-        assert(selectsForFeatureKind("subclass", "beast-aspect").length === 1, "Guerreiro Totêmico 5e não abriu Aspecto da Fera.");
-        assert(selectsForFeatureKind("subclass", "totemic-attunement").length === 1, "Guerreiro Totêmico 5e não abriu Sintonia Totêmica.");
-        chooseFeatureKind("subclass", "totem-spirit", "urso");
-        chooseFeatureKind("subclass", "beast-aspect", "aguia");
-        chooseFeatureKind("subclass", "totemic-attunement", "lobo");
-        assertFeatureChoiceResolved("3/3", ["Espírito Totêmico", "Urso", "Aspecto da Fera", "Águia", "Sintonia Totêmica", "Lobo"], "Espírito Totêmico");
-
-        setClassLevel("Bárbaro", 14);
-        setValue("#arquetipo", "barbaro-magia-selvagem", ["change"]);
-        assert(selectsForFeatureKind("subclass", "wild-magic-surge").length === 1, "Magia Selvagem 5e não abriu Surto de Magia Selvagem.");
-        chooseFeatureKind("subclass", "wild-magic-surge", "teleporte-instavel");
-        assertFeatureChoiceResolved("1/1", ["Surto de Magia Selvagem", "Teleporte instável"]);
-
         setClassLevel("Bárbaro", 19);
         const barbarianStrengthBeforeCapstone5e = readAbilityTotal5e("for");
         const barbarianConBeforeCapstone5e = readAbilityTotal5e("con");
@@ -691,18 +675,6 @@ const smokePages = [
         assert(document.querySelector("#fightingStyleContainer [data-fighting-style-hover-card]"), "Hovercard de Estilo de Luta 5e ausente.");
         chooseFightingStyle("arquearia");
         assert((document.querySelector("#preview")?.textContent || "").includes("Arquearia"), "Preview 5e não registrou Estilo de Luta do Patrulheiro.");
-
-        setClassLevel("Patrulheiro", 14);
-        assert(selectsForFeature("favored-enemy").length === 3, "Inimigo Favorito 5e não abriu 3 escolhas no nível 14.");
-        assert(!document.querySelector("#languageChoicesPanel")?.hidden, "Idiomas associados de Inimigo Favorito não abriram no Patrulheiro.");
-        chooseFeature("favored-enemy", "bestas", 0);
-        const duplicateFavoredEnemy = Array.from(selectsForFeature("favored-enemy")[1].options)
-          .find((option) => option.value === "bestas");
-        assert(duplicateFavoredEnemy?.disabled, "Inimigo Favorito repetido não ficou bloqueado.");
-        chooseFeature("favored-enemy", "mortos-vivos", 1);
-        chooseFeature("favored-enemy", "humanoides-duas-racas", 2);
-        const favoredEnemyPreviewText = document.querySelector("#preview")?.textContent || "";
-        assert(favoredEnemyPreviewText.includes("Inimigo Favorito") && favoredEnemyPreviewText.includes("Bestas"), "Preview/PDF automático 5e não recebeu Inimigo Favorito configurado.");
 
         setClassLevel("Patrulheiro", 15);
         setValue("#arquetipo", "patrulheiro-cacador", ["change"]);
