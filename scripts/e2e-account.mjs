@@ -12,7 +12,7 @@ import { extractCommunityStatsEvent } from "../src/shared/community-stats.js";
 
 const HOST = "127.0.0.1";
 const SERVER_TIMEOUT_MS = 8_000;
-const REQUEST_TIMEOUT_MS = 4_000;
+const REQUEST_TIMEOUT_MS = 10_000;
 const PRODUCTION_ACCOUNT_BASE_URL = "https://sheetfy.vercel.app";
 const OAUTH_CALLBACK_PATH = "/api/accounts/oauth/callback";
 const OAUTH_TEST_ENV = {

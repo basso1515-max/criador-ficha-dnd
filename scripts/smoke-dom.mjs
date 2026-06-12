@@ -349,6 +349,43 @@ const smokePages = [
         };
         const assertLevel19FeatSlots5e = (className, expectedCount) => assertLevelFeatSlots5e(className, 19, expectedCount, "asi-19");
 
+        const level13ClassExpectations5e = [
+          { className: "Bruxo", expected: ["Arcano Místico (7º círculo)"] },
+        ];
+        for (const expectation of level13ClassExpectations5e) {
+          setClassLevel(expectation.className, 13);
+          await waitForLazyCatalogs();
+          const previewTextForClass = document.querySelector("#preview")?.textContent || "";
+          expectation.expected.forEach((expectedText) => {
+            assert(
+              textIncludes(previewTextForClass, expectedText),
+              "Preview 5e nível 13 não registrou " + expectedText + " para " + expectation.className + "."
+            );
+          });
+        }
+
+        const level13SubclassExpectations5e = [
+          { className: "Ladino", subclassId: "ladino-assassino", expected: "Impostor" },
+          { className: "Ladino", subclassId: "ladino-batedor", expected: "Emboscador" },
+          { className: "Ladino", subclassId: "ladino-duelista", expected: "Manobra Elegante" },
+          { className: "Ladino", subclassId: "ladino-faca-alma", expected: "Véu Psíquico" },
+          { className: "Ladino", subclassId: "ladino-fantasma", expected: "Forma Fantasmagórica" },
+          { className: "Ladino", subclassId: "ladino-inquiridor", expected: "Olho Impecável" },
+          { className: "Ladino", subclassId: "ladino-ladrao", expected: "Uso de Dispositivos" },
+          { className: "Ladino", subclassId: "ladino-mentor", expected: "Desvio" },
+          { className: "Ladino", subclassId: "ladino-trapaceiro-arcano", expected: "Enganador Versátil" },
+        ];
+        for (const expectation of level13SubclassExpectations5e) {
+          setClassLevel(expectation.className, 13);
+          setValue("#arquetipo", expectation.subclassId, ["change"]);
+          await waitForLazyCatalogs();
+          const previewTextForSubclass = document.querySelector("#preview")?.textContent || "";
+          assert(
+            textIncludes(previewTextForSubclass, expectation.expected),
+            "Preview 5e nível 13 não registrou " + expectation.expected + " para " + expectation.subclassId + "."
+          );
+        }
+
         const level15ClassExpectations5e = [
           { className: "Bruxo", expected: ["Arcano Místico (8º círculo)"] },
         ];
@@ -1139,6 +1176,48 @@ const smokePages = [
           assert(match, "Preview de atributo 2024 ausente para " + ability + ": " + previewText);
           return Number(match[1]);
         };
+
+        const level13ClassExpectations2024 = [
+          { classId: "barbaro", expected: ["Golpe Brutal Aprimorado (13º nível)"] },
+          { classId: "bruxo", expected: ["Arcana Mística (7º círculo)"] },
+          { classId: "guerreiro", expected: ["Indomável Aprimorado", "Ataques Estudados"] },
+          { classId: "monge", expected: ["Defletir Energia"] },
+          { classId: "guardiao", expected: ["Predador Implacável"] },
+        ];
+        for (const expectation of level13ClassExpectations2024) {
+          setClassLevel(expectation.classId, 13);
+          await waitForLazyCatalogs2024();
+          const level13ClassText = [
+            document.querySelector("#classInfo2024")?.textContent || "",
+            document.querySelector("#preview2024")?.textContent || "",
+          ].join(" ");
+          expectation.expected.forEach((expectedText) => {
+            assert(
+              textIncludes(level13ClassText, expectedText),
+              "Resumo/preview 2024 nível 13 não registrou " + expectedText + " para " + expectation.classId + "."
+            );
+          });
+        }
+
+        const level13SubclassExpectations2024 = [
+          { classId: "ladino", subclassId: "ladino-faca-alma", expected: "Véu Psíquico" },
+          { classId: "ladino", subclassId: "ladino-assassino", expected: "Envenenar Armas" },
+          { classId: "ladino", subclassId: "ladino-ladrao", expected: "Usar Dispositivo Mágico" },
+          { classId: "ladino", subclassId: "ladino-trapaceiro-arcano", expected: "Trapaceiro Versátil" },
+        ];
+        for (const expectation of level13SubclassExpectations2024) {
+          setClassLevel(expectation.classId, 13);
+          setValue("#subclasse2024", expectation.subclassId, ["change"]);
+          await waitForLazyCatalogs2024();
+          const level13SubclassText = [
+            document.querySelector("#classInfo2024")?.textContent || "",
+            document.querySelector("#preview2024")?.textContent || "",
+          ].join(" ");
+          assert(
+            textIncludes(level13SubclassText, expectation.expected),
+            "Resumo/preview 2024 nível 13 não registrou " + expectation.expected + " para " + expectation.subclassId + "."
+          );
+        }
 
         const level15ClassExpectations2024 = [
           { classId: "barbaro", expected: ["Fúria Persistente"] },
