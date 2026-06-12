@@ -138,6 +138,10 @@ export function initializeUserArea({
     summary: getCharacterSummary?.() || "",
     snapshot: capture?.() || captureFormPreset(form),
   });
+  const getActiveCharacter = () => {
+    if (!state.selectedCharacterId) return null;
+    return listCharactersForCurrentUser(edition).find((character) => character.id === state.selectedCharacterId) || null;
+  };
   const closeMobileMenu = setupMobileMenu(elements);
   let autoDraft = { clear() {} };
   const startAutoDraft = () => {
@@ -253,12 +257,17 @@ export function initializeUserArea({
     }
 
     try {
-      const saved = await saveCharacterForCurrentUser(edition, buildPayload());
+      const activeCharacter = getActiveCharacter();
+      const saved = await saveCharacterForCurrentUser(
+        edition,
+        buildPayload(),
+        activeCharacter ? { overwriteId: activeCharacter.id } : {},
+      );
       state.selectedCharacterId = saved.id;
       autoDraft.clear();
       closeMobileMenu();
       render();
-      notify(`Personagem salvo: ${saved.name}.`, "success");
+      notify(`Personagem ${activeCharacter ? "atualizado" : "salvo"}: ${saved.name}.`, "success");
     } catch (error) {
       notify(getErrorMessage(error, "Não foi possível salvar o personagem."), "warning");
     }
@@ -398,7 +407,7 @@ function getUserAreaViewModel(edition, state) {
     canManageCharacter: showSavedPanel,
     hasUser: Boolean(user),
     saves,
-    saveDisabled: !user || usedSlots >= characterLimit,
+    saveDisabled: !user || (!activeCharacter && usedSlots >= characterLimit),
     selectedCharacter,
     showEmptyState: false,
     showSavedPanel,
@@ -805,6 +814,16 @@ function updateSaveButtonState(button, viewModel) {
       small: "Acesse ou crie sua conta",
     });
     button.setAttribute("aria-label", "Entrar ou criar conta para salvar personagem");
+    return;
+  }
+
+  if (viewModel.activeCharacter) {
+    setSaveButtonText(button, {
+      text: "Atualizar personagem",
+      strong: "Atualizar personagem",
+      small: "Ficha aberta",
+    });
+    button.setAttribute("aria-label", `Atualizar personagem aberto: ${viewModel.activeCharacter.name}`);
     return;
   }
 

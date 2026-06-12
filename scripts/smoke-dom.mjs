@@ -45,6 +45,65 @@ const smokePages = [
     ],
   },
   {
+    name: "5e-save-overwrite",
+    path: "/5e.html",
+    selectors: ["#quickSaveCharacter5e", "#nome"],
+    setup: `
+      (async () => {
+        const assert = (condition, message) => {
+          if (!condition) throw new Error(message);
+        };
+        const waitForCondition = async (predicate, message, timeoutMs = 8000) => {
+          const start = Date.now();
+          let lastError = null;
+          while (Date.now() - start < timeoutMs) {
+            try {
+              if (predicate()) return;
+            } catch (error) {
+              lastError = error;
+            }
+            await new Promise((resolve) => setTimeout(resolve, 40));
+          }
+          throw new Error(message + (lastError ? ": " + lastError.message : ""));
+        };
+        const dispatch = (node, type) => node.dispatchEvent(new Event(type, { bubbles: true }));
+        const setValue = (selector, value, events = ["input", "change"]) => {
+          const node = document.querySelector(selector);
+          assert(node, "Campo ausente: " + selector);
+          node.value = String(value);
+          events.forEach((eventName) => dispatch(node, eventName));
+          return node;
+        };
+        await waitForCondition(() => (
+          document.querySelector("#quickSaveCharacter5e")?.classList.contains("is-login-save-action")
+        ), "Área de salvamento 5e não inicializou o botão principal.");
+        const accountStorage = await import("/src/account-storage.js");
+        await accountStorage.registerAccount({
+          displayName: "Smoke Save",
+          email: "smoke-save-" + Date.now() + "-" + Math.random().toString(16).slice(2) + "@example.test",
+          password: "SenhaSmoke!123456789",
+        });
+        assert(accountStorage.getCurrentUser(), "Cadastro smoke não deixou usuário ativo no editor.");
+
+        setValue("#nome", "Wilhelm Forjaforja");
+        document.querySelector("#quickSaveCharacter5e").click();
+        await waitForCondition(() => {
+          const saves = accountStorage.listCharactersForCurrentUser("5e");
+          return saves.length === 1 && saves[0]?.name === "Wilhelm Forjaforja";
+        }, "Primeiro salvamento pelo editor 5e não criou exatamente um personagem.");
+
+        setValue("#nome", "Wilhelm Forjaforja Revisado");
+        document.querySelector("#quickSaveCharacter5e").click();
+        await waitForCondition(() => {
+          const saves = accountStorage.listCharactersForCurrentUser("5e");
+          return saves.length === 1 && saves[0]?.name === "Wilhelm Forjaforja Revisado";
+        }, "Segundo salvamento pelo editor 5e deveria atualizar o personagem ativo, não duplicar.");
+
+        await accountStorage.logoutAccount();
+      })();
+    `,
+  },
+  {
     name: "5e",
     path: "/5e.html",
     selectors: [
