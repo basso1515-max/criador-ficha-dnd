@@ -1,15 +1,17 @@
 // divindades.js
-export const DATASET_VERSION = "0.1.0";
+export const DATASET_VERSION = "1.0.0";
 export const META_DIVINDADES = {
-  dataset: "dnd5e-ptbr",
+  dataset: "dnd5e-2024-ptbr",
   version: DATASET_VERSION,
   locale: "pt-BR",
-  builtAt: "2026-03-28",
+  builtAt: "2026-06-11",
   sources: {
+    phb2024: "Player's Handbook (2024)",
     srd: "https://media.wizards.com/2023/downloads/dnd/SRD_CC_v5.1.pdf",
     drsPanteoes: "https://aventureirosdosreinos.com/apendice-b-panteoes-fantastico-historicos/"
   },
   changelog: [
+    "1.0.0: Normaliza o catálogo de divindades 5.5e/2024 com metadados próprios e domínios do Clerigo 2024.",
     "0.1.0: Panteões fantástico-históricos (SRD) + domínios e descrições curtas."
   ]
 };

@@ -1,15 +1,16 @@
 // divindades.js
-export const DATASET_VERSION = "0.1.0";
+export const DATASET_VERSION = "0.2.0";
 export const META_DIVINDADES = {
   dataset: "dnd5e-ptbr",
   version: DATASET_VERSION,
   locale: "pt-BR",
-  builtAt: "2026-03-28",
+  builtAt: "2026-06-11",
   sources: {
     srd: "https://media.wizards.com/2023/downloads/dnd/SRD_CC_v5.1.pdf",
     drsPanteoes: "https://aventureirosdosreinos.com/apendice-b-panteoes-fantastico-historicos/"
   },
   changelog: [
+    "0.2.0: Normaliza metadados da atualização de divindades e declara todos os domínios usados pelo catálogo.",
     "0.1.0: Panteões fantástico-históricos (SRD) + domínios e descrições curtas."
   ]
 };
@@ -70,17 +71,35 @@ export const DOMINIOS = {
             "coragem"
         ] 
     },
-    trapaca: { 
-        id: "trapaca", 
-        nome: "Trapaça", 
+    trapaca: {
+        id: "trapaca",
+        nome: "Enganação",
         foco: [
             "astúcia",
             "enganos",
             "mudança"
-        ] 
+        ]
     },
-    morte: { 
-        id: "morte", 
+    magia: {
+        id: "magia",
+        nome: "Magia",
+        foco: [
+            "arcano",
+            "trama",
+            "mistérios"
+        ]
+    },
+    protecao: {
+        id: "protecao",
+        nome: "Proteção",
+        foco: [
+            "guarda",
+            "dever",
+            "segurança"
+        ]
+    },
+    morte: {
+        id: "morte",
         nome: "Morte", 
         foco: [
             "fim",

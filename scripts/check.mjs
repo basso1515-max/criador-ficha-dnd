@@ -9,6 +9,12 @@ import { RACAS as RACAS_5E, SUBRACAS as SUBRACAS_5E } from "../src/data/5e/racas
 import { ARMAS as ARMAS_5E } from "../src/data/5e/armas.js";
 import { ARMADURAS as ARMADURAS_5E } from "../src/data/5e/armaduras.js";
 import {
+  DATASET_VERSION as DIVINDADES_VERSION_5E,
+  META_DIVINDADES as META_DIVINDADES_5E,
+  DOMINIOS as DOMINIOS_5E,
+  DIVINDADES as DIVINDADES_5E,
+} from "../src/data/5e/divindades.js";
+import {
   CLASS_EQUIPMENT_RULES as CLASS_EQUIPMENT_RULES_5E,
   BACKGROUND_EQUIPMENT_RULES as BACKGROUND_EQUIPMENT_RULES_5E,
 } from "../src/data/5e/equipamento-inicial.js";
@@ -19,9 +25,19 @@ import { RACAS as RACAS_2024, SUBRACAS as SUBRACAS_2024 } from "../src/data/5.5e
 import { ARMAS as ARMAS_2024 } from "../src/data/5.5e/armas.js";
 import { ARMADURAS as ARMADURAS_2024 } from "../src/data/5.5e/armaduras.js";
 import {
+  DATASET_VERSION as DIVINDADES_VERSION_2024,
+  META_DIVINDADES as META_DIVINDADES_2024,
+  DOMINIOS as DOMINIOS_2024,
+  DIVINDADES as DIVINDADES_2024,
+} from "../src/data/5.5e/divindades.js";
+import {
   CLASS_EQUIPMENT_RULES as CLASS_EQUIPMENT_RULES_2024,
   BACKGROUND_EQUIPMENT_RULES as BACKGROUND_EQUIPMENT_RULES_2024,
 } from "../src/data/5.5e/equipamento-inicial.js";
+import {
+  collectDivinityCatalogIssues,
+  collectDivinityCatalogPairIssues,
+} from "./lib/divinity-catalog-validation.mjs";
 import { FEATURE_SUMMARIES_2024 } from "../src/data/5.5e/feature-summaries.js";
 import {
   WARLOCK_INVOCATIONS_5E,
@@ -568,6 +584,47 @@ function validateEditionBoundary(edition, subclasses, expectedSource, errors) {
       errors.push(`2024: subclasse fora do PHB24 no catálogo 2024 (${subclass.id}: ${subclass.fonte}).`);
     }
   });
+}
+
+function validateDivinityCatalogs() {
+  const errors = [
+    ...collectDivinityCatalogIssues({
+      edition: "5e",
+      datasetVersion: DIVINDADES_VERSION_5E,
+      metadata: META_DIVINDADES_5E,
+      domains: DOMINIOS_5E,
+      divinities: DIVINDADES_5E,
+      expectedDataset: "dnd5e-ptbr",
+      minimumBuiltAt: "2026-06-11",
+      minimumVersion: "0.2.0",
+    }),
+    ...collectDivinityCatalogIssues({
+      edition: "2024",
+      datasetVersion: DIVINDADES_VERSION_2024,
+      metadata: META_DIVINDADES_2024,
+      domains: DOMINIOS_2024,
+      divinities: DIVINDADES_2024,
+      expectedDataset: "dnd5e-2024-ptbr",
+      minimumBuiltAt: "2026-06-11",
+      minimumVersion: "1.0.0",
+    }),
+    ...collectDivinityCatalogPairIssues({
+      baseEdition: "5e",
+      baseMetadata: META_DIVINDADES_5E,
+      baseDivinities: DIVINDADES_5E,
+      derivedEdition: "2024",
+      derivedMetadata: META_DIVINDADES_2024,
+      derivedDivinities: DIVINDADES_2024,
+    }),
+  ];
+
+  if (errors.length) {
+    console.error("\nValidacao dos catalogos de divindades falhou:");
+    errors.forEach((error) => console.error(`- ${error}`));
+    process.exit(1);
+  }
+
+  console.log("OK: catalogos de divindades");
 }
 
 function validateCatalogReferenceIntegrity() {
@@ -1392,6 +1449,7 @@ function validateArtificerInfusionEngine5e() {
   console.log("OK: motor de infusões do Artífice 5e");
 }
 
+validateDivinityCatalogs();
 validateCatalogReferenceIntegrity();
 validateFeatureChoiceDefinitionCatalog();
 validateWarlockData();
