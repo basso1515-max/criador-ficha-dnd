@@ -170,6 +170,26 @@ html[data-theme="dark"] select[multiple] option {
   background: var(--card);
 }
 
+html[data-theme="dark"] .choice-diagnostics-panel {
+  --cd-b: rgba(232,201,153,.2);
+  --cd-bs: rgba(255,143,125,.36);
+  --cd-s: rgba(34,27,21,.98);
+  --cd-se: rgba(23,18,14,.98);
+  --cd-sp: rgba(39,29,24,.98);
+  --cd-spe: rgba(28,21,17,.98);
+  --cd-i: rgba(255,246,224,.065);
+  --cd-d: rgba(255,246,224,.045);
+  --cd-a: rgba(150,36,47,.92);
+  --cd-ah: rgba(184,48,60,.98);
+  --cd-at: #fff7ed;
+  --cd-ac: var(--dark-danger-strong);
+  --cd-t: var(--text);
+  --cd-m: var(--dark-muted);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(255, 143, 125, 0.12), transparent 34%),
+    linear-gradient(180deg, var(--cd-s), var(--cd-se));
+}
+
 html[data-theme="dark"] .home-account-status:not(:empty),
 html[data-theme="dark"] .home-user-session,
 html[data-theme="dark"] .home-save-counts span,

@@ -244,14 +244,28 @@
 }
 
 .choice-diagnostics-panel {
+  --cd-b: rgba(139,94,52,.18);
+  --cd-bs: rgba(159,47,47,.3);
+  --cd-s: rgba(255,252,244,.9);
+  --cd-se: rgba(248,238,214,.72);
+  --cd-sp: rgba(255,247,239,.96);
+  --cd-spe: rgba(255,239,224,.84);
+  --cd-i: rgba(255,255,255,.74);
+  --cd-d: rgba(255,247,236,.7);
+  --cd-a: rgba(255,255,255,.88);
+  --cd-ah: rgba(255,255,255,.98);
+  --cd-at: var(--cd-ac);
+  --cd-ac: #9f2f2f;
+  --cd-t: var(--text);
+  --cd-m: var(--muted);
   display: grid;
   gap: 12px;
   margin: 14px 0;
   padding: 14px;
-  border: 1px solid rgba(139,94,52,0.18);
+  border: 1px solid var(--cd-b);
   border-radius: 8px;
-  background:
-    linear-gradient(180deg, rgba(255, 252, 244, 0.86), rgba(248, 238, 214, 0.72));
+  background: linear-gradient(180deg, var(--cd-s), var(--cd-se));
+  color: var(--cd-t);
 }
 
 .choice-diagnostics-panel:focus-visible {
@@ -261,9 +275,8 @@
 
 .choice-diagnostics-panel.has-pending,
 .choice-diagnostics-panel.is-action-highlight {
-  border-color: rgba(159, 47, 47, 0.3);
-  background:
-    linear-gradient(180deg, rgba(255, 249, 241, 0.95), rgba(255, 239, 224, 0.84));
+  border-color: var(--cd-bs);
+  background: linear-gradient(180deg, var(--cd-sp), var(--cd-spe));
 }
 
 .choice-diagnostics-head {
@@ -271,25 +284,32 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
+  min-width: 0;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--cd-b);
+}
+
+.choice-diagnostics-head > div {
+  min-width: 0;
 }
 
 .choice-diagnostics-head h3 {
   margin: 0;
-  color: var(--accent);
+  color: var(--cd-ac);
   font-size: 18px;
   line-height: 1.2;
 }
 
 .choice-diagnostics-head p {
   margin: 4px 0 0;
-  color: var(--muted);
+  color: var(--cd-m);
   font-size: 13px;
   line-height: 1.4;
 }
 
 .choice-diagnostics-kicker {
   margin: 0 0 4px !important;
-  color: var(--accent) !important;
+  color: var(--cd-ac) !important;
   font-size: 11px !important;
   font-weight: 800;
   letter-spacing: 0.08em;
@@ -303,10 +323,10 @@
   min-width: 34px;
   min-height: 34px;
   padding: 0 9px;
-  border: 1px solid rgba(139,94,52,0.22);
+  border: 1px solid var(--cd-b);
   border-radius: 999px;
-  background: rgba(255,255,255,0.64);
-  color: var(--accent);
+  background: var(--cd-a);
+  color: var(--cd-ac);
   font-weight: 800;
 }
 
@@ -317,75 +337,90 @@
 
 .choice-diagnostic-item {
   display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(220px, 1fr) auto;
-  gap: 10px;
-  align-items: start;
-  padding: 11px;
-  border: 1px solid rgba(139,94,52,0.16);
+  gap: 12px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--cd-b);
   border-radius: 8px;
-  background: rgba(255,255,255,0.68);
+  background: var(--cd-i);
 }
 
-.choice-diagnostic-copy {
+.choice-diagnostic-summary-block,
+.choice-diagnostic-detail {
   min-width: 0;
 }
 
-.choice-diagnostic-copy strong {
+.choice-diagnostic-summary-block strong {
   display: block;
-  color: var(--accent);
+  color: var(--cd-ac);
   font-size: 14px;
   line-height: 1.25;
+  overflow-wrap: anywhere;
 }
 
-.choice-diagnostic-copy p,
+.choice-diagnostic-summary-block p,
 .choice-diagnostics-empty {
   margin: 5px 0 0;
-  color: var(--text);
+  color: var(--cd-t);
   font-size: 13px;
   line-height: 1.4;
+  overflow-wrap: anywhere;
 }
 
-.choice-diagnostic-item dl {
+.choice-diagnostic-details {
   display: grid;
-  gap: 7px;
+  gap: 8px;
   margin: 0;
 }
 
-.choice-diagnostic-item dl > div {
+.choice-diagnostic-detail {
   display: grid;
-  gap: 2px;
+  gap: 4px;
+  padding: 9px 10px;
+  border: 1px solid var(--cd-b);
+  border-radius: 6px;
+  background: var(--cd-d);
 }
 
-.choice-diagnostic-item dt {
-  color: var(--accent);
+.choice-diagnostic-detail dt {
+  color: var(--cd-ac);
   font-size: 11px;
   font-weight: 800;
   line-height: 1.2;
   text-transform: uppercase;
 }
 
-.choice-diagnostic-item dd {
+.choice-diagnostic-detail dd {
   margin: 0;
-  color: var(--muted);
+  color: var(--cd-m);
   font-size: 12px;
   line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.choice-diagnostic-actions {
+  display: flex;
+  justify-content: flex-end;
+  min-width: 0;
 }
 
 .choice-diagnostic-target {
-  align-self: center;
-  min-width: 118px;
+  min-width: min(100%, 132px);
+  max-width: 100%;
   padding: 8px 10px;
   border-radius: 8px;
-  border: 1px solid rgba(139,94,52,0.26);
-  background: rgba(255,255,255,0.78);
-  color: var(--accent);
+  border: 1px solid var(--cd-bs);
+  background: var(--cd-a);
+  color: var(--cd-at);
   font-weight: 700;
+  line-height: 1.15;
+  white-space: normal;
 }
 
 .choice-diagnostic-target:hover,
 .choice-diagnostic-target:focus-visible {
-  border-color: rgba(139,94,52,0.42);
-  background: rgba(255,255,255,0.96);
+  border-color: rgba(159, 47, 47, 0.46);
+  background: var(--cd-ah);
 }
 
 .choice-diagnostics-target-highlight {
@@ -419,11 +454,11 @@
     grid-template-columns: 1fr;
   }
 
-  .choice-diagnostic-item {
-    grid-template-columns: 1fr;
+  .choice-diagnostic-actions {
+    justify-content: stretch;
   }
 
   .choice-diagnostic-target {
-    justify-self: start;
+    width: 100%;
   }
 }

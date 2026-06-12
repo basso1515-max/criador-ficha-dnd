@@ -41,6 +41,20 @@ test("diagnostico cobre recursos de classe 5e com impacto e onde resolver", () =
   assert.ok(diagnostics.every((item) => item.impact && item.location));
 });
 
+test("diagnostico evita titulos genericos extraidos da frase de pendencia", () => {
+  const diagnostics = buildPendingChoiceDiagnostics([
+    "Complete as escolhas de perícias das classes (0/2).",
+    "Escolha o estilo de luta liberado no nível 1.",
+    "Complete as infusões conhecidas de Artífice (0/12).",
+  ], { edition: "5.5e-2024" });
+
+  assert.deepEqual(diagnostics.map((item) => item.title), [
+    "Perícias da classe",
+    "Estilo de luta",
+    "Infusões conhecidas",
+  ]);
+});
+
 test("painel renderiza estado pendente e estado resolvido", () => {
   const diagnostics = buildPendingChoiceDiagnostics([
     "Escolha a subclasse de Bruxo para este nível.",
@@ -51,6 +65,9 @@ test("painel renderiza estado pendente e estado resolvido", () => {
   });
 
   assert.match(pendingHtml, /data-choice-diagnostics-panel/);
+  assert.match(pendingHtml, /choice-diagnostic-summary-block/);
+  assert.match(pendingHtml, /choice-diagnostic-details/);
+  assert.match(pendingHtml, /choice-diagnostic-actions/);
   assert.match(pendingHtml, /Fica incompleto/);
   assert.match(pendingHtml, /Resolver em/);
   assert.match(pendingHtml, /data-choice-diagnostic-target="arquetipoInput"/);

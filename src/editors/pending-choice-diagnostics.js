@@ -86,6 +86,15 @@ function titleFromConfigureMessage(message) {
   return configureMatch[2].replace(/:$/, "").trim();
 }
 
+function formatExtractedTitle(title) {
+  const withoutArticle = String(title || "")
+    .trim()
+    .replace(/^(a|as|o|os)\s+/i, "");
+  return withoutArticle
+    ? withoutArticle.charAt(0).toUpperCase() + withoutArticle.slice(1)
+    : "";
+}
+
 function selectCategory(message) {
   const text = normalizeForMatch(message);
   if (text.includes("multiclasse") && text.includes("subclasse")) return "multiclass";
@@ -107,8 +116,8 @@ function selectCategory(message) {
 }
 
 function titleForCategory(category, message) {
-  const extracted = titleFromConfigureMessage(message);
-  if (extracted && !["a classe", "a subclasse"].includes(normalizeForMatch(extracted))) return extracted;
+  const extracted = formatExtractedTitle(titleFromConfigureMessage(message));
+  if (extracted && !["classe", "subclasse", "escolha", "escolhas", "estilo"].includes(normalizeForMatch(extracted))) return extracted;
 
   switch (category) {
     case "class":
@@ -118,7 +127,7 @@ function titleForCategory(category, message) {
     case "multiclass":
       return "Subclasse de multiclasse";
     case "skills":
-      return "Pericias da classe";
+      return "Perícias da classe";
     case "expertise":
       return "Expertise";
     case "fightingStyle":
@@ -239,8 +248,8 @@ export function renderPendingChoiceDiagnosticsPanel(items = [], {
       <div class="choice-diagnostics-head">
         <div>
           <p class="choice-diagnostics-kicker">${escapeHtml(editionLabel)}</p>
-          <h3>${escapeHtml(heading)}</h3>
-          <p>${escapeHtml(summary)}</p>
+          <h3 class="choice-diagnostics-title">${escapeHtml(heading)}</h3>
+          <p class="choice-diagnostics-summary">${escapeHtml(summary)}</p>
         </div>
         <span class="choice-diagnostics-count">${escapeHtml(String(count))}</span>
       </div>
@@ -248,23 +257,25 @@ export function renderPendingChoiceDiagnosticsPanel(items = [], {
         <div class="choice-diagnostics-list">
           ${diagnostics.map((item) => `
             <article class="choice-diagnostic-item" data-choice-diagnostic-id="${escapeHtml(item.id)}">
-              <div class="choice-diagnostic-copy">
+              <div class="choice-diagnostic-summary-block">
                 <strong>${escapeHtml(item.title)}</strong>
                 <p>${escapeHtml(item.message)}</p>
               </div>
-              <dl>
-                <div>
+              <dl class="choice-diagnostic-details">
+                <div class="choice-diagnostic-detail">
                   <dt>Fica incompleto</dt>
                   <dd>${escapeHtml(item.impact)}</dd>
                 </div>
-                <div>
+                <div class="choice-diagnostic-detail">
                   <dt>Resolver em</dt>
                   <dd>${escapeHtml(item.location)}</dd>
                 </div>
               </dl>
-              <button type="button" class="choice-diagnostic-target" data-choice-diagnostic-target="${escapeHtml(item.targetId)}">
-                Ir para resolver
-              </button>
+              <div class="choice-diagnostic-actions">
+                <button type="button" class="choice-diagnostic-target" data-choice-diagnostic-target="${escapeHtml(item.targetId)}">
+                  Ir para resolver
+                </button>
+              </div>
             </article>
           `).join("")}
         </div>
