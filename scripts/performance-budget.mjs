@@ -10,7 +10,7 @@ const pageBudgets = [
     name: "5e",
     html: "5e.html",
     maxInitialJsBytes: 1_550_000,
-    maxInitialCssBytes: 270_000,
+    maxInitialCssBytes: 240_000,
     forbiddenInitialFiles: [
       "assets/vendor/pdf-lib-1.17.1.min.js",
       "src/data/5e/magias.js",
@@ -22,7 +22,7 @@ const pageBudgets = [
     name: "5.5e-2024",
     html: "5.5e-2024.html",
     maxInitialJsBytes: 1_150_000,
-    maxInitialCssBytes: 270_000,
+    maxInitialCssBytes: 240_000,
     forbiddenInitialFiles: [
       "assets/vendor/pdf-lib-1.17.1.min.js",
       "src/data/5e/magias.js",
@@ -102,7 +102,12 @@ function collectStaticModuleGraph(entryFiles) {
 
 function visitStaticModule(file, graph) {
   const normalized = normalizeRelativePath(file);
-  if (graph.has(normalized) || !existsSync(path.join(root, normalized))) return;
+  if (graph.has(normalized)) return;
+  if (!existsSync(path.join(root, normalized))) {
+    hasErrors = true;
+    console.error(`Arquivo JS inicial ausente: ${normalized}.`);
+    return;
+  }
   graph.add(normalized);
 
   const source = readFileSync(path.join(root, normalized), "utf8");
@@ -121,7 +126,12 @@ function collectCssGraph(entryFiles) {
 
 function visitCss(file, graph) {
   const normalized = normalizeRelativePath(file);
-  if (graph.has(normalized) || !existsSync(path.join(root, normalized))) return;
+  if (graph.has(normalized)) return;
+  if (!existsSync(path.join(root, normalized))) {
+    hasErrors = true;
+    console.error(`Arquivo CSS inicial ausente: ${normalized}.`);
+    return;
+  }
   graph.add(normalized);
 
   const source = readFileSync(path.join(root, normalized), "utf8");

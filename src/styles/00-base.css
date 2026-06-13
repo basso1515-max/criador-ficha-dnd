@@ -1,0 +1,200 @@
+/* Base global compartilhada por entradas CSS especificas. */
+:root {
+  --bg: #f4ecd8;
+  --card: #fdf6e3;
+  --text: #3b2f1b;
+  --muted: #7a6a4f;
+  --border: #c2a878;
+  --accent: #8b5e34;
+  --body-font: 'EB Garamond', Georgia, serif;
+  --heading-font: 'Uncial Antiqua', 'Cinzel', Georgia, serif;
+  --ui-font: var(--body-font);
+  --input-bg: #fdf6e3;
+  --focus-ring: rgba(122, 162, 255, 0.2);
+  --page-background: url("https://www.transparenttextures.com/patterns/rice-paper.png"), var(--bg);
+  --primary-bg: linear-gradient(#a67c52, #6b4c2a);
+  --primary-border: #5a3e24;
+  --primary-text: #fff;
+  --floating-submit-offset: 16px;
+  --floating-submit-width: min(1200px, calc(100vw - 32px));
+}
+
+header {
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 16px;
+}
+
+header h1 {
+  font-size: 26px;
+  color: var(--accent);
+  font-family: var(--heading-font);
+}
+
+header p {
+  max-width: 700px;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--focus-ring);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  margin: 0;
+  padding: 0;
+  scroll-padding-bottom: 180px;
+  overflow-x: hidden;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+body {
+  margin: 0;
+  padding: 0 0 calc(140px + env(safe-area-inset-bottom, 0px));
+  background: var(--page-background);
+  color: var(--text);
+  font-family: var(--body-font);
+  overflow-x: hidden;
+}
+
+.a11y-live-region {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  border: 0;
+  white-space: nowrap;
+}
+
+.a11y-tooltip-dismissed > .feature-choice-hover-card,
+.a11y-tooltip-dismissed > .level-up-hover-card {
+  display: none !important;
+}
+
+body[data-active-screen="home"],
+body[data-active-screen="account"],
+body[data-active-screen="legal"],
+body[data-active-screen="user-page"],
+body[data-active-screen="stats"],
+body[data-active-screen="5.5e-2024"] {
+  padding-bottom: 32px;
+}
+
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.grid > *,
+.card,
+fieldset,
+.preview-box,
+.edition-summary-card,
+.feat-choice-card,
+.spellbook-panel,
+.equipment-source,
+.equipment-choice-card,
+.magic-panel,
+.magic-level-card,
+.spell-source-card,
+.dropdown-anchor,
+.generic-dropdown-field {
+  min-width: 0;
+}
+
+.app-screen {
+  min-height: 100vh;
+}
+
+.version-kicker,
+.version-option-tag,
+.version-badge {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(90, 62, 36, 0.16);
+  background: rgba(253, 246, 227, 0.74);
+  color: var(--accent);
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.secondary-button,
+.ghost-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  min-width: 0;
+  min-height: 44px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.secondary-button {
+  background: rgba(253, 246, 227, 0.78);
+  color: var(--text);
+  border: 1px solid rgba(90, 62, 36, 0.3);
+}
+
+.secondary-button:hover,
+.ghost-button:hover {
+  background: rgba(255, 250, 238, 0.96);
+  border-color: rgba(90, 62, 36, 0.48);
+}
+
+.ghost-button {
+  background: transparent;
+  color: var(--accent);
+  border: 1px solid rgba(90, 62, 36, 0.22);
+}
+
+.version-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.version-toolbar-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.editor-logout-button {
+  margin-left: auto;
+}
+
+.mobile-editor-menu-shell {
+  display: none;
+}

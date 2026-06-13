@@ -82,6 +82,8 @@ const requiredFiles = [
   "src/editors/5e/main.js",
   "src/editors/2024/main.js",
   "src/style.css",
+  "src/styles/00-base.css",
+  "src/styles/editor.css",
   "src/community-stats-page.js",
   "src/shared/community-stats.js",
   "assets/pdf/5e/ficha5e.pdf",

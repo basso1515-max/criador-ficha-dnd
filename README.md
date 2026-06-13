@@ -101,7 +101,7 @@ Cada motor foi quebrado em módulos por responsabilidade:
 
 Para reduzir duplicação entre os editores, utilitários compartilhados ficam em `src/shared/`, como helpers de texto e layout de PDF. As validações em `scripts/check.mjs` leem os módulos de cada edição como um conjunto, então as checagens estruturais continuam cobrindo os motores mesmo depois da separação.
 
-O CSS principal em `src/style.css` funciona como índice e importa arquivos menores de `src/styles/`, separados por domínio: base/home, conta, estrutura dos editores, assistente de nível, atributos/perícias, equipamento/magias, escolhas guiadas, tema 5e e tema escuro/responsivo.
+O CSS principal em `src/style.css` funciona como índice legado para páginas institucionais e importa arquivos menores de `src/styles/`, separados por domínio: base/home, conta, estrutura dos editores, assistente de nível, atributos/perícias, equipamento/magias, escolhas guiadas, tema 5e e tema escuro/responsivo. Os editores usam `src/styles/editor.css`, uma entrada dedicada que evita carregar estilos de conta, home e estatísticas no fluxo inicial.
 
 ## Rodando Localmente
 
