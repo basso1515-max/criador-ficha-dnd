@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 import {
   buildPendingChoiceDiagnostics,
+  promptPendingChoiceExportDecision,
   renderPendingChoiceDiagnosticsPanel,
 } from "../../src/editors/pending-choice-diagnostics.js";
 
@@ -78,4 +79,14 @@ test("painel renderiza estado pendente e estado resolvido", () => {
   });
   assert.match(clearHtml, /is-clear/);
   assert.match(clearHtml, /Sem pendências de classe\/subclasse/);
+});
+
+test("decisao de exportacao com pendencias segue em ambientes sem DOM", async () => {
+  const decision = await promptPendingChoiceExportDecision({
+    diagnostics: buildPendingChoiceDiagnostics([
+      "Escolha a classe.",
+    ], { edition: "5e" }),
+  });
+
+  assert.equal(decision, "continue");
 });

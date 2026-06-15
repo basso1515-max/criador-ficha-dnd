@@ -89,7 +89,29 @@ async function main() {
   await waitForFunction(cdp, "Boolean(window.__DND_SHEET_5E_TEST_HOOKS__)", PAGE_TIMEOUT_MS, "Hooks de teste 5e indisponiveis");
   await assertPdfLibIsLazy(cdp);
 
-  const formState = await evaluate(cdp, fillArtificerPdfFixtureScript());
+  const pendingFormState = await evaluate(cdp, fillArtificerPdfFixtureScript({ configureResistance: false }));
+  assert(pendingFormState.summary.includes("Conhecidas 6/6") && pendingFormState.summary.includes("Ativas 2/3"), `Resumo de infusoes pendentes inesperado: ${pendingFormState.summary}`);
+  assert(pendingFormState.previewHasPendingResistance, "Preview nao registrou pendencia de tipo de dano.");
+
+  const shownPending = await evaluate(cdp, assertPendingChoiceShowDiagnosticScript());
+  assertIncludes(shownPending.decisionText, "Gerar mesmo assim", "acao para gerar com pendencia 5e");
+  assertIncludes(shownPending.decisionText, "Mostrar pendencia", "acao para mostrar pendencia 5e");
+  assertIncludes(shownPending.panelText, "Armadura Resistente", "diagnostico de Armadura Resistente pendente");
+  assertIncludes(shownPending.statusText, "Revise as pendencias", "status ao mostrar a pendencia 5e");
+  assert(shownPending.hasPendingPanel, "Painel de diagnostico 5e nao ficou em estado pendente.");
+  assert(shownPending.targetIds.includes("artificerInfusionsPanel"), `Diagnostico 5e nao aponta para infusoes: ${shownPending.targetIds.join(", ")}`);
+  assert(!shownPending.hasPdfChoiceDialog, "Fluxo 5e abriu o seletor de tipo de PDF ao escolher mostrar pendencia.");
+  assert(!shownPending.windowOpenCalled, "Fluxo 5e tentou abrir a aba do PDF ao escolher mostrar pendencia.");
+  assert(!shownPending.pdfLibLoaded, "pdf-lib 5e carregou ao escolher mostrar pendencia.");
+
+  const continuedPending = await evaluate(cdp, assertPendingChoiceContinueToPdfChoiceScript());
+  assertIncludes(continuedPending.decisionText, "Gerar mesmo assim", "acao para continuar com pendencia 5e");
+  assert(continuedPending.hasPdfChoiceDialog, "Fluxo 5e nao abriu o seletor de tipo de PDF ao escolher gerar mesmo assim.");
+  assert(!continuedPending.windowOpenCalled, "Fluxo 5e abriu a aba do PDF antes da escolha do tipo de PDF.");
+  assert(!continuedPending.pdfLibLoaded, "pdf-lib 5e carregou antes da escolha do tipo de PDF.");
+  assertIncludes(continuedPending.statusText, "cancelada", "cancelamento apos continuar com pendencia 5e");
+
+  const formState = await evaluate(cdp, fillArtificerPdfFixtureScript({ configureResistance: true }));
   assert(formState.summary.includes("Conhecidas 6/6") && formState.summary.includes("Ativas 3/3"), `Resumo de infusoes inesperado: ${formState.summary}`);
   assert(formState.previewHasResistantArmor && formState.previewHasFireResistance, "Preview nao registrou Armadura Resistente com resistencia a fogo.");
 
@@ -124,6 +146,7 @@ async function main() {
   [
     "hook de teste 5e habilitado somente por flag",
     "fixture de Artifice nivel 6 preenchida no editor",
+    "diagnostico de escolha obrigatoria oferece mostrar pendencia ou gerar mesmo assim",
     "Armadura Resistente exige e preserva tipo de dano",
     "pdf-lib carregado sob demanda durante a geracao",
     "PDF gerado em memoria pelo mesmo motor do editor",
@@ -162,12 +185,158 @@ function readPdfTextFields(pdfDoc) {
   return values;
 }
 
-function fillArtificerPdfFixtureScript() {
+function assertPendingChoiceShowDiagnosticScript() {
   return String.raw`
     (async () => {
       const assert = (condition, message) => {
         if (!condition) throw new Error(message);
       };
+      const waitForCondition = async (predicate, message, timeoutMs = 12000) => {
+        const start = Date.now();
+        while (Date.now() - start < timeoutMs) {
+          const result = predicate();
+          if (result) return result;
+          await new Promise((resolve) => setTimeout(resolve, 50));
+        }
+        throw new Error(message);
+      };
+
+      const originalOpen = window.open;
+      const openCalls = [];
+      window.open = (...args) => {
+        openCalls.push(args.map((arg) => String(arg)));
+        return null;
+      };
+
+      try {
+        const button = document.querySelector("#btnGerar");
+        assert(button, "Botao de gerar ficha 5e ausente.");
+        button.click();
+
+        const decisionDialog = await waitForCondition(() => {
+          const dialog = document.querySelector("[data-pending-choice-export-dialog]");
+          return dialog?.textContent.includes("Gerar mesmo assim") ? dialog : null;
+        }, "Dialogo de decisao de pendencias 5e nao apareceu.");
+        const decisionText = decisionDialog.textContent || "";
+        const showButton = decisionDialog.querySelector('[data-pending-choice-action="show"]');
+        assert(showButton, "Botao para mostrar pendencia 5e ausente.");
+        showButton.click();
+        await waitForCondition(
+          () => !document.querySelector("[data-pending-choice-export-dialog]"),
+          "Dialogo de decisao de pendencias 5e nao fechou."
+        );
+
+        const panel = await waitForCondition(() => {
+          const currentPanel = document.querySelector("#choiceDiagnosticsPanel5e");
+          if (!currentPanel?.classList.contains("has-pending")) return null;
+          return currentPanel.textContent.includes("Armadura Resistente") ? currentPanel : null;
+        }, "Diagnostico de Armadura Resistente nao apareceu antes da exportacao.");
+
+        await new Promise((resolve) => setTimeout(resolve, 250));
+
+        const dialogs = Array.from(document.querySelectorAll('[role="dialog"]'));
+        const pdfChoiceDialog = dialogs.find((dialog) => (
+          dialog.getAttribute("aria-label") === "Tipo da ficha exportada"
+          || dialog.textContent.includes("PDF edit")
+          || dialog.textContent.includes("PDF definitivo")
+        ));
+
+        return {
+          decisionText,
+          panelText: panel.textContent || "",
+          statusText: document.querySelector("#status")?.textContent || "",
+          hasPendingPanel: panel.classList.contains("has-pending"),
+          targetIds: Array.from(panel.querySelectorAll("[data-choice-diagnostic-target]"))
+            .map((item) => item.getAttribute("data-choice-diagnostic-target") || "")
+            .filter(Boolean),
+          hasPdfChoiceDialog: Boolean(pdfChoiceDialog),
+          windowOpenCalled: openCalls.length > 0,
+          pdfLibLoaded: Boolean(window.PDFLib?.PDFDocument && window.PDFLib?.StandardFonts),
+        };
+      } finally {
+        window.open = originalOpen;
+      }
+    })();
+  `;
+}
+
+function assertPendingChoiceContinueToPdfChoiceScript() {
+  return String.raw`
+    (async () => {
+      const assert = (condition, message) => {
+        if (!condition) throw new Error(message);
+      };
+      const waitForCondition = async (predicate, message, timeoutMs = 12000) => {
+        const start = Date.now();
+        while (Date.now() - start < timeoutMs) {
+          const result = predicate();
+          if (result) return result;
+          await new Promise((resolve) => setTimeout(resolve, 50));
+        }
+        throw new Error(message);
+      };
+
+      const originalOpen = window.open;
+      const openCalls = [];
+      window.open = (...args) => {
+        openCalls.push(args.map((arg) => String(arg)));
+        return null;
+      };
+
+      try {
+        const button = document.querySelector("#btnGerar");
+        assert(button, "Botao de gerar ficha 5e ausente.");
+        button.click();
+
+        const decisionDialog = await waitForCondition(() => {
+          const dialog = document.querySelector("[data-pending-choice-export-dialog]");
+          return dialog?.textContent.includes("Gerar mesmo assim") ? dialog : null;
+        }, "Dialogo de decisao de pendencias 5e nao apareceu.");
+        const decisionText = decisionDialog.textContent || "";
+        const continueButton = decisionDialog.querySelector('[data-pending-choice-action="continue"]');
+        assert(continueButton, "Botao para gerar mesmo assim 5e ausente.");
+        continueButton.click();
+
+        const pdfChoiceDialog = await waitForCondition(() => {
+          const dialogs = Array.from(document.querySelectorAll('[role="dialog"]'));
+          return dialogs.find((dialog) => (
+            dialog.getAttribute("aria-label") === "Tipo da ficha exportada"
+            || dialog.textContent.includes("PDF definitivo")
+          ));
+        }, "Seletor de tipo de PDF 5e nao abriu apos gerar mesmo assim.");
+
+        const cancelButton = Array.from(pdfChoiceDialog.querySelectorAll("button"))
+          .find((item) => item.textContent.includes("Cancelar"));
+        assert(cancelButton, "Botao Cancelar do seletor de PDF 5e ausente.");
+        cancelButton.click();
+        await waitForCondition(
+          () => !Array.from(document.querySelectorAll('[role="dialog"]'))
+            .some((dialog) => dialog.getAttribute("aria-label") === "Tipo da ficha exportada"),
+          "Seletor de tipo de PDF 5e nao fechou apos cancelar."
+        );
+
+        return {
+          decisionText,
+          hasPdfChoiceDialog: true,
+          statusText: document.querySelector("#status")?.textContent || "",
+          windowOpenCalled: openCalls.length > 0,
+          pdfLibLoaded: Boolean(window.PDFLib?.PDFDocument && window.PDFLib?.StandardFonts),
+        };
+      } finally {
+        window.open = originalOpen;
+      }
+    })();
+  `;
+}
+
+function fillArtificerPdfFixtureScript({ configureResistance = true } = {}) {
+  const shouldConfigureResistance = Boolean(configureResistance);
+  return String.raw`
+    (async () => {
+      const assert = (condition, message) => {
+        if (!condition) throw new Error(message);
+      };
+      const shouldConfigureResistance = ${JSON.stringify(shouldConfigureResistance)};
       const normalize = (value) => String(value || "")
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "")
@@ -245,10 +414,13 @@ function fillArtificerPdfFixtureScript() {
       const pendingPreview = document.querySelector("#preview")?.textContent || "";
       assert(normalize(pendingPreview).includes("escolha tipo de dano de armadura resistente"), "Preview nao registrou pendencia de tipo de dano.");
 
-      chooseIndexedSelect("#artificerInfusionsContainer select[data-artificer-infusion-configuration-slot-key]", 0, "fogo");
+      if (shouldConfigureResistance) {
+        chooseIndexedSelect("#artificerInfusionsContainer select[data-artificer-infusion-configuration-slot-key]", 0, "fogo");
+      }
 
       return {
         summary: document.querySelector("#artificerInfusionsSummary")?.textContent || "",
+        previewHasPendingResistance: normalize(document.querySelector("#preview")?.textContent || "").includes("escolha tipo de dano de armadura resistente"),
         previewHasResistantArmor: normalize(document.querySelector("#preview")?.textContent || "").includes("armadura resistente"),
         previewHasFireResistance: normalize(document.querySelector("#preview")?.textContent || "").includes("resistencia: fogo"),
         configurationValue: document.querySelector("#artificerInfusionsContainer select[data-artificer-infusion-configuration-slot-key]")?.value || "",

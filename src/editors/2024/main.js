@@ -174,6 +174,7 @@ import {
   buildPendingChoiceDiagnostics,
   focusChoiceDiagnosticTarget,
   focusChoiceDiagnosticsPanel,
+  promptPendingChoiceExportDecision,
   renderPendingChoiceDiagnosticsPanel,
 } from "../pending-choice-diagnostics.js";
 
@@ -14252,7 +14253,18 @@ import {
     event.preventDefault();
 
     const diagnostics = showChoiceDiagnosticsBeforeAction2024("exportar PDF");
-    if (diagnostics.length) return;
+    if (diagnostics.length) {
+      const pendingDecision = await promptPendingChoiceExportDecision({
+        diagnostics,
+        editionLabel: "5.5e/2024",
+      });
+      if (pendingDecision !== "continue") {
+        setStatus2024("Revise as pendências indicadas antes de gerar o PDF.", "warning");
+        focusChoiceDiagnosticsPanel(document);
+        return;
+      }
+      setStatus2024("Gerando PDF 5.5e mesmo com pendências.", "warning");
+    }
 
     const exportChoice = await promptPdfExportChoice({ defaultChoice: "definitivo" });
     if (exportChoice === null || exportChoice === undefined) {

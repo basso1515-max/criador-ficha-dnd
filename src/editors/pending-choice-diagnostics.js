@@ -286,6 +286,133 @@ export function renderPendingChoiceDiagnosticsPanel(items = [], {
   `;
 }
 
+export function promptPendingChoiceExportDecision({
+  diagnostics = [],
+  editionLabel = "5e",
+  title = "Há escolhas pendentes",
+} = {}) {
+  return new Promise((resolve) => {
+    const items = Array.isArray(diagnostics) ? diagnostics.filter(Boolean) : [];
+    if (!items.length || typeof window === "undefined" || typeof document === "undefined" || !document.body) {
+      resolve("continue");
+      return;
+    }
+
+    const countLabel = items.length === 1 ? "1 pendência" : `${items.length} pendências`;
+    const first = items[0] || {};
+    const previousOverflow = document.body.style.overflow;
+
+    const overlay = document.createElement("div");
+    overlay.setAttribute("role", "dialog");
+    overlay.setAttribute("aria-modal", "true");
+    overlay.setAttribute("aria-label", `${title} ${editionLabel}`);
+    overlay.setAttribute("data-pending-choice-export-dialog", "");
+    overlay.style.position = "fixed";
+    overlay.style.inset = "0";
+    overlay.style.zIndex = "2147483647";
+    overlay.style.display = "flex";
+    overlay.style.alignItems = "center";
+    overlay.style.justifyContent = "center";
+    overlay.style.padding = "16px";
+    overlay.style.background = "rgba(7, 10, 15, 0.72)";
+    overlay.style.backdropFilter = "blur(3px)";
+
+    const modal = document.createElement("div");
+    modal.style.width = "min(92vw, 460px)";
+    modal.style.maxWidth = "460px";
+    modal.style.borderRadius = "16px";
+    modal.style.padding = "22px";
+    modal.style.background = "#fffdf8";
+    modal.style.boxShadow = "0 24px 60px rgba(0, 0, 0, 0.28)";
+    modal.style.color = "#2d2216";
+    modal.style.border = "1px solid #e8ddc6";
+
+    const kicker = document.createElement("p");
+    kicker.textContent = editionLabel;
+    kicker.style.margin = "0 0 8px";
+    kicker.style.fontSize = "12px";
+    kicker.style.fontWeight = "700";
+    kicker.style.letterSpacing = "0";
+    kicker.style.textTransform = "uppercase";
+    kicker.style.color = "#8d6941";
+
+    const heading = document.createElement("h3");
+    heading.textContent = title;
+    heading.style.margin = "0 0 10px";
+    heading.style.fontSize = "22px";
+    heading.style.lineHeight = "1.25";
+
+    const copy = document.createElement("p");
+    copy.textContent = `Encontramos ${countLabel} que pode deixar o PDF incompleto.`;
+    copy.style.margin = "0 0 12px";
+    copy.style.lineHeight = "1.5";
+    copy.style.color = "#5d4b32";
+
+    const mainPending = document.createElement("p");
+    mainPending.textContent = `${first.title || "Pendência"}: ${first.message || "Revise o diagnóstico antes de gerar."}`;
+    mainPending.style.margin = "0 0 18px";
+    mainPending.style.lineHeight = "1.5";
+    mainPending.style.fontWeight = "600";
+    mainPending.style.color = "#3b2b18";
+
+    const actions = document.createElement("div");
+    actions.style.display = "flex";
+    actions.style.flexWrap = "wrap";
+    actions.style.gap = "10px";
+    actions.style.justifyContent = "flex-end";
+
+    const showButton = document.createElement("button");
+    showButton.type = "button";
+    showButton.textContent = items.length === 1 ? "Mostrar pendência" : "Mostrar pendências";
+    showButton.setAttribute("data-pending-choice-action", "show");
+    showButton.style.padding = "10px 14px";
+    showButton.style.borderRadius = "999px";
+    showButton.style.border = "1px solid #ccbda3";
+    showButton.style.background = "#f4ebd7";
+    showButton.style.color = "#4f3d24";
+    showButton.style.cursor = "pointer";
+    showButton.addEventListener("click", () => finish("show"));
+
+    const continueButton = document.createElement("button");
+    continueButton.type = "button";
+    continueButton.textContent = "Gerar mesmo assim";
+    continueButton.setAttribute("data-pending-choice-action", "continue");
+    continueButton.style.padding = "10px 14px";
+    continueButton.style.borderRadius = "999px";
+    continueButton.style.border = "1px solid #8d6941";
+    continueButton.style.background = "#8d6941";
+    continueButton.style.color = "#fffdf8";
+    continueButton.style.cursor = "pointer";
+    continueButton.addEventListener("click", () => finish("continue"));
+
+    actions.append(showButton, continueButton);
+    modal.append(kicker, heading, copy, mainPending, actions);
+    overlay.append(modal);
+
+    const onKeydown = (event) => {
+      if (event.key === "Escape") finish("show");
+    };
+
+    const finish = (decision) => {
+      document.removeEventListener("keydown", onKeydown);
+      try {
+        overlay.remove();
+      } catch {}
+      document.body.style.overflow = previousOverflow;
+      resolve(decision === "continue" ? "continue" : "show");
+    };
+
+    overlay.addEventListener("click", (event) => {
+      if (event.target === overlay) finish("show");
+    });
+
+    document.body.appendChild(overlay);
+    document.body.style.overflow = "hidden";
+    document.addEventListener("keydown", onKeydown);
+    window.setTimeout(() => showButton.focus({ preventScroll: true }), 0);
+  });
+}
+
 export function focusChoiceDiagnosticTarget(targetId, doc = document) {
   if (!targetId || !doc) return false;
   const target = doc.getElementById(targetId);

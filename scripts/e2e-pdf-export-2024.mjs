@@ -99,15 +99,24 @@ async function main() {
   assert(pendingFormState.summary.includes("2/3"), `Resumo de maestria pendente inesperado: ${pendingFormState.summary}`);
   assert(pendingFormState.masteryLabels.length === 2, `Fixture pendente deveria deixar 1 maestria sem escolha: ${pendingFormState.masteryLabels.join(", ")}`);
 
-  const blockedExport = await evaluate(cdp, assertPendingChoiceDiagnosticBlocksPdfScript());
-  assertIncludes(blockedExport.panelText, "Configure Maestria em Arma de Barbaro (2/3)", "diagnostico de maestria pendente");
-  assertIncludes(blockedExport.statusText, "antes de exportar PDF", "status de bloqueio antes do PDF");
-  assert(blockedExport.hasPendingPanel, "Painel de diagnostico nao ficou em estado pendente.");
-  assert(blockedExport.targetIds.includes("featureChoicesPanel2024"), `Diagnostico nao aponta para escolhas guiadas: ${blockedExport.targetIds.join(", ")}`);
-  assert(!blockedExport.hasPdfChoiceDialog, "Fluxo abriu o seletor de tipo de PDF antes de resolver pendencias.");
-  assert(!blockedExport.windowOpenCalled, "Fluxo tentou abrir a aba do PDF antes de resolver pendencias.");
-  assert(!blockedExport.pdfLibLoaded, "pdf-lib carregou antes das pendencias serem resolvidas.");
-  assert(blockedExport.pdfLibScriptCount === 0, "Bundle de pdf-lib foi injetado antes das pendencias serem resolvidas.");
+  const shownPending = await evaluate(cdp, assertPendingChoiceShowDiagnosticScript());
+  assertIncludes(shownPending.decisionText, "Gerar mesmo assim", "acao para gerar com pendencia");
+  assertIncludes(shownPending.decisionText, "Mostrar pendencia", "acao para mostrar pendencia");
+  assertIncludes(shownPending.panelText, "Configure Maestria em Arma de Barbaro (2/3)", "diagnostico de maestria pendente");
+  assertIncludes(shownPending.statusText, "Revise as pendencias", "status ao mostrar a pendencia");
+  assert(shownPending.hasPendingPanel, "Painel de diagnostico nao ficou em estado pendente.");
+  assert(shownPending.targetIds.includes("featureChoicesPanel2024"), `Diagnostico nao aponta para escolhas guiadas: ${shownPending.targetIds.join(", ")}`);
+  assert(!shownPending.hasPdfChoiceDialog, "Fluxo abriu o seletor de tipo de PDF ao escolher mostrar pendencia.");
+  assert(!shownPending.windowOpenCalled, "Fluxo tentou abrir a aba do PDF ao escolher mostrar pendencia.");
+  assert(!shownPending.pdfLibLoaded, "pdf-lib carregou ao escolher mostrar pendencia.");
+  assert(shownPending.pdfLibScriptCount === 0, "Bundle de pdf-lib foi injetado ao escolher mostrar pendencia.");
+
+  const continuedPending = await evaluate(cdp, assertPendingChoiceContinueToPdfChoiceScript());
+  assertIncludes(continuedPending.decisionText, "Gerar mesmo assim", "acao para continuar com pendencia");
+  assert(continuedPending.hasPdfChoiceDialog, "Fluxo nao abriu o seletor de tipo de PDF ao escolher gerar mesmo assim.");
+  assert(!continuedPending.windowOpenCalled, "Fluxo abriu a aba do PDF antes da escolha do tipo de PDF.");
+  assert(!continuedPending.pdfLibLoaded, "pdf-lib carregou antes da escolha do tipo de PDF.");
+  assertIncludes(continuedPending.statusText, "cancelada", "cancelamento apos continuar com pendencia");
 
   const formState = await evaluate(cdp, fillBarbarian2024PdfFixtureScript({ masteryCount: 3 }));
   assert(formState.summary.includes("3/3"), `Resumo de maestrias inesperado: ${formState.summary}`);
@@ -168,7 +177,7 @@ async function main() {
   [
     "hook de teste 2024 habilitado somente por flag",
     "fixture de Barbaro nivel 4 preenchida no editor 2024",
-    "diagnostico de escolha obrigatoria bloqueia a exportacao antes do prompt de PDF",
+    "diagnostico de escolha obrigatoria oferece mostrar pendencia ou gerar mesmo assim",
     "Maestria em Arma exige tres escolhas unicas",
     "fixture de Druida da Terra nivel 5 preenche magias concedidas",
     "pdf-lib carregado sob demanda durante a geracao",
@@ -201,7 +210,7 @@ function getPdfSnapshotText(snapshot) {
   return Object.values(snapshot?.fieldTexts || {}).join("\n");
 }
 
-function assertPendingChoiceDiagnosticBlocksPdfScript() {
+function assertPendingChoiceShowDiagnosticScript() {
   return String.raw`
     (async () => {
       const assert = (condition, message) => {
@@ -229,6 +238,19 @@ function assertPendingChoiceDiagnosticBlocksPdfScript() {
         assert(button, "Botao de gerar ficha 2024 ausente.");
         button.click();
 
+        const decisionDialog = await waitForCondition(() => {
+          const dialog = document.querySelector("[data-pending-choice-export-dialog]");
+          return dialog?.textContent.includes("Gerar mesmo assim") ? dialog : null;
+        }, "Dialogo de decisao de pendencias nao apareceu.");
+        const decisionText = decisionDialog.textContent || "";
+        const showButton = decisionDialog.querySelector('[data-pending-choice-action="show"]');
+        assert(showButton, "Botao para mostrar pendencia ausente.");
+        showButton.click();
+        await waitForCondition(
+          () => !document.querySelector("[data-pending-choice-export-dialog]"),
+          "Dialogo de decisao de pendencias nao fechou."
+        );
+
         const panel = await waitForCondition(() => {
           const currentPanel = document.querySelector("#choiceDiagnosticsPanel2024");
           if (!currentPanel?.classList.contains("has-pending")) return null;
@@ -245,6 +267,7 @@ function assertPendingChoiceDiagnosticBlocksPdfScript() {
         ));
 
         return {
+          decisionText,
           panelText: panel.textContent || "",
           statusText: document.querySelector("#status2024")?.textContent || "",
           hasPendingPanel: panel.classList.contains("has-pending"),
@@ -258,6 +281,75 @@ function assertPendingChoiceDiagnosticBlocksPdfScript() {
           pdfLibScriptCount: Array.from(document.scripts)
             .filter((script) => (script.getAttribute("src") || "").includes("pdf-lib"))
             .length,
+        };
+      } finally {
+        window.open = originalOpen;
+      }
+    })();
+  `;
+}
+
+function assertPendingChoiceContinueToPdfChoiceScript() {
+  return String.raw`
+    (async () => {
+      const assert = (condition, message) => {
+        if (!condition) throw new Error(message);
+      };
+      const waitForCondition = async (predicate, message, timeoutMs = 12000) => {
+        const start = Date.now();
+        while (Date.now() - start < timeoutMs) {
+          const result = predicate();
+          if (result) return result;
+          await new Promise((resolve) => setTimeout(resolve, 50));
+        }
+        throw new Error(message);
+      };
+
+      const originalOpen = window.open;
+      const openCalls = [];
+      window.open = (...args) => {
+        openCalls.push(args.map((arg) => String(arg)));
+        return null;
+      };
+
+      try {
+        const button = document.querySelector("#btnGerar2024");
+        assert(button, "Botao de gerar ficha 2024 ausente.");
+        button.click();
+
+        const decisionDialog = await waitForCondition(() => {
+          const dialog = document.querySelector("[data-pending-choice-export-dialog]");
+          return dialog?.textContent.includes("Gerar mesmo assim") ? dialog : null;
+        }, "Dialogo de decisao de pendencias nao apareceu.");
+        const decisionText = decisionDialog.textContent || "";
+        const continueButton = decisionDialog.querySelector('[data-pending-choice-action="continue"]');
+        assert(continueButton, "Botao para gerar mesmo assim ausente.");
+        continueButton.click();
+
+        const pdfChoiceDialog = await waitForCondition(() => {
+          const dialogs = Array.from(document.querySelectorAll('[role="dialog"]'));
+          return dialogs.find((dialog) => (
+            dialog.getAttribute("aria-label") === "Tipo da ficha exportada"
+            || dialog.textContent.includes("PDF definitivo")
+          ));
+        }, "Seletor de tipo de PDF nao abriu apos gerar mesmo assim.");
+
+        const cancelButton = Array.from(pdfChoiceDialog.querySelectorAll("button"))
+          .find((item) => item.textContent.includes("Cancelar"));
+        assert(cancelButton, "Botao Cancelar do seletor de PDF ausente.");
+        cancelButton.click();
+        await waitForCondition(
+          () => !Array.from(document.querySelectorAll('[role="dialog"]'))
+            .some((dialog) => dialog.getAttribute("aria-label") === "Tipo da ficha exportada"),
+          "Seletor de tipo de PDF nao fechou apos cancelar."
+        );
+
+        return {
+          decisionText,
+          hasPdfChoiceDialog: true,
+          statusText: document.querySelector("#status2024")?.textContent || "",
+          windowOpenCalled: openCalls.length > 0,
+          pdfLibLoaded: Boolean(window.PDFLib?.PDFDocument && window.PDFLib?.StandardFonts),
         };
       } finally {
         window.open = originalOpen;
