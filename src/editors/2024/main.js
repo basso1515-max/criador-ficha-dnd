@@ -14251,7 +14251,8 @@ import {
   async function handlePdfSubmit(event) {
     event.preventDefault();
 
-    showChoiceDiagnosticsBeforeAction2024("exportar PDF");
+    const diagnostics = showChoiceDiagnosticsBeforeAction2024("exportar PDF");
+    if (diagnostics.length) return;
 
     const exportChoice = await promptPdfExportChoice({ defaultChoice: "definitivo" });
     if (exportChoice === null || exportChoice === undefined) {

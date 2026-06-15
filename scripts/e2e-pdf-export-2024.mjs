@@ -95,7 +95,21 @@ async function main() {
   await assertPdfLibIsLazy(cdp);
   await assertFeatureSummariesAreLazy(cdp);
 
-  const formState = await evaluate(cdp, fillBarbarian2024PdfFixtureScript());
+  const pendingFormState = await evaluate(cdp, fillBarbarian2024PdfFixtureScript({ masteryCount: 2 }));
+  assert(pendingFormState.summary.includes("2/3"), `Resumo de maestria pendente inesperado: ${pendingFormState.summary}`);
+  assert(pendingFormState.masteryLabels.length === 2, `Fixture pendente deveria deixar 1 maestria sem escolha: ${pendingFormState.masteryLabels.join(", ")}`);
+
+  const blockedExport = await evaluate(cdp, assertPendingChoiceDiagnosticBlocksPdfScript());
+  assertIncludes(blockedExport.panelText, "Configure Maestria em Arma de Barbaro (2/3)", "diagnostico de maestria pendente");
+  assertIncludes(blockedExport.statusText, "antes de exportar PDF", "status de bloqueio antes do PDF");
+  assert(blockedExport.hasPendingPanel, "Painel de diagnostico nao ficou em estado pendente.");
+  assert(blockedExport.targetIds.includes("featureChoicesPanel2024"), `Diagnostico nao aponta para escolhas guiadas: ${blockedExport.targetIds.join(", ")}`);
+  assert(!blockedExport.hasPdfChoiceDialog, "Fluxo abriu o seletor de tipo de PDF antes de resolver pendencias.");
+  assert(!blockedExport.windowOpenCalled, "Fluxo tentou abrir a aba do PDF antes de resolver pendencias.");
+  assert(!blockedExport.pdfLibLoaded, "pdf-lib carregou antes das pendencias serem resolvidas.");
+  assert(blockedExport.pdfLibScriptCount === 0, "Bundle de pdf-lib foi injetado antes das pendencias serem resolvidas.");
+
+  const formState = await evaluate(cdp, fillBarbarian2024PdfFixtureScript({ masteryCount: 3 }));
   assert(formState.summary.includes("3/3"), `Resumo de maestrias inesperado: ${formState.summary}`);
   assert(formState.previewHasWeaponMastery, "Preview nao registrou Maestria em Arma.");
   assert(formState.masteryLabels.length === 3, `Maestrias escolhidas inesperadas: ${formState.masteryLabels.join(", ")}`);
@@ -154,6 +168,7 @@ async function main() {
   [
     "hook de teste 2024 habilitado somente por flag",
     "fixture de Barbaro nivel 4 preenchida no editor 2024",
+    "diagnostico de escolha obrigatoria bloqueia a exportacao antes do prompt de PDF",
     "Maestria em Arma exige tres escolhas unicas",
     "fixture de Druida da Terra nivel 5 preenche magias concedidas",
     "pdf-lib carregado sob demanda durante a geracao",
@@ -186,12 +201,79 @@ function getPdfSnapshotText(snapshot) {
   return Object.values(snapshot?.fieldTexts || {}).join("\n");
 }
 
-function fillBarbarian2024PdfFixtureScript() {
+function assertPendingChoiceDiagnosticBlocksPdfScript() {
   return String.raw`
     (async () => {
       const assert = (condition, message) => {
         if (!condition) throw new Error(message);
       };
+      const waitForCondition = async (predicate, message, timeoutMs = 12000) => {
+        const start = Date.now();
+        while (Date.now() - start < timeoutMs) {
+          const result = predicate();
+          if (result) return result;
+          await new Promise((resolve) => setTimeout(resolve, 50));
+        }
+        throw new Error(message);
+      };
+
+      const originalOpen = window.open;
+      const openCalls = [];
+      window.open = (...args) => {
+        openCalls.push(args.map((arg) => String(arg)));
+        return null;
+      };
+
+      try {
+        const button = document.querySelector("#btnGerar2024");
+        assert(button, "Botao de gerar ficha 2024 ausente.");
+        button.click();
+
+        const panel = await waitForCondition(() => {
+          const currentPanel = document.querySelector("#choiceDiagnosticsPanel2024");
+          if (!currentPanel?.classList.contains("has-pending")) return null;
+          return currentPanel.textContent.includes("Maestria em Arma") ? currentPanel : null;
+        }, "Diagnostico de Maestria em Arma nao apareceu antes da exportacao.");
+
+        await new Promise((resolve) => setTimeout(resolve, 250));
+
+        const dialogs = Array.from(document.querySelectorAll('[role="dialog"]'));
+        const pdfChoiceDialog = dialogs.find((dialog) => (
+          dialog.getAttribute("aria-label") === "Tipo da ficha exportada"
+          || dialog.textContent.includes("PDF edit")
+          || dialog.textContent.includes("PDF definitivo")
+        ));
+
+        return {
+          panelText: panel.textContent || "",
+          statusText: document.querySelector("#status2024")?.textContent || "",
+          hasPendingPanel: panel.classList.contains("has-pending"),
+          targetIds: Array.from(panel.querySelectorAll("[data-choice-diagnostic-target]"))
+            .map((item) => item.getAttribute("data-choice-diagnostic-target") || "")
+            .filter(Boolean),
+          hasPdfChoiceDialog: Boolean(pdfChoiceDialog),
+          dialogText: pdfChoiceDialog?.textContent || "",
+          windowOpenCalled: openCalls.length > 0,
+          pdfLibLoaded: Boolean(window.PDFLib?.PDFDocument && window.PDFLib?.StandardFonts),
+          pdfLibScriptCount: Array.from(document.scripts)
+            .filter((script) => (script.getAttribute("src") || "").includes("pdf-lib"))
+            .length,
+        };
+      } finally {
+        window.open = originalOpen;
+      }
+    })();
+  `;
+}
+
+function fillBarbarian2024PdfFixtureScript({ masteryCount = 3 } = {}) {
+  const requestedMasteryCount = Math.max(0, Math.min(3, Number(masteryCount) || 0));
+  return String.raw`
+    (async () => {
+      const assert = (condition, message) => {
+        if (!condition) throw new Error(message);
+      };
+      const requestedMasteryCount = ${JSON.stringify(requestedMasteryCount)};
       const normalize = (value) => String(value || "")
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "")
@@ -267,16 +349,17 @@ function fillBarbarian2024PdfFixtureScript() {
 
       const chosenMasteries = [];
       const chosenValues = new Set();
-      for (let index = 0; index < 3; index += 1) {
+      for (let index = 0; index < requestedMasteryCount; index += 1) {
         const choice = chooseFeature("weapon-mastery", index);
         chosenMasteries.push(choice);
         chosenValues.add(choice.value);
       }
-      assert(chosenValues.size === 3, "Maestria em Arma permitiu duplicidade.");
+      assert(chosenValues.size === requestedMasteryCount, "Maestria em Arma permitiu duplicidade.");
 
       return {
         summary: document.querySelector("#featureChoicesSummary2024")?.textContent || "",
         previewHasWeaponMastery: normalize(document.querySelector("#preview2024")?.textContent || "").includes("maestria em arma"),
+        requiredMasterySlots: selectsForFeature("weapon-mastery").length,
         masteryLabels: chosenMasteries.map((item) => item.label),
         masteryValues: chosenMasteries.map((item) => item.value),
       };
