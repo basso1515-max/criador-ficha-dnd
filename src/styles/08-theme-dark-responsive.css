@@ -638,6 +638,18 @@ html[data-theme="dark"] .level-up-review-card {
   box-shadow: 0 14px 34px rgba(0, 0, 0, 0.16);
 }
 
+html[data-theme="dark"] .level-up-badge,
+html[data-theme="dark"] .level-up-option-detail {
+  border-color: var(--level-up-nested-border, rgba(232, 201, 153, 0.22));
+  background:
+    linear-gradient(
+      180deg,
+      var(--level-up-nested-surface-strong, rgba(255, 246, 224, 0.1)),
+      var(--level-up-nested-surface, rgba(255, 246, 224, 0.06))
+    );
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.14);
+}
+
 html[data-theme="dark"] .level-up-choice-card span,
 html[data-theme="dark"] .level-up-method-card .level-up-method-copy,
 html[data-theme="dark"] .level-up-review-card p,
@@ -645,6 +657,15 @@ html[data-theme="dark"] .level-up-info-card p,
 html[data-theme="dark"] .level-up-empty-state p,
 html[data-theme="dark"] .level-up-option-detail p {
   color: rgba(244, 234, 212, 0.88);
+}
+
+html[data-theme="dark"] .level-up-badge small {
+  color: var(--level-up-nested-muted, rgba(244, 234, 212, 0.76));
+}
+
+html[data-theme="dark"] .level-up-badge strong,
+html[data-theme="dark"] .level-up-option-detail strong {
+  color: var(--text);
 }
 
 html[data-theme="dark"] .level-up-choice-card.is-active,
