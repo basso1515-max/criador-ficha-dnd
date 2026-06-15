@@ -83,7 +83,12 @@ const requiredFiles = [
   "src/editors/2024/main.js",
   "src/style.css",
   "src/styles/00-base.css",
+  "src/styles/account.css",
+  "src/styles/community-stats.css",
   "src/styles/editor.css",
+  "src/styles/home.css",
+  "src/styles/public-theme.css",
+  "src/styles/theme-toggle.css",
   "src/community-stats-page.js",
   "src/shared/community-stats.js",
   "assets/pdf/5e/ficha5e.pdf",
@@ -165,6 +170,106 @@ function validateHtmlAnalyticsCoverage() {
 }
 
 validateHtmlAnalyticsCoverage();
+
+function validatePublicSurfaceStyles() {
+  const errors = [];
+  const surfaceStyles = new Map([
+    ["index.html", "src/styles/home.css"],
+    ["conta.html", "src/styles/account.css"],
+    ["minha-conta.html", "src/styles/account.css"],
+    ["admin.html", "src/styles/account.css"],
+    ["estatisticas.html", "src/styles/community-stats.css"],
+    ["privacidade.html", "src/styles/account.css"],
+    ["termos.html", "src/styles/account.css"],
+  ]);
+  const forbiddenPublicCss = new Set([
+    "src/style.css",
+    "src/styles/editor.css",
+    "src/styles/02-editor-shell.css",
+    "src/styles/03-level-up-migration.css",
+    "src/styles/04-attributes-skills.css",
+    "src/styles/05-equipment-spells-magic.css",
+    "src/styles/06-feature-choices.css",
+    "src/styles/07-edition-5e.css",
+    "src/styles/08-theme-dark-responsive.css",
+  ]);
+
+  surfaceStyles.forEach((expectedStyle, htmlFile) => {
+    const html = readFileSync(path.join(root, htmlFile), "utf8");
+    const localStyles = collectLocalStylesheets(htmlFile, html);
+
+    if (!localStyles.includes(expectedStyle)) {
+      errors.push(`${htmlFile}: deve carregar ${expectedStyle}.`);
+    }
+
+    const legacyHits = localStyles.filter((file) => forbiddenPublicCss.has(file));
+    if (legacyHits.length) {
+      errors.push(`${htmlFile}: CSS publico nao deve carregar ${legacyHits.join(", ")}.`);
+    }
+  });
+
+  [...new Set(surfaceStyles.values())].forEach((entryStyle) => {
+    const cssGraph = collectCssImportGraph(entryStyle);
+    const forbiddenHits = [...cssGraph].filter((file) => forbiddenPublicCss.has(file));
+    if (forbiddenHits.length) {
+      errors.push(`${entryStyle}: importa CSS de editor/legado: ${forbiddenHits.join(", ")}.`);
+    }
+  });
+
+  if (errors.length) {
+    console.error("\nValidacao dos CSS por superficie falhou:");
+    errors.forEach((error) => console.error(`- ${error}`));
+    process.exit(1);
+  }
+
+  console.log("OK: CSS das superficies publicas separado dos editores");
+}
+
+function collectLocalStylesheets(htmlFile, html) {
+  return [...html.matchAll(/<link\b[^>]*>/gi)]
+    .filter((match) => /\brel=["'][^"']*stylesheet[^"']*["']/i.test(match[0]))
+    .map((match) => match[0].match(/\bhref=["']([^"']+)["']/i)?.[1] || "")
+    .map((href) => resolveLocalAsset(htmlFile, href))
+    .filter(Boolean);
+}
+
+function collectCssImportGraph(entryFile, graph = new Set()) {
+  const normalized = normalizeRelativePath(entryFile);
+  if (graph.has(normalized)) return graph;
+  graph.add(normalized);
+
+  const cssPath = path.join(root, normalized);
+  if (!existsSync(cssPath)) {
+    return graph;
+  }
+
+  const source = readFileSync(cssPath, "utf8");
+  for (const match of source.matchAll(/@import\s+["']([^"']+)["']/g)) {
+    const child = resolveLocalAsset(normalized, match[1]);
+    if (child) collectCssImportGraph(child, graph);
+  }
+
+  return graph;
+}
+
+function resolveLocalAsset(fromFile, specifier) {
+  const cleanSpecifier = String(specifier || "").split("#")[0].split("?")[0];
+  if (!cleanSpecifier || /^[a-z][a-z0-9+.-]*:/i.test(cleanSpecifier) || cleanSpecifier.startsWith("//")) {
+    return "";
+  }
+
+  const baseDir = path.dirname(fromFile);
+  const resolved = path.resolve(root, baseDir, cleanSpecifier);
+  const relative = path.relative(root, resolved);
+  if (relative.startsWith("..") || path.isAbsolute(relative)) return "";
+  return normalizeRelativePath(relative);
+}
+
+function normalizeRelativePath(file) {
+  return path.normalize(String(file || "")).replace(/\\/g, "/").replace(/^\.\//, "");
+}
+
+validatePublicSurfaceStyles();
 
 function validateLazyLoadedCatalogs() {
   const errors = [];
