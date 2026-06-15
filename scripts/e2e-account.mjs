@@ -413,6 +413,70 @@ async function main() {
   assert(purgedCharacter.data.account.characters["5.5e-2024"].length === 1, "Exclusão definitiva não deveria restaurar personagem.");
   assert(purgedCharacter.data.account.deletedCharacters["5.5e-2024"].length === 0, "Exclusão definitiva não limpou a lixeira.");
 
+  const saved2024 = await requestJson(baseUrl, "/api/characters", {
+    method: "POST",
+    jar,
+    body: {
+      edition: "5.5e-2024",
+      payload: {
+        name: "Mira das Estrelas 2024",
+        summary: "Bardo 2 - criação direta 2024",
+        snapshot: {
+          edition: "5.5e-2024",
+          communityStats: {
+            version: 1,
+            edition: "5.5e-2024",
+            classId: "bardo",
+            level: 2,
+            spellIds: ["orientacao"],
+            startingWeaponIds: ["adaga"],
+          },
+          fields: {
+            nome: "Mira das Estrelas 2024",
+            classe: "bardo",
+            nivel: 2,
+          },
+        },
+      },
+    },
+  });
+  const saved2024Character = saved2024.data.character;
+  assert(saved2024Character?.id, "Salvamento 2024 não retornou personagem.");
+  assert(saved2024.data.account.characters["5.5e-2024"].length === 2, "Salvamento 2024 deveria adicionar um único personagem.");
+  assert(saved2024.data.communityStatsEvent?.edition === "5.5e-2024", "Criação direta 2024 deveria retornar evento anônimo de estatísticas.");
+
+  const overwritten2024 = await requestJson(baseUrl, "/api/characters", {
+    method: "POST",
+    jar,
+    body: {
+      edition: "5.5e-2024",
+      overwriteId: saved2024Character.id,
+      payload: {
+        name: "Mira das Estrelas 2024 Revisada",
+        summary: "Bardo 3 - revisão direta 2024",
+        snapshot: {
+          edition: "5.5e-2024",
+          fields: {
+            nome: "Mira das Estrelas 2024 Revisada",
+            classe: "bardo",
+            nivel: 3,
+          },
+        },
+      },
+    },
+  });
+  const overwritten2024Characters = overwritten2024.data.account.characters["5.5e-2024"];
+  assert(overwritten2024.data.character.id === saved2024Character.id, "Overwrite 2024 deveria manter o mesmo id.");
+  assert(overwritten2024.data.character.name === "Mira das Estrelas 2024 Revisada", "Overwrite 2024 não atualizou o personagem.");
+  assert(overwritten2024.data.character.snapshot?.schemaVersion === 1, "Overwrite 2024 deveria manter snapshot versionado.");
+  assert(overwritten2024.data.character.snapshot?.dados?.fields?.nivel === 3, "Overwrite 2024 deveria atualizar dados dentro do snapshot versionado.");
+  assert(overwritten2024Characters.length === 2, "Overwrite 2024 criou personagem duplicado.");
+  assert(
+    overwritten2024Characters.filter((character) => character.id === saved2024Character.id).length === 1,
+    "Overwrite 2024 duplicou o mesmo id na lista de personagens.",
+  );
+  assert(overwritten2024.data.communityStatsEvent === null, "Overwrite 2024 não deveria contar nova criação nas estatísticas.");
+
   const updatedProfile = await requestJson(baseUrl, "/api/account/current", {
     method: "PATCH",
     jar,
@@ -518,6 +582,7 @@ async function main() {
     "validação de e-mail por link",
     "desvinculação segura de login social",
     "salvamento e overwrite de personagem 5e",
+    "salvamento e overwrite de personagem 2024",
     "migração duplicate e transfer para 5.5e",
     "estatísticas públicas anônimas",
     "admin: promoção, limite e recuperação de personagem apagado",
