@@ -2054,6 +2054,6 @@ html[data-theme="dark"] body[data-active-screen="5.5e-2024"] .level-up-dialog .l
 
   body[data-standalone-route="5e"] .floating-submit-actions,
   body[data-active-screen="5.5e-2024"] .floating-submit-actions {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }

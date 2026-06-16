@@ -681,12 +681,12 @@ html:not([data-theme="dark"]) body[data-active-screen="5.5e-2024"] .level-up-hov
   }
 
   html {
-    scroll-padding-bottom: 190px;
+    scroll-padding-bottom: 150px;
   }
 
   body[data-standalone-route="5e"],
   body[data-active-screen="5.5e-2024"] {
-    padding-bottom: calc(192px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(148px + env(safe-area-inset-bottom, 0px));
   }
 
   .container {
@@ -703,6 +703,7 @@ html:not([data-theme="dark"]) body[data-active-screen="5.5e-2024"] .level-up-hov
   }
 
   .grid {
+    grid-template-columns: minmax(0, 1fr);
     gap: 12px;
   }
 
@@ -889,14 +890,14 @@ html:not([data-theme="dark"]) body[data-active-screen="5.5e-2024"] .level-up-hov
     width: auto;
     max-width: none;
     margin: 0;
-    padding: 10px;
+    padding: 8px;
     gap: var(--floating-submit-mobile-gap);
     border-radius: 16px;
     box-shadow: 0 18px 34px rgba(18, 16, 35, 0.28);
   }
 
   .floating-submit-button {
-    min-height: 50px;
+    min-height: 46px;
   }
 
   .d20-submit-button {
@@ -914,7 +915,7 @@ html:not([data-theme="dark"]) body[data-active-screen="5.5e-2024"] .level-up-hov
   }
 
   .d20-submit-copy strong {
-    font-size: 15px;
+    font-size: 14px;
   }
 
   .d20-submit-copy small {
@@ -922,14 +923,14 @@ html:not([data-theme="dark"]) body[data-active-screen="5.5e-2024"] .level-up-hov
   }
 
   .floating-submit-actions {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
   }
 
   .floating-quick-button {
     grid-template-columns: minmax(0, 1fr);
-    min-height: 44px;
-    padding: 8px 10px;
+    min-height: 40px;
+    padding: 7px 6px;
     align-content: center;
     text-align: center;
   }
@@ -969,7 +970,7 @@ html:not([data-theme="dark"]) body[data-active-screen="5.5e-2024"] .level-up-hov
 @media (max-width: 420px) {
   body[data-standalone-route="5e"],
   body[data-active-screen="5.5e-2024"] {
-    padding-bottom: calc(198px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(148px + env(safe-area-inset-bottom, 0px));
   }
 
   .dropdown-hover-card:not(.magic-spell-hover-card) {
@@ -981,7 +982,7 @@ html:not([data-theme="dark"]) body[data-active-screen="5.5e-2024"] .level-up-hov
   }
 
   .card {
-    padding: 10px;
+    padding: 12px;
   }
 
   fieldset {
@@ -1014,7 +1015,7 @@ html:not([data-theme="dark"]) body[data-active-screen="5.5e-2024"] .level-up-hov
   }
 
   .floating-submit-actions {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
@@ -1042,7 +1043,7 @@ html:not([data-theme="dark"]) body[data-active-screen="5.5e-2024"] .level-up-hov
   }
 
   .floating-submit-actions {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
@@ -1227,7 +1228,7 @@ html:not([data-theme="dark"]) body[data-active-screen="5.5e-2024"] .level-up-hov
 
   body[data-standalone-route="5e"] .floating-submit-actions,
   body[data-active-screen="5.5e-2024"] .floating-submit-actions {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
