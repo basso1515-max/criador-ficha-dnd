@@ -36,6 +36,7 @@ export function initializeUserArea2024({
       mobileCharacterSummary: el.mobileCharacterSummary,
       saveButton: el.saveCharacter,
       saveButtons: [el.quickSaveCharacter, el.mobileSaveCharacter],
+      shareButtons: [el.quickShareCharacter, el.mobileShareCharacter],
       empty: el.emptySaves,
       list: el.savedCharactersList,
     },

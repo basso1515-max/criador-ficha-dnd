@@ -128,6 +128,10 @@ export function initializeUserArea({
     elements.saveButton,
     ...(Array.isArray(elements.saveButtons) ? elements.saveButtons : []),
   ].filter(Boolean);
+  const shareButtons = [
+    elements.shareButton,
+    ...(Array.isArray(elements.shareButtons) ? elements.shareButtons : []),
+  ].filter(Boolean);
   const requestedCharacterId = getRequestedCharacterId();
 
   const notify = (message, tone = "info") => {
@@ -154,6 +158,9 @@ export function initializeUserArea({
       getReturnTo: getCurrentReturnTarget,
     });
   };
+  shareButtons.forEach((button) => {
+    button.addEventListener("click", handleShareCharacter);
+  });
 
   const render = () => {
     renderUserArea({ edition, elements, saveButtons, state });
@@ -185,10 +192,12 @@ export function initializeUserArea({
     notifyCharacterLoaded(character, "url");
   };
 
-  hydrateAccountStorage().then(() => {
+  hydrateAccountStorage().then(async () => {
     render();
-    if (!restorePendingEditorDraft()) {
-      if (!restoreAutoEditorDraft()) loadRequestedCharacter();
+    if (!(await restoreSharedCharacter())) {
+      if (!restorePendingEditorDraft()) {
+        if (!restoreAutoEditorDraft()) loadRequestedCharacter();
+      }
     }
     startAutoDraft();
   });
@@ -363,6 +372,41 @@ export function initializeUserArea({
     render();
     notify("Rascunho restaurado. Revise e salve o personagem na sua conta.", "success");
     return true;
+  }
+
+  async function restoreSharedCharacter() {
+    if (!String(window.location.hash || "").includes("share=")) return false;
+
+    let sharedCharacter = null;
+    try {
+      const { readSharedCharacterFromLocation } = await import("./character-share.js");
+      sharedCharacter = await readSharedCharacterFromLocation({ expectedEdition: edition });
+    } catch (error) {
+      notify(getErrorMessage(error, "Link compartilhado invalido."), "warning");
+      return false;
+    }
+
+    if (!sharedCharacter) return false;
+    const snapshot = sharedCharacter.snapshot;
+    if (!snapshot || typeof snapshot !== "object") return false;
+    const sharedName = String(sharedCharacter.name || "").trim();
+
+    restore?.(migrateCharacterSnapshot(snapshot, { edition }));
+    state.selectedCharacterId = "";
+    state.showSavedPanel = false;
+    render();
+    notify(`Personagem compartilhado carregado${sharedName ? `: ${sharedName}` : ""}.`, "success");
+    return true;
+  }
+
+  async function handleShareCharacter() {
+    try {
+      const { shareCharacterPayload } = await import("./character-share.js");
+      await shareCharacterPayload({ edition, payload: buildPayload() });
+      notify("Link de compartilhamento copiado.", "success");
+    } catch (error) {
+      notify(getErrorMessage(error, "Nao foi possivel compartilhar."), "warning");
+    }
   }
 
   function restoreAutoEditorDraft() {

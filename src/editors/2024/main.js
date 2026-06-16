@@ -703,10 +703,12 @@ import {
     mobileCharacterName: document.getElementById("mobileCurrentCharacterName2024"),
     mobileCharacterSummary: document.getElementById("mobileCurrentCharacterSummary2024"),
     mobileSaveCharacter: document.getElementById("mobileSaveCharacter2024"),
+    mobileShareCharacter: document.getElementById("mobileShareCharacter2024"),
     mobileLogout: document.getElementById("mobileLogout2024"),
     saveCharacter: document.getElementById("saveCharacter2024"),
     userSessionRow: document.getElementById("userSessionRow2024"),
     quickSaveCharacter: document.getElementById("quickSaveCharacter2024"),
+    quickShareCharacter: document.getElementById("quickShareCharacter2024"),
     emptySaves: document.getElementById("emptySaves2024"),
     savedCharactersList: document.getElementById("savedCharactersList2024"),
   };
