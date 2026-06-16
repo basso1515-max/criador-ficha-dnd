@@ -375,11 +375,10 @@ export function initializeUserArea({
   }
 
   async function restoreSharedCharacter() {
-    if (!String(window.location.hash || "").includes("share=")) return false;
-
     let sharedCharacter = null;
     try {
-      const { readSharedCharacterFromLocation } = await import("./character-share.js");
+      const { hasSharedCharacterInLocation, readSharedCharacterFromLocation } = await import("./character-share.js");
+      if (!hasSharedCharacterInLocation()) return false;
       sharedCharacter = await readSharedCharacterFromLocation({ expectedEdition: edition });
     } catch (error) {
       notify(getErrorMessage(error, "Link compartilhado invalido."), "warning");

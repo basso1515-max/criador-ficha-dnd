@@ -4,6 +4,7 @@ import { createReadStream, existsSync, statSync } from "node:fs";
 import { createServer } from "node:http";
 import path from "node:path";
 import { configureAccountApiStore, handleAccountApi } from "../server/account-api.js";
+import handleCharacterShareApi, { configureCharacterShareApiStore } from "../server/character-share-api.js";
 import { readCommunityStats } from "../server/community-stats-store.js";
 import { createLocalJsonAccountStore } from "../server/local-json-account-store.js";
 
@@ -17,6 +18,7 @@ const accountsFile = path.join(dataDir, "accounts.json");
 
 const accountStore = createLocalJsonAccountStore({ accountsFile });
 configureAccountApiStore(accountStore);
+configureCharacterShareApiStore(accountStore);
 
 const MIME_TYPES = {
   ".css": "text/css; charset=utf-8",
@@ -100,6 +102,11 @@ const server = createServer(async (req, res) => {
 
     if (url.pathname === "/api/community-stats") {
       await handleCommunityStatsApi(req, res);
+      return;
+    }
+
+    if (url.pathname === "/api/character-shares" || url.pathname.startsWith("/api/character-shares/")) {
+      await handleCharacterShareApi(req, res, url.pathname);
       return;
     }
 

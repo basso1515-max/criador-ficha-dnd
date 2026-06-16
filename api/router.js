@@ -1,4 +1,5 @@
 import { handleAccountApi } from "../server/account-api.js";
+import handleCharacterShareApi from "../server/character-share-api.js";
 import handleCommunityStatsApi from "../server/community-stats-api.js";
 
 function normalizeApiPathname(req) {
@@ -19,6 +20,10 @@ export default function handler(req, res) {
 
   if (pathname === "/api/community-stats") {
     return handleCommunityStatsApi(req, res);
+  }
+
+  if (pathname === "/api/character-shares" || pathname.startsWith("/api/character-shares/")) {
+    return handleCharacterShareApi(req, res, pathname);
   }
 
   return handleAccountApi(req, res, pathname);
