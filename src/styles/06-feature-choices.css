@@ -81,6 +81,26 @@
   position: relative;
 }
 
+.artificer-infusion-active-row {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+}
+
+.artificer-infusion-active-row .feat-choice-main,
+.artificer-infusion-active-row .feat-choice-side {
+  min-width: 0;
+}
+
+.artificer-infusion-active-row .feat-choice-field {
+  width: 100%;
+  margin: 0;
+}
+
+.artificer-infusion-active-row [data-artificer-infusion-input] {
+  width: 100%;
+  min-width: 0;
+}
+
 .feat-choice-meta {
   margin: 6px 0 8px;
   color: var(--muted);
