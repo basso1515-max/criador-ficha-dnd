@@ -401,8 +401,8 @@ export function initializeUserArea({
   async function handleShareCharacter() {
     try {
       const { shareCharacterPayload } = await import("./character-share.js");
-      await shareCharacterPayload({ edition, payload: buildPayload() });
-      notify("Link de compartilhamento copiado.", "success");
+      const result = await shareCharacterPayload({ edition, payload: buildPayload() });
+      notify(result.message, result.tone);
     } catch (error) {
       notify(getErrorMessage(error, "Nao foi possivel compartilhar."), "warning");
     }

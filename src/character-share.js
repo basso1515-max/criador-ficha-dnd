@@ -17,6 +17,10 @@ const SHORT_SHARE_ID_RE = /^[A-Za-z0-9_-]{16,64}$/;
  * @typedef {{ edition: ShareEdition, name?: string, summary?: string, snapshot: ShareSnapshot }} SharedCharacter
  * @typedef {(input: RequestInfo | URL, init?: RequestInit) => Promise<Response>} ShareFetch
  * @typedef {{ type: "server", id: string } | { type: "inline", encodedPayload: string } | { type: "invalid" }} SharePointer
+ * @typedef {"native" | "native-cancelled" | "clipboard"} ShareDeliveryMethod
+ * @typedef {{ method: ShareDeliveryMethod, url: string, message: string, tone: "success" | "info" }} ShareDeliveryResult
+ * @typedef {{ share?: (data: ShareData) => Promise<void>, canShare?: (data: ShareData) => boolean, userAgent?: string, maxTouchPoints?: number, userAgentData?: { mobile?: boolean } }} ShareNavigator
+ * @typedef {(value: string) => Promise<void>} ClipboardWriter
  */
 
 /**
@@ -51,16 +55,34 @@ export async function createCharacterShareUrl({
 }
 
 /**
- * @param {{ edition: ShareEdition, payload: { name?: unknown, summary?: unknown, snapshot?: unknown } }} options
+ * @param {{ edition: ShareEdition, payload: { name?: unknown, summary?: unknown, snapshot?: unknown }, href?: string, fetchImpl?: ShareFetch, navigatorImpl?: ShareNavigator, clipboardImpl?: ClipboardWriter }} options
+ * @returns {Promise<ShareDeliveryResult>}
  */
-export async function shareCharacterPayload({ edition, payload }) {
+export async function shareCharacterPayload({ edition, payload, href, fetchImpl, navigatorImpl, clipboardImpl }) {
+  const name = String(payload?.name || "");
+  const summary = String(payload?.summary || "");
   const shareUrl = await createCharacterShareUrl({
     edition,
-    name: String(payload?.name || ""),
-    summary: String(payload?.summary || ""),
+    name,
+    summary,
     snapshot: /** @type {ShareSnapshot} */ (payload?.snapshot),
+    ...(href ? { href } : {}),
+    ...(fetchImpl ? { fetchImpl } : {}),
   });
-  await copyTextToClipboard(shareUrl);
+
+  const nativeResult = await shareUrlWithNativeTarget(
+    { url: shareUrl, name, summary },
+    navigatorImpl ? { navigatorImpl } : {},
+  );
+  if (nativeResult === "shared") {
+    return { method: "native", url: shareUrl, message: "Compartilhamento aberto.", tone: "success" };
+  }
+  if (nativeResult === "cancelled") {
+    return { method: "native-cancelled", url: shareUrl, message: "Compartilhamento cancelado.", tone: "info" };
+  }
+
+  await (clipboardImpl || copyTextToClipboard)(shareUrl);
+  return { method: "clipboard", url: shareUrl, message: "Link de compartilhamento copiado.", tone: "success" };
 }
 
 /**
@@ -467,13 +489,121 @@ function resolveFetch(fetchImpl) {
 }
 
 /**
+ * @param {{ url: string, name?: string, summary?: string }} options
+ * @param {{ navigatorImpl?: ShareNavigator }} [deps]
+ * @returns {Promise<"shared" | "cancelled" | "unavailable" | "failed">}
+ */
+async function shareUrlWithNativeTarget({ url, name = "", summary = "" }, { navigatorImpl } = {}) {
+  const shareNavigator = resolveShareNavigator(navigatorImpl);
+  if (!canUseNativeShare(shareNavigator)) return "unavailable";
+
+  const shareData = getSupportedNativeShareData({
+    title: buildShareTitle(name),
+    text: String(summary || "").trim() || "Veja esta ficha de personagem no Sheetfy.",
+    url,
+  }, shareNavigator);
+  if (!shareData) return "unavailable";
+
+  try {
+    await shareNavigator.share?.(shareData);
+    return "shared";
+  } catch (error) {
+    return isNativeShareCancellation(error) ? "cancelled" : "failed";
+  }
+}
+
+/**
+ * @param {unknown} navigatorImpl
+ * @returns {ShareNavigator | null}
+ */
+function resolveShareNavigator(navigatorImpl) {
+  if (navigatorImpl && typeof navigatorImpl === "object") {
+    return /** @type {ShareNavigator} */ (navigatorImpl);
+  }
+  if (typeof navigator === "undefined") return null;
+  return /** @type {ShareNavigator} */ (navigator);
+}
+
+/**
+ * @param {ShareNavigator | null} shareNavigator
+ * @returns {shareNavigator is ShareNavigator}
+ */
+function canUseNativeShare(shareNavigator) {
+  return Boolean(
+    shareNavigator
+      && typeof shareNavigator.share === "function"
+      && isMobileSharePlatform(shareNavigator),
+  );
+}
+
+/**
+ * @param {ShareNavigator} shareNavigator
+ * @returns {boolean}
+ */
+function isMobileSharePlatform(shareNavigator) {
+  if (shareNavigator.userAgentData?.mobile === true) return true;
+
+  const userAgent = String(shareNavigator.userAgent || "");
+  if (/Android|iPhone|iPad|iPod/i.test(userAgent)) return true;
+
+  return /Macintosh/i.test(userAgent) && Number(shareNavigator.maxTouchPoints || 0) > 1;
+}
+
+/**
+ * @param {{ title: string, text: string, url: string }} preferredData
+ * @param {ShareNavigator} shareNavigator
+ * @returns {ShareData | null}
+ */
+function getSupportedNativeShareData(preferredData, shareNavigator) {
+  const candidates = [
+    { title: preferredData.title, text: preferredData.text, url: preferredData.url },
+    { title: preferredData.title, url: preferredData.url },
+    { url: preferredData.url },
+  ];
+
+  if (typeof shareNavigator.canShare !== "function") return preferredData;
+
+  return candidates.find((candidate) => {
+    try {
+      return shareNavigator.canShare?.(candidate) === true;
+    } catch {
+      return false;
+    }
+  }) || null;
+}
+
+/**
+ * @param {string} name
+ * @returns {string}
+ */
+function buildShareTitle(name) {
+  const characterName = String(name || "").trim();
+  return characterName ? `Ficha de ${characterName}` : "Ficha de personagem";
+}
+
+/**
+ * @param {unknown} error
+ * @returns {boolean}
+ */
+function isNativeShareCancellation(error) {
+  const shareError = /** @type {{ name?: unknown, message?: unknown }} */ (error || {});
+  const name = String(shareError.name || "");
+  const message = String(shareError.message || "");
+  return name === "AbortError" || /cancel/i.test(message);
+}
+
+/**
  * @param {string} value
  * @returns {Promise<void>}
  */
 export async function copyTextToClipboard(value) {
   if (navigator.clipboard?.writeText) {
-    await navigator.clipboard.writeText(value);
-    return;
+    try {
+      await navigator.clipboard.writeText(value);
+      return;
+    } catch {
+      // Tenta o fallback legado abaixo quando o navegador bloqueia Clipboard API.
+    }
   }
 
   const textarea = document.createElement("textarea");
@@ -487,7 +617,9 @@ export async function copyTextToClipboard(value) {
 
   try {
     const copied = document.execCommand("copy");
-    if (!copied) throw new Error("O navegador bloqueou a copia do link.");
+    if (!copied) throw new Error("Nao foi possivel copiar o link: o navegador bloqueou a area de transferencia.");
+  } catch {
+    throw new Error("Nao foi possivel copiar o link: o navegador bloqueou a area de transferencia.");
   } finally {
     textarea.remove();
   }
