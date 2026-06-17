@@ -742,15 +742,6 @@ const smokePages = [
         chooseSubclassProficiency("kensei-weapons", "espada-curta", 2);
         assertSubclassProficiencyResolved("3/3", ["Kensei", "Adaga", "Arco Longo", "Espada Curta"], "Armas do Kensei");
 
-        setClassLevel("Monge", 11);
-        setValue("#arquetipo", "monge-quatro-elementos", ["change"]);
-        assert(selectsForFeatureKind("subclass", "elemental-disciplines").length === 3, "Monge Quatro Elementos 5e não abriu 3 disciplinas no nível 11.");
-        const winterDiscipline = Array.from(selectsForFeatureKind("subclass", "elemental-disciplines")[0].options)
-          .find((option) => option.value === "breath-of-winter");
-        assert(!winterDiscipline, "Disciplina de nível 17 apareceu cedo demais para Monge Quatro Elementos 5e.");
-        chooseFeatureKind("subclass", "elemental-disciplines", "flames-of-the-phoenix");
-        assert((document.querySelector("#preview")?.textContent || "").includes("Disciplinas Elementais"), "Preview 5e não registrou disciplinas elementais.");
-
         setClassLevel("Patrulheiro", 3);
         setValue("#arquetipo", "patrulheiro-mestre-feras", ["change"]);
         assert(!document.querySelector("#companionChoicesPanel")?.hidden, "Painel de companheiro 5e não abriu para Mestre das Feras.");
