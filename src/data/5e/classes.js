@@ -1,5 +1,5 @@
 // classes.js
-export const DATASET_VERSION = "0.2.4";
+export const DATASET_VERSION = "0.2.5";
 export const META_CLASSES = {
   dataset: "dnd5e-ptbr",
   version: DATASET_VERSION,
@@ -10,6 +10,7 @@ export const META_CLASSES = {
     drs: "https://aventureirosdosreinos.com/documento-de-referencia-de-sistema-drs/"
   },
   changelog: [
+    "0.2.5: Inclusão dos recursos textuais oficiais de classe de nível 10 no dataset 5e legado.",
     "0.2.4: Inclusão dos recursos de classe de nível 20 no dataset 5e legado para melhorar resumos e exportação de personagens épicos.",
     "0.2.3: Remoção de subclasses HB e UA sem publicação oficial do dataset principal, mantendo apenas material oficialmente publicado e sincronizando as listas de subclasses por classe.",
     "0.2.2: Reclassificação de entradas HB inspiradas em material oficial/UA (incluindo Plane Shift: Kaladesh), atualização das fontes reimpressas do monge e redução do conjunto restante de HB para entradas realmente autorais.",
@@ -61,6 +62,15 @@ export const CLASSES = {
           descricao: "Imbui itens com efeitos mágicos por meio de infusões.",
           detalhes: [
             "Mantém um número limitado de infusões ativas; esse limite aumenta com o nível."
+          ]
+        }
+      ],
+      10: [
+        {
+          nome: "Adepto de Itens Mágicos",
+          descricao: "Sintoniza-se com até quatro itens mágicos e cria itens mágicos comuns ou incomuns com mais eficiência.",
+          detalhes: [
+            "A ficha mantém os limites de infusões em automação separada."
           ]
         }
       ],
@@ -174,6 +184,22 @@ export const CLASSES = {
           nome: "Conjuração",
           descricao: "Conjura magias usando Carisma.",
           detalhes: []
+        }
+      ],
+      10: [
+        {
+          nome: "Expertise",
+          descricao: "Escolhe mais duas perícias proficientes para dobrar o bônus de proficiência.",
+          detalhes: [
+            "A ficha abre seletores de expertise para registrar as duas escolhas do nível 10."
+          ]
+        },
+        {
+          nome: "Segredos Mágicos",
+          descricao: "Escolhe duas magias de qualquer classe para contar como magias de bardo.",
+          detalhes: [
+            "As magias escolhidas entram pelo seletor de fontes mágicas e contam no limite de magias conhecidas."
+          ]
         }
       ],
       20: [
@@ -341,6 +367,15 @@ export const CLASSES = {
           detalhes: [
             "Usos: aumentam com o nível.",
             "Os efeitos dependem do domínio escolhido."
+          ]
+        }
+      ],
+      10: [
+        {
+          nome: "Intervenção Divina",
+          descricao: "Pode pedir auxílio direto à divindade; o sucesso depende de uma rolagem percentual.",
+          detalhes: [
+            "Após funcionar, o recurso fica indisponível por vários dias; se falhar, pode tentar novamente após descanso longo."
           ]
         }
       ],
@@ -736,6 +771,13 @@ export const CLASSES = {
           detalhes: []
         }
       ],
+      10: [
+        {
+          nome: "Pureza do Corpo",
+          descricao: "Seu domínio do ki o torna imune a doenças e venenos.",
+          detalhes: []
+        }
+      ],
       20: [
         {
           nome: "Eu Perfeito",
@@ -825,6 +867,13 @@ export const CLASSES = {
           detalhes: ["Efeitos específicos dependem do juramento escolhido."]
         }
       ],
+      10: [
+        {
+          nome: "Aura de Coragem",
+          descricao: "Você e criaturas aliadas próximas não podem ficar amedrontados enquanto você estiver consciente.",
+          detalhes: []
+        }
+      ],
       20: [
         {
           nome: "Característica de Juramento",
@@ -896,6 +945,15 @@ export const CLASSES = {
           nome: "Estilo de Luta",
           descricao: "Escolha um estilo de combate com bônus específicos.",
           detalhes: []
+        }
+      ],
+      10: [
+        {
+          nome: "Esconder-se à Vista de Todos",
+          descricao: "Pode preparar camuflagem natural para se esconder melhor quando permanece imóvel.",
+          detalhes: [
+            "Explorador Nato também ganha o terceiro terreno favorito no nível 10 por seletor estruturado."
+          ]
         }
       ],
       20: [

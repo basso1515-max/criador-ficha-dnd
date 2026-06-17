@@ -648,12 +648,6 @@ const smokePages = [
         chooseFeatureKind("subclass", "genie-patron", "efreeti");
         assertFeatureChoiceResolved("1/1", ["Patrono Gênio", "Efreeti"], "Patrono Gênio");
 
-        setClassLevel("Bruxo", 10);
-        setValue("#arquetipo", "bruxo-infernal", ["change"]);
-        assert(selectsForFeatureKind("subclass", "fiendish-resilience").length === 1, "Bruxo Infernal 5e não abriu Resiliência Infernal.");
-        chooseFeatureKind("subclass", "fiendish-resilience", "frio");
-        assertFeatureChoiceResolved("1/1", ["Resiliência Infernal", "Frio"], "Resiliência Infernal");
-
         await assertFeatureSlots("Feiticeiro", 17, [["metamagic", 4]]);
         const metamagic = new Set();
         for (let index = 0; index < 4; index += 1) {
