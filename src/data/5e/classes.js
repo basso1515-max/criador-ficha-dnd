@@ -1,5 +1,5 @@
 // classes.js
-export const DATASET_VERSION = "0.2.5";
+export const DATASET_VERSION = "0.2.6";
 export const META_CLASSES = {
   dataset: "dnd5e-ptbr",
   version: DATASET_VERSION,
@@ -10,6 +10,7 @@ export const META_CLASSES = {
     drs: "https://aventureirosdosreinos.com/documento-de-referencia-de-sistema-drs/"
   },
   changelog: [
+    "0.2.6: Inclusão dos recursos textuais oficiais de classe de nível 9 no dataset 5e legado.",
     "0.2.5: Inclusão dos recursos textuais oficiais de classe de nível 10 no dataset 5e legado.",
     "0.2.4: Inclusão dos recursos de classe de nível 20 no dataset 5e legado para melhorar resumos e exportação de personagens épicos.",
     "0.2.3: Remoção de subclasses HB e UA sem publicação oficial do dataset principal, mantendo apenas material oficialmente publicado e sincronizando as listas de subclasses por classe.",
@@ -127,6 +128,15 @@ export const CLASSES = {
           detalhes: []
         }
       ],
+      9: [
+        {
+          nome: "Crítico Brutal",
+          descricao: "Ao causar acerto crítico com ataque corpo a corpo, rola um dado de dano adicional da arma.",
+          detalhes: [
+            "A quantidade de dados adicionais aumenta em níveis mais altos de Bárbaro."
+          ]
+        }
+      ],
       20: [
         {
           nome: "Campeão Primal",
@@ -183,6 +193,13 @@ export const CLASSES = {
         {
           nome: "Conjuração",
           descricao: "Conjura magias usando Carisma.",
+          detalhes: []
+        }
+      ],
+      9: [
+        {
+          nome: "Canção de Descanso (d8)",
+          descricao: "A Canção de Descanso usa d8 para aumentar a recuperação de aliados em descanso curto.",
           detalhes: []
         }
       ],
@@ -573,6 +590,15 @@ export const CLASSES = {
           detalhes: ["Usos: 1 por descanso curto; 2 no nível 17."]
         }
       ],
+      9: [
+        {
+          nome: "Indomável",
+          descricao: "Pode repetir uma salvaguarda falha e usar o novo resultado.",
+          detalhes: [
+            "Recupera o uso ao terminar um descanso longo; ganha usos adicionais em níveis mais altos."
+          ]
+        }
+      ],
       20: [
         {
           nome: "Ataque Extra (3)",
@@ -768,6 +794,13 @@ export const CLASSES = {
         {
           nome: "Movimento sem Armadura",
           descricao: "Seu deslocamento aumenta enquanto estiver sem armadura e sem escudo.",
+          detalhes: []
+        }
+      ],
+      9: [
+        {
+          nome: "Movimento sem Armadura Aprimorado",
+          descricao: "Enquanto se move no seu turno, pode atravessar superfícies verticais e líquidos sem cair durante o movimento.",
           detalhes: []
         }
       ],
