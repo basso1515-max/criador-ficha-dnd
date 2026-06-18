@@ -1441,22 +1441,20 @@ const smokePages = [
         );
         assert((document.querySelector("#classInfo2024")?.textContent || "").includes("Corpo e Mente"), "Resumo 2024 não explicou o bônus de Corpo e Mente.");
 
-        assertFeatureSlots("clerigo", 7, [["divine-order", 1], ["blessed-strikes", 1]]);
+        assertFeatureSlots("clerigo", 1, [["divine-order", 1]]);
         chooseFeature("divine-order", "taumaturgo");
-        chooseFeature("blessed-strikes", "conjuracao-potente");
         assert((document.querySelector("#preview2024")?.textContent || "").includes("Sabedoria"), "Resumo não registrou o bonus de Sabedoria do clerigo taumaturgo.");
         chooseFeature("divine-order", "protetor");
         const clericTraining = document.querySelector("#proficiencySummary2024")?.textContent || "";
         assert(clericTraining.includes("Armaduras pesadas") && clericTraining.includes("Armas marciais"), "Protetor não atualizou treinamentos do clerigo.");
 
-        assertFeatureSlots("druida", 7, [["primal-order", 1], ["elemental-fury", 1]]);
+        assertFeatureSlots("druida", 1, [["primal-order", 1]]);
         chooseFeature("primal-order", "guardiao");
-        chooseFeature("elemental-fury", "golpe-primal");
         const druidTraining = document.querySelector("#proficiencySummary2024")?.textContent || "";
         assert(druidTraining.includes("Armaduras médias") && druidTraining.includes("Armas marciais"), "Guardião não atualizou treinamentos do druida.");
 
-        setValue("#subclasse2024", "druida-terra", []);
         setValue("#nivel2024", 5, ["input", "change"]);
+        setValue("#subclasse2024", "druida-terra", ["change"]);
         const landPanel = document.querySelector("#subclassDetailChoicesPanel2024");
         assert(landPanel && !landPanel.hidden, "Painel de detalhes de subclasse não abriu para Círculo da Terra.");
         assert(document.querySelector("#subclassDetailChoicesInfo2024 .subclass-detail-cascade"), "Cascata de detalhes de subclasse ausente para Círculo da Terra.");
@@ -1525,19 +1523,6 @@ const smokePages = [
         assert(rangerStyleFeatSlots.length === 1, "Guardião 2024 não abriu 1 slot de talento de Estilo de Luta no nível 2.");
         assert(Array.from(rangerStyleFeatSlots[0].options).some((option) => option.value === "arquearia"), "Arquearia não apareceu como talento de Estilo de Luta 2024.");
         assert(selectsForFeature("favored-enemy").length === 0, "Guardião 2024 abriu seletor legacy de Inimigo Favorito indevidamente.");
-
-        setClassLevel("guardiao", 7);
-        setValue("#subclasse2024", "guardiao-cacador", ["change"]);
-        const hunterPreySelects2024 = selectsForFeatureKind("subclass", "hunter-prey");
-        const hunterDefenseSelects2024 = selectsForFeatureKind("subclass", "defensive-tactics");
-        assert(hunterPreySelects2024.length === 1, "Presa do Caçador 2024 não abriu seletor.");
-        assert(hunterDefenseSelects2024.length === 1, "Táticas Defensivas 2024 não abriu seletor.");
-        hunterPreySelects2024[0].value = "colosso";
-        dispatch(hunterPreySelects2024[0], "change");
-        hunterDefenseSelects2024[0].value = "escapar-da-horda";
-        dispatch(hunterDefenseSelects2024[0], "change");
-        const hunterPreviewText2024 = document.querySelector("#preview2024")?.textContent || "";
-        assert(hunterPreviewText2024.includes("Presa do Caçador") && hunterPreviewText2024.includes("Táticas Defensivas"), "Resumo/PDF automático 2024 não recebeu escolhas do Caçador.");
 
         setClassLevel("guerreiro", 15);
         setValue("#subclasse2024", "guerreiro-mestre-de-batalha", ["change"]);

@@ -328,7 +328,7 @@ const SUBCLASS_LIST = [
     "Une charme feérico, deslocamento sobrenatural e reforços encantados de Faéria.",
     {
       3: [feature("Glamour Transcendental"), feature("Golpes Terríveis"), feature("Magias do Andarilho Feérico")],
-      7: [feature("Detalhe Sedutor")],
+      7: [feature("Reviravolta Sedutora")],
       11: [feature("Reforços Feéricos")],
       15: [feature("Andarilho Nebuloso")],
     }

@@ -483,8 +483,8 @@ export function compactSubclassFeatureSummary(feature, entry = null) {
       return "Ganha resistência a dano e mais pressão ofensiva.";
     case "paladino-coroa:canalizar divindade":
       return "Usa Canalizar Divindade para chamar inimigos para si ou curar aliados.";
-    case "paladino-coroa:campeao da coroa":
-      return "Aliados próximos recebem bônus defensivos.";
+    case "paladino-coroa:lealdade divina":
+      return "Usa a reação para sofrer no lugar de um aliado próximo o dano que ele receberia.";
     case "paladino-coroa:guarda inabalavel":
       return "Reduz o dano sofrido por aliados.";
     case "paladino-coroa:defensor exemplar":
@@ -1031,6 +1031,9 @@ export function compactSubclassFeatureSummary(feature, entry = null) {
       return "Seus disparos ganham efeitos mágicos especiais.";
     case "guerreiro-arqueiro-arcano:conhecimento arcano":
       return "Ganha treinamento adicional em saberes arcanos.";
+    case "guerreiro-arqueiro-arcano:flecha magica":
+    case "guerreiro-arqueiro-arcano:flecha mágica":
+      return "Seus disparos com arco superam resistência e imunidade a ataques não mágicos.";
     case "guerreiro-arqueiro-arcano:tiro curvo":
       return "Redireciona uma flecha que errou o alvo.";
     case "guerreiro-arqueiro-arcano:tiro aprimorado":
@@ -1043,8 +1046,8 @@ export function compactSubclassFeatureSummary(feature, entry = null) {
       return "Cria um eco para atacar e se posicionar em outro ponto do campo.";
     case "guerreiro-cavaleiro-do-eco:troca de lugar":
       return "Troca de posição com o próprio eco.";
-    case "guerreiro-cavaleiro-do-eco:eco explorador":
-      return "Usa o eco para explorar à distância.";
+    case "guerreiro-cavaleiro-do-eco:avatar do eco":
+      return "Transfere os sentidos ao eco para explorar à distância.";
     case "guerreiro-cavaleiro-do-eco:sombra protetora":
       return "Seu eco protege aliados próximos.";
     case "guerreiro-cavaleiro-do-eco:eco aprimorado":
@@ -1070,9 +1073,9 @@ export function compactSubclassFeatureSummary(feature, entry = null) {
     case "guerreiro-guerreiro-psiquico:poder psiquico":
     case "guerreiro-guerreiro-psiquico:poder psíquico":
       return "Usa dados psíquicos para ataque, defesa e mobilidade.";
-    case "guerreiro-guerreiro-psiquico:movimento telecinetico":
-    case "guerreiro-guerreiro-psiquico:movimento telecinético":
-      return "Move objetos ou criaturas com a mente.";
+    case "guerreiro-guerreiro-psiquico:adepto telecinetico":
+    case "guerreiro-guerreiro-psiquico:adepto telecinético":
+      return "Aprimora Movimento Telecinético e permite empurrar ou derrubar com Golpe Psiônico.";
     case "guerreiro-guerreiro-psiquico:escudo psiquico":
     case "guerreiro-guerreiro-psiquico:escudo psíquico":
       return "Usa energia mental para reduzir dano.";
@@ -1196,8 +1199,8 @@ export function compactSubclassFeatureSummary(feature, entry = null) {
       return "Causa dano psíquico adicional.";
     case "patrulheiro-andarilho-feerico:presenca feerica":
       return "Pode enfeitiçar ou assustar inimigos.";
-    case "patrulheiro-andarilho-feerico:passo feerico":
-      return "Faz um teleporte curto com efeito extra.";
+    case "patrulheiro-andarilho-feerico:reviravolta sedutora":
+      return "Resiste melhor a encanto e medo e pode redirecionar essas condições contra outra criatura.";
     case "patrulheiro-andarilho-feerico:ataque encantado":
       return "Aumenta o dano contra alvos afetados pelos seus efeitos feéricos.";
     case "patrulheiro-andarilho-feerico:forma feerica":
@@ -1222,24 +1225,26 @@ export function compactSubclassFeatureSummary(feature, entry = null) {
       return "Maximiza o dano contra sua presa marcada.";
     case "patrulheiro-enxame:enxame":
       return "Um enxame aliado ajuda a causar dano, mover alvos ou reposicioná-lo.";
-    case "patrulheiro-enxame:enxame protetor":
-      return "Usa o enxame para proteger aliados ou reposicioná-los.";
+    case "patrulheiro-enxame:mare inquieta":
+    case "patrulheiro-enxame:maré inquieta":
+      return "O enxame concede voo temporário e permite pairar.";
     case "patrulheiro-enxame:enxame aprimorado":
       return "Seu enxame ganha mais dano e controle.";
     case "patrulheiro-enxame:forma de enxame":
       return "Dispersa o próprio corpo em criaturas do enxame.";
     case "patrulheiro-dracos:companheiro draconico":
       return "Invoca um companheiro dracônico.";
-    case "patrulheiro-dracos:asas draconicas":
-      return "Ganha mobilidade aérea e proteção dracônica.";
+    case "patrulheiro-dracos:vinculo de presas e escamas":
+    case "patrulheiro-dracos:vínculo de presas e escamas":
+      return "O draco cresce, pode servir de montaria e reforça ataques e resistência elemental.";
     case "patrulheiro-dracos:furia draconica":
       return "Aumenta o dano elemental causado.";
     case "patrulheiro-dracos:dragao supremo":
       return "Fortalece bastante o companheiro dracônico.";
     case "patrulheiro-mestre-feras:companheiro animal":
       return "Ganha uma fera companheira.";
-    case "patrulheiro-mestre-feras:treinamento coordenado":
-      return "Luta em conjunto com a fera.";
+    case "patrulheiro-mestre-feras:treinamento excepcional":
+      return "Aprimora os comandos da fera e torna mágicos os ataques dela.";
     case "patrulheiro-mestre-feras:fera aprimorada":
       return "Sua fera fica mais forte e eficiente.";
     case "patrulheiro-mestre-feras:vinculo perfeito":

@@ -40,6 +40,19 @@ export const XP_BY_LEVEL_2024 = [
   305000,
   355000,
 ];
+export const FEAT_LEVELS_2024 = [4, 8, 12, 16, 19];
+export const CLASS_FEATS_2024 = {
+  guerreiro: [4, 6, 8, 12, 14, 16, 19],
+  ladino: [4, 8, 10, 12, 16, 19],
+};
+export const STYLE_LEVELS_2024 = {
+  guerreiro: [1],
+  paladino: [2],
+  guardiao: [2],
+};
+export const SUBCLASS_STYLE_LEVELS_2024 = {
+  "guerreiro-campeao": [7],
+};
 export const ALIGNMENTS_2024 = [
   {
     id: "leal-bom",

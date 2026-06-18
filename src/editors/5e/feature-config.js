@@ -18,6 +18,19 @@ import {
   PALADIN_OATH_GRANTED_SPELL_IDS_5E,
 } from "../../data/granted-spell-sources.js";
 
+export const RUNE_KNIGHT_RUNES_BY_LEVEL_5E = [
+  0, 0, 0, 2, 2, 2, 2, 3, 3, 3,
+  4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5,
+];
+export const RUNE_KNIGHT_RUNES_5E = [
+  { value: "runa-de-fogo", label: "Runa de Fogo", minLevel: 3, summary: "Aprimora ferramentas e pode prender um alvo em correntes flamejantes." },
+  { value: "runa-de-pedra", label: "Runa de Pedra", minLevel: 3, summary: "Aprimora Intuição e visão no escuro e pode incapacitar uma criatura com um encanto onírico." },
+  { value: "runa-de-nuvem", label: "Runa de Nuvem", minLevel: 3, summary: "Aprimora Enganação e Prestidigitação e pode redirecionar um ataque para outro alvo." },
+  { value: "runa-de-gelo", label: "Runa de Gelo", minLevel: 3, summary: "Aprimora Adestrar Animais e Intimidação e pode elevar testes e salvaguardas de Força e Constituição." },
+  { value: "runa-de-colina", label: "Runa de Colina", minLevel: 7, summary: "Protege contra veneno e pode conceder resistência a dano físico por 1 minuto." },
+  { value: "runa-de-tempestade", label: "Runa de Tempestade", minLevel: 7, summary: "Aprimora Arcanismo e pode conceder vantagem ou desvantagem a uma rolagem próxima." },
+];
+
 export const SORCERER_METAMAGIC_OPTIONS_BY_LEVEL_5E = [
   0, 0, 0, 2, 2, 2, 2, 2, 2, 2,
   3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4,
@@ -254,6 +267,19 @@ export const FEATURE_CHOICE_DEFINITIONS_5E = {
         disallowDuplicates: true,
         picksByLevel: BATTLE_MASTER_MANEUVERS_BY_LEVEL_5E,
         options: BATTLE_MASTER_MANEUVERS_5E,
+      },
+    ],
+    "guerreiro-cavaleiro-runico": [
+      {
+        id: "rune-knight-runes",
+        minLevel: 3,
+        featureLabel: "Inscrições Rúnicas",
+        selectionLabel: "Runa",
+        help: "Escolha as runas conhecidas pelo Cavaleiro Rúnico. O total começa em 2 no nível 3 e aumenta nos níveis 7, 10 e 15.",
+        required: true,
+        disallowDuplicates: true,
+        picksByLevel: RUNE_KNIGHT_RUNES_BY_LEVEL_5E,
+        options: RUNE_KNIGHT_RUNES_5E,
       },
     ],
     "guerreiro-arqueiro-arcano": [

@@ -48,6 +48,10 @@ import {
 } from "./static-options.js";
 import {
   XP_BY_LEVEL_2024,
+  FEAT_LEVELS_2024,
+  CLASS_FEATS_2024,
+  STYLE_LEVELS_2024,
+  SUBCLASS_STYLE_LEVELS_2024,
   ALIGNMENTS_2024,
   RANDOM_NAME_PARTS_BY_RACE_2024,
   CLASS_ALIGNMENT_RULES_2024,
@@ -398,19 +402,6 @@ import {
     return featureSummariesLoadPromise2024;
   }
 
-  const DEFAULT_CLASS_FEAT_LEVELS = [4, 8, 12, 16, 19];
-  const CLASS_FEAT_LEVELS = {
-    guerreiro: [4, 6, 8, 12, 14, 16, 19],
-    ladino: [4, 8, 10, 12, 16, 19],
-  };
-  const FIGHTING_STYLE_SLOT_LEVELS = {
-    guerreiro: [1],
-    paladino: [2],
-    guardiao: [2],
-  };
-  const SUBCLASS_FIGHTING_STYLE_SLOT_LEVELS = {
-    "guerreiro-campeao": [7],
-  };
   const CLASS_CAPSTONE_ABILITY_BONUSES_2024 = {
     barbaro: {
       minLevel: 20,
@@ -5461,14 +5452,14 @@ import {
 
   function getClassFeatLevels(cls) {
     if (!cls?.id) return [];
-    return CLASS_FEAT_LEVELS[cls.id] || DEFAULT_CLASS_FEAT_LEVELS;
+    return CLASS_FEATS_2024[cls.id] || FEAT_LEVELS_2024;
   }
 
   function getFightingStyleSlotDefinitions(cls, subclass, level) {
     if (!cls?.id) return [];
 
     const slots = [];
-    (FIGHTING_STYLE_SLOT_LEVELS[cls.id] || [])
+    (STYLE_LEVELS_2024[cls.id] || [])
       .filter((requiredLevel) => level >= requiredLevel)
       .forEach((requiredLevel, index) => {
         slots.push({
@@ -5481,7 +5472,7 @@ import {
       });
 
     if (subclass?.id) {
-      (SUBCLASS_FIGHTING_STYLE_SLOT_LEVELS[subclass.id] || [])
+      (SUBCLASS_STYLE_LEVELS_2024[subclass.id] || [])
         .filter((requiredLevel) => level >= requiredLevel)
         .forEach((requiredLevel, index) => {
           slots.push({
@@ -5505,7 +5496,7 @@ import {
 
     const slots = [];
     const entryLabel = entry?.sourceLabel || cls.nome;
-    (FIGHTING_STYLE_SLOT_LEVELS[cls.id] || [])
+    (STYLE_LEVELS_2024[cls.id] || [])
       .filter((requiredLevel) => level >= requiredLevel)
       .forEach((requiredLevel, index) => {
         slots.push({
@@ -5522,7 +5513,7 @@ import {
       });
 
     if (subclass?.id) {
-      (SUBCLASS_FIGHTING_STYLE_SLOT_LEVELS[subclass.id] || [])
+      (SUBCLASS_STYLE_LEVELS_2024[subclass.id] || [])
         .filter((requiredLevel) => level >= requiredLevel)
         .forEach((requiredLevel, index) => {
           slots.push({

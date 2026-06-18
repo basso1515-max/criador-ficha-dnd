@@ -1,5 +1,5 @@
 // classes.js
-export const DATASET_VERSION = "0.2.7";
+export const DATASET_VERSION = "0.2.8";
 export const META_CLASSES = {
   dataset: "dnd5e-ptbr",
   version: DATASET_VERSION,
@@ -10,6 +10,7 @@ export const META_CLASSES = {
     drs: "https://aventureirosdosreinos.com/documento-de-referencia-de-sistema-drs/"
   },
   changelog: [
+    "0.2.8: Auditoria do nível 7 com recursos de classe ausentes, correções de subclasses e progressão estruturada de runas do Cavaleiro Rúnico.",
     "0.2.7: Inclusão dos recursos textuais oficiais de classe de nível 8 para Druida e Patrulheiro, com correção da descrição de Forma Selvagem.",
     "0.2.6: Inclusão dos recursos textuais oficiais de classe de nível 9 no dataset 5e legado.",
     "0.2.5: Inclusão dos recursos textuais oficiais de classe de nível 10 no dataset 5e legado.",
@@ -64,6 +65,15 @@ export const CLASSES = {
           descricao: "Imbui itens com efeitos mágicos por meio de infusões.",
           detalhes: [
             "Mantém um número limitado de infusões ativas; esse limite aumenta com o nível."
+          ]
+        }
+      ],
+      7: [
+        {
+          nome: "Lampejo de Gênio",
+          descricao: "Usa a reação para somar o modificador de Inteligência a um teste de atributo ou salvaguarda feito por uma criatura à vista a até 9 metros.",
+          detalhes: [
+            "Pode usar esta característica um número de vezes igual ao modificador de Inteligência, no mínimo uma vez, recuperando todos os usos após descanso longo."
           ]
         }
       ],
@@ -127,6 +137,15 @@ export const CLASSES = {
           nome: "Defesa sem Armadura",
           descricao: "Sem armadura, sua CA usa Destreza e Constituição; você ainda pode usar escudo.",
           detalhes: []
+        }
+      ],
+      7: [
+        {
+          nome: "Instintos Primitivos",
+          descricao: "Recebe vantagem em jogadas de iniciativa.",
+          detalhes: [
+            "Se estiver surpreso no início do combate e não estiver incapacitado, pode agir normalmente no primeiro turno desde que entre em Fúria antes de fazer qualquer outra coisa."
+          ]
         }
       ],
       9: [
@@ -676,6 +695,13 @@ export const CLASSES = {
           detalhes: []
         }
       ],
+      7: [
+        {
+          nome: "Evasão",
+          descricao: "Em efeitos que permitem salvaguarda de Destreza para sofrer metade do dano, não sofre dano em sucesso e sofre apenas metade em falha.",
+          detalhes: []
+        }
+      ],
       20: [
         {
           nome: "Golpe de Sorte",
@@ -804,6 +830,18 @@ export const CLASSES = {
         {
           nome: "Movimento sem Armadura",
           descricao: "Seu deslocamento aumenta enquanto estiver sem armadura e sem escudo.",
+          detalhes: []
+        }
+      ],
+      7: [
+        {
+          nome: "Evasão",
+          descricao: "Em efeitos que permitem salvaguarda de Destreza para sofrer metade do dano, não sofre dano em sucesso e sofre apenas metade em falha.",
+          detalhes: []
+        },
+        {
+          nome: "Mente Tranquila",
+          descricao: "Pode usar uma ação para encerrar em si um efeito que esteja causando Enfeitiçado ou Amedrontado.",
           detalhes: []
         }
       ],

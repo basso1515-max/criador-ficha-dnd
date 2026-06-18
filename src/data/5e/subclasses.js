@@ -1399,7 +1399,8 @@ export const SUBCLASSES = {
         { nome: "Conhecimento Arcano", descricao: "Ganha perícia em Arcana/Natureza." },
       ],
       7: [
-        { nome: "Tiro Curvo", descricao: "Pode redirecionar flecha que errou." },
+        { nome: "Flecha Mágica", descricao: "Flechas não mágicas disparadas com arco curto ou longo contam como mágicas para superar resistência e imunidade." },
+        { nome: "Tiro Curvo", descricao: "Ao errar um ataque com flecha mágica, usa uma ação bônus para redirecioná-la contra outro alvo a até 18 metros do alvo original." },
       ],
       10: [
         { nome: "Tiro Aprimorado", descricao: "Dano extra nos tiros arcanos." },
@@ -1503,7 +1504,7 @@ export const SUBCLASSES = {
         { nome: "Troca de Lugar", descricao: "Pode trocar com o eco." },
       ],
       7: [
-        { nome: "Eco Explorador", descricao: "Usa eco para explorar." },
+        { nome: "Avatar do Eco", descricao: "Transfere temporariamente os sentidos para o eco e pode enviá-lo a até 300 metros para explorar." },
       ],
       10: [
         { nome: "Sombra Protetora", descricao: "Eco protege aliados." },
@@ -1542,9 +1543,11 @@ export const SUBCLASSES = {
       ]
     },
     runas: {
-    total: {
-        3: 4,
-        7: 2
+      total: {
+        3: 2,
+        7: 3,
+        10: 4,
+        15: 5
       },
       lista: {
         3: [
@@ -1562,7 +1565,7 @@ export const SUBCLASSES = {
           },
           {
           nome: "Runa de Gelo",
-          descricao: "Passivo: vantagem com ferramentas e resistência a frio. Ativo: aumenta Constituição e concede resistência a dano físico."
+          descricao: "Passivo: vantagem em Adestrar Animais e Intimidação. Ativo: concede +2 em testes e salvaguardas de Força e Constituição por 10 minutos."
           }
         ],
         7: [
@@ -1577,7 +1580,7 @@ export const SUBCLASSES = {
         ]
       },
 
-      regra: "Você escolhe 4 runas no nível 3 e mais 2 no nível 7. Cada runa possui um efeito passivo permanente e um efeito ativo que pode ser usado uma vez por descanso curto ou longo."
+      regra: "Você conhece 2 runas no nível 3 e aprende mais uma nos níveis 7, 10 e 15. Cada runa possui um efeito passivo permanente e um efeito ativo que pode ser usado uma vez por descanso curto ou longo."
     }
   },
   "guerreiro-guerreiro-psiquico": {
@@ -1592,7 +1595,7 @@ export const SUBCLASSES = {
         { nome: "Poder Psíquico", descricao: "Dados psíquicos para defesa, ataque e mobilidade." },
       ],
       7: [
-        { nome: "Movimento Telecinético", descricao: "Move objetos ou criaturas com mente." },
+        { nome: "Adepto Telecinético", descricao: "Aprimora Movimento Telecinético e permite empurrar ou derrubar o alvo atingido por Golpe Psiônico." },
       ],
       10: [
         { nome: "Escudo Psíquico", descricao: "Reduz dano mental." },
@@ -2438,7 +2441,7 @@ export const SUBCLASSES = {
       { nome: "Canalizar Divindade", descricao: "Pode forçar inimigos a focarem em você ou curar aliados." }
     ],
     7: [
-      { nome: "Campeão da Coroa", descricao: "Aliados próximos recebem bônus defensivos." }
+      { nome: "Lealdade Divina", descricao: "Usa a reação para sofrer no lugar de uma criatura a até 1,5 metro o dano que ela receberia." }
     ],
     15: [
       { nome: "Guarda Inabalável", descricao: "Reduz dano recebido por aliados." }
@@ -2596,7 +2599,7 @@ export const SUBCLASSES = {
         { nome: "Canalizar Divindade", descricao: "Pode controlar mortos-vivos ou enfraquecer inimigos com energia sombria." }
       ],
       7: [
-        { nome: "Aura de Ódio", descricao: "Você e aliados causam dano extra em ataques corpo a corpo." }
+        { nome: "Aura de Ódio", descricao: "Você, corruptores e mortos-vivos a até 3 metros somam seu modificador de Carisma ao dano de ataques corpo a corpo com arma, no mínimo +1." }
       ],
       15: [
         { nome: "Resistência Sobrenatural", descricao: "Ganha resistência a dano não mágico." }
@@ -2644,7 +2647,7 @@ export const SUBCLASSES = {
         { nome: "Presença Feérica", descricao: "Pode encantar ou assustar." }
       ],
       7: [
-        { nome: "Passo Feérico", descricao: "Teleporte curto com efeitos adicionais." }
+        { nome: "Reviravolta Sedutora", descricao: "Tem vantagem contra Enfeitiçado e Amedrontado e pode redirecionar uma resistência bem-sucedida a essas condições contra outra criatura." }
       ],
       11: [
         { nome: "Ataque Encantado", descricao: "Aumenta dano contra inimigos afetados." }
@@ -2711,7 +2714,7 @@ export const SUBCLASSES = {
         { nome: "Enxame", descricao: "Invoca criaturas que auxiliam em combate." }
       ],
       7: [
-        { nome: "Enxame Protetor", descricao: "Reduz dano ou move aliados." }
+        { nome: "Maré Inquieta", descricao: "Como ação bônus, recebe deslocamento de voo de 3 metros e pode pairar por 1 minuto." }
       ],
       11: [
         { nome: "Enxame Aprimorado", descricao: "Aumenta dano e controle." }
@@ -2733,7 +2736,7 @@ export const SUBCLASSES = {
         { nome: "Companheiro Dracônico", descricao: "Invoca aliado dracônico." }
       ],
       7: [
-        { nome: "Asas Dracônicas", descricao: "Ganha mobilidade e defesa." }
+        { nome: "Vínculo de Presas e Escamas", descricao: "O draco cresce, pode servir de montaria, ganha voo e reforça ataques e resistência elemental do guardião." }
       ],
       11: [
         { nome: "Fúria Dracônica", descricao: "Aumenta dano elemental." }
@@ -2755,7 +2758,7 @@ export const SUBCLASSES = {
         { nome: "Companheiro Animal", descricao: "Ganha aliado animal." }
       ],
       7: [
-        { nome: "Treinamento Coordenado", descricao: "Ataca junto com a fera." }
+        { nome: "Treinamento Excepcional", descricao: "Aprimora os comandos da fera companheira e faz os ataques dela contarem como mágicos." }
       ],
       11: [
         { nome: "Fera Aprimorada", descricao: "Companheiro mais forte." }

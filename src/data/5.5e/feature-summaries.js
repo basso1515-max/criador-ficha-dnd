@@ -383,7 +383,7 @@ export const FEATURE_SUMMARIES_2024 = {
       "Glamour Transcendental": "Sempre que você realiza um teste de Carisma, recebe um bônus no teste igual ao seu modificador de Sabedoria (mínimo de +1)",
       "Golpes Terríveis": "Uma vez por turno, ao atingir uma criatura com uma arma, você pode causar 1d4 pontos de dano Psíquico adicional ao alvo",
       "Magias do Andarilho Feérico": "Sempre deixa preparadas magias feéricas ligadas a charme, deslocamento e confusão.",
-      "Detalhe Sedutor": "Tem Vantagem nas salvaguardas para evitar ou encerrar a condição Amedrontado ou Enfeitiçado",
+      "Reviravolta Sedutora": "Tem Vantagem para evitar ou encerrar Amedrontado ou Enfeitiçado; quando uma criatura próxima resiste a uma dessas condições, pode usar a Reação para tentar aplicá-la a outra criatura.",
       "Reforços Feéricos": "Pode conjurar a magia Convocar Feérico sem um componente Material",
       "Andarilho Nebuloso": "Pode conjurar Passo Nebuloso sem gastar um espaço de magia"
     },
@@ -408,7 +408,7 @@ export const FEATURE_SUMMARIES_2024 = {
       "Magias do Vigilante das Sombras": "Sempre deixa preparadas magias sombrias voltadas a caça, infiltração e emboscada.",
       "Visão Umbrosa": "Ganha Visão no Escuro com um alcance de 18 metros. Se você já tem Visão no Escuro, o alcance aumenta em 18 metros",
       "Emboscador das Sombras": "Ao atacar e atingir uma criatura com uma arma, você pode causar 2d6 pontos de dano Psíquico adicional",
-      "Mente de Ferro": "Ganha proficiência em salvaguardas de Sabedoria",
+      "Mente de Ferro": "Ganha proficiência em salvaguardas de Sabedoria; se já tiver essa proficiência, escolhe Inteligência ou Carisma",
       "Torrente do Vigilante": "O dano psíquico do seu Golpe Terrível se torna 2d8",
       "Esquiva Sombria": "Quando uma criatura realiza uma jogada de ataque contra você, você pode executar uma Reação para impor Desvantagem nessa jogada"
     },
@@ -430,7 +430,7 @@ export const FEATURE_SUMMARIES_2024 = {
     },
     "guerreiro-guerreiro-psiquico": {
       "Poder Psiônico": "Você possui uma fonte de energia psiônica, representada pelos seus Dados de Energia Psiônica, que alimenta os poderes desta subclasse",
-      "Adepto Telecinético": "Ao causar dano a um alvo com seu Golpe Psiônico, você pode forçá-lo a realizar uma salvaguarda de Força (CD 8 mais seu modificador de Inteligência e seu Bônus de Proficiência)",
+      "Adepto Telecinético": "Ao usar Golpe Psiônico, pode empurrar ou derrubar o alvo; Movimento Telecinético passa a afetar criaturas Grandes ou menores e ganha um uso sem gastar Dado de Energia Psiônica por descanso curto ou longo.",
       "Resguardo Mental": "Tem Resistência a Dano Psíquico",
       "Baluarte de Energia": "Ação bônus para escolher criaturas, incluindo você mesmo, a até 9 metros, até um número de criaturas igual ao seu modificador de Inteligência (mínimo de uma criatura)",
       "Mestre Telecinético": "Com esta característica, você pode conjurá-la sem um espaço de magia ou componentes, e seu atributo de conjuração para ela é a Inteligência"
@@ -545,7 +545,7 @@ export const FEATURE_SUMMARIES_2024 = {
       "Magias do Juramento": "Sempre deixa preparadas as magias da Vingança conforme o nível: Perdição, Marca do Predador, Imobilizar Pessoa, Passo da Neblina, Velocidade, Proteção Contra Energia, Banimento, Porta Dimensional, Imobilizar Monstro e Espionagem.",
       "Inimizade Votiva": "Canaliza o juramento para focar um alvo e persegui-lo com vantagem.",
       "Abjurar Inimigo": "Condena um alvo com poder sagrado, travando seu avanço e sua moral.",
-      "Vingador Implacável": "Ao atingir uma criatura com um Ataque de Oportunidade, você pode reduzir o Deslocamento da criatura para 0 até o final do turno atual",
+      "Vingador Implacável": "Ao atingir uma criatura com um Ataque de Oportunidade, reduz o Deslocamento dela a 0 até o fim do turno e pode mover até metade do próprio Deslocamento sem provocar ataques de oportunidade.",
       "Alma da Vingança": "Responde aos ataques do inimigo jurado com contra-ataques implacáveis.",
       "Anjo Vingador": "Como uma Ação Bônus, você adquire os benefícios abaixo por 10 minutos ou até a encerrar (nenhuma ação é necessária)"
     },
@@ -553,7 +553,7 @@ export const FEATURE_SUMMARIES_2024 = {
       "Magias do Juramento": "Sempre deixa preparadas as magias dos Anciões conforme o nível: Golpe Prendedor, Falar com Animais, Raio de Lua, Passo da Neblina, Crescer Plantas, Proteção Contra Energia, Tempestade de Gelo, Pele de Pedra, Comunhão com a Natureza e Passo de Árvore.",
       "Ira da Natureza": "Usa vinhas e poder natural para prender ou conter inimigos.",
       "Repelir os Sem Fé": "Afasta criaturas profanas ou extraplanares com autoridade sagrada.",
-      "Aura de Proteção Mágica": "Sua aura reduz o impacto de magias hostis sobre você e aliados.",
+      "Aura de Proteção Mágica": "Você e aliados na Aura de Proteção recebem Resistência a dano Necrótico, Psíquico e Radiante.",
       "Sentinela Imortal": "Ao ser reduzido a 0 PV e não morto imediatamente, você fica com 1 Ponto de Vida e recupera um número de PV igual a três vezes o seu nível de Paladino",
       "Campeão Ancestral": "Inimigos na sua aura têm Desvantagem em salvaguardas contra suas magias e opções de Canalizar Divindade"
     }
