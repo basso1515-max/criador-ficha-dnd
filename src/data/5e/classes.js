@@ -1,5 +1,5 @@
 // classes.js
-export const DATASET_VERSION = "0.2.6";
+export const DATASET_VERSION = "0.2.7";
 export const META_CLASSES = {
   dataset: "dnd5e-ptbr",
   version: DATASET_VERSION,
@@ -10,6 +10,7 @@ export const META_CLASSES = {
     drs: "https://aventureirosdosreinos.com/documento-de-referencia-de-sistema-drs/"
   },
   changelog: [
+    "0.2.7: Inclusão dos recursos textuais oficiais de classe de nível 8 para Druida e Patrulheiro, com correção da descrição de Forma Selvagem.",
     "0.2.6: Inclusão dos recursos textuais oficiais de classe de nível 9 no dataset 5e legado.",
     "0.2.5: Inclusão dos recursos textuais oficiais de classe de nível 10 no dataset 5e legado.",
     "0.2.4: Inclusão dos recursos de classe de nível 20 no dataset 5e legado para melhorar resumos e exportação de personagens épicos.",
@@ -462,7 +463,16 @@ export const CLASSES = {
           detalhes: [
             "Enquanto estiver na forma, você assume as estatísticas do animal, exceto seu tipo de criatura, proficiências e características de personalidade.",
             "Usos: 2 por descanso curto.",
-            "Você não perde a capacidade de conjurar magias que não exijam concentração enquanto estiver em forma, salvo regras específicas."
+            "Você não pode conjurar magias enquanto estiver transformado, mas a transformação não quebra concentração em magia já conjurada."
+          ]
+        }
+      ],
+      8: [
+        {
+          nome: "Aprimoramento de Forma Selvagem",
+          descricao: "Forma Selvagem passa a aceitar animais de ND 1 sem limitações de deslocamento.",
+          detalhes: [
+            "O fluxo de ASI/talento do nível 8 permanece no seletor estruturado."
           ]
         }
       ],
@@ -978,6 +988,17 @@ export const CLASSES = {
           nome: "Estilo de Luta",
           descricao: "Escolha um estilo de combate com bônus específicos.",
           detalhes: []
+        }
+      ],
+      8: [
+        {
+          nome: "Passo da Terra",
+          descricao: "Mover-se através de terreno difícil não mágico não custa movimento adicional.",
+          detalhes: [
+            "Também pode atravessar vegetação não mágica sem ser atrasado e sem sofrer dano dela.",
+            "Tem vantagem em salvaguardas contra plantas criadas ou manipuladas magicamente para impedir movimento.",
+            "O fluxo de ASI/talento do nível 8 permanece no seletor estruturado."
+          ]
         }
       ],
       10: [

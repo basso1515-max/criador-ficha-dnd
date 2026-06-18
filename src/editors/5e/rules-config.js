@@ -145,6 +145,7 @@ export const LANGUAGE_METADATA = {
   primordial: { category: "exotico", spokenBy: "elementais e povos ligados aos planos elementais", script: "Anão", description: "Tronco ancestral dos falares elementais, usado em rituais e pactos primordiais." },
   vedalken: { category: "exotico", spokenBy: "vedalken", script: "Vedalken", description: "Idioma analítico e preciso, ligado a estudo, método e observação constante." },
 };
+export const DEFAULT_CLASS_FEAT_OPTION_LEVELS = [4, 8, 12, 16, 19];
 export const CLASS_FEAT_OPTION_LEVELS = {
   guerreiro: [4, 6, 8, 12, 14, 16, 19],
   ladino: [4, 8, 10, 12, 16, 19],

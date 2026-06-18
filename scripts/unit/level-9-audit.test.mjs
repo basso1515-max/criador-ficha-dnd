@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
-import { CLASSES as CLASSES_5E, DATASET_VERSION as CLASSES_5E_DATASET_VERSION } from "../../src/data/5e/classes.js";
+import { CLASSES as CLASSES_5E, META_CLASSES as CLASSES_5E_META } from "../../src/data/5e/classes.js";
 import { SUBCLASSES as SUBCLASSES_5E } from "../../src/data/5e/subclasses.js";
 import { CLASSES as CLASSES_2024 } from "../../src/data/5.5e/classes.js";
 import { SUBCLASSES as SUBCLASSES_2024 } from "../../src/data/5.5e/subclasses.js";
@@ -181,7 +181,10 @@ function assertLevel9Unlock(sourceMap, sourceId, expectedSpellIds) {
 }
 
 test("matriz 5e: classes e subclasses declaram exatamente os recursos de nivel 9 esperados", () => {
-  assert.equal(CLASSES_5E_DATASET_VERSION, "0.2.6", "dataset 5e registra a correcao oficial de nivel 9");
+  assert.ok(
+    CLASSES_5E_META.changelog.some((entry) => entry.startsWith("0.2.6:")),
+    "dataset 5e registra a correcao oficial de nivel 9"
+  );
   assertFeatureMatrix(CLASSES_5E, EXPECTED_5E_CLASS_FEATURES_LEVEL_9, "5e nivel 9");
   assertFeatureMatrix(SUBCLASSES_5E, EXPECTED_5E_SUBCLASS_FEATURES_LEVEL_9, "5e nivel 9");
 

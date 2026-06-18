@@ -58,6 +58,7 @@ import {
   PROFICIENCY_LABEL_OVERRIDES,
   FIGHTING_STYLE_DEFINITIONS,
   LANGUAGE_METADATA,
+  DEFAULT_CLASS_FEAT_OPTION_LEVELS,
   CLASS_FEAT_OPTION_LEVELS,
   SLOT_TABLES,
   SPELLCASTING_RULES,
@@ -5484,7 +5485,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
   }
 
   function getClassFeatOptionLevels(classId = "") {
-    return CLASS_FEAT_OPTION_LEVELS[classId] || [4, 8, 12, 16, 19];
+    return CLASS_FEAT_OPTION_LEVELS[classId] || DEFAULT_CLASS_FEAT_OPTION_LEVELS;
   }
 
   function buildFeatGrantLabel(sourceLabel, featureName = "") {
