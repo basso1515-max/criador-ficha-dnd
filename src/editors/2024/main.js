@@ -3329,19 +3329,18 @@ import {
     return readSelectValues(el.featureChoicesContainer, "data-feature-choice-slot-key");
   }
 
-  function getWizardFeatureSpellOptions2024(spellLevel) {
-    const wizardClassId = normalizeClassId2024("mago");
+  function getWizardFeatureSpellOptions2024(source) {
+    const classIds = (source?.spellClassIds || ["mago"]).map(normalizeClassId2024);
+    const fixedLevel = Number(source?.spellLevel || 0);
+    const maxLevel = fixedLevel || (SPELLCASTING_RULES_2024[source?.maxSpellLevelFromClass]?.slotTable?.[Number(source?.entry?.level || 0)] || []).length;
     return SPELL_LIST_2024
-      .filter((spell) => Number(spell.nivel || 0) === Number(spellLevel || 0))
-      .filter((spell) => (spell.normalizedClasses || []).includes(wizardClassId))
+      .filter((spell) => fixedLevel ? Number(spell.nivel || 0) === fixedLevel : Number(spell.nivel || 0) <= maxLevel)
+      .filter((spell) => (spell.normalizedClasses || []).some((classId) => classIds.includes(classId)))
       .sort((a, b) => String(a.nome || "").localeCompare(String(b.nome || ""), "pt-BR"))
       .map((spell) => ({
         value: spell.id,
         label: spell.nome || labelFromSlug(spell.id),
-        summary: spell.resumo || [
-          spell.escola ? `Escola: ${ESCOLAS[spell.normalizedSchool] || spell.escola}` : "",
-          spell.tempoConjuracao ? `Conjuração: ${spell.tempoConjuracao}` : "",
-        ].filter(Boolean).join(" • "),
+        summary: spell.resumo || spell.escola || spell.tempoConjuracao || "",
       }));
   }
 
@@ -3408,7 +3407,7 @@ import {
       : source.optionSet === "wizard-scholar-skills"
         ? getWizardScholarSkillOptions2024(source)
         : source.optionSet === "wizard-spells"
-          ? getWizardFeatureSpellOptions2024(source.spellLevel)
+          ? getWizardFeatureSpellOptions2024(source)
           : source.optionSet === "weapon-mastery"
             ? getWeaponMasteryChoiceOptions2024(source)
             : [];
@@ -3722,6 +3721,15 @@ import {
       return;
     }
 
+    if (featureChoiceSourcesNeedSpellCatalog2024(sources) && !isSpellCatalogLoaded2024()) {
+      el.featureChoicesPanel.hidden = false;
+      el.featureChoicesSummary.textContent = spellCatalogLoadError2024 ? "Falha." : "Carregando...";
+      el.featureChoicesContainer.innerHTML = "";
+      if (!spellCatalogLoadError2024) {
+        loadSpellCatalog2024().then(renderFeatureChoices2024).catch(renderFeatureChoices2024);
+      }
+      return;
+    }
     const totalChoices = sources.reduce((total, source) => total + source.picks, 0);
     const selectedCount = sources.reduce((total, source) => {
       let count = 0;
@@ -4350,32 +4358,6 @@ import {
       el.companionChoicesSummary.textContent = "";
       el.companionChoicesContainer.innerHTML = "";
       if (el.companionChoicesInfo) el.companionChoicesInfo.textContent = "";
-      return;
-    }
-
-    if (featureChoiceSourcesNeedSpellCatalog2024(sources) && !isSpellCatalogLoaded2024()) {
-      el.featureChoicesPanel.hidden = false;
-      el.featureChoicesSummary.textContent = spellCatalogLoadError2024
-        ? "Não foi possível carregar as opções de magia."
-        : "Carregando opções de magia...";
-      el.featureChoicesContainer.innerHTML = "";
-      if (el.featureChoicesInfo) {
-        el.featureChoicesInfo.textContent = spellCatalogLoadError2024
-          ? "Tente trocar o nível/classe ou recarregar a página para buscar o catálogo novamente."
-          : "As opções de magia do Mago são carregadas sob demanda para manter a ficha inicial mais leve.";
-      }
-      if (!spellCatalogLoadError2024) {
-        loadSpellCatalog2024()
-          .then(() => {
-            renderFeatureChoices2024();
-            renderMagicSection2024();
-            updatePreview();
-          })
-          .catch((error) => {
-            console.error("Erro ao carregar catálogo de magias 2024:", error);
-            renderFeatureChoices2024();
-          });
-      }
       return;
     }
 

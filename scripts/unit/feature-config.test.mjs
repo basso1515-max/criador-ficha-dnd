@@ -135,8 +135,13 @@ function assertFeatureChoiceCatalogContract({
           assert.equal(optionSets.has(definition.optionSet), true, `${context} should use known optionSet`);
         }
         if (definition.optionSet === "wizard-spells") {
-          assert.ok(Number.isInteger(definition.spellLevel), `${context} wizard-spells should declare spellLevel`);
-          assert.ok(definition.spellLevel >= 1 && definition.spellLevel <= 9, `${context} spellLevel should be 1-9`);
+          const fixedLevel = Number.isInteger(definition.spellLevel)
+            && definition.spellLevel >= 1
+            && definition.spellLevel <= 9;
+          const progressiveLevel = Array.isArray(definition.spellClassIds)
+            && definition.spellClassIds.length > 0
+            && typeof definition.maxSpellLevelFromClass === "string";
+          assert.ok(fixedLevel || progressiveLevel, `${context} wizard-spells should declare a fixed or progressive spell level`);
           assert.equal(definition.grantsSelectedSpell, true, `${context} should grant selected spell`);
         }
         if (definition.optionSet === "wizard-scholar-skills") {

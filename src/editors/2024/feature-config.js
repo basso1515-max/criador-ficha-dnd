@@ -460,6 +460,22 @@ export const FEATURE_CHOICE_DEFINITIONS_2024 = {
     ],
   },
   subclasses: {
+    "bardo-conhecimento": [
+      {
+        id: "magical-discoveries",
+        minLevel: 6,
+        featureLabel: "Descobertas Mágicas",
+        selectionLabel: "Magia descoberta",
+        help: "Duas magias elegíveis.",
+        required: true,
+        disallowDuplicates: true,
+        picks: 2,
+        optionSet: "wizard-spells",
+        spellClassIds: ["clerigo", "druida", "mago"],
+        maxSpellLevelFromClass: "bardo",
+        grantsSelectedSpell: true,
+      },
+    ],
     "guerreiro-mestre-de-batalha": [
       {
         id: "battle-master-maneuvers",

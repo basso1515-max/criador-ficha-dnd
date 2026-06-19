@@ -1,5 +1,5 @@
 // classes.js
-export const DATASET_VERSION = "0.2.8";
+export const DATASET_VERSION = "0.2.9";
 export const META_CLASSES = {
   dataset: "dnd5e-ptbr",
   version: DATASET_VERSION,
@@ -10,6 +10,7 @@ export const META_CLASSES = {
     drs: "https://aventureirosdosreinos.com/documento-de-referencia-de-sistema-drs/"
   },
   changelog: [
+    "0.2.9: Auditoria do nível 6 com recursos de classe ausentes, correções de subclasses e seletores persistentes alinhados aos fluxos oficiais.",
     "0.2.8: Auditoria do nível 7 com recursos de classe ausentes, correções de subclasses e progressão estruturada de runas do Cavaleiro Rúnico.",
     "0.2.7: Inclusão dos recursos textuais oficiais de classe de nível 8 para Druida e Patrulheiro, com correção da descrição de Forma Selvagem.",
     "0.2.6: Inclusão dos recursos textuais oficiais de classe de nível 9 no dataset 5e legado.",
@@ -66,6 +67,13 @@ export const CLASSES = {
           detalhes: [
             "Mantém um número limitado de infusões ativas; esse limite aumenta com o nível."
           ]
+        }
+      ],
+      6: [
+        {
+          nome: "Especialização em Ferramentas",
+          descricao: "Dobra o bônus de proficiência em testes de atributo que usem ferramentas nas quais tenha proficiência.",
+          detalhes: []
         }
       ],
       7: [
@@ -214,6 +222,15 @@ export const CLASSES = {
           nome: "Conjuração",
           descricao: "Conjura magias usando Carisma.",
           detalhes: []
+        }
+      ],
+      6: [
+        {
+          nome: "Contra-Encantamento",
+          descricao: "Usa uma ação para iniciar uma apresentação que concede a você e aliados a até 9 metros vantagem em salvaguardas contra Enfeitiçado ou Amedrontado até o fim do seu próximo turno.",
+          detalhes: [
+            "A apresentação termina antes se você ficar incapacitado, silenciado ou encerrá-la voluntariamente."
+          ]
         }
       ],
       9: [
@@ -833,6 +850,13 @@ export const CLASSES = {
           detalhes: []
         }
       ],
+      6: [
+        {
+          nome: "Golpes Potencializados por Ki",
+          descricao: "Seus ataques desarmados contam como mágicos para superar resistência e imunidade a ataques e danos não mágicos.",
+          detalhes: []
+        }
+      ],
       7: [
         {
           nome: "Evasão",
@@ -946,6 +970,15 @@ export const CLASSES = {
           nome: "Juramento",
           descricao: "O juramento define suas habilidades e magias adicionais.",
           detalhes: ["Efeitos específicos dependem do juramento escolhido."]
+        }
+      ],
+      6: [
+        {
+          nome: "Aura de Proteção",
+          descricao: "Você e criaturas aliadas a até 3 metros somam seu modificador de Carisma, no mínimo +1, às salvaguardas enquanto você estiver consciente.",
+          detalhes: [
+            "O alcance da aura aumenta para 9 metros no nível 18."
+          ]
         }
       ],
       10: [

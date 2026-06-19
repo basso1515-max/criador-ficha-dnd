@@ -509,7 +509,7 @@ export const FEATURE_SUMMARIES_2024 = {
       "Implementos da Misericórdia": "Ganha proficiências médicas e ferramentas ligadas a cura e tratamento.",
       "Mão Curativa": "Gasta foco para curar por toque; também pode encaixar a cura na Torrente de Golpes.",
       "Mão do Dano": "Gasta foco para somar dano necrótico aos ataques desarmados.",
-      "Toque Médico": "Mão Curativa e Mão do Dano também removem ou impõem condições.",
+      "Toque Médico": "Mão Curativa também encerra Cegueira, Surdez, Paralisia, Envenenamento ou Atordoamento; Mão do Dano deixa o alvo Envenenado até o fim do próximo turno, sem salvaguarda.",
       "Rajada de Cura e Dano": "Sua Torrente de Golpes passa a combinar cura e dano sem custo extra em foco.",
       "Mão da Misericórdia Suprema": "Ressuscita um morto recente e remove várias condições com grande gasto de foco."
     },
@@ -522,7 +522,7 @@ export const FEATURE_SUMMARIES_2024 = {
     "monge-quatro-elementos": {
       "Sintonia Elemental": "Canaliza energia elemental em ataques desarmados, alcance e dano elemental.",
       "Manipular Elementos": "Manipula pequenas manifestações elementais para efeitos utilitários.",
-      "Explosão Elemental": "Gasta foco para liberar uma explosão elemental contra criaturas em área.",
+      "Explosão Elemental": "Gasta 2 pontos de Foco para criar uma esfera de 6 m de raio a até 36 m; criaturas fazem salvaguarda de Destreza e sofrem 3 dados de Artes Marciais de dano ácido, frio, fogo, elétrico ou trovejante, ou metade com sucesso.",
       "Passo dos Elementos": "Usa os elementos para voar temporariamente e atravessar o campo com facilidade.",
       "Epítome Elemental": "Alcança domínio elemental máximo, reforçando defesa, deslocamento e dano."
     },

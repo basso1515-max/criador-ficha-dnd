@@ -125,7 +125,7 @@ export const SUBCLASSES = {
         { nome: "Surto de Magia Selvagem", descricao: "Efeitos mágicos aleatórios ao entrar em fúria." }
       ],
       6: [
-        { nome: "Recarga Mágica", descricao: "Recupera recursos mágicos de aliados." }
+        { nome: "Magia Fortalecedora", descricao: "Como ação, toca uma criatura: por 10 minutos ela soma 1d3 a ataques e testes, ou rola 1d3 e recupera um espaço gasto desse círculo ou inferior. Usa um número de vezes igual ao bônus de proficiência por descanso longo; cada criatura só recebe o benefício uma vez por descanso longo." }
       ],
       10: [
         { nome: "Fluxo Instável", descricao: "Pode alterar efeitos da magia selvagem." }
@@ -191,7 +191,7 @@ export const SUBCLASSES = {
         { nome: "Frenesi", descricao: "Ataque bônus adicional durante fúria." }
       ],
       6: [
-        { nome: "Fúria Mental", descricao: "Imune a medo e charme." }
+        { nome: "Fúria Irracional", descricao: "Durante a Fúria, não pode ficar Enfeitiçado ou Amedrontado; entrar em Fúria suspende essas condições." }
       ],
       10: [
         { nome: "Intimidação", descricao: "Assusta inimigos com presença feroz." }
@@ -213,7 +213,7 @@ export const SUBCLASSES = {
         { nome: "Fúria Divina", descricao: "Causa dano radiante ou necrótico adicional." }
       ],
       6: [
-        { nome: "Guerreiro dos Deuses", descricao: "Ressurreição facilitada." }
+        { nome: "Concentração Fanática", descricao: "Uma vez por Fúria, pode refazer uma salvaguarda falha e deve usar o novo resultado." }
       ],
       10: [
         { nome: "Presença Fanática", descricao: "Fortalece aliados próximos." }
@@ -235,7 +235,7 @@ export const SUBCLASSES = {
         { nome: "Poder do Gigante", descricao: "Aumenta tamanho e alcance." }
       ],
       6: [
-        { nome: "Arremesso Poderoso", descricao: "Pode arremessar criaturas e objetos." }
+        { nome: "Cutelo Elemental", descricao: "Ao entrar em Fúria, imbui uma arma: o dano dela muda para ácido, frio, fogo, elétrico ou trovejante, causa 1d6 adicional, recebe Arremesso (6/18 m) e retorna à mão após um ataque à distância." }
       ],
       10: [
         { nome: "Forma Gigante", descricao: "Cresce e causa mais dano." }
@@ -425,7 +425,7 @@ export const SUBCLASSES = {
         { nome: "Contos Sobrenaturais", descricao: "Efeitos aleatórios ao usar inspiração." }
       ],
       6: [
-        { nome: "Foco Espiritual", descricao: "Usa foco especial para magias." }
+        { nome: "Foco Espiritual", descricao: "Ao conjurar uma magia de bardo que cause dano ou restaure PV usando o foco espiritual, soma 1d6 a uma rolagem de dano ou cura." }
       ],
       14: [
         { nome: "Contos Guiados", descricao: "Escolhe efeitos dos contos." }
@@ -698,7 +698,7 @@ export const SUBCLASSES = {
         { nome: "Duplicidade", descricao: "Cria duplicata ilusória." }
       ],
       6: [
-        { nome: "Passo Sombrio", descricao: "Teleporta entre sombras." }
+        { nome: "Manto de Sombras", descricao: "Usa Canalizar Divindade como ação para ficar invisível até o fim do próximo turno ou até atacar ou conjurar uma magia." }
       ],
       8: [
         { nome: "Ataque Divino", descricao: "Causa dano adicional." }
@@ -748,7 +748,7 @@ export const SUBCLASSES = {
         { nome: "Golpe Guiado", descricao: "Garante acerto em ataque." }
       ],
       6: [
-        { nome: "Bênção de Guerra", descricao: "Ajuda aliados a acertar." }
+        { nome: "Bênção do Deus da Guerra", descricao: "Usa a reação e Canalizar Divindade para conceder +10 ao ataque de uma criatura a até 9 metros." }
       ],
       8: [
         { nome: "Ataque Divino", descricao: "Dano extra." }
@@ -773,7 +773,7 @@ export const SUBCLASSES = {
         { nome: "Explosão Solar", descricao: "Dano radiante em área." }
       ],
       6: [
-        { nome: "Luz Melhorada", descricao: "Usa habilidade mais vezes." }
+        { nome: "Labareda Protetora Aprimorada", descricao: "Pode usar Labareda Protetora quando uma criatura a até 9 metros ataca outra criatura que não seja você." }
       ],
       8: [
         { nome: "Potência Divina", descricao: "Aumenta dano mágico." }
@@ -798,7 +798,7 @@ export const SUBCLASSES = {
         { nome: "Toque da Morte", descricao: "Dano necrótico massivo." }
       ],
       6: [
-        { nome: "Toque Aprimorado", descricao: "Ignora resistências." }
+        { nome: "Destruição Inevitável", descricao: "Dano necrótico causado por suas magias de clérigo e por Canalizar Divindade ignora resistência a dano necrótico." }
       ],
       8: [
         { nome: "Ataque Divino", descricao: "Dano extra." }
@@ -823,7 +823,7 @@ export const SUBCLASSES = {
         { nome: "Encantar Animais", descricao: "Afeta criaturas naturais." }
       ],
       6: [
-        { nome: "Resistência Natural", descricao: "Resiste a elementos." }
+        { nome: "Amortecer Elementos", descricao: "Usa a reação para conceder a você ou criatura próxima resistência a dano ácido, frio, fogo, elétrico ou trovejante de uma ocorrência." }
       ],
       8: [
         { nome: "Ataque Divino", descricao: "Dano adicional." }
@@ -848,7 +848,7 @@ export const SUBCLASSES = {
         { nome: "Exigir Obediência", descricao: "Encanta inimigos." }
       ],
       6: [
-        { nome: "Encantamento Aprimorado", descricao: "Usa mais vezes efeitos." }
+        { nome: "Corporificação da Lei", descricao: "Ao conjurar com espaço uma magia de Encantamento de ação, pode conjurá-la como ação bônus; usa um número de vezes igual ao modificador de Sabedoria por descanso longo." }
       ],
       8: [
         { nome: "Ataque Divino", descricao: "Dano extra." }
@@ -971,10 +971,10 @@ export const SUBCLASSES = {
         { nome: "Conhecimento Bônus", descricao: "Ganha perícias e idiomas." }
       ],
       2: [
-        { nome: "Ler Pensamentos", descricao: "Lê mente de criaturas." }
+        { nome: "Conhecimento das Eras", descricao: "Usa Canalizar Divindade para ganhar por 10 minutos proficiência em uma perícia ou ferramenta." }
       ],
       6: [
-        { nome: "Conhecimento Aprimorado", descricao: "Melhora habilidades." }
+        { nome: "Ler Pensamentos", descricao: "Usa Canalizar Divindade para ler os pensamentos superficiais de uma criatura e pode encerrar o efeito conjurando Sugestão sem gastar espaço." }
       ],
       8: [
         { nome: "Potência Divina", descricao: "Dano extra." }
@@ -999,7 +999,7 @@ export const SUBCLASSES = {
         { nome: "Santuário do Crepúsculo", descricao: "Cria aura protetora." }
       ],
       6: [
-        { nome: "Passo Sombrio", descricao: "Permite voo temporário." }
+        { nome: "Passos da Noite", descricao: "Em penumbra ou escuridão, usa uma ação bônus para receber deslocamento de voo igual ao de caminhada por 1 minuto; usa um número de vezes igual ao bônus de proficiência por descanso longo." }
       ],
       8: [
         { nome: "Potência Divina", descricao: "Dano adicional." }
@@ -1023,7 +1023,7 @@ export const SUBCLASSES = {
         { nome: "Forma de Combate", descricao: "Transforma-se em criaturas mais fortes." }
       ],
       6: [
-        { nome: "Ataques Mágicos", descricao: "Forma Selvagem causa dano mágico." }
+        { nome: "Golpe Primal", descricao: "Ataques em Forma Selvagem contam como mágicos para superar resistência e imunidade a ataques e danos não mágicos." }
       ],
       10: [
         { nome: "Forma Elemental", descricao: "Transforma-se em elemental." }
@@ -1129,7 +1129,7 @@ export const SUBCLASSES = {
         { nome: "Espírito Selvagem", descricao: "Invoca espírito de fogo." }
       ],
       6: [
-        { nome: "Chamas Aprimoradas", descricao: "Aumenta dano e cura." }
+        { nome: "Vínculo Aprimorado", descricao: "Enquanto o espírito de fogo estiver invocado, soma 1d8 a uma rolagem de dano de fogo ou cura de suas magias; magias de alcance diferente de pessoal podem se originar em você ou no espírito." }
       ],
       10: [
         { nome: "Transporte Ardente", descricao: "Teleporte com fogo." }
@@ -1174,7 +1174,7 @@ export const SUBCLASSES = {
         { nome: "Forma Simbiótica", descricao: "Ganha PV temporários e dano extra." }
       ],
       6: [
-        { nome: "Servos Fúngicos", descricao: "Reanima mortos como aliados." }
+        { nome: "Infestação Fúngica", descricao: "Usa a reação para animar por 1 hora, como zumbi de 1 PV, uma besta ou humanoide Pequeno ou Médio que morra a até 3 metros; usos iguais a Sabedoria por descanso longo." }
       ],
       10: [
         { nome: "Esporos Expandido", descricao: "Aumenta alcance dos esporos." }
@@ -1196,7 +1196,7 @@ export const SUBCLASSES = {
         { nome: "Bálsamo da Corte de Verão", descricao: "Cura aliados à distância." }
       ],
       6: [
-        { nome: "Caminho Oculto", descricao: "Teleporte entre aliados." }
+        { nome: "Refúgio de Luar e Sombra", descricao: "Durante um descanso curto ou longo, cria uma esfera protetora de 9 metros que concede +5 em Furtividade e Percepção e oculta do exterior a luz de chamas abertas." }
       ],
       10: [
         { nome: "Proteção dos Sonhos", descricao: "Protege durante descanso." }
@@ -1243,7 +1243,7 @@ export const SUBCLASSES = {
         { nome: "Magia Ordenada", descricao: "Ganha magias adicionais." }
       ],
       6: [
-        { nome: "Equilíbrio", descricao: "Neutraliza vantagens/desvantagens." }
+        { nome: "Bastião da Lei", descricao: "Gasta de 1 a 5 pontos de feitiçaria para proteger uma criatura com d8s que reduzem o dano recebido." }
       ],
       14: [
         { nome: "Proteção Mecânica", descricao: "Reduz dano." }
@@ -1309,7 +1309,7 @@ export const SUBCLASSES = {
         { nome: "Fases Lunares", descricao: "Ganha efeitos diferentes por fase." }
       ],
       6: [
-        { nome: "Magia Lunar", descricao: "Reduz custo de magia." }
+        { nome: "Crescente e Minguante", descricao: "Ao aplicar Metamagia a uma magia da escola ligada à fase lunar atual, reduz o custo em 1 ponto de feitiçaria; pode gastar 1 ponto como ação bônus para trocar de fase." }
       ],
       14: [
         { nome: "Luz Lunar", descricao: "Cura e dano radiante." }
@@ -1375,7 +1375,8 @@ export const SUBCLASSES = {
         { nome: "Magias Psíquicas", descricao: "Ganha magias mentais." }
       ],
       6: [
-        { nome: "Telepatia", descricao: "Comunicação mental." }
+        { nome: "Defesas Psíquicas", descricao: "Recebe resistência a dano psíquico e vantagem contra Enfeitiçado e Amedrontado." },
+        { nome: "Feitiçaria Psiônica", descricao: "Conjura magias da lista de Magias Psíquicas gastando pontos de feitiçaria e sem componentes, salvo materiais consumidos ou com custo." }
       ],
       14: [
         { nome: "Forma Aberrante", descricao: "Ganha resistências." }
@@ -2103,7 +2104,7 @@ export const SUBCLASSES = {
         { nome: "Ajuste de Densidade", descricao: "Altera peso e velocidade." }
       ],
       6: [
-        { nome: "Campo Gravitacional", descricao: "Move criaturas ao redor." }
+        { nome: "Poço Gravitacional", descricao: "Ao atingir uma criatura com magia, quando ela falha contra sua magia ou quando uma criatura aceita sua magia, pode movê-la 1,5 metro para um espaço livre." }
       ],
       10: [
         { nome: "Pressão Intensa", descricao: "Aumenta dano e controle." }
@@ -2148,7 +2149,7 @@ export const SUBCLASSES = {
         { nome: "Deflexão Arcana", descricao: "Reação para ganhar bônus em CA ou salvaguarda." }
       ],
       6: [
-        { nome: "Magia Poderosa", descricao: "Aumenta dano em concentração." }
+        { nome: "Surto de Poder", descricao: "Armazena surtos ao encerrar magias com Contramágica ou Dissipar Magia e pode gastar um para causar dano energético adicional igual à metade do nível de mago." }
       ],
       10: [
         { nome: "Escudo Durável", descricao: "Mantém concentração melhor." }
@@ -2216,7 +2217,7 @@ export const SUBCLASSES = {
         { nome: "Braços Astrais", descricao: "Ataques com alcance aumentado." }
       ],
       6: [
-        { nome: "Visão Astral", descricao: "Melhora percepção e sentidos." }
+        { nome: "Semblante do Eu Astral", descricao: "Manifesta um semblante astral que aprimora visão, Intuição e Intimidação e permite falar diretamente à mente de uma criatura." }
       ],
       11: [
         { nome: "Corpo Astral", descricao: "Aumenta defesa e mobilidade." }
@@ -2239,7 +2240,7 @@ export const SUBCLASSES = {
         { nome: "Mão do Dano", descricao: "Causa dano adicional." }
       ],
       6: [
-        { nome: "Toque Médico", descricao: "Remove condições." }
+        { nome: "Toque Médico", descricao: "Mão Curativa também encerra doença, Cegueira, Surdez, Paralisia, Envenenamento ou Atordoamento; Mão do Dano pode impor Envenenado até o fim do próximo turno sem salvaguarda." }
       ],
       11: [
         { nome: "Fluxo Vital", descricao: "Cura e dano aprimorados." }
@@ -2349,7 +2350,7 @@ export const SUBCLASSES = {
         { nome: "Armas do Kensei", descricao: "Ganha armas especiais." }
       ],
       6: [
-        { nome: "Um com a Lâmina", descricao: "Ataques contam como mágicos." }
+        { nome: "Um com a Lâmina", descricao: "Armas do Kensei contam como mágicas e, uma vez por turno, pode gastar 1 Ki para causar dano adicional igual ao dado de Artes Marciais." }
       ],
       11: [
         { nome: "Afiar Lâmina", descricao: "Aumenta dano com ki." }
@@ -2392,9 +2393,6 @@ export const SUBCLASSES = {
     features: {
       3: [
         { nome: "Disciplinas Elementais", descricao: "Aprende técnicas baseadas em elementos." }
-      ],
-      6: [
-        { nome: "Fluxo Elemental", descricao: "Aumenta poder elemental." }
       ],
       11: [
         { nome: "Controle Elemental", descricao: "Melhora técnicas." }

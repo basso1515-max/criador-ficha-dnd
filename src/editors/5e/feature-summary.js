@@ -371,8 +371,6 @@ export function compactSubclassFeatureSummary(feature, entry = null) {
       return "Concede vantagem em testes de Furtividade.";
     case "clerigo-enganacao:duplicidade":
       return "Cria uma duplicata ilusória para confundir inimigos.";
-    case "clerigo-enganacao:passo sombrio":
-      return "Teleporta-se entre sombras.";
     case "clerigo-enganacao:duplicidade perfeita":
       return "Cria múltiplas ilusões ao mesmo tempo.";
     case "clerigo-forja:bencao da forja":
@@ -387,16 +385,12 @@ export function compactSubclassFeatureSummary(feature, entry = null) {
       return "Pode fazer um ataque como ação bônus.";
     case "clerigo-guerra:golpe guiado":
       return "Usa Canalizar Divindade para garantir o acerto de um ataque.";
-    case "clerigo-guerra:bencao de guerra":
-      return "Ajuda aliados a acertarem ataques.";
     case "clerigo-guerra:avatar da batalha":
       return "Ganha resistência a dano físico.";
     case "clerigo-luz:luz radiante":
       return "Cega inimigos próximos com um clarão sagrado.";
     case "clerigo-luz:explosao solar":
       return "Causa dano radiante em área.";
-    case "clerigo-luz:luz melhorada":
-      return "Usa sua explosão radiante com mais frequência.";
     case "clerigo-luz:potencia divina":
       return "Aumenta o dano das suas magias.";
     case "clerigo-luz:aura solar":
@@ -405,24 +399,18 @@ export function compactSubclassFeatureSummary(feature, entry = null) {
       return "Aprimora suas magias de necromancia.";
     case "clerigo-morte:toque da morte":
       return "Inflige dano necrótico massivo.";
-    case "clerigo-morte:toque aprimorado":
-      return "Suas magias ignoram certas resistências.";
     case "clerigo-morte:mestre da morte":
       return "Ganha resistência a dano necrótico.";
     case "clerigo-natureza:acolito da natureza":
       return "Aprende um truque druídico.";
     case "clerigo-natureza:encantar animais":
       return "Usa Canalizar Divindade para afetar criaturas naturais.";
-    case "clerigo-natureza:resistencia natural":
-      return "Ganha resistência a tipos de dano elemental.";
     case "clerigo-natureza:mestre da natureza":
       return "Controla criaturas naturais com mais facilidade.";
     case "clerigo-ordem:voz da autoridade":
       return "Quando fortalece um aliado com magia, ele pode atacar.";
     case "clerigo-ordem:exigir obediencia":
       return "Usa Canalizar Divindade para compelir inimigos a obedecer.";
-    case "clerigo-ordem:encantamento aprimorado":
-      return "Usa seus efeitos de comando com mais frequência.";
     case "clerigo-ordem:ordem suprema":
       return "Controla vários inimigos ao mesmo tempo.";
     case "clerigo-paz:vinculo emocional":
@@ -453,10 +441,6 @@ export function compactSubclassFeatureSummary(feature, entry = null) {
       return "Maximiza a cura das suas magias.";
     case "clerigo-conhecimento:conhecimento bonus":
       return "Ganha perícias e idiomas adicionais.";
-    case "clerigo-conhecimento:ler pensamentos":
-      return "Lê pensamentos de criaturas.";
-    case "clerigo-conhecimento:conhecimento aprimorado":
-      return "Aprimora seu domínio de perícias e conhecimentos.";
     case "clerigo-conhecimento:potencia divina":
       return "Aumenta o dano das suas magias.";
     case "clerigo-conhecimento:conhecimento supremo":
@@ -465,8 +449,6 @@ export function compactSubclassFeatureSummary(feature, entry = null) {
       return "Ganha visão no escuro ampliada.";
     case "clerigo-crepusculo:santuario do crepusculo":
       return "Cria uma aura protetora ao redor do grupo.";
-    case "clerigo-crepusculo:passo sombrio":
-      return "Recebe deslocamento de voo temporário.";
     case "clerigo-crepusculo:potencia divina":
       return "Aumenta o dano das suas magias.";
     case "clerigo-crepusculo:escudo do crepusculo":
@@ -559,9 +541,6 @@ export function compactSubclassFeatureSummary(feature, entry = null) {
       return "Recupera grande parte dos próprios pontos de vida.";
     case "feiticeiro-alma-mecanica:magia ordenada":
       return "Ganha magias adicionais ligadas à ordem e ao equilíbrio.";
-    case "feiticeiro-alma-mecanica:equilibrio":
-    case "feiticeiro-alma-mecanica:equilíbrio":
-      return "Pode neutralizar vantagem e desvantagem em uma rolagem.";
     case "feiticeiro-alma-mecanica:protecao mecanica":
     case "feiticeiro-alma-mecanica:proteção mecânica":
       return "Reduz dano com proteção mágica de natureza mecânica.";
@@ -588,8 +567,6 @@ export function compactSubclassFeatureSummary(feature, entry = null) {
       return "Assume uma forma sombria para evitar dano.";
     case "feiticeiro-lunar:fases lunares":
       return "Muda de fase para receber benefícios diferentes.";
-    case "feiticeiro-lunar:magia lunar":
-      return "Reduz o custo de certas magias.";
     case "feiticeiro-lunar:luz lunar":
       return "Canaliza luz lunar para curar e causar dano radiante.";
     case "feiticeiro-lunar:forma lunar":
@@ -616,8 +593,6 @@ export function compactSubclassFeatureSummary(feature, entry = null) {
     case "feiticeiro-mente-aberrante:magias psiquicas":
     case "feiticeiro-mente-aberrante:magias psíquicas":
       return "Ganha magias ligadas à mente e ao psiquismo.";
-    case "feiticeiro-mente-aberrante:telepatia":
-      return "Comunique-se mentalmente com outras criaturas.";
     case "feiticeiro-mente-aberrante:forma aberrante":
       return "Assume traços aberrantes para ganhar resistência.";
     case "feiticeiro-mente-aberrante:mente suprema":
@@ -801,8 +776,6 @@ export function compactSubclassFeatureSummary(feature, entry = null) {
       return "Apaga ou modifica lembranças.";
     case "mago-graviturgista:ajuste de densidade":
       return "Altera peso e velocidade de uma criatura.";
-    case "mago-graviturgista:campo gravitacional":
-      return "Move criaturas com força gravitacional.";
     case "mago-graviturgista:pressao intensa":
     case "mago-graviturgista:pressão intensa":
       return "Aumenta dano e controle com gravidade concentrada.";
@@ -821,8 +794,6 @@ export function compactSubclassFeatureSummary(feature, entry = null) {
     case "mago-guerra:deflexao arcana":
     case "mago-guerra:deflexão arcana":
       return "Usa reação para ganhar bônus em CA ou resistência.";
-    case "mago-guerra:magia poderosa":
-      return "Aumenta o dano enquanto mantém concentração.";
     case "mago-guerra:escudo duravel":
     case "mago-guerra:escudo durável":
       return "Mantém concentração com mais facilidade.";
@@ -849,9 +820,6 @@ export function compactSubclassFeatureSummary(feature, entry = null) {
       return "Concede bônus de combate a aliados próximos.";
     case "barbaro-magia-selvagem:surto de magia selvagem":
       return "Ao entrar em Fúria, libera um efeito mágico aleatório.";
-    case "barbaro-magia-selvagem:recarga magica":
-    case "barbaro-magia-selvagem:recarga mágica":
-      return "Recupera recursos mágicos de aliados.";
     case "barbaro-magia-selvagem:fluxo instavel":
     case "barbaro-magia-selvagem:fluxo instável":
       return "Pode alterar o efeito da sua magia selvagem.";
@@ -869,9 +837,6 @@ export function compactSubclassFeatureSummary(feature, entry = null) {
       return "Reflete dano elemental quando é atingido.";
     case "barbaro-berserker:frenesi":
       return "Durante a Fúria, faz um ataque extra como ação bônus.";
-    case "barbaro-berserker:furia mental":
-    case "barbaro-berserker:fúria mental":
-      return "Fica imune a medo e enfeitiçamento enquanto estiver em Fúria.";
     case "barbaro-berserker:intimidacao":
     case "barbaro-berserker:intimidação":
       return "Assusta inimigos com presença feroz.";
@@ -881,8 +846,6 @@ export function compactSubclassFeatureSummary(feature, entry = null) {
     case "barbaro-fanatico:furia divina":
     case "barbaro-fanatico:fúria divina":
       return "Seus ataques causam dano radiante ou necrótico adicional.";
-    case "barbaro-fanatico:guerreiro dos deuses":
-      return "Fica mais fácil trazê-lo de volta à vida.";
     case "barbaro-fanatico:presenca fanatica":
     case "barbaro-fanatico:presença fanática":
       return "Fortalece aliados próximos com fervor divino.";
@@ -891,8 +854,6 @@ export function compactSubclassFeatureSummary(feature, entry = null) {
       return "Continua lutando mesmo à beira da morte.";
     case "barbaro-gigante:poder do gigante":
       return "Aumenta de tamanho e alcance ao liberar poder gigante.";
-    case "barbaro-gigante:arremesso poderoso":
-      return "Arremessa criaturas e objetos com força sobrenatural.";
     case "barbaro-gigante:forma gigante":
       return "Cresce ainda mais e causa mais dano.";
     case "barbaro-gigante:forca titanica":
@@ -960,8 +921,6 @@ export function compactSubclassFeatureSummary(feature, entry = null) {
       return "Ganha magias e comunicação com espíritos.";
     case "bardo-espiritos:contos sobrenaturais":
       return "Ao usar Inspiração, desencadeia um conto com efeito aleatório.";
-    case "bardo-espiritos:foco espiritual":
-      return "Usa um foco espiritual especial para suas magias.";
     case "bardo-espiritos:contos guiados":
       return "Passa a escolher o efeito dos seus contos.";
     case "bardo-sussurros:laminas psiquicas":
@@ -975,9 +934,6 @@ export function compactSubclassFeatureSummary(feature, entry = null) {
       return "Passa a controlar melhor criaturas aterrorizadas.";
     case "druida-lua:forma de combate":
       return "Usa Forma Selvagem para assumir criaturas mais poderosas.";
-    case "druida-lua:ataques magicos":
-    case "druida-lua:ataques mágicos":
-      return "Seus ataques em Forma Selvagem contam como mágicos.";
     case "druida-lua:forma elemental":
       return "Usa Forma Selvagem para virar um elemental.";
     case "druida-lua:mil formas":
@@ -1009,9 +965,6 @@ export function compactSubclassFeatureSummary(feature, entry = null) {
     case "druida-esporos:forma simbiotica":
     case "druida-esporos:forma simbiótica":
       return "Ganha pontos de vida temporários e dano extra.";
-    case "druida-esporos:servos fungicos":
-    case "druida-esporos:servos fúngicos":
-      return "Reanima mortos como servos fúngicos.";
     case "druida-esporos:esporos expandido":
       return "Aumenta o alcance dos seus esporos.";
     case "druida-esporos:corpo fungico":
@@ -1020,8 +973,6 @@ export function compactSubclassFeatureSummary(feature, entry = null) {
     case "druida-sonhos:balsamo da corte de verao":
     case "druida-sonhos:bálsamo da corte de verão":
       return "Cura aliados à distância com energia feérica.";
-    case "druida-sonhos:caminho oculto":
-      return "Teleporta-se entre aliados e pontos conhecidos.";
     case "druida-sonhos:protecao dos sonhos":
     case "druida-sonhos:proteção dos sonhos":
       return "Protege criaturas durante o descanso.";
@@ -1135,8 +1086,6 @@ export function compactSubclassFeatureSummary(feature, entry = null) {
       return "Após conjurar uma magia, pode fazer um ataque com arma como ação bônus.";
     case "monge-forma-astral:bracos astrais":
       return "Manifesta braços astrais que aumentam o alcance e o controle em combate.";
-    case "monge-forma-astral:visao astral":
-      return "Melhora seus sentidos e sua percepção sobrenatural.";
     case "monge-forma-astral:corpo astral":
       return "Manifesta mais do corpo astral para ganhar defesa e mobilidade.";
     case "monge-forma-astral:forma completa":
@@ -1145,8 +1094,6 @@ export function compactSubclassFeatureSummary(feature, entry = null) {
       return "Gasta ki para curar aliados ao toque.";
     case "monge-misericordia:mao do dano":
       return "Gasta ki para causar dano extra com energia nociva.";
-    case "monge-misericordia:toque medico":
-      return "Remove condições e restaura aliados.";
     case "monge-misericordia:fluxo vital":
       return "Combina cura e dano com mais eficiência.";
     case "monge-misericordia:mestre da misericordia":
@@ -1171,16 +1118,12 @@ export function compactSubclassFeatureSummary(feature, entry = null) {
       return "Exala uma presença dracônica que assusta inimigos.";
     case "monge-kensei:armas do kensei":
       return "Escolhe armas especiais para integrar ao seu estilo marcial.";
-    case "monge-kensei:um com a lamina":
-      return "Seus ataques com armas do kensei contam como mágicos.";
     case "monge-kensei:afiar lamina":
       return "Gasta ki para aumentar o dano da arma.";
     case "monge-kensei:precisao mortal":
       return "Seus ataques com armas do kensei ficam mais letais.";
     case "monge-quatro-elementos:disciplinas elementais":
       return "Aprende disciplinas que imitam técnicas elementais.";
-    case "monge-quatro-elementos:fluxo elemental":
-      return "Melhora o uso das suas técnicas elementais.";
     case "monge-quatro-elementos:controle elemental":
       return "Amplia o controle sobre suas disciplinas.";
     case "monge-quatro-elementos:mestre dos elementos":
@@ -1289,8 +1232,6 @@ export function compactSubclassFeatureSummary(feature, entry = null) {
     case "druida-fogo-selvagem:espirito selvagem":
     case "druida-fogo-selvagem:espírito selvagem":
       return "Invoca um espírito de fogo para lutar ao seu lado.";
-    case "druida-fogo-selvagem:chamas aprimoradas":
-      return "Aumenta o dano e a cura das suas magias.";
     case "feiticeiro-alma-favorecida:magia divina":
       return "Aprende uma magia adicional e pode escolher magias de clérigo como magias de feiticeiro.";
     case "feiticeiro-alma-favorecida:cura empoderada":

@@ -902,8 +902,10 @@ function validateFeatureChoiceDefinitionCatalog() {
             errors.push(`${context} usa optionSet desconhecido (${definition.optionSet}).`);
           }
           if (definition?.optionSet === "wizard-spells") {
-            if (!Number.isInteger(definition.spellLevel) || definition.spellLevel < 1 || definition.spellLevel > 9) {
-              errors.push(`${context} usa wizard-spells sem spellLevel valido.`);
+            const fixedLevel = Number.isInteger(definition.spellLevel) && definition.spellLevel >= 1 && definition.spellLevel <= 9;
+            const progressiveLevel = Array.isArray(definition.spellClassIds) && definition.spellClassIds.length > 0 && typeof definition.maxSpellLevelFromClass === "string";
+            if (!fixedLevel && !progressiveLevel) {
+              errors.push(`${context} usa wizard-spells sem regra de circulo valida.`);
             }
             if (definition.grantsSelectedSpell !== true) {
               errors.push(`${context} usa wizard-spells sem grantsSelectedSpell.`);
