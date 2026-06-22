@@ -691,9 +691,9 @@ const smokePages = [
         assertSubclassProficiencyPanel("kensei-weapons", 2, "Kensei nível 3");
         chooseSubclassProficiency("kensei-weapons", "adaga", 0);
 
-        const duplicateKenseiWeapon = Array.from(selectsForSubclassProficiency("kensei-weapons")[1].options)
-          .find((option) => option.value === "adaga");
-        assert(duplicateKenseiWeapon?.disabled, "Arma do Kensei repetida não ficou bloqueada.");
+        const rangedKenseiWeaponValues = Array.from(selectsForSubclassProficiency("kensei-weapons")[1].options)
+          .map((option) => option.value);
+        assert(!rangedKenseiWeaponValues.includes("adaga"), "Seletor a distancia do Kensei aceitou arma corpo a corpo.");
         chooseSubclassProficiency("kensei-weapons", "arco-longo", 1);
         assertSubclassProficiencyResolved("2/2", ["Kensei", "Adaga", "Arco Longo"], "Armas do Kensei");
 
@@ -1884,6 +1884,7 @@ const smokePages = [
 
 const children = new Set();
 let tempProfile = "";
+let tempServerData = "";
 let smokeNavigationId = 0;
 
 async function main() {
@@ -1891,8 +1892,9 @@ async function main() {
   const chromePort = await getFreePort();
   const baseUrl = `http://${HOST}:${serverPort}`;
 
+  tempServerData = await mkdtemp(path.join(tmpdir(), "dnd-smoke-server-"));
   const server = spawnChild(process.execPath, ["scripts/serve.mjs"], {
-    env: { ...process.env, HOST, PORT: String(serverPort) },
+    env: { ...process.env, HOST, PORT: String(serverPort), SERVER_DATA_DIR: tempServerData },
     stdio: ["ignore", "pipe", "pipe"],
   });
 
@@ -2416,6 +2418,15 @@ try {
     } catch (error) {
       if (process.env.DND_SMOKE_VERBOSE_CLEANUP === "1") {
         console.warn(`Aviso: não foi possível remover o perfil temporário do Chrome agora (${error.message}).`);
+      }
+    }
+  }
+  if (tempServerData) {
+    try {
+      await rm(tempServerData, { recursive: true, force: true, maxRetries: 2, retryDelay: 100 });
+    } catch (error) {
+      if (process.env.DND_SMOKE_VERBOSE_CLEANUP === "1") {
+        console.warn(`Aviso: não foi possível remover os dados temporários do servidor (${error.message}).`);
       }
     }
   }
