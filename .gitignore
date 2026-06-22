@@ -22,3 +22,7 @@ Thumbs.db
 !.env.example
 
 .vercel/
+
+# Local Git/Codex metadata and temporary authentication output
+.git-codex-*/
+.tmp-gh-auth-*.txt
