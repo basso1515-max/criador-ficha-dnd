@@ -1,5 +1,5 @@
 /* Shared theme toggle control for non-editor surfaces. */
-.site-theme-toggle {
+.theme-toggle.site-theme-toggle {
   position: fixed;
   top: calc(18px + env(safe-area-inset-top, 0px));
   right: 18px;
@@ -308,7 +308,7 @@
 }
 
 @media (max-width: 720px) {
-  .site-theme-toggle {
+  .theme-toggle.site-theme-toggle {
     top: calc(12px + env(safe-area-inset-top, 0px));
     right: 12px;
   }
