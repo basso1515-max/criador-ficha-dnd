@@ -12,7 +12,10 @@ export const SUBCLASSES = {
         { nome: "Elixir Experimental", descricao: "Cria poções com efeitos aleatórios." }
       ],
       5: [
-        { nome: "Alquimia Aprimorada", descricao: "Aumenta cura e dano de magias." }
+        {
+          nome: "Alquimia Aprimorada",
+          descricao: "Ao conjurar uma magia usando suprimentos de alquimista como foco, soma seu modificador de Inteligência, mínimo +1, a uma rolagem de cura ou de dano de ácido, fogo, necrótico ou veneno da magia."
+        }
       ],
       9: [
         { nome: "Reagentes Restauradores", descricao: "Remove condições e cura aliados." }
@@ -35,7 +38,7 @@ export const SUBCLASSES = {
         { nome: "Modelo de Armadura", descricao: "Escolhe entre proteção ou infiltração." }
       ],
       5: [
-        { nome: "Ataque Extra", descricao: "Pode atacar duas vezes." }
+        { nome: "Ataque Extra", descricao: "Pode atacar duas vezes, em vez de uma, sempre que usa a ação Atacar no seu turno." }
       ],
       9: [
         { nome: "Modificações de Armadura", descricao: "Adiciona melhorias mágicas." }
@@ -57,7 +60,10 @@ export const SUBCLASSES = {
         { nome: "Canhão Arcano", descricao: "Invoca torre mágica com efeitos." }
       ],
       5: [
-        { nome: "Arma Arcana", descricao: "Aumenta dano mágico." }
+        {
+          nome: "Arma Arcana",
+          descricao: "Transforma um bastão, cajado ou varinha em foco arcano; ao conjurar uma magia de Artífice por ele, rola 1d8 e soma o resultado a uma rolagem de dano da magia."
+        }
       ],
       9: [
         { nome: "Canhão Explosivo", descricao: "Melhora efeitos do canhão." }
@@ -79,7 +85,7 @@ export const SUBCLASSES = {
         { nome: "Companheiro de Aço", descricao: "Cria construto aliado." }
       ],
       5: [
-        { nome: "Ataque Extra", descricao: "Pode atacar duas vezes." }
+        { nome: "Ataque Extra", descricao: "Pode atacar duas vezes, em vez de uma, sempre que usa a ação Atacar no seu turno." }
       ],
       9: [
         { nome: "Defesa Reforçada", descricao: "Companheiro fica mais resistente." }

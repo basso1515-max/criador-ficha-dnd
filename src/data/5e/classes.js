@@ -1,15 +1,16 @@
 // classes.js
-export const DATASET_VERSION = "0.2.9";
+export const DATASET_VERSION = "0.3.0";
 export const META_CLASSES = {
   dataset: "dnd5e-ptbr",
   version: DATASET_VERSION,
   locale: "pt-BR",
-  builtAt: "2026-04-08",
+  builtAt: "2026-06-22",
   sources: {
     srd: "https://media.wizards.com/2023/downloads/dnd/SRD_CC_v5.1.pdf",
     drs: "https://aventureirosdosreinos.com/documento-de-referencia-de-sistema-drs/"
   },
   changelog: [
+    "0.3.0: Auditoria do nível 5 com recursos textuais oficiais de classe e descrições completas das especializações de Artífice.",
     "0.2.9: Auditoria do nível 6 com recursos de classe ausentes, correções de subclasses e seletores persistentes alinhados aos fluxos oficiais.",
     "0.2.8: Auditoria do nível 7 com recursos de classe ausentes, correções de subclasses e progressão estruturada de runas do Cavaleiro Rúnico.",
     "0.2.7: Inclusão dos recursos textuais oficiais de classe de nível 8 para Druida e Patrulheiro, com correção da descrição de Forma Selvagem.",
@@ -23,6 +24,10 @@ export const META_CLASSES = {
     "0.1.0: Classes SRD (resumo), 1 subclasse SRD + 1 placeholder por classe; estilos de luta SRD; talento SRD (Agarrador)."
   ]
 };
+
+const feature = (nome, descricao, detalhes = []) => ({ nome, descricao, detalhes });
+const EXTRA_ATTACK_LEVEL_5 = feature("Ataque Extra", "Ataca duas vezes sempre que usa a ação Atacar no turno.");
+
 export const CLASSES = {
   "artifice": {
     id: "artifice",
@@ -147,6 +152,10 @@ export const CLASSES = {
           detalhes: []
         }
       ],
+      5: [
+        EXTRA_ATTACK_LEVEL_5,
+        feature("Movimento Rápido", "Ganha +3 metros de deslocamento sem armadura pesada.")
+      ],
       7: [
         {
           nome: "Instintos Primitivos",
@@ -224,6 +233,7 @@ export const CLASSES = {
           detalhes: []
         }
       ],
+      5: [feature("Fonte de Inspiração", "Recupera a Inspiração Bárdica em descansos curtos ou longos.")],
       6: [
         {
           nome: "Contra-Encantamento",
@@ -424,6 +434,7 @@ export const CLASSES = {
           ]
         }
       ],
+      5: [feature("Destruir Mortos-Vivos (ND 1/2)", "Destrói mortos-vivos de ND 1/2 ou menor que falham contra Expulsar Mortos-Vivos.")],
       10: [
         {
           nome: "Intervenção Divina",
@@ -636,6 +647,7 @@ export const CLASSES = {
           detalhes: ["Usos: 1 por descanso curto; 2 no nível 17."]
         }
       ],
+      5: [EXTRA_ATTACK_LEVEL_5],
       9: [
         {
           nome: "Indomável",
@@ -712,6 +724,7 @@ export const CLASSES = {
           detalhes: []
         }
       ],
+      5: [feature("Esquiva Sobrenatural", "Com sua reação, reduz à metade o dano de um ataque que pode ver.")],
       7: [
         {
           nome: "Evasão",
@@ -850,6 +863,10 @@ export const CLASSES = {
           detalhes: []
         }
       ],
+      5: [
+        EXTRA_ATTACK_LEVEL_5,
+        feature("Golpe Atordoante", "Ao acertar corpo a corpo, gasta 1 ponto de Ki; em falha de Constituição, o alvo fica Atordoado até o fim do seu próximo turno.")
+      ],
       6: [
         {
           nome: "Golpes Potencializados por Ki",
@@ -972,6 +989,7 @@ export const CLASSES = {
           detalhes: ["Efeitos específicos dependem do juramento escolhido."]
         }
       ],
+      5: [EXTRA_ATTACK_LEVEL_5],
       6: [
         {
           nome: "Aura de Proteção",
@@ -1061,6 +1079,7 @@ export const CLASSES = {
           detalhes: []
         }
       ],
+      5: [EXTRA_ATTACK_LEVEL_5],
       8: [
         {
           nome: "Passo da Terra",

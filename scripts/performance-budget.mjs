@@ -9,7 +9,7 @@ const pageBudgets = [
   {
     name: "5e",
     html: "5e.html",
-    maxInitialJsBytes: 1_550_000,
+    maxInitialJsBytes: 1_555_000,
     maxInitialCssBytes: 240_000,
     forbiddenInitialFiles: [
       "assets/vendor/pdf-lib-1.17.1.min.js",
@@ -21,7 +21,7 @@ const pageBudgets = [
   {
     name: "5.5e-2024",
     html: "5.5e-2024.html",
-    maxInitialJsBytes: 1_150_000,
+    maxInitialJsBytes: 1_152_000,
     maxInitialCssBytes: 240_000,
     forbiddenInitialFiles: [
       "assets/vendor/pdf-lib-1.17.1.min.js",

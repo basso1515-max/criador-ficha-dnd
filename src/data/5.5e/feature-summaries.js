@@ -10,7 +10,7 @@ export const FEATURE_SUMMARIES_2024 = {
       "Subclasse de Bárbaro": "Escolhe um caminho bárbaro que expande sua Fúria.",
       "Aumento no Valor de Atributo": "Recebe Aumento no Valor de Atributo ou outro talento para o qual se qualifique.",
       "Ataque Extra": "Ataca duas vezes ao usar a ação Atacar.",
-      "Movimento Rápido": "Seu deslocamento aumenta enquanto não estiver usando armadura pesada.",
+      "Movimento Rápido": "Seu deslocamento aumenta em 3 metros enquanto não estiver usando armadura pesada.",
       "Bote Instintivo": "Move-se até metade do deslocamento como parte da ação bônus usada para entrar em Fúria.",
       "Instinto Feral": "Recebe Vantagem em jogadas de Iniciativa.",
       "Golpe Brutal": "Ao usar Ataque Imprudente, pode abdicar da Vantagem em um ataque de Força sem Desvantagem para causar +1d10 e empurrar/perseguir o alvo ou reduzir seu deslocamento.",
