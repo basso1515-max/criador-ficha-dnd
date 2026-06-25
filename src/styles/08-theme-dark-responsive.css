@@ -1085,6 +1085,14 @@ html[data-theme="dark"] body[data-active-screen="5.5e-2024"] .floating-quick-but
   color: #f2f0eb;
 }
 
+html[data-theme="dark"] body[data-active-screen="5.5e-2024"] .floating-clear-button {
+  border-color: rgba(255, 101, 113, 0.24);
+  background:
+    radial-gradient(circle at top left, rgba(255, 101, 113, 0.12), transparent 46%),
+    linear-gradient(180deg, rgba(32, 39, 45, 0.98), rgba(22, 27, 32, 0.98));
+  color: #ffb4a9;
+}
+
 html[data-theme="dark"] body[data-active-screen="5.5e-2024"] .level-up-dialog {
   border-color: rgba(122, 232, 204, 0.18);
   background:

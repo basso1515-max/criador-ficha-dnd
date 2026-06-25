@@ -341,6 +341,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     userSessionRow: $("userSessionRow5e"),
     quickSaveCharacter: $("quickSaveCharacter5e"),
     quickShareCharacter: $("quickShareCharacter5e"),
+    btnClearSheet: $("btnClearSheet5e"),
     emptySaves: $("emptySaves5e"),
     savedCharactersList: $("savedCharactersList5e"),
     nomeJogador: $("nomeJogador"),
@@ -608,6 +609,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
   let editorA11y = null;
   let isInitialA11yReady = false;
   let lastA11yAbilityAnnouncement = "";
+  let blankSheetPreset = null;
   const magicChecklistScrollState = new Map();
   const knownSpellDistributionCache = new Map();
   let skillSelectionState = {
@@ -679,6 +681,35 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
         selectedSpellsBySource: state.selectedSpellsBySource,
       },
     };
+  }
+
+  function captureBlankSheetPreset() {
+    return {
+      ...captureFormPreset(el.form),
+      extra: {
+        multiclassRowIds: [],
+        selectedSpellsBySource: {},
+      },
+    };
+  }
+
+  function resetClearSheetRuntimeState() {
+    lastAttributeRolls = [];
+    lastValidPointBuyValues = Object.fromEntries(ABILITIES.map((ability) => [ability.key, 8]));
+    lastPhysicalAutofill = Object.fromEntries(PHYSICAL_FIELDS.map((key) => [key, ""]));
+    skillSelectionState.lastAutoFixed = new Set();
+    magicFilterState = { ...MAGIC_FILTER_DEFAULTS };
+  }
+
+  async function clearSheetFields() {
+    const { clonePresetWithCurrentFieldValues, confirmClearSheet } = await import("../clear-sheet-action.js");
+    if (!confirmClearSheet()) return;
+
+    resetClearSheetRuntimeState();
+    restoreSavedCharacterPreset(
+      clonePresetWithCurrentFieldValues(blankSheetPreset || captureBlankSheetPreset(), ["distanceUnit", "weightUnit"])
+    );
+    setStatus("Campos da ficha limpos.");
   }
 
   function buildSavedCharacterSummary() {
@@ -928,6 +959,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       onMagicSlotUsageInput,
     });
     bindChoiceDiagnosticsNavigation5e();
+    el.btnClearSheet?.addEventListener("click", clearSheetFields);
 
     bindPdfSubmit5e({
       form: el.form,
@@ -969,6 +1001,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     onDivinityChanged();
     renderMagicSection();
     atualizarPreview();
+    blankSheetPreset = captureBlankSheetPreset();
     syncPersonagemState({ source: "initial", refresh: false });
     enableReactiveCharacterState();
     floatingSubmitButton.initialize();

@@ -540,6 +540,7 @@ import {
   let editorA11y2024 = null;
   let isInitialA11yReady2024 = false;
   let lastA11yAbilityAnnouncement2024 = "";
+  let blankSheetPreset2024 = null;
   const floatingSubmitButton2024 = createFloatingSubmitButtonController({
     barId: "floatingSubmitBar2024",
     previewPanelSelector: ".preview-panel-2024",
@@ -700,6 +701,7 @@ import {
     userSessionRow: document.getElementById("userSessionRow2024"),
     quickSaveCharacter: document.getElementById("quickSaveCharacter2024"),
     quickShareCharacter: document.getElementById("quickShareCharacter2024"),
+    btnClearSheet: document.getElementById("btnClearSheet2024"),
     emptySaves: document.getElementById("emptySaves2024"),
     savedCharactersList: document.getElementById("savedCharactersList2024"),
   };
@@ -764,6 +766,41 @@ import {
     }
 
     return preset;
+  }
+
+  function captureBlankSheetPreset2024() {
+    return {
+      ...captureFormPreset(el.form),
+      extra: {
+        multiclassRowIds: [],
+        selectedSpellsBySource: {},
+      },
+    };
+  }
+
+  function resetClearSheetRuntimeState2024() {
+    lastAbilityRolls2024 = [];
+    lastValidPointBuyValues2024 = Object.fromEntries(ABILITY_ORDER.map((ability) => [ability, 8]));
+    lastAppliedStandardPreset2024 = null;
+    lastStandardPresetClassId2024 = "";
+    magicFilterState2024 = { ...MAGIC_FILTER_DEFAULTS_2024 };
+    activeMigrationContext2024 = null;
+    activeMigrationCharacter2024 = null;
+  }
+
+  async function clearSheetFields2024() {
+    const { clonePresetWithCurrentFieldValues, confirmClearSheet } = await import("../clear-sheet-action.js");
+    if (!confirmClearSheet()) return;
+
+    resetClearSheetRuntimeState2024();
+    restoreSavedCharacterPreset2024(
+      clonePresetWithCurrentFieldValues(
+        blankSheetPreset2024 || captureBlankSheetPreset2024(),
+        ["distanceUnit2024", "weightUnit2024"]
+      )
+    );
+    document.dispatchEvent(new CustomEvent("character-state:changed", { detail: { source: "sheet:clear" } }));
+    setStatus2024("Campos da ficha 5.5e limpos.", "success");
   }
 
   function buildSavedCharacterSummary2024() {
@@ -1112,6 +1149,7 @@ import {
     });
     bindChoiceDiagnosticsNavigation2024();
     bindPdfSubmit2024(el.form, handlePdfSubmit);
+    el.btnClearSheet?.addEventListener("click", clearSheetFields2024);
 
     migrationReviewAssistant2024 = createMigrationReviewAssistant({
       getPendingChoices: collectPendingChoices,
@@ -1131,6 +1169,7 @@ import {
     });
 
     renderAll();
+    blankSheetPreset2024 = captureBlankSheetPreset2024();
     floatingSubmitButton2024.initialize();
     isInitialA11yReady2024 = true;
     editorA11y2024?.refresh();
