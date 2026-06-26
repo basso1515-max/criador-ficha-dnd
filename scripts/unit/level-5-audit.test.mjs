@@ -174,7 +174,7 @@ test("matriz 2024 declara exatamente os recursos de classe e subclasse de nivel 
   assert.equal(countRecordsWithFeatures(SUBCLASSES_2024), 0, "subclasses 2024 com texto no nivel 5");
 });
 
-test("texto oficial e cobertura de nivel 5 ficam estruturados fora do smoke DOM", () => {
+test("texto oficial e cobertura de nivel 5 ficam estruturados", () => {
   assert.match(getFeature(CLASSES_5E.barbaro, "Movimento Rápido").descricao, /3 metros.*armadura pesada/);
   assert.match(getFeature(CLASSES_5E.bardo, "Fonte de Inspiração").descricao, /descansos curtos ou longos/);
   assert.match(getFeature(CLASSES_5E.clerigo, "Destruir Mortos-Vivos (ND 1/2)").descricao, /Destrói.*ND 1\/2/);
@@ -189,6 +189,9 @@ test("texto oficial e cobertura de nivel 5 ficam estruturados fora do smoke DOM"
   assert.match(FEATURE_SUMMARIES_2024.classes.ladino["Golpe Astuto"], /Veneno.*Rasteira.*Retirada/);
 
   const smokeDomSource = readFileSync(new URL("../smoke-dom.mjs", import.meta.url), "utf8");
+  assert.match(smokeDomSource, /assertLevel5MovementAutomation5e/);
+  assert.match(smokeDomSource, /Preview 5e nível 5 não registrou Ataque Extra e Movimento Rápido do Bárbaro/);
+  assert.match(smokeDomSource, /Preview 5e nível 5 não aplicou Movimento Rápido no deslocamento automático/);
   assert.doesNotMatch(smokeDomSource, /setClassLevel\([^;\n]+,\s*5\)/);
   assert.doesNotMatch(smokeDomSource, /assertFeatureSlots\([^;\n]+,\s*5\s*,/);
 });
@@ -274,6 +277,9 @@ test("contas de magia e automacoes 5e batem no nivel 5", () => {
   const editor5eSource = readFileSync(new URL("../../src/editors/5e/main.js", import.meta.url), "utf8");
   assert.match(editor5eSource, /function getExtraAttackCountForEntry[\s\S]{0,500}entry\.level >= 5/);
   assert.match(editor5eSource, /entry\.classId === "barbaro" && entry\.level >= 5 && !isWearingHeavyArmor/);
+  assert.match(editor5eSource, /function collectMovementInputState/);
+  assert.match(editor5eSource, /deslocamentoManual: movementInput\.manual/);
+  assert.match(editor5eSource, /syncAutoNumericField\(el\.deslocamento,\s*ficha\.derivado\?\.deslocamentoAutoInput/);
 });
 
 test("contas de magia e automacoes 2024 batem no nivel 5", () => {

@@ -333,6 +333,32 @@ const smokePages = [
           );
         };
         const assertLevel19FeatSlots5e = (className, expectedCount) => assertLevelFeatSlots5e(className, 19, expectedCount, "asi-19");
+        const assertLevel5MovementAutomation5e = async () => {
+          const unit = document.querySelector("#distanceUnit")?.value === "ft" ? "ft" : "m";
+          const expectedAutoInput = unit === "ft" ? "40" : "12";
+          const expectedAutoPreview = unit === "ft" ? "Deslocamento: 40 ft" : "Deslocamento: 12 m";
+          const manualInput = unit === "ft" ? "30" : "9";
+          const expectedManualPreview = unit === "ft" ? "Deslocamento: 30 ft" : "Deslocamento: 9 m";
+
+          setValue("#classe", "Bárbaro", ["change"]);
+          setValue("#nivel", "5", ["input", "change"]);
+          await waitForLazyCatalogs();
+          await waitForCondition(() => {
+            const previewText = document.querySelector("#preview")?.textContent || "";
+            return textIncludes(previewText, "Ataque Extra") && textIncludes(previewText, "Movimento Rápido");
+          }, "Preview 5e nível 5 não registrou Ataque Extra e Movimento Rápido do Bárbaro.");
+
+          const movementInput = document.querySelector("#deslocamento");
+          assert(movementInput?.value === expectedAutoInput, "Bárbaro 5e nível 5 deveria sincronizar deslocamento automático para " + expectedAutoInput + " " + unit + "; obteve " + (movementInput?.value || "<vazio>") + ".");
+          const autoPreviewText = document.querySelector("#preview")?.textContent || "";
+          assert(textIncludes(autoPreviewText, expectedAutoPreview), "Preview 5e nível 5 não aplicou Movimento Rápido no deslocamento automático: " + autoPreviewText);
+
+          setValue("#deslocamento", manualInput, ["input", "change"]);
+          await waitForCondition(() => textIncludes(document.querySelector("#preview")?.textContent || "", expectedManualPreview), "Preview 5e nível 5 não respeitou deslocamento manual.");
+          setValue("#deslocamento", "", ["input", "change"]);
+        };
+
+        await assertLevel5MovementAutomation5e();
 
         const level13ClassExpectations5e = [
           { className: "Bruxo", expected: ["Arcano Místico (7º círculo)"] },

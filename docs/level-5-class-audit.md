@@ -11,7 +11,7 @@ Status: completo para todas as classes e subclasses cadastradas.
 - 2024: 11 das 12 classes declaram recurso textual no nível 5. Bruxo é a única classe cujo avanço do nível fica apenas em magia, espaços de pacto e invocações.
 - 2024: nenhuma das 48 subclasses declara recurso textual no nível 5. As magias de subclasse liberadas nesse marco continuam como fontes automáticas.
 - Não existe ASI/talento de classe no nível 5 em nenhuma das edições.
-- Não havia checagem solta real de nível 5 no `smoke-dom`. A cobertura completa agora está em `scripts/unit/level-5-audit.test.mjs` e o teste impede que novas checagens pontuais desse nível voltem ao smoke.
+- Não havia checagem solta real de nível 5 no `smoke-dom`. A cobertura completa fica em `scripts/unit/level-5-audit.test.mjs`, com um smoke DOM estruturado e nomeado apenas para a automação real do deslocamento de Bárbaro 5e nível 5.
 
 ## Matriz 5e legacy
 
@@ -65,21 +65,24 @@ As 48 subclasses 2024 não recebem característica textual direta no nível 5. A
 
 - Texto: fica no dataset quando o nível concede ou melhora uma característica que precisa aparecer no resumo da classe ou subclasse. A auditoria corrigiu a ausência dos dez recursos de classe 5e e detalhou as quatro características de Artífice que antes eram vagas.
 - Seletor: representa apenas decisões persistentes. No nível 5 isso inclui contagens já abertas de infusões, invocações, Metamagias, manobras, runas, tiros arcanos, disciplinas elementais, armas Kensei, Inimigo Favorito e Explorador Nato. Golpe Astuto, Golpe Atordoante e Memorizar Magia não criam seletores permanentes artificiais.
-- Automação: cobre espaços e quantidades de magia, pontos, usos, dados, maestrias, ataques, deslocamento, magias concedidas e a Montaria Fiel. A matriz testa 5e e 2024 separadamente.
+- Automação: cobre espaços e quantidades de magia, pontos, usos, dados, maestrias, ataques, deslocamento, magias concedidas e a Montaria Fiel. A matriz testa 5e e 2024 separadamente; o smoke DOM valida que Bárbaro 5e nível 5 sincroniza Movimento Rápido para 12 m e respeita override manual.
 
 ## Divergências corrigidas
 
 - O dataset 5e não possuía nenhum recurso de classe no nível 5. Foram incluídos Ataque Extra, Movimento Rápido, Fonte de Inspiração, Destruir Mortos-Vivos, Esquiva Sobrenatural e Golpe Atordoante nas oito classes aplicáveis.
 - As descrições das quatro especializações de Artífice eram genéricas. Alquimia Aprimorada e Arma Arcana agora registram foco, modificador, tipos de dano e dado adicional; as duas versões de Ataque Extra usam o mesmo contrato da classe.
 - O texto 2024 de Movimento Rápido agora explicita o aumento de 3 metros. Fonte de Inspiração, Ressurgimento Selvagem, Fulminar Mortos-Vivos e Golpe Atordoante foram alinhados aos resumos completos usados pela interface.
+- O editor 5e já tinha a regra de +10 ft do Movimento Rápido, mas o campo `deslocamento` nascia preenchido e era tratado como manual. O campo agora mantém um valor automático rastreado: classe/raça/talento podem recalcular o deslocamento até o usuário editar manualmente.
 - Não foi encontrada checagem solta de nível 5 para remover do smoke DOM.
 
 ## Arquivos e verificação
 
 - `src/data/5e/classes.js`: dataset atualizado para `0.3.0`, com recursos de classe de nível 5.
 - `src/data/5e/subclasses.js`: descrições completas das quatro especializações de Artífice.
+- `src/editors/5e/main.js`: sincronização auto/manual do campo de deslocamento, preservando Movimento Rápido e overrides do usuário.
 - `src/data/5.5e/classes.js` e `src/data/5.5e/feature-summaries.js`: textos 2024 alinhados.
 - `scripts/unit/level-5-audit.test.mjs`: matriz completa de texto, seletores, magia e automações das duas edições.
+- `scripts/smoke-dom.mjs`: smoke estruturado para a automação de deslocamento do Bárbaro 5e nível 5.
 - `scripts/performance-budget.mjs`: tetos de JS inicial recalibrados em 5 KB para 5e e 2 KB para 2024 após medir o crescimento dos dados oficiais.
 - `docs/level-5-class-audit.md`: registro da auditoria e dos critérios de modelagem.
 

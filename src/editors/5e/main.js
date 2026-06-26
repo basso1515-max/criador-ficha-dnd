@@ -2242,6 +2242,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     const nextUnit = getPreferredDistanceUnit();
     const currentUnit = previousDistanceUnit;
     const currentValue = Number(el.deslocamento.value);
+    const currentAutoValue = Number(el.deslocamento.dataset.autoValue);
 
     if (!Number.isNaN(currentValue)) {
       el.deslocamento.value = formatDistanceForInput(convertDistance(currentValue, currentUnit, nextUnit), nextUnit);
@@ -2251,6 +2252,9 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       if (!Number.isNaN(raceSpeedFt) && raceSpeedFt > 0) {
         el.deslocamento.value = formatDistanceForInput(convertDistance(raceSpeedFt, "ft", nextUnit), nextUnit);
       }
+    }
+    if (!Number.isNaN(currentAutoValue)) {
+      el.deslocamento.dataset.autoValue = formatDistanceForInput(convertDistance(currentAutoValue, currentUnit, nextUnit), nextUnit);
     }
 
     convertPhysicalAutofillField("altura", currentUnit, nextUnit, formatHeightForInput, convertDistance);
@@ -10992,6 +10996,22 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     return clampInt(current, min, max);
   }
 
+  function collectMovementInputState(baseSpeedFt = 30) {
+    const current = String(el.deslocamento?.value || "").trim();
+    const auto = String(el.deslocamento?.dataset.autoValue || "").trim();
+    const base = Number(baseSpeedFt);
+    const fallbackBaseFeet = Number.isFinite(base) && base > 0 ? base : 30;
+    const manual = Boolean(current && current !== auto);
+    const rawValue = manual ? current : fallbackBaseFeet;
+    const sourceUnit = manual ? getPreferredDistanceUnit() : "ft";
+
+    return {
+      manual,
+      baseFeet: fallbackBaseFeet,
+      feet: clampNumber(convertDistance(rawValue, sourceUnit, "ft"), 0, 999),
+    };
+  }
+
   function getHitPointProgressionMode() {
     return el.hpMethodRolled?.checked ? "rolled" : "fixed";
   }
@@ -15229,6 +15249,7 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
     el.skillsExtra.querySelectorAll("input[type=checkbox][data-skill]").forEach(chk => {
       if (chk.checked) extras.add(chk.getAttribute("data-skill"));
     });
+    const movementInput = collectMovementInputState(race?.velocidade?.ft || 30);
 
     return {
       options: {
@@ -15260,16 +15281,9 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
       cabelo: String(el.cabelo.value || "").trim(),
 
       caManual: el.ca.value !== "" ? clampInt(el.ca.value, 1, 50) : null,
-      deslocamentoManual: el.deslocamento.value !== "",
-      deslocamento: clampNumber(
-        convertDistance(
-          el.deslocamento.value !== "" ? el.deslocamento.value : (race?.velocidade?.ft || 30),
-          el.deslocamento.value !== "" ? getPreferredDistanceUnit() : "ft",
-          "ft"
-        ),
-        0,
-        999
-      ),
+      deslocamentoManual: movementInput.manual,
+      deslocamentoBase: movementInput.baseFeet,
+      deslocamento: movementInput.feet,
       hpMaxManual: getAutoNumericManualValue(el.hpMax, 1, 9999),
       hpAtualManual: el.hpAtual && el.hpAtual.value !== "" ? clampInt(el.hpAtual.value, 0, 9999) : null,
       hpTempManual: el.hpTemp && el.hpTemp.value !== "" ? clampInt(el.hpTemp.value, 0, 9999) : null,
@@ -15386,9 +15400,9 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
       { mode: state.hpProgressionMode, rolls: state.hpRolls }
     ) + getBonusHitPointsFromFeatures(state, resolvedClassEntries);
     const hpMax = state.hpMaxManual !== null ? state.hpMaxManual : hpMaxAuto;
-    const deslocamento = state.deslocamentoManual
-      ? state.deslocamento
-      : state.deslocamento + getMovementBonusFromFeatures(state, equipmentLoadout, resolvedClassEntries);
+    const movementBonus = getMovementBonusFromFeatures(state, equipmentLoadout, resolvedClassEntries);
+    const deslocamentoAuto = clampNumber((state.deslocamentoBase || state.deslocamento || 30) + movementBonus, 0, 999);
+    const deslocamento = state.deslocamentoManual ? state.deslocamento : deslocamentoAuto;
 
     const hpAtual = state.hpAtualManual !== null ? String(state.hpAtualManual) : "";
     const hpTemporario = state.hpTempManual !== null ? String(state.hpTempManual) : "";
@@ -15443,6 +15457,7 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
     return {
       derivado: {
         hpMaxAuto: String(hpMaxAuto),
+        deslocamentoAutoInput: formatDistanceForInput(convertDistance(deslocamentoAuto, "ft", state.units?.distance), state.units?.distance),
       },
       texto: {
         nome: state.nome,
@@ -16142,6 +16157,7 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
     if (!Number.isNaN(currentDistanceValue) && el.distanceUnit.value !== "ft") {
       el.deslocamento.value = formatDistanceForInput(convertDistance(currentDistanceValue, "ft", el.distanceUnit.value), el.distanceUnit.value);
     }
+    el.deslocamento.dataset.autoValue = String(el.deslocamento.value || "").trim();
     previousDistanceUnit = el.distanceUnit.value;
     previousWeightUnit = el.weightUnit.value;
   }
@@ -17107,6 +17123,7 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
     const state = collectState();
     const ficha = computeFicha(state);
     syncAutoNumericField(el.hpMax, ficha.derivado?.hpMaxAuto || ficha.texto.hpMax);
+    syncAutoNumericField(el.deslocamento, ficha.derivado?.deslocamentoAutoInput || "");
     renderAbilityTotalPreviews5e(state);
 
     const preview = document.getElementById("preview");
