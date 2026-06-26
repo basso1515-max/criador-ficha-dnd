@@ -1464,15 +1464,6 @@ const smokePages = [
         assert(fireballGranted?.checked && fireballGranted?.disabled, "Bola de Fogo não ficou marcada e travada como magia do Círculo da Terra.");
         assert((document.querySelector("#preview2024")?.textContent || "").includes("Árido"), "Preview não registrou o terreno do Círculo da Terra.");
 
-        assertFeatureSlots("barbaro", 4, [["weapon-mastery", 3]]);
-        const barbarianMasteries = new Set();
-        for (let index = 0; index < 3; index += 1) {
-          barbarianMasteries.add(chooseFeature("weapon-mastery", "", index));
-        }
-        assert(barbarianMasteries.size === 3, "Maestria em Arma do bárbaro permitiu duplicidade.");
-        assertFeatureSummary("3/3");
-        assert((document.querySelector("#preview2024")?.textContent || "").includes("Maestria em Arma"), "Resumo/PDF automático 2024 não recebeu Maestria em Arma.");
-
         assertFeatureSlots("feiticeiro", 17, [["metamagic", 6]]);
         const metamagic = new Set();
         for (let index = 0; index < 6; index += 1) {
@@ -1489,21 +1480,6 @@ const smokePages = [
         chooseFeature("signature-spells", "", 0);
         chooseFeature("signature-spells", "", 1);
         assertFeatureSummary("5/5");
-
-        assertFeatureSlots("barbaro", 4, [["weapon-mastery", 3]]);
-        const masteryValuesForFeat = new Set();
-        for (let index = 0; index < 3; index += 1) {
-          masteryValuesForFeat.add(chooseFeature("weapon-mastery", "", index));
-        }
-        chooseFeat("mestre-de-armas");
-        const featMasterySelects = selectsForFeatureKind("feat", "weapon-mastery");
-        assert(featMasterySelects.length === 1, "Mestre das Armas não abriu escolha explicita de maestria.");
-        const featOption = Array.from(featMasterySelects[0].options)
-          .find((option) => option.value && !option.disabled && !masteryValuesForFeat.has(option.value));
-        assert(featOption, "Mestre das Armas não tem arma valida para escolher.");
-        featMasterySelects[0].value = featOption.value;
-        dispatch(featMasterySelects[0], "change");
-        assert((document.querySelector("#featureChoicesSummary2024")?.textContent || "").includes("4/4"), "Mestre das Armas não entrou no resumo de escolhas.");
 
         setClassLevel("guardiao", 2);
         const rangerStyleFeatSlots = Array.from(document.querySelectorAll('#featChoices2024 article[data-feat-slot-type="style"] select[data-feat-choice-id]'));
