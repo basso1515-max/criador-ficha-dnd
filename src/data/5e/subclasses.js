@@ -2442,6 +2442,7 @@ export const SUBCLASSES = {
     descricao: "Defensores da lei e da civilização.",
   features: {
     3: [
+      { nome: "Magias de Juramento", descricao: "Ganha magias adicionais sempre preparadas." },
       { nome: "Canalizar Divindade", descricao: "Pode forçar inimigos a focarem em você ou curar aliados." }
     ],
     7: [
@@ -2510,6 +2511,7 @@ export const SUBCLASSES = {
     descricao: "Busca resolver conflitos sem violência.",
     features: {
       3: [
+        { nome: "Magias de Juramento", descricao: "Ganha magias adicionais sempre preparadas." },
         { nome: "Canalizar Divindade", descricao: "Pode acalmar inimigos ou refletir dano recebido." }
       ],
       7: [
@@ -2578,6 +2580,7 @@ export const SUBCLASSES = {
     descricao: "Protege contra ameaças extraplanares.",
     features: {
       3: [
+        { nome: "Magias de Juramento", descricao: "Ganha magias adicionais sempre preparadas." },
         { nome: "Canalizar Divindade", descricao: "Pode revelar inimigos ocultos ou ganhar vantagem mental." }
       ],
       7: [
@@ -2600,6 +2603,7 @@ export const SUBCLASSES = {
     descricao: "Paladino que abandonou seus ideais e abraçou poderes sombrios.",
     features: {
       3: [
+        { nome: "Magias de Juramento", descricao: "Ganha magias adicionais sempre preparadas." },
         { nome: "Canalizar Divindade", descricao: "Pode controlar mortos-vivos ou enfraquecer inimigos com energia sombria." }
       ],
       7: [

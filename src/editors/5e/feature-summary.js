@@ -463,6 +463,8 @@ export function compactSubclassFeatureSummary(feature, entry = null) {
       return "Resiste melhor a dano enquanto estiver sob medo.";
     case "paladino-conquista:conquistador invencivel":
       return "Ganha resistência a dano e mais pressão ofensiva.";
+    case "paladino-coroa:magias de juramento":
+      return "Mantém magias de juramento sempre preparadas.";
     case "paladino-coroa:canalizar divindade":
       return "Usa Canalizar Divindade para chamar inimigos para si ou curar aliados.";
     case "paladino-coroa:lealdade divina":
@@ -491,6 +493,8 @@ export function compactSubclassFeatureSummary(feature, entry = null) {
       return "Ganha bônus físicos e mais resistência.";
     case "paladino-gloria:lenda viva":
       return "Assume uma forma heroica que amplia seu potencial em combate.";
+    case "paladino-redencao:magias de juramento":
+      return "Mantém magias de juramento sempre preparadas.";
     case "paladino-redencao:canalizar divindade":
       return "Usa Canalizar Divindade para pacificar inimigos ou refletir dano.";
     case "paladino-redencao:aura do guardiao":
@@ -519,6 +523,8 @@ export function compactSubclassFeatureSummary(feature, entry = null) {
       return "Recupera pontos de vida no início do turno se estiver ferido.";
     case "paladino-ancioes:campeao anciao":
       return "Assume uma forma ancestral com cura, resistência e bônus mágicos.";
+    case "paladino-vigilantes:magias de juramento":
+      return "Mantém magias de juramento sempre preparadas.";
     case "paladino-vigilantes:canalizar divindade":
       return "Usa Canalizar Divindade para revelar ameaças ocultas ou reforçar a mente.";
     case "paladino-vigilantes:aura do sentinela":
@@ -527,6 +533,8 @@ export function compactSubclassFeatureSummary(feature, entry = null) {
       return "Ganha vantagem em testes mentais.";
     case "paladino-vigilantes:sentinela eterna":
       return "Recebe bônus especiais contra criaturas extraplanares.";
+    case "paladino-quebrador-de-juramento:magias de juramento":
+      return "Mantém magias de juramento sempre preparadas.";
     case "paladino-quebrador-de-juramento:canalizar divindade":
       return "Usa Canalizar Divindade para controlar mortos-vivos ou enfraquecer inimigos.";
     case "paladino-quebrador-de-juramento:aura de odio":

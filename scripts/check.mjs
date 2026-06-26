@@ -1126,12 +1126,6 @@ function normalizeFeatureName(name = "") {
     .trim();
 }
 
-const PALADIN_OATH_FEATURE_VALIDATION_IDS_5E = new Set([
-  "paladino-gloria",
-  "paladino-vinganca",
-  "paladino-ancioes",
-]);
-
 function validateGrantedSpellDefinitionRefs(edition, sourceLabel, definition, spellIds, errors) {
   collectGrantedSpellIdsByLevel(definition).forEach((spellId) => {
     if (!spellIds.has(spellId)) {
@@ -1173,13 +1167,11 @@ function validatePaladinOathSpellData() {
       return;
     }
 
-    if (PALADIN_OATH_FEATURE_VALIDATION_IDS_5E.has(subclassId)) {
-      const hasFeature = getFeaturesAtLevel(subclass, 3)
-        .some((feature) => normalizeFeatureName(feature?.nome) === "magias de juramento");
-      if (!hasFeature) errors.push(`5e: ${subclassId} sem feature visivel Magias de Juramento no nivel 3.`);
-      if (!script5e.includes(`case "${subclassId}:magias de juramento":`)) {
-        errors.push(`5e: ${subclassId} sem hover explicativo de Magias de Juramento.`);
-      }
+    const hasFeature = getFeaturesAtLevel(subclass, 3)
+      .some((feature) => normalizeFeatureName(feature?.nome) === "magias de juramento");
+    if (!hasFeature) errors.push(`5e: ${subclassId} sem feature visivel Magias de Juramento no nivel 3.`);
+    if (!script5e.includes(`case "${subclassId}:magias de juramento":`)) {
+      errors.push(`5e: ${subclassId} sem hover explicativo de Magias de Juramento.`);
     }
     validateEditorDefinitionUsesSharedUnlocks(
       "5e",
