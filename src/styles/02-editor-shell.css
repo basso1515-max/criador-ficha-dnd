@@ -445,6 +445,7 @@ textarea { resize: vertical; }
 }
 
 .floating-submit-bar {
+  position: relative;
   display: grid;
   gap: 12px;
   margin-top: 18px;
@@ -456,6 +457,7 @@ textarea { resize: vertical; }
     linear-gradient(180deg, rgba(21, 20, 39, 0.92), rgba(34, 31, 58, 0.96));
   box-shadow: 0 18px 34px rgba(18, 16, 35, 0.24);
   transition: box-shadow 0.22s ease, transform 0.22s ease;
+  overflow: visible;
 }
 
 .floating-submit-bar.is-floating {
@@ -705,15 +707,18 @@ textarea { resize: vertical; }
 }
 
 .floating-clear-button {
+  position: absolute;
+  top: 50%;
+  right: -54px;
+  z-index: 2;
   display: inline-grid;
   place-items: center;
-  justify-self: end;
-  align-self: stretch;
-  width: 54px;
-  min-width: 54px;
-  min-height: 54px;
+  width: 46px;
+  min-width: 46px;
+  height: 46px;
+  min-height: 46px;
   padding: 0;
-  border-radius: 14px;
+  border-radius: 999px;
   border: 1px solid rgba(235, 190, 116, 0.28);
   background:
     radial-gradient(circle at 30% 18%, rgba(255, 235, 195, 0.2), transparent 38%),
@@ -722,7 +727,12 @@ textarea { resize: vertical; }
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.12),
     0 10px 22px rgba(11, 8, 28, 0.2);
+  transform: translateY(-50%);
   transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+}
+
+.floating-clear-button[hidden] {
+  display: none;
 }
 
 .floating-clear-button svg {
@@ -738,11 +748,25 @@ textarea { resize: vertical; }
 
 .floating-clear-button:hover,
 .floating-clear-button:focus-visible {
-  transform: translateY(-2px);
+  transform: translateY(calc(-50% - 2px));
   border-color: rgba(255, 224, 166, 0.46);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.18),
     0 16px 28px rgba(12, 9, 30, 0.3);
+}
+
+.floating-clear-button:not([hidden]) {
+  animation: floatingClearButtonReveal 0.18s ease-out;
+}
+
+@keyframes floatingClearButtonReveal {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 .floating-quick-button strong {
@@ -795,10 +819,6 @@ textarea { resize: vertical; }
 @media (min-width: 981px) {
   .floating-submit-actions {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .floating-submit-actions .floating-quick-button:last-child {
-    grid-column: 1 / -1;
   }
 }
 
@@ -899,6 +919,17 @@ button:hover { border-color: #5a3e24; }
 
   .floating-submit-actions {
     grid-template-columns: 1fr;
+  }
+
+  .floating-clear-button {
+    top: -52px;
+    right: 12px;
+    transform: none;
+  }
+
+  .floating-clear-button:hover,
+  .floating-clear-button:focus-visible {
+    transform: translateY(-2px);
   }
 
   .d20-submit-button {

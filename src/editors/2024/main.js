@@ -711,6 +711,9 @@ import {
   let activeMigrationContext2024 = null;
   let activeMigrationCharacter2024 = null;
   let migrationReviewAssistant2024 = null;
+  const showClear2024 = () => {
+    el.btnClearSheet.hidden = false;
+  };
 
   function collectCommunitySpellIds2024(selection = {}) {
     const ids = new Set();
@@ -800,6 +803,7 @@ import {
       )
     );
     document.dispatchEvent(new CustomEvent("character-state:changed", { detail: { source: "sheet:clear" } }));
+    el.btnClearSheet.hidden = true;
     setStatus2024("Campos da ficha 5.5e limpos.", "success");
   }
 
@@ -1149,6 +1153,12 @@ import {
     });
     bindChoiceDiagnosticsNavigation2024();
     bindPdfSubmit2024(el.form, handlePdfSubmit);
+    ["input", "change", "pointerdown"].forEach((type) => {
+      el.form.addEventListener(type, showClear2024, true);
+    });
+    [el.btnRandomizeAll, el.btnRandomizeRemaining].forEach((btn) => {
+      btn.addEventListener("click", showClear2024);
+    });
     el.btnClearSheet?.addEventListener("click", clearSheetFields2024);
 
     migrationReviewAssistant2024 = createMigrationReviewAssistant({

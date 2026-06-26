@@ -955,11 +955,11 @@ html:not([data-theme="dark"]) body[data-active-screen="5.5e-2024"] .level-up-hov
   }
 
   .floating-clear-button {
-    justify-self: center;
     width: 44px;
     min-width: 44px;
-    min-height: 40px;
-    border-radius: 12px;
+    height: 44px;
+    min-height: 44px;
+    border-radius: 999px;
   }
 
   .floating-clear-button svg {

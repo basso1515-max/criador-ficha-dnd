@@ -620,6 +620,9 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     previewPanelSelector: ".preview-panel",
     previewBoxId: "preview",
   });
+  const revealClearSheetButton = () => {
+    el.btnClearSheet.hidden = false;
+  };
   const characterStateController = createCharacterStateController({
     collectState,
     renderMagicSection,
@@ -709,6 +712,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     restoreSavedCharacterPreset(
       clonePresetWithCurrentFieldValues(blankSheetPreset || captureBlankSheetPreset(), ["distanceUnit", "weightUnit"])
     );
+    el.btnClearSheet.hidden = true;
     setStatus("Campos da ficha limpos.");
   }
 
@@ -959,6 +963,12 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       onMagicSlotUsageInput,
     });
     bindChoiceDiagnosticsNavigation5e();
+    ["input", "change", "pointerdown"].forEach((eventName) => {
+      el.form.addEventListener(eventName, revealClearSheetButton, true);
+    });
+    [el.btnRandomizeAll, el.btnRandomizeRemaining].forEach((button) => {
+      button.addEventListener("click", revealClearSheetButton);
+    });
     el.btnClearSheet?.addEventListener("click", clearSheetFields);
 
     bindPdfSubmit5e({
