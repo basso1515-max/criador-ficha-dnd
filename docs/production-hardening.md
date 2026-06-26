@@ -62,6 +62,10 @@ Este projeto pode rodar localmente sem muita cerimônia, mas publicação públi
 
 ## Promoção De Deploy
 
+- O projeto Vercel canônico para produção é `criador-ficha-dnd` (`prj_loq25T1SeNYEx5LkJn12UQ5EBQmo`).
+- O domínio público principal é `https://sheetfy.vercel.app`; `https://criador-ficha-dnd.vercel.app` deve redirecionar para ele.
+- Mantenha a Git Integration do Vercel conectada somente nesse projeto, no repositório `basso1515-max/criador-ficha-dnd`, branch de produção `main`.
+- Não conecte o mesmo repositório/branch a outro projeto Vercel, pois cada projeto conectado dispara um deploy de produção separado para o mesmo push.
 - Use `vercel deploy` para gerar um preview manual quando não estiver usando Git Integration.
 - Valide o preview com criação de conta, salvamento de personagem, geração de PDF e estatísticas públicas.
 - Promova para produção com `vercel deploy --prod` ou promova um preview já validado com `vercel promote`.
