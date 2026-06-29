@@ -1,15 +1,16 @@
 // classes.js
-export const DATASET_VERSION = "0.3.0";
+export const DATASET_VERSION = "0.3.1";
 export const META_CLASSES = {
   dataset: "dnd5e-ptbr",
   version: DATASET_VERSION,
   locale: "pt-BR",
-  builtAt: "2026-06-22",
+  builtAt: "2026-06-29",
   sources: {
     srd: "https://media.wizards.com/2023/downloads/dnd/SRD_CC_v5.1.pdf",
     drs: "https://aventureirosdosreinos.com/documento-de-referencia-de-sistema-drs/"
   },
   changelog: [
+    "0.3.1: Auditoria do nível 2 com recursos oficiais ausentes de Bárbaro e Bardo e normalização de nomes de Guerreiro/Ladino.",
     "0.3.0: Auditoria do nível 5 com recursos textuais oficiais de classe e descrições completas das especializações de Artífice.",
     "0.2.9: Auditoria do nível 6 com recursos de classe ausentes, correções de subclasses e seletores persistentes alinhados aos fluxos oficiais.",
     "0.2.8: Auditoria do nível 7 com recursos de classe ausentes, correções de subclasses e progressão estruturada de runas do Cavaleiro Rúnico.",
@@ -152,6 +153,10 @@ export const CLASSES = {
           detalhes: []
         }
       ],
+      2: [
+        feature("Ataque Imprudente", "Pode atacar de forma imprudente para ganhar vantagem em ataques corpo a corpo com Força no turno, mas ataques contra você também têm vantagem até o início do seu próximo turno."),
+        feature("Sentido de Perigo", "Tem vantagem em salvaguardas de Destreza contra efeitos que possa ver, desde que não esteja cego, surdo ou incapacitado.")
+      ],
       5: [
         EXTRA_ATTACK_LEVEL_5,
         feature("Movimento Rápido", "Ganha +3 metros de deslocamento sem armadura pesada.")
@@ -232,6 +237,10 @@ export const CLASSES = {
           descricao: "Conjura magias usando Carisma.",
           detalhes: []
         }
+      ],
+      2: [
+        feature("Pau pra Toda Obra", "Adiciona metade do bônus de proficiência, arredondado para baixo, a testes de atributo em que ainda não some proficiência."),
+        feature("Canção de Descanso (d6)", "Durante um descanso curto, aliados que gastem Dados de Vida recuperam 1d6 pontos de vida adicionais.")
       ],
       5: [feature("Fonte de Inspiração", "Recupera a Inspiração Bárdica em descansos curtos ou longos.")],
       6: [
@@ -430,6 +439,7 @@ export const CLASSES = {
           descricao: "Canaliza poder divino para ativar efeitos do domínio.",
           detalhes: [
             "Usos: aumentam com o nível.",
+            "Também pode usar Expulsar Mortos-Vivos.",
             "Os efeitos dependem do domínio escolhido."
           ]
         }
@@ -642,7 +652,7 @@ export const CLASSES = {
       ],
       2: [
         {
-          nome: "Investida de Ação (Action Surge)",
+          nome: "Surto de Ação",
           descricao: "Ganha uma ação adicional no turno.",
           detalhes: ["Usos: 1 por descanso curto; 2 no nível 17."]
         }
@@ -719,8 +729,8 @@ export const CLASSES = {
       ],
       2: [
         {
-          nome: "Ação Ardilosa (Cunning Action)",
-          descricao: "Como ação bônus, pode usar Dash, Disengage ou Hide.",
+          nome: "Ação Ardilosa",
+          descricao: "Como ação bônus, pode usar Correr, Desengajar ou Esconder.",
           detalhes: []
         }
       ],

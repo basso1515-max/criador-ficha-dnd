@@ -3628,8 +3628,9 @@ import {
       })
       .join("");
     const placeholder = options.length ? "Selecione..." : (source.emptyOptionsLabel || "Sem opções disponíveis");
+    const allowEmptySelection = source?.required === false;
     return `
-      <option value=""${selectedValue ? "" : " selected"} disabled>${escapeHtml(placeholder)}</option>
+      <option value=""${selectedValue ? "" : " selected"}${allowEmptySelection ? "" : " disabled"}>${escapeHtml(placeholder)}</option>
       ${optionHtml}
     `;
   }

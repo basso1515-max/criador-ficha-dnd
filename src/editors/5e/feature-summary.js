@@ -789,6 +789,9 @@ export function compactSubclassFeatureSummary(feature, entry = null) {
       return "Aumenta dano e controle com gravidade concentrada.";
     case "mago-graviturgista:colapso gravitacional":
       return "Cria uma área de gravidade esmagadora.";
+    case "mago-lamina-cantante:treinamento em guerra e cancao":
+    case "mago-lamina-cantante:treinamento em guerra e canção":
+      return "Ganha armadura leve e uma arma corpo a corpo de uma mão.";
     case "mago-lamina-cantante:cancao da lamina":
     case "mago-lamina-cantante:canção da lâmina":
       return "Entra em uma postura arcana que melhora CA, mobilidade e concentração.";
@@ -946,9 +949,8 @@ export function compactSubclassFeatureSummary(feature, entry = null) {
       return "Usa Forma Selvagem para virar um elemental.";
     case "druida-lua:mil formas":
       return "Altera a própria aparência livremente.";
-    case "druida-terra:magias do circulo":
-    case "druida-terra:magias do círculo":
-      return "Mantém magias ligadas ao terreno sempre preparadas.";
+    case "druida-terra:truque adicional":
+      return "Aprende um truque adicional de druida.";
     case "druida-terra:recuperacao natural":
     case "druida-terra:recuperação natural":
       return "Recupera alguns espaços de magia.";

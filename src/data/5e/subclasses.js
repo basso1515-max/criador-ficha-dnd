@@ -1048,8 +1048,8 @@ export const SUBCLASSES = {
     descricao: "Conectado aos biomas naturais.",
     features: {
       2: [
-        { nome: "Magias do Círculo", descricao: "Ganha magias baseadas no terreno." },
-        { nome: "Recuperação Natural", descricao: "Recupera espaços de magia." }
+        { nome: "Truque Adicional", descricao: "Aprende um truque adicional de druida." },
+        { nome: "Recuperação Natural", descricao: "Durante um descanso curto, recupera espaços de magia com nível somado até metade do nível de druida, arredondado para cima." }
       ],
       6: [
         { nome: "Passo da Terra", descricao: "Ignora terreno difícil." }
@@ -2129,6 +2129,7 @@ export const SUBCLASSES = {
     descricao: "Combina magia e combate corpo a corpo.",
     features: {
       2: [
+        { nome: "Treinamento em Guerra e Canção", descricao: "Ganha proficiência com armadura leve e escolhe uma arma corpo a corpo de uma mão para ganhar proficiência." },
         { nome: "Canção da Lâmina", descricao: "Bônus em CA, velocidade e concentração." }
       ],
       6: [
