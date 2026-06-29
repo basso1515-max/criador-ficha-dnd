@@ -207,7 +207,7 @@ test("matriz 2024: classes e subclasses declaram exatamente os recursos de nivel
 test("fluxos oficiais de nivel 9 ficam estruturados fora do smoke DOM", () => {
   const editor2024Source = readFileSync(new URL("../../src/editors/2024/main.js", import.meta.url), "utf8");
   assert.match(editor2024Source, /entry\.classId === "bardo"[\s\S]*entry\.level >= 9[\s\S]*Especialista de \$\{entry\.classData\.nome\} \(nível 9\)/);
-  assert.match(editor2024Source, /entry\.classId === "guardiao" && entry\.level >= 9[\s\S]*Especialista de \$\{entry\.classData\.nome\} \(nível 9\)/);
+  assert.match(editor2024Source, /entry\.classId === "guardiao"[\s\S]*entry\.level >= 9[\s\S]*Especialista de \$\{entry\.classData\.nome\} \(nível 9\)/);
 
   assert.equal(getDefinition(FEATURE_CHOICE_DEFINITIONS_5E.classes.patrulheiro, "natural-explorer").picksByLevel[LEVEL_9], 2);
   assert.equal(getDefinition(FEATURE_CHOICE_DEFINITIONS_5E.classes.patrulheiro, "favored-enemy").picksByLevel[LEVEL_9], 2);

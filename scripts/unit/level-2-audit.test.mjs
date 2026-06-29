@@ -25,6 +25,7 @@ import {
   WARLOCK_INVOCATIONS_BY_LEVEL_2024,
   WARLOCK_INVOCATIONS_BY_LEVEL_5E,
   WARLOCK_MYSTIC_ARCANUM_SLOTS_2024,
+  getWarlockInvocationById,
   getWarlockInvocationOptions,
 } from "../../src/data/warlock-invocations.js";
 import {
@@ -250,8 +251,13 @@ test("seletores 5e de nivel 2 permanecem alinhados aos recursos", () => {
   assert.ok(!CLASS_FEAT_OPTION_LEVELS.ladino.includes(LEVEL_2));
 
   assert.deepEqual(ARTIFICER_INFUSION_LIMITS_BY_LEVEL[LEVEL_2], { known: 4, active: 2 });
-  assert.ok(ARTIFICER_INFUSION_CATALOG.some((infusion) => infusion.id === "enhanced-defense" && infusion.minLevel === LEVEL_2));
-  assert.ok(ARTIFICER_INFUSION_CATALOG.some((infusion) => infusion.id === "replicate-bag-of-holding" && infusion.minLevel === LEVEL_2));
+  const level2InfusionIds = ARTIFICER_INFUSION_CATALOG
+    .filter((infusion) => infusion.minLevel <= LEVEL_2)
+    .map((infusion) => infusion.id);
+  assert.ok(level2InfusionIds.includes("enhanced-defense"));
+  assert.ok(level2InfusionIds.includes("repeating-shot"));
+  assert.ok(level2InfusionIds.includes("enhanced-weapon"));
+  assert.ok(level2InfusionIds.includes("replicate-bag-of-holding"));
 
   assert.equal(WARLOCK_INVOCATIONS_BY_LEVEL_5E[LEVEL_2], 2);
   assert.ok(!getWarlockInvocationOptions(WARLOCK_INVOCATIONS_5E, LEVEL_2).some((option) => option.id === "agonizing-blast"));
@@ -260,6 +266,7 @@ test("seletores 5e de nivel 2 permanecem alinhados aos recursos", () => {
 
   assert.equal(CLASSES_5E.paladino.escolhas.estilosLuta.length, 4);
   assert.equal(CLASSES_5E.patrulheiro.escolhas.estilosLuta.length, 4);
+  assert.deepEqual(CLASSES_5E.patrulheiro.escolhas.estilosLuta, ["arquearia", "defesa", "duelismo", "duas-armas"]);
   assert.ok(FIGHTING_STYLE_DEFINITIONS.arquearia);
   assert.equal(getDefinition(FEATURE_CHOICE_DEFINITIONS_5E.classes.patrulheiro, "favored-enemy").picksByLevel[LEVEL_2], 1);
   assert.equal(getDefinition(FEATURE_CHOICE_DEFINITIONS_5E.classes.patrulheiro, "natural-explorer").picksByLevel[LEVEL_2], 1);
@@ -286,6 +293,9 @@ test("seletores 2024 de nivel 2 permanecem alinhados aos recursos", () => {
   assert.equal(WARLOCK_INVOCATIONS_BY_LEVEL_2024[LEVEL_2], 3);
   assert.ok(getWarlockInvocationOptions(WARLOCK_INVOCATIONS_2024, LEVEL_2).some((option) => option.id === "pact-of-the-blade"));
   assert.ok(getWarlockInvocationOptions(WARLOCK_INVOCATIONS_2024, LEVEL_2).some((option) => option.id === "agonizing-blast"));
+  const agonizingBlast2024 = getWarlockInvocationById(WARLOCK_INVOCATIONS_2024, "agonizing-blast");
+  assert.equal(agonizingBlast2024?.configuration?.optionSet, "warlock-damaging-cantrip-2024");
+  assert.equal(agonizingBlast2024?.configuration?.requiresKnownSpell, true);
   assert.deepEqual(WARLOCK_MYSTIC_ARCANUM_SLOTS_2024.filter((slot) => slot.classLevel <= LEVEL_2), []);
 
   assert.equal(getDefinition(FEATURE_CHOICE_DEFINITIONS_2024.classes.feiticeiro, "metamagic").picksByLevel[LEVEL_2], 2);
@@ -297,6 +307,7 @@ test("seletores 2024 de nivel 2 permanecem alinhados aos recursos", () => {
 
   const editor2024Source = readFileSync(new URL("../../src/editors/2024/main.js", import.meta.url), "utf8");
   assert.match(editor2024Source, /entry\.classId === "bardo"[\s\S]{0,120}entry\.level >= 2[\s\S]{0,220}expertise-2[\s\S]{0,120}, 2\)/);
+  assert.match(editor2024Source, /entry\.classId === "guardiao"[\s\S]{0,120}entry\.level >= 2[\s\S]{0,220}expertise-2[\s\S]{0,120}, 1\)/);
   assert.match(editor2024Source, /entry\.classId === "guardiao" && entry\.level >= 2/);
   assert.match(editor2024Source, /ranger-language-1/);
   assert.match(editor2024Source, /ranger-language-2/);

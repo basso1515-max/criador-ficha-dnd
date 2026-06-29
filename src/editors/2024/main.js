@@ -9870,9 +9870,15 @@ import {
         }
       }
 
-      if (entry.classId === "guardiao" && entry.level >= 9) {
-        const source = buildExpertiseChoiceSource2024(`${entry.uid}:expertise-9`, `Especialista de ${entry.classData.nome} (nível 9)`, 2);
-        if (source) sources.push(source);
+      if (entry.classId === "guardiao") {
+        if (entry.level >= 2) {
+          const source = buildExpertiseChoiceSource2024(`${entry.uid}:expertise-2`, `Explorador Hábil de ${entry.classData.nome} (nível 2)`, 1);
+          if (source) sources.push(source);
+        }
+        if (entry.level >= 9) {
+          const source = buildExpertiseChoiceSource2024(`${entry.uid}:expertise-9`, `Especialista de ${entry.classData.nome} (nível 9)`, 2);
+          if (source) sources.push(source);
+        }
       }
     });
 

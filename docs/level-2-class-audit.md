@@ -13,7 +13,7 @@ Status atual: completo para as classes e subclasses cadastradas.
 - 2024: todas as 12 classes declaram recurso textual no nivel 2.
 - 2024: nenhuma das 48 subclasses declara recurso textual no nivel 2.
 - Selecao 5e: o nivel 2 cobre infusoes de Artifice, estilos de luta de Paladino/Patrulheiro, invocacoes de Bruxo, escolhas persistentes de Patrulheiro, Companheiro Selvagem de Druida e proficiencia de arma da Lamina Cantante.
-- Selecao 2024: o nivel 2 cobre Metamagia, Academico do Mago, talentos de Estilo de Luta de Paladino/Guardiao, Especialista do Bardo, idiomas de Explorador Habil e Companheiro Selvagem.
+- Selecao 2024: o nivel 2 cobre Metamagia, Academico do Mago, talentos de Estilo de Luta de Paladino/Guardiao, Especialista do Bardo, Expertise e idiomas de Explorador Habil do Guardiao e Companheiro Selvagem.
 - Automacao: magias, espacos, Canalizar Divindade, Forma Selvagem, Pontos de Feiticaria, Surto de Acao, Pau pra Toda Obra, invocacoes, maestrias, Foco, Ataque Furtivo e fontes automaticas de magia foram fixados no teste unitario.
 
 ## Matriz 5e
@@ -61,7 +61,7 @@ Classes base 2024 no nivel 2:
 | Mago | Academico | Texto e seletor de uma pericia para Expertise |
 | Monge | Foco do Monge; Metabolismo Incomum; Movimento sem Armadura | Texto, Foco e movimento automatico |
 | Paladino | Destruicao do Paladino; Estilo de Luta | Texto, estilo por talento e meia conjuracao |
-| Guardiao | Explorador Habil; Estilo de Luta | Texto, estilo por talento, idiomas, Expertise e meia conjuracao |
+| Guardiao | Explorador Habil; Estilo de Luta | Texto, estilo por talento, 1 Expertise, 2 idiomas e meia conjuracao |
 
 Todas as 48 subclasses 2024 foram verificadas como sem recurso textual no nivel 2.
 
@@ -79,11 +79,13 @@ Todas as 48 subclasses 2024 foram verificadas como sem recurso textual no nivel 
 - 5e legacy: Ladino usava nome/descricao com ingles em `Ação Ardilosa (Cunning Action)`; foi normalizado para `Ação Ardilosa` com acoes em portugues.
 - 5e legacy: Círculo da Terra declarava `Magias do Círculo` no nivel 2, mas a automacao libera magias de terreno apenas no nivel 3. O texto do nivel 2 agora declara `Truque Adicional` e `Recuperacao Natural`.
 - 5e legacy: Lamina Cantante tinha seletor para proficiencia de arma de `Treinamento em Guerra e Cancao`, mas o texto da subclasse nao declarava esse recurso.
+- 2024: Guardiao declarava a Expertise de `Explorador Habil` no texto do nivel 2, mas o coletor de seletores so abria Expertise no nivel 9. O nivel 2 agora abre 1 escolha de Expertise e os 2 idiomas adicionais.
 
 ## Arquivos e verificacao
 
 - `src/data/5e/classes.js`: dataset atualizado para `0.3.1`, com recursos oficiais de Barbaro/Bardo e normalizacao de nomes.
 - `src/data/5e/subclasses.js`: corrige Círculo da Terra no nivel 2 e declara `Treinamento em Guerra e Cancao` da Lamina Cantante.
 - `src/editors/5e/feature-summary.js`: adiciona resumos compactos para os novos textos de subclasse.
+- `src/editors/2024/main.js`: libera a escolha de Expertise de Explorador Habil do Guardiao no nivel 2, junto dos idiomas.
 - `scripts/unit/level-2-audit.test.mjs`: nova matriz completa de nivel 2 para dados, seletores, contas e automacoes das edicoes 5e e 5.5e/2024.
 - `scripts/smoke-dom.mjs`: remove contagens estruturais soltas de nivel 2, preservando as interacoes reais de UI.
