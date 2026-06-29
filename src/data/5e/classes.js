@@ -1,5 +1,5 @@
 // classes.js
-export const DATASET_VERSION = "0.3.1";
+export const DATASET_VERSION = "0.3.2";
 export const META_CLASSES = {
   dataset: "dnd5e-ptbr",
   version: DATASET_VERSION,
@@ -10,6 +10,7 @@ export const META_CLASSES = {
     drs: "https://aventureirosdosreinos.com/documento-de-referencia-de-sistema-drs/"
   },
   changelog: [
+    "0.3.2: Auditoria do nível 1 com normalização dos nomes legados de Bruxo, Feiticeiro, Guerreiro e Paladino.",
     "0.3.1: Auditoria do nível 2 com recursos oficiais ausentes de Bárbaro e Bardo e normalização de nomes de Guerreiro/Ladino.",
     "0.3.0: Auditoria do nível 5 com recursos textuais oficiais de classe e descrições completas das especializações de Artífice.",
     "0.2.9: Auditoria do nível 6 com recursos de classe ausentes, correções de subclasses e seletores persistentes alinhados aos fluxos oficiais.",
@@ -318,7 +319,7 @@ export const CLASSES = {
     features: {
       1: [
         {
-          nome: "Patrocínio do Patrono",
+          nome: "Patrono Sobrenatural",
           descricao: "Recebe poderes do patrono sobrenatural escolhido.",
           detalhes: [
             "As habilidades variam conforme o patrono."
@@ -580,7 +581,7 @@ export const CLASSES = {
           detalhes: []
         },
         {
-          nome: "Origem Sorcerosa",
+          nome: "Origem Feiticeira",
           descricao: "Recebe os traços iniciais da linhagem ou manifestação mágica escolhida.",
           detalhes: []
         }
@@ -645,7 +646,7 @@ export const CLASSES = {
           detalhes: []
         },
         {
-          nome: "Segunda Vontade (Second Wind)",
+          nome: "Retomar Fôlego",
           descricao: "Recupera pontos de vida como ação bônus.",
           detalhes: ["Usos: 1 por descanso curto."]
         }
@@ -963,7 +964,7 @@ export const CLASSES = {
           detalhes: []
         },
         {
-          nome: "Mão Curativa (Lay on Hands)",
+          nome: "Cura pelas Mãos",
           descricao: "Possui uma reserva de cura para restaurar pontos de vida.",
           detalhes: [
             "Reserva de cura: nível de paladino × 5; recupera em descanso longo."
