@@ -6,6 +6,7 @@
   "description": "Sheetfy: gerador de ficha preenchível de D&D 5e em HTML/JS com exportação para PDF.",
   "scripts": {
     "check": "node scripts/check.mjs",
+    "deploy:guardrails": "node scripts/verify-vercel-guardrails.mjs",
     "typecheck": "tsc -p tsconfig.json",
     "perf:budget": "node scripts/performance-budget.mjs",
     "test:unit": "node --test \"scripts/unit/*.test.mjs\"",
@@ -17,7 +18,7 @@
     "test:pdf:5e": "node scripts/e2e-pdf-export.mjs",
     "test:pdf:2024": "node scripts/e2e-pdf-export-2024.mjs",
     "test:pdf": "npm run test:pdf:5e && npm run test:pdf:2024",
-    "test": "npm run check && npm run typecheck && npm run perf:budget && npm run test:unit && npm run smoke:dom && npm run test:admin-layout && npm run test:e2e && npm run test:pdf",
+    "test": "npm run deploy:guardrails && npm run check && npm run typecheck && npm run perf:budget && npm run test:unit && npm run smoke:dom && npm run test:admin-layout && npm run test:e2e && npm run test:pdf",
     "hooks:install": "node scripts/install-git-hooks.mjs",
     "serve": "node scripts/serve.mjs",
     "serve:watchdog": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/server-watchdog.ps1",

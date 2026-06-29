@@ -297,7 +297,7 @@ Na página do usuário, provedores sociais vinculados podem ser desvinculados co
 
 ## Deploy Na Vercel
 
-Antes de publicar, conecte um Redis persistente ao projeto e configure as variáveis `UPSTASH_REDIS_REST_URL` e `UPSTASH_REDIS_REST_TOKEN` no ambiente da Vercel. Depois, valide localmente:
+O projeto Vercel canônico de produção é `criador-ficha-dnd` (`prj_loq25T1SeNYEx5LkJn12UQ5EBQmo`) e a produção deve sair somente da Git Integration desse projeto na branch `main`. Antes de publicar, conecte um Redis persistente ao projeto e configure as variáveis `UPSTASH_REDIS_REST_URL` e `UPSTASH_REDIS_REST_TOKEN` no ambiente da Vercel. Depois, valide localmente:
 
 ```powershell
 vercel env pull .env.local --yes
@@ -306,17 +306,9 @@ npm test
 npm audit --omit=dev
 ```
 
-Para criar um preview manual:
+Publique produção com `git push origin main` e deixe a Git Integration criar o deploy. O repositório versiona `.vercel/project.json` de propósito para que `npm run deploy:guardrails` e o CI falhem se a metadata local sair do projeto canônico ou se o fluxo voltar a sugerir produção manual ambígua.
 
-```powershell
-vercel deploy
-```
-
-Depois de validar o preview, publique em produção:
-
-```powershell
-vercel deploy --prod
-```
+O repositório consegue validar metadata local, branch permitida e ausência de comandos de deploy manual no CI. A verificação de que nenhum outro projeto Vercel está conectado ao mesmo repositório/branch depende do painel ou da API da Vercel e deve ser conferida fora do código antes de mudanças de infraestrutura.
 
 As telas consomem estas rotas:
 

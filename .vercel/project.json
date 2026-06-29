@@ -1,0 +1,16 @@
+{
+  "projectId": "prj_loq25T1SeNYEx5LkJn12UQ5EBQmo",
+  "orgId": "team_nNVIqAmtM6Dge0805dTeKJYa",
+  "projectName": "criador-ficha-dnd",
+  "settings": {
+    "createdAt": 1776977426106,
+    "framework": null,
+    "devCommand": null,
+    "installCommand": null,
+    "buildCommand": null,
+    "outputDirectory": null,
+    "rootDirectory": null,
+    "directoryListing": false,
+    "nodeVersion": "24.x"
+  }
+}

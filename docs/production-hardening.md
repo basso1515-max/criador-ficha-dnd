@@ -66,7 +66,9 @@ Este projeto pode rodar localmente sem muita cerimônia, mas publicação públi
 - O domínio público principal é `https://sheetfy.vercel.app`; `https://criador-ficha-dnd.vercel.app` deve redirecionar para ele.
 - Mantenha a Git Integration do Vercel conectada somente nesse projeto, no repositório `basso1515-max/criador-ficha-dnd`, branch de produção `main`.
 - Não conecte o mesmo repositório/branch a outro projeto Vercel, pois cada projeto conectado dispara um deploy de produção separado para o mesmo push.
-- Use `vercel deploy` para gerar um preview manual quando não estiver usando Git Integration.
-- Valide o preview com criação de conta, salvamento de personagem, geração de PDF e estatísticas públicas.
-- Promova para produção com `vercel deploy --prod` ou promova um preview já validado com `vercel promote`.
+- Publique produção com `git push origin main` e deixe a Git Integration do projeto canônico criar o deploy.
+- O arquivo `.vercel/project.json` fica versionado de propósito para travar a metadata local no projeto canônico.
+- Rode `npm run deploy:guardrails` antes de mudanças de deploy; o mesmo guardrail roda em `npm test` no CI.
+- Valide a produção com criação de conta, salvamento de personagem, geração de PDF e estatísticas públicas.
+- A checagem de que nenhum outro projeto Vercel está conectado ao mesmo repositório/branch depende do painel ou da API da Vercel; confirme isso fora do código antes de mexer em integrações.
 - Em caso de regressão em produção, use `vercel rollback` e investigue a falha antes de novo deploy.

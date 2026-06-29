@@ -21,7 +21,8 @@ Thumbs.db
 .env*.local
 !.env.example
 
-.vercel/
+.vercel/*
+!.vercel/project.json
 
 # Local Git/Codex metadata and temporary authentication output
 .git-codex-*/

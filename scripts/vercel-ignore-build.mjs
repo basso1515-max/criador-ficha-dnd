@@ -1,10 +1,14 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const productionBranch = "main";
+export const CANONICAL_VERCEL_PROJECT = Object.freeze({
+  projectId: "prj_loq25T1SeNYEx5LkJn12UQ5EBQmo",
+  projectName: "criador-ficha-dnd",
+  productionBranch: "main",
+});
 
 export function shouldIgnoreVercelBuild(branch) {
-  return branch?.trim() !== productionBranch;
+  return branch?.trim() !== CANONICAL_VERCEL_PROJECT.productionBranch;
 }
 
 export function runIgnoreCommand(branch = process.env.VERCEL_GIT_COMMIT_REF) {
@@ -14,9 +18,9 @@ export function runIgnoreCommand(branch = process.env.VERCEL_GIT_COMMIT_REF) {
   console.log(
     shouldIgnore
       ? normalizedBranch
-        ? `Skipping Vercel deployment for ${normalizedBranch}; only ${productionBranch} may deploy.`
-        : `Skipping Vercel deployment because the Git branch is unknown; only ${productionBranch} may deploy.`
-      : `Building Vercel deployment for ${productionBranch}.`,
+        ? `Skipping Vercel deployment for ${normalizedBranch}; only ${CANONICAL_VERCEL_PROJECT.productionBranch} may deploy.`
+        : `Skipping Vercel deployment because the Git branch is unknown; only ${CANONICAL_VERCEL_PROJECT.productionBranch} may deploy.`
+      : `Building Vercel deployment for ${CANONICAL_VERCEL_PROJECT.productionBranch}.`,
   );
 
   return shouldIgnore ? 0 : 1;
