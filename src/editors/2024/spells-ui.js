@@ -56,6 +56,8 @@ export function bindSpellsUiEvents2024(el, handlers = {}) {
   el.availableSpellPanel?.addEventListener("change", handlers.onMagicFilterControlChanged);
   el.availableSpellPanel?.addEventListener("input", handlers.onMagicFilterControlInput);
   el.availableSpellPanel?.addEventListener("click", handlers.onMagicFilterControlClicked);
+  el.availableSpellPanel?.addEventListener("click", handlers.onMagicSpellPreviewClicked);
+  el.availableSpellPanel?.addEventListener("pointerdown", handlers.onMagicSpellPointerDown);
   el.availableSpellPanel?.addEventListener("mouseover", handlers.onMagicSpellHoverStart);
   el.availableSpellPanel?.addEventListener("mousemove", handlers.onMagicSpellHoverMove);
   el.availableSpellPanel?.addEventListener("mouseout", handlers.onMagicSpellHoverEnd);
@@ -63,6 +65,8 @@ export function bindSpellsUiEvents2024(el, handlers = {}) {
   el.selectedSpellBook?.addEventListener("mouseover", handlers.onMagicSpellHoverStart);
   el.selectedSpellBook?.addEventListener("mousemove", handlers.onMagicSpellHoverMove);
   el.selectedSpellBook?.addEventListener("mouseout", handlers.onMagicSpellHoverEnd);
+  el.selectedSpellBook?.addEventListener("click", handlers.onMagicSpellPreviewClicked);
+  el.selectedSpellBook?.addEventListener("pointerdown", handlers.onMagicSpellPointerDown);
 
   el.magicSlotsGrid?.addEventListener("input", handlers.onMagicSlotUsageInput);
   el.magicSlotsGrid?.addEventListener("change", handlers.onMagicSlotUsageInput);

@@ -602,6 +602,9 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
   let multiclassRowCounter = 0;
   let lastMagicContext = null;
   let activeMagicHoverTarget = null;
+  let lastMagicPointerWasTouch = false;
+  let magicTouchPreviewController = null;
+  let magicTouchPreviewPromise = null;
   let lastAttributeRolls = [];
   let lastValidPointBuyValues = Object.fromEntries(ABILITIES.map((ability) => [ability.key, 8]));
   let selectedPortraitImage = null;
@@ -957,11 +960,14 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       onMagicFilterControlChanged,
       onMagicFilterControlInput,
       onMagicFilterControlClicked,
+      onMagicSpellPreviewClicked,
+      onMagicSpellPointerDown,
       onMagicSpellHoverStart,
       onMagicSpellHoverMove,
       onMagicSpellHoverEnd,
       onMagicSlotUsageInput,
     });
+    document.addEventListener("click", onMagicSpellDocumentClicked, true);
     bindChoiceDiagnosticsNavigation5e();
     ["input", "change", "pointerdown"].forEach((eventName) => {
       el.form.addEventListener(eventName, revealClearSheetButton, true);
@@ -14278,9 +14284,6 @@ function listVisibleSpellPickerSourceKeys(sources = []) {
 
   function sortMagicSpellPickerOptions(spells, source, kind) {
     return (spells || []).slice().sort((a, b) => {
-      const selectedDiff = Number(isMagicSpellSelectedForSource(source, b, kind)) - Number(isMagicSpellSelectedForSource(source, a, kind));
-      if (selectedDiff) return selectedDiff;
-
       const levelDiff = Number(a?.nivel || 0) - Number(b?.nivel || 0);
       if (levelDiff) return levelDiff;
 
@@ -14396,6 +14399,52 @@ function listVisibleSpellPickerSourceKeys(sources = []) {
     if (!resetButton) return;
     magicFilterState = { ...MAGIC_FILTER_DEFAULTS };
     renderMagicSection();
+  }
+
+  function isMagicTouchPreviewInteraction(event) {
+    if (event?.detail === 0) return false;
+    const viewportWidth = window.innerWidth || document.documentElement.clientWidth || 0;
+    const isMobileViewport = viewportWidth > 0 && viewportWidth <= 720;
+    const hasCoarsePointer = typeof window.matchMedia === "function"
+      && window.matchMedia("(hover: none), (pointer: coarse)").matches;
+    return Boolean(lastMagicPointerWasTouch || hasCoarsePointer || isMobileViewport);
+  }
+
+  function getMagicTouchPreviewController() {
+    if (!magicTouchPreviewPromise) {
+      magicTouchPreviewPromise = import("../spell-touch-preview.js")
+        .then(({ createSpellTouchPreviewController }) => {
+          magicTouchPreviewController = createSpellTouchPreviewController({
+            hoverCard: () => el.magicSpellHoverCard,
+            showCard: showMagicSpellHoverCard,
+            hideCard: hideMagicSpellHoverCard,
+            isSelected: isSpellSelected,
+          });
+          return magicTouchPreviewController;
+        });
+    }
+    return magicTouchPreviewPromise;
+  }
+
+  function onMagicSpellPointerDown(event) {
+    lastMagicPointerWasTouch = Boolean(event.pointerType && event.pointerType !== "mouse");
+  }
+
+  function onMagicSpellPreviewClicked(event) {
+    if (!isMagicTouchPreviewInteraction(event)) return;
+    const target = findMagicSpellHoverTarget(event.target);
+    if (!target) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+    const pointer = { clientX: event.clientX || 0, clientY: event.clientY || 0 };
+    getMagicTouchPreviewController()
+      .then((controller) => controller.handleClick(target, pointer))
+      .catch((error) => console.error("Erro ao carregar preview de magia:", error));
+  }
+
+  function onMagicSpellDocumentClicked(event) {
+    magicTouchPreviewController?.handleDocumentClick(event.target);
   }
 
   function findMagicSpellHoverTarget(target) {
@@ -14533,6 +14582,7 @@ function buildMagicSpellHoverCardMarkup(target) {
 
   function hideMagicSpellHoverCard() {
     activeMagicHoverTarget = null;
+    magicTouchPreviewController?.reset();
     if (!el.magicSpellHoverCard) return;
     el.magicSpellHoverCard.hidden = true;
   }

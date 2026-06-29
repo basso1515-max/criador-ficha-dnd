@@ -536,6 +536,10 @@ import {
   let warlockInvocationCustomSelectKeys2024 = [];
   let languageCustomSelectKeys2024 = [];
   let activeMagicHoverTarget2024 = null;
+  let lastMagicPointerWasTouch2024 = false;
+  let magicTouchPreviewController2024 = null;
+  let magicTouchPreviewPromise2024 = null;
+  const magicChecklistScrollState2024 = new Map();
   let hitPointRollControlsSignature2024 = "";
   let editorA11y2024 = null;
   let isInitialA11yReady2024 = false;
@@ -1146,11 +1150,14 @@ import {
       onMagicFilterControlChanged: onMagicFilterControlChanged2024,
       onMagicFilterControlInput: onMagicFilterControlInput2024,
       onMagicFilterControlClicked: onMagicFilterControlClicked2024,
+      onMagicSpellPreviewClicked: onMagicSpellPreviewClicked2024,
+      onMagicSpellPointerDown: onMagicSpellPointerDown2024,
       onMagicSpellHoverStart: onMagicSpellHoverStart2024,
       onMagicSpellHoverMove: onMagicSpellHoverMove2024,
       onMagicSpellHoverEnd: onMagicSpellHoverEnd2024,
       onMagicSlotUsageInput: onMagicSlotUsageInput2024,
     });
+    document.addEventListener("click", onMagicSpellDocumentClicked2024, true);
     bindChoiceDiagnosticsNavigation2024();
     bindPdfSubmit2024(el.form, handlePdfSubmit);
     ["input", "change", "pointerdown"].forEach((type) => {
@@ -12832,6 +12839,22 @@ import {
     return `<option value="${escapeHtml(stringValue)}" ${String(currentValue) === stringValue ? "selected" : ""}>${escapeHtml(label)}</option>`;
   }
 
+  function captureMagicChecklistScrollPositions2024() {
+    if (!el.magicSourcesList) return;
+    el.magicSourcesList.querySelectorAll(".spell-checklist[data-scroll-key]").forEach((node) => {
+      magicChecklistScrollState2024.set(node.getAttribute("data-scroll-key"), node.scrollTop);
+    });
+  }
+
+  function restoreMagicChecklistScrollPositions2024() {
+    if (!el.magicSourcesList) return;
+    el.magicSourcesList.querySelectorAll(".spell-checklist[data-scroll-key]").forEach((node) => {
+      const key = node.getAttribute("data-scroll-key");
+      if (!key || !magicChecklistScrollState2024.has(key)) return;
+      node.scrollTop = magicChecklistScrollState2024.get(key) || 0;
+    });
+  }
+
   function hasActiveMagicFilters2024(state = magicFilterState2024) {
     return Boolean(
       String(state.query || "").trim()
@@ -12913,9 +12936,6 @@ import {
 
   function sortMagicSpellPickerOptions2024(spells, source, kind) {
     return (spells || []).slice().sort((a, b) => {
-      const selectedDiff = Number(isMagicSpellSelectedForSource2024(source, b, kind)) - Number(isMagicSpellSelectedForSource2024(source, a, kind));
-      if (selectedDiff) return selectedDiff;
-
       const levelDiff = Number(a?.nivel || 0) - Number(b?.nivel || 0);
       if (levelDiff) return levelDiff;
 
@@ -13034,6 +13054,55 @@ import {
     renderMagicSection2024();
   }
 
+  function isMagicTouchPreviewInteraction2024(event) {
+    if (event?.detail === 0) return false;
+    const viewportWidth = window.innerWidth || document.documentElement.clientWidth || 0;
+    const isMobileViewport = viewportWidth > 0 && viewportWidth <= 720;
+    const hasCoarsePointer = typeof window.matchMedia === "function"
+      && window.matchMedia("(hover: none), (pointer: coarse)").matches;
+    return Boolean(lastMagicPointerWasTouch2024 || hasCoarsePointer || isMobileViewport);
+  }
+
+  function getMagicTouchPreviewController2024() {
+    if (!magicTouchPreviewPromise2024) {
+      magicTouchPreviewPromise2024 = import("../spell-touch-preview.js")
+        .then(({ createSpellTouchPreviewController }) => {
+          magicTouchPreviewController2024 = createSpellTouchPreviewController({
+            hoverCard: () => el.magicSpellHoverCard,
+            showCard: showMagicSpellHoverCard2024,
+            hideCard: hideMagicSpellHoverCard2024,
+            isSelected(sourceKey, spellId, kind) {
+              const selection = getSpellSelectionForSource2024(sourceKey);
+              return kind === "cantrip" ? selection.cantrips.has(spellId) : selection.spells.has(spellId);
+            },
+          });
+          return magicTouchPreviewController2024;
+        });
+    }
+    return magicTouchPreviewPromise2024;
+  }
+
+  function onMagicSpellPointerDown2024(event) {
+    lastMagicPointerWasTouch2024 = Boolean(event.pointerType && event.pointerType !== "mouse");
+  }
+
+  function onMagicSpellPreviewClicked2024(event) {
+    if (!isMagicTouchPreviewInteraction2024(event)) return;
+    const target = findMagicSpellHoverTarget2024(event.target);
+    if (!target) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+    const pointer = { clientX: event.clientX || 0, clientY: event.clientY || 0 };
+    getMagicTouchPreviewController2024()
+      .then((controller) => controller.handleClick(target, pointer))
+      .catch((error) => console.error("Erro ao carregar preview de magia:", error));
+  }
+
+  function onMagicSpellDocumentClicked2024(event) {
+    magicTouchPreviewController2024?.handleDocumentClick(event.target);
+  }
+
   function buildSpellNotes2024(spell) {
     const parts = [];
     if (spell?.resumo) {
@@ -13123,6 +13192,7 @@ import {
 
   function hideMagicSpellHoverCard2024() {
     activeMagicHoverTarget2024 = null;
+    magicTouchPreviewController2024?.reset();
     if (!el.magicSpellHoverCard) return;
     el.magicSpellHoverCard.hidden = true;
   }
@@ -13404,6 +13474,7 @@ import {
 
   function renderMagicSourceCards2024(context) {
     if (!el.magicSourcesList) return;
+    captureMagicChecklistScrollPositions2024();
     if (!context?.sources?.length) {
       el.magicSourcesList.innerHTML = "";
       return;
@@ -13452,7 +13523,7 @@ import {
             ${cantrips.length ? `
               <div class="spell-check-group">
                 <h4>Truques</h4>
-                <div class="spell-checklist">
+                <div class="spell-checklist" data-scroll-key="${escapeHtml(`${source.sourceKey}:cantrip`)}">
                   <div class="spell-check-group-list">
                     ${sortMagicSpellPickerOptions2024(cantrips, source, "cantrip").map((spell) => buildSpellChecklistItemMarkup2024(spell, source, "cantrip", sourceMap)).join("")}
                   </div>
@@ -13462,7 +13533,7 @@ import {
             ${spellGroups.map((group) => `
               <div class="spell-check-group">
                 <h4>${escapeHtml(SPELL_LEVEL_LABELS_2024[group.level])}</h4>
-                <div class="spell-checklist">
+                <div class="spell-checklist" data-scroll-key="${escapeHtml(`${source.sourceKey}:spell:${group.level}`)}">
                   ${group.spells.length
                     ? `<div class="spell-check-group-list">${sortMagicSpellPickerOptions2024(group.spells, source, "spell").map((spell) => buildSpellChecklistItemMarkup2024(spell, source, "spell", sourceMap)).join("")}</div>`
                     : '<div class="spell-check-empty">Nenhuma magia disponível para este nível.</div>'}
@@ -13480,6 +13551,7 @@ import {
       }),
       sourceCardsMarkup,
     ].join("");
+    restoreMagicChecklistScrollPositions2024();
   }
 
   function renderSelectedSpellBook2024(context) {
