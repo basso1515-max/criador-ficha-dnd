@@ -370,6 +370,7 @@ test("seletores 5e de nivel 3 permanecem alinhados aos recursos", () => {
   assert.equal(getDefinition(SUBCLASS_PROFICIENCY_CHOICE_DEFINITIONS["monge-kensei"], "kensei-weapons").picksByLevel[LEVEL_3], 2);
 
   assert.equal(getCompanionDefinition(COMPANION_CHOICE_DEFINITIONS_5E, "wild-companion").minClassLevel, 2);
+  assert.equal(getCompanionDefinition(COMPANION_CHOICE_DEFINITIONS_5E, "wild-companion").required, false);
   assert.equal(getCompanionDefinition(COMPANION_CHOICE_DEFINITIONS_5E, "beast-master-companion").options.length, 3);
   assert.equal(getCompanionDefinition(COMPANION_CHOICE_DEFINITIONS_5E, "drake-companion").options.length, 5);
   assert.equal(getCompanionDefinition(COMPANION_CHOICE_DEFINITIONS_5E, "wildfire-spirit").minClassLevel, 2);
@@ -394,6 +395,7 @@ test("seletores 2024 de nivel 3 permanecem alinhados aos recursos", () => {
   assert.equal(landDetail.detailType, "terrain");
   assert.equal(landDetail.options.length, 4);
   assert.equal(getCompanionDefinition(COMPANION_CHOICE_DEFINITIONS_2024, "wild-companion").minClassLevel, 2);
+  assert.equal(getCompanionDefinition(COMPANION_CHOICE_DEFINITIONS_2024, "wild-companion").required, false);
   assert.equal(getCompanionDefinition(COMPANION_CHOICE_DEFINITIONS_2024, "primal-companion").minClassLevel, LEVEL_3);
 });
 

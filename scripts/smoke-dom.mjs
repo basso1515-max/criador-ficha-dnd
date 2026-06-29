@@ -210,6 +210,17 @@ const smokePages = [
           dispatch(select, "change");
           return option.value;
         };
+        const clearCustomSelectViaDropdown = async (select, context) => {
+          assert(select, "Select ausente para limpar: " + context);
+          const field = select.closest(".generic-dropdown-field");
+          const input = field?.querySelector("input");
+          const suggestions = field?.querySelector(".dropdown-suggestions");
+          assert(field && input && suggestions, "Dropdown customizado ausente para limpar: " + context);
+          input.click();
+          await waitForCondition(() => !suggestions.hidden && suggestions.querySelector('.dropdown-suggestion[data-value=""]'), "Ação de limpar ausente para " + context);
+          suggestions.querySelector('.dropdown-suggestion[data-value=""]').click();
+          await waitForCondition(() => !select.value, "Dropdown não limpou a seleção: " + context);
+        };
         const normalizeSmokeText = (value) => String(value || "")
           .normalize("NFD")
           .replace(/[\\u0300-\\u036f]/g, "")
@@ -635,6 +646,12 @@ const smokePages = [
         chooseFeatureKind("subclass", "genie-patron", "efreeti");
         assertFeatureChoiceResolved("1/1", ["Patrono Gênio", "Efreeti"], "Patrono Gênio");
 
+        setClassLevel("Bárbaro", 3);
+        setValue("#arquetipo", "barbaro-magia-selvagem", ["change"]);
+        chooseFeatureKind("subclass", "wild-magic-surge");
+        await clearCustomSelectViaDropdown(selectsForFeatureKind("subclass", "wild-magic-surge")[0], "Surto de Magia Selvagem 5e");
+        assert(!selectsForFeatureKind("subclass", "wild-magic-surge")[0].value, "Surto de Magia Selvagem 5e deveria aceitar desseleção.");
+
         await assertFeatureSlots("Feiticeiro", 17, [["metamagic", 4]]);
         const metamagic = new Set();
         for (let index = 0; index < 4; index += 1) {
@@ -657,6 +674,11 @@ const smokePages = [
         assert(document.querySelector("#fightingStyleContainer [data-fighting-style-hover-card]"), "Hovercard de Estilo de Luta 5e ausente.");
         chooseFightingStyle("arquearia");
         assert((document.querySelector("#preview")?.textContent || "").includes("Arquearia"), "Preview 5e não registrou Estilo de Luta do Patrulheiro.");
+
+        setClassLevel("Druida", 2);
+        chooseCompanion("wild-companion", "batedor-aereo");
+        await clearCustomSelectViaDropdown(selectsForCompanion("wild-companion")[0], "Companheiro Selvagem 5e");
+        assert(!selectsForCompanion("wild-companion")[0].value, "Companheiro Selvagem 5e deveria aceitar desseleção.");
 
         setClassLevel("Patrulheiro", 15);
         setValue("#arquetipo", "patrulheiro-cacador", ["change"]);
@@ -1103,6 +1125,17 @@ const smokePages = [
           dispatch(select, "change");
           return option.value;
         };
+        const clearCustomSelectViaDropdown = async (select, context) => {
+          assert(select, "Select ausente para limpar: " + context);
+          const field = select.closest(".generic-dropdown-field");
+          const input = field?.querySelector("input");
+          const suggestions = field?.querySelector(".dropdown-suggestions");
+          assert(field && input && suggestions, "Dropdown customizado ausente para limpar: " + context);
+          input.click();
+          await waitForCondition(() => !suggestions.hidden && suggestions.querySelector('.dropdown-suggestion[data-value=""]'), "Ação de limpar ausente para " + context);
+          suggestions.querySelector('.dropdown-suggestion[data-value=""]').click();
+          await waitForCondition(() => !select.value, "Dropdown não limpou a seleção: " + context);
+        };
         const normalizeSmokeText = (value) => String(value || "")
           .normalize("NFD")
           .replace(/[\\u0300-\\u036f]/g, "")
@@ -1506,6 +1539,8 @@ const smokePages = [
         assert(document.querySelector("#companionChoicesContainer2024 [data-companion-choice-hover-card]"), "Hovercard do seletor de companheiro 2024 ausente.");
         chooseCompanion("wild-companion", "batedor-aereo");
         assert((document.querySelector("#preview2024")?.textContent || "").includes("Companheiro Selvagem"), "Preview 2024 não recebeu Companheiro Selvagem.");
+        await clearCustomSelectViaDropdown(selectsForCompanion("wild-companion")[0], "Companheiro Selvagem 2024");
+        assert(!selectsForCompanion("wild-companion")[0].value, "Companheiro Selvagem 2024 deveria aceitar desseleção.");
 
         setClassLevel("guardiao", 3);
         setValue("#subclasse2024", "guardiao-mestre-feras", ["change"]);

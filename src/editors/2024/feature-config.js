@@ -55,6 +55,7 @@ export const COMPANION_CHOICE_DEFINITIONS_2024 = [
     kind: "class",
     classId: "druida",
     minClassLevel: 2,
+    required: false,
     featureLabel: "Companheiro Selvagem",
     selectionLabel: "Forma do familiar",
     cascadeRole: "Familiar feérico",

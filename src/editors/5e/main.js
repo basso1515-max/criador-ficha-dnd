@@ -2405,8 +2405,8 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     Object.values(CUSTOM_SELECT_FIELDS).forEach((field) => syncCustomSelectField(field.key));
   }
 
-  function createCustomSelectField({ key, input, select, suggestions, hoverCard, placeholder, describeOption, onCommit, showSuggestionSummary = true }) {
-    const field = { key, input, select, suggestions, hoverCard, placeholder, describeOption, onCommit, showSuggestionSummary };
+  function createCustomSelectField({ key, input, select, suggestions, hoverCard, placeholder, describeOption, onCommit, showSuggestionSummary = true, allowClear = false }) {
+    const field = { key, input, select, suggestions, hoverCard, placeholder, describeOption, onCommit, showSuggestionSummary, allowClear };
 
     installMobileDropdownKeyboardGate({
       input,
@@ -2428,14 +2428,16 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
   }
 
   function getCustomSelectOptions(field) {
+    const canClear = field.allowClear && field.select.value;
     return Array.from(field.select.options || [])
-      .filter((option) => option.value !== "")
+      .filter((option) => option.value || canClear)
       .map((option) => {
-        const details = field.describeOption(option.value, option.textContent);
+        const details = option.value ? field.describeOption(option.value, option.textContent) : {};
+        const label = option.value ? option.textContent : "Limpar seleção";
         return {
           value: option.value,
-          label: option.textContent,
-          searchText: normalizePt(`${option.textContent} ${details?.search || ""}`),
+          label,
+          searchText: normalizePt(`${label} ${details?.search || ""}`),
           group: details?.group || "",
           details,
         };
@@ -3499,6 +3501,8 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
 
     el.featureChoicesContainer.querySelectorAll("select[data-feature-choice-slot-key]").forEach((select) => {
       const slotKey = select.getAttribute("data-feature-choice-slot-key") || "";
+      const sourceKey = select.getAttribute("data-feature-choice-source-key") || "";
+      const source = collectFeatureChoiceSources().find((item) => item.key === sourceKey);
       const fieldRoot = select.closest("[data-feature-choice-field-key]");
       const input = fieldRoot?.querySelector("[data-feature-choice-input]");
       const suggestions = fieldRoot?.querySelector("[data-feature-choice-suggestions]");
@@ -3517,6 +3521,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
         describeOption: (value, label) => describeFeatureChoiceOption(select, value, label),
         onCommit: () => onFeatureChoiceChanged({ target: select }),
         showSuggestionSummary: true,
+        allowClear: source?.required === false,
       });
       syncCustomSelectField(fieldKey);
     });
@@ -4779,40 +4784,27 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
   }
 
   function getCompanionChoiceCascadeMarkup(sources, selections) {
-    const totalChoices = sources.reduce((total, source) => total + source.picks, 0);
-    let selectedCount = 0;
+    let pendingCount = 0;
     const selectedLabels = [];
     const mechanicLabels = new Set();
 
     sources.forEach((source) => {
+      let validCount = 0;
       for (let slotIndex = 0; slotIndex < source.picks; slotIndex += 1) {
         const slotKey = buildCompanionChoiceSlotKey(source, slotIndex);
         const value = String(selections.get(slotKey) || "").trim();
         const option = (source.options || []).find((item) => item.value === value);
         if (!option) continue;
-        selectedCount += 1;
+        validCount += 1;
         selectedLabels.push(`${source.featureLabel}: ${option.label}`);
         getCompanionChoiceImpactLines(source, option)
           .filter((line) => !line.startsWith("Registro:"))
           .map((line) => line.split(":")[0] || line.split(".")[0] || "Mecânica")
           .forEach((line) => mechanicLabels.add(line));
       }
+      if (source.required) pendingCount += Math.max(0, source.picks - validCount);
     });
 
-    const requiredTotal = sources
-      .filter((source) => source.required)
-      .reduce((total, source) => total + source.picks, 0);
-    const requiredSelected = sources
-      .filter((source) => source.required)
-      .reduce((total, source) => {
-        let count = 0;
-        for (let slotIndex = 0; slotIndex < source.picks; slotIndex += 1) {
-          const value = String(selections.get(buildCompanionChoiceSlotKey(source, slotIndex)) || "").trim();
-          if (value && (source.options || []).some((option) => option.value === value)) count += 1;
-        }
-        return total + count;
-      }, 0);
-    const pendingCount = Math.max(0, requiredTotal - requiredSelected);
     const selectedLines = buildSelectedCompanionChoiceLines().length;
     const steps = [
       { label: "Fonte", value: `${sources.length} recurso(s)`, body: "Subclasses e regras opcionais que criam aliados especiais aparecem aqui ao atingir o nível correto." },
@@ -4872,6 +4864,8 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
 
     el.companionChoicesContainer.querySelectorAll("select[data-companion-choice-slot-key]").forEach((select) => {
       const slotKey = select.getAttribute("data-companion-choice-slot-key") || "";
+      const sourceKey = select.getAttribute("data-companion-choice-source-key") || "";
+      const source = collectCompanionChoiceSources().find((item) => item.key === sourceKey);
       const fieldRoot = select.closest("[data-companion-choice-field-key]");
       const input = fieldRoot?.querySelector("[data-companion-choice-input]");
       const suggestions = fieldRoot?.querySelector("[data-companion-choice-suggestions]");
@@ -4890,6 +4884,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
         describeOption: (value, label) => describeCompanionChoiceOption(select, value, label),
         onCommit: () => onCompanionChoiceChanged({ target: select }),
         showSuggestionSummary: true,
+        allowClear: source?.required === false,
       });
       syncCustomSelectField(fieldKey);
     });

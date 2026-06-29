@@ -2253,18 +2253,8 @@ import {
     Object.keys(CUSTOM_SELECT_FIELDS_2024).forEach((key) => syncCustomSelectField2024(key));
   }
 
-  function createCustomSelectField2024({
-    key,
-    input,
-    select,
-    suggestions,
-    hoverCard,
-    placeholder,
-    describeOption,
-    onCommit,
-    showSuggestionSummary = true,
-  }) {
-    const field = { key, input, select, suggestions, hoverCard, placeholder, describeOption, onCommit, showSuggestionSummary };
+  function createCustomSelectField2024({ key, input, select, suggestions, hoverCard, placeholder, describeOption, onCommit, showSuggestionSummary = true, allowClear = false }) {
+    const field = { key, input, select, suggestions, hoverCard, placeholder, describeOption, onCommit, showSuggestionSummary, allowClear };
     if (!input || !select || !suggestions || !hoverCard) return field;
 
     installMobileDropdownKeyboardGate({
@@ -2287,17 +2277,13 @@ import {
   }
 
   function getCustomSelectOptions2024(field) {
+    const canClear = field?.allowClear && field.select?.value;
     return Array.from(field?.select?.options || [])
-      .filter((option) => option.value !== "" && !option.disabled)
+      .filter((option) => option.value ? !option.disabled : canClear)
       .map((option) => {
-        const details = field.describeOption(option.value, option.textContent) || {};
-        return {
-          value: option.value,
-          label: option.textContent,
-          searchText: normalizePt(`${option.textContent} ${details.search || ""}`),
-          group: details.group || "",
-          details,
-        };
+        const details = option.value ? field.describeOption(option.value, option.textContent) || {} : {};
+        const label = option.value ? option.textContent : "Limpar";
+        return { value: option.value, label, searchText: normalizePt(`${label} ${details.search || ""}`), group: details.group || "", details };
       });
   }
 
@@ -2571,7 +2557,7 @@ import {
   }
 
   function commitCustomSelectValue2024(field, value) {
-    if (!field?.select || !value) return;
+    if (!field?.select || (!value && !field.allowClear)) return;
     field.select.value = value;
     syncCustomSelectField2024(field.key);
     hideCustomSelectSuggestions2024(field);
@@ -2632,6 +2618,8 @@ import {
 
     el.featureChoicesContainer.querySelectorAll("select[data-feature-choice-slot-key]").forEach((select) => {
       const slotKey = select.getAttribute("data-feature-choice-slot-key") || "";
+      const sourceKey = select.getAttribute("data-feature-choice-source-key") || "";
+      const source = collectFeatureChoiceSources2024().find((item) => item.key === sourceKey);
       const fieldRoot = select.closest("[data-feature-choice-field-key]");
       const input = fieldRoot?.querySelector("[data-feature-choice-input]");
       const suggestions = fieldRoot?.querySelector("[data-feature-choice-suggestions]");
@@ -2650,6 +2638,7 @@ import {
         describeOption: (value, label) => describeFeatureChoiceOption2024(select, value, label),
         onCommit: () => onFeatureChoiceChanged2024({ target: select }),
         showSuggestionSummary: true,
+        allowClear: source?.required === false,
       });
       syncCustomSelectField2024(fieldKey);
     });
@@ -2690,6 +2679,8 @@ import {
 
     el.companionChoicesContainer.querySelectorAll("select[data-companion-choice-slot-key]").forEach((select) => {
       const slotKey = select.getAttribute("data-companion-choice-slot-key") || "";
+      const sourceKey = select.getAttribute("data-companion-choice-source-key") || "";
+      const source = collectCompanionChoiceSources2024().find((item) => item.key === sourceKey);
       const fieldRoot = select.closest("[data-companion-choice-field-key]");
       const input = fieldRoot?.querySelector("[data-companion-choice-input]");
       const suggestions = fieldRoot?.querySelector("[data-companion-choice-suggestions]");
@@ -2708,6 +2699,7 @@ import {
         describeOption: (value, label) => describeCompanionChoiceOption2024(select, value, label),
         onCommit: () => onCompanionChoiceChanged2024({ target: select }),
         showSuggestionSummary: true,
+        allowClear: source?.required === false,
       });
       syncCustomSelectField2024(fieldKey);
     });
@@ -3636,8 +3628,8 @@ import {
   }
 
   function getFeatureChoiceCascadeMarkup2024(sources, selections) {
-    const totalChoices = sources.reduce((total, source) => total + source.picks, 0);
-    let selectedCount = 0;
+    let requiredTotal = 0;
+    let requiredSelectedCount = 0;
     const effectLabels = new Set();
     const sourceLabels = sources.map((source) => `${source.ownerLabel}: ${source.title} (${source.picks})`);
     const uniqueSourceCount = sources.filter((source) => source.disallowDuplicates).length;
@@ -3645,11 +3637,12 @@ import {
 
     sources.forEach((source) => {
       const options = getFeatureChoiceOptions2024(source);
+      if (source.required) requiredTotal += source.picks;
       for (let slotIndex = 0; slotIndex < source.picks; slotIndex += 1) {
         const value = String(selections.get(buildFeatureChoiceSlotKey2024(source, slotIndex)) || "").trim();
         const option = options.find((item) => item.value === value);
         if (!option) continue;
-        selectedCount += 1;
+        if (source.required) requiredSelectedCount += 1;
         getFeatureChoiceImpactLines2024(source, option).forEach((line) => {
           const label = line.split(":")[0] || "Registro";
           effectLabels.add(label);
@@ -3660,7 +3653,7 @@ import {
       if (source.grantsSelectedWeaponMastery) effectLabels.add("Maestria");
     });
 
-    const pendingCount = Math.max(0, totalChoices - selectedCount);
+    const pendingCount = Math.max(0, requiredTotal - requiredSelectedCount);
     const selectedLines = buildSelectedFeatureChoiceLines2024().length;
     const filterLabels = [
       uniqueSourceCount ? "sem repetição" : "",
@@ -3673,27 +3666,27 @@ import {
       {
         label: "Fontes",
         value: `${sources.length} recurso(s)`,
-        body: sourceLabels.length ? `Ativas agora: ${formatList(sourceLabels)}.` : "Classe, multiclasse e subclasse liberam fontes conforme o nível atual.",
+        body: sourceLabels.length ? `Ativas: ${formatList(sourceLabels)}.` : "Fontes pelo nível.",
       },
       {
         label: "Pendência",
-        value: pendingCount ? `${selectedCount}/${totalChoices}` : "resolvida",
-        body: pendingCount ? `${pendingCount} escolha(s) obrigatória(s) ainda precisam de uma opção válida.` : "Todas as escolhas obrigatórias visíveis estão configuradas.",
+        value: pendingCount ? `${requiredSelectedCount}/${requiredTotal}` : (requiredTotal ? "resolvida" : "opcional"),
+        body: pendingCount ? `${pendingCount} escolha(s) obrigatória(s) faltam.` : "Obrigatórias resolvidas; opcionais podem ficar em branco.",
       },
       {
         label: "Filtros",
         value: filterLabels.length ? formatList(filterLabels) : "opções válidas",
-        body: "A lista remove opções repetidas quando necessário e oculta escolhas que ainda não cumprem pré-requisito de nível.",
+        body: "Remove repetidas e oculta opções sem pré-requisito.",
       },
       {
         label: "Efeitos",
         value: effectLabels.size ? formatList(Array.from(effectLabels)) : "resumo",
-        body: "As opções escolhidas podem alterar treinamentos, truques, bônus de perícia, expertise, magias concedidas, listas aprendidas ou notas de Maestria em ataques.",
+        body: "Altera treinos, truques, bônus, magias ou Maestria.",
       },
       {
         label: "Resumo/PDF",
         value: selectedLines ? `${selectedLines} linha(s)` : "aguardando",
-        body: "As escolhas selecionadas são adicionadas ao preview e ao campo de características exportado para o PDF.",
+        body: "As escolhas entram no preview e no PDF.",
       },
     ];
 
@@ -4302,53 +4295,53 @@ import {
   }
 
   function getCompanionChoiceCascadeMarkup2024(sources, selections) {
-    const totalChoices = sources.reduce((total, source) => total + source.picks, 0);
-    let selectedCount = 0;
+    let pendingCount = 0;
     const selectedLabels = [];
     const mechanicLabels = new Set();
 
     sources.forEach((source) => {
+      let validCount = 0;
       for (let slotIndex = 0; slotIndex < source.picks; slotIndex += 1) {
         const slotKey = buildCompanionChoiceSlotKey2024(source, slotIndex);
         const value = String(selections.get(slotKey) || "").trim();
         const option = (source.options || []).find((item) => item.value === value);
         if (!option) continue;
-        selectedCount += 1;
+        validCount += 1;
         selectedLabels.push(`${source.featureLabel}: ${option.label}`);
         getCompanionChoiceImpactLines2024(source, option)
           .filter((line) => !line.startsWith("Registro:"))
           .map((line) => line.split(":")[0] || line.split(".")[0] || "Mecânica")
           .forEach((line) => mechanicLabels.add(line));
       }
+      if (source.required) pendingCount += Math.max(0, source.picks - validCount);
     });
 
-    const pendingCount = Math.max(0, totalChoices - selectedCount);
     const selectedLines = buildSelectedCompanionChoiceLines2024().length;
     const steps = [
       {
         label: "Fonte",
         value: `${sources.length} recurso(s)`,
-        body: "Recursos de classe e subclasse que criam familiar, fera, espírito ou companheiro aparecem aqui ao atingir o nível correto.",
+        body: "Recursos com aliados aparecem pelo nível.",
       },
       {
         label: "Pendência",
         value: pendingCount ? `${pendingCount} aberta(s)` : "resolvida",
-        body: "Enquanto a escolha estiver pendente, o resumo mecânico do aliado fica incompleto no preview e na exportação.",
+        body: "Só fontes obrigatórias criam pendência; opcionais podem ficar em branco.",
       },
       {
         label: "Tipo",
         value: selectedLabels.length ? formatList(selectedLabels) : "aguardando",
-        body: "O tipo escolhido registra a forma principal do aliado ou do espírito especial usado pelo personagem.",
+        body: "Registra a forma principal do aliado.",
       },
       {
         label: "Mecânica",
         value: mechanicLabels.size ? formatList(Array.from(mechanicLabels)) : "aguardando",
-        body: "O hover e a descrição destacam como comandar, conjurar ou manter o companheiro conforme a regra do recurso.",
+        body: "Hover e descrição destacam comando, conjuração ou duração.",
       },
       {
         label: "Ficha/PDF",
         value: selectedLines ? `${selectedLines} linha(s)` : "aguardando",
-        body: "A escolha entra no preview, nas características da ficha e no PDF junto com os recursos de classe.",
+        body: "A escolha entra no preview, ficha e PDF.",
       },
     ];
 
