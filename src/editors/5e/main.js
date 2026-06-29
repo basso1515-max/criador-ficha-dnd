@@ -2405,8 +2405,8 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     Object.values(CUSTOM_SELECT_FIELDS).forEach((field) => syncCustomSelectField(field.key));
   }
 
-  function createCustomSelectField({ key, input, select, suggestions, hoverCard, placeholder, describeOption, onCommit, showSuggestionSummary = true, allowClear = false }) {
-    const field = { key, input, select, suggestions, hoverCard, placeholder, describeOption, onCommit, showSuggestionSummary, allowClear };
+  function createCustomSelectField({ key, input, select, suggestions, hoverCard, placeholder, describeOption, onCommit, showSuggestionSummary = true, allowClear = false, showDisabledOptions = false }) {
+    const field = { key, input, select, suggestions, hoverCard, placeholder, describeOption, onCommit, showSuggestionSummary, allowClear, showDisabledOptions };
 
     installMobileDropdownKeyboardGate({
       input,
@@ -2430,13 +2430,17 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
   function getCustomSelectOptions(field) {
     const canClear = field.allowClear && field.select.value;
     return Array.from(field.select.options || [])
-      .filter((option) => option.value || canClear)
+      .filter((option) => (option.value ? (!option.disabled || field.showDisabledOptions) : canClear))
       .map((option) => {
         const details = option.value ? field.describeOption(option.value, option.textContent) : {};
         const label = option.value ? option.textContent : "Limpar seleção";
+        const disabled = Boolean(option.value && option.disabled);
+        const disabledReason = disabled ? option.dataset?.disabledReason || "" : "";
         return {
           value: option.value,
           label,
+          disabled,
+          disabledReason,
           searchText: normalizePt(`${label} ${details?.search || ""}`),
           group: details?.group || "",
           details,
@@ -2647,8 +2651,9 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       previousGroup = option.group || previousGroup;
       return `
         ${groupHeader}
-        <div class="dropdown-suggestion" data-value="${escapeHtml(option.value)}">
+        <div class="dropdown-suggestion${option.disabled ? " is-disabled" : ""}" data-value="${escapeHtml(option.value)}" aria-disabled="${option.disabled ? "true" : "false"}">
           <strong>${escapeHtml(option.label)}</strong>
+          ${option.disabledReason ? `<small>${escapeHtml(option.disabledReason)}</small>` : ""}
           ${field.showSuggestionSummary && option.details?.summary ? `<small>${escapeHtml(option.details.summary)}</small>` : ""}
         </div>
       `;
@@ -2656,6 +2661,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     field.suggestions.hidden = false;
 
     field.suggestions.querySelectorAll(".dropdown-suggestion").forEach((node) => {
+      if (node.getAttribute("aria-disabled") === "true") return;
       const value = node.getAttribute("data-value");
       bindDropdownSuggestionInteraction(node, {
         container: field.suggestions,
@@ -2680,7 +2686,8 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       (
         (option.details.lines && option.details.lines.length) ||
         option.details.body ||
-        option.details.summary
+        option.details.summary ||
+        option.disabledReason
       )
     );
     if (!hasExtraInfo) {
@@ -2692,6 +2699,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       <strong>${escapeHtml(option.label)}</strong>
       ${(option.details.lines || []).map((line) => `<p>${escapeHtml(line)}</p>`).join("")}
       ${option.details.body ? `<p>${escapeHtml(option.details.body)}</p>` : ""}
+      ${option.disabledReason ? `<p class="dropdown-hover-warning">${escapeHtml(option.disabledReason)}</p>` : ""}
     `;
     field.hoverCard.hidden = false;
     return true;
@@ -5015,6 +5023,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
         describeOption: describeLanguageOption,
         onCommit: () => handleLanguageChoiceSelection(select),
         showSuggestionSummary: false,
+        showDisabledOptions: true,
       });
       syncCustomSelectField(fieldKey);
     });
@@ -8101,6 +8110,31 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     return selectedLanguages;
   }
 
+  function buildLanguageDisabledReasonMaps(grants, selections, currentSlotKey = "", selectedFeats = []) {
+    const automaticReasons = new Map();
+    const selectedReasons = new Map();
+    const addAutomaticReason = (languageId, sourceLabel) => {
+      const normalized = normalizePt(languageId);
+      if (!normalized || automaticReasons.has(normalized)) return;
+      automaticReasons.set(normalized, `idioma aprendido automaticamente em ${sourceLabel}`);
+    };
+
+    (getSelectedRaceData()?.idiomas || []).forEach((languageId) => addAutomaticReason(languageId, "raça"));
+    (getSelectedSubraceData()?.idiomas || []).forEach((languageId) => addAutomaticReason(languageId, "sub-raça"));
+    collectFeatFixedLanguageIds(selectedFeats).forEach((languageId) => addAutomaticReason(languageId, "talento"));
+
+    grants.forEach((grant) => {
+      for (let slotIndex = 0; slotIndex < grant.picks; slotIndex += 1) {
+        const slotKey = buildLanguageChoiceSlotKey(grant, slotIndex);
+        const selectedId = selections.get(slotKey) || "";
+        if (!selectedId || slotKey === currentSlotKey) continue;
+        selectedReasons.set(normalizePt(selectedId), `idioma já selecionado em ${grant.label}`);
+      }
+    });
+
+    return { automaticReasons, selectedReasons };
+  }
+
   function renderLanguageChoices() {
     if (!el.languageChoicesPanel || !el.languageChoicesContainer) return;
 
@@ -8138,9 +8172,16 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
         const slotKey = buildLanguageChoiceSlotKey(grant, slotIndex);
         const selectedId = selections.get(slotKey) || "";
         const label = grant.picks === 1 ? "Idioma" : `Idioma ${slotIndex + 1}`;
-        const options = grant.options.map((language) => `
-          <option value="${escapeHtml(language.id)}"${selectedId === language.id ? " selected" : ""}>${escapeHtml(language.label)}</option>
-        `).join("");
+        const disabledReasons = buildLanguageDisabledReasonMaps(grants, selections, slotKey, selectedFeats);
+        const options = grant.options.map((language) => {
+          const normalizedId = normalizePt(language.id);
+          const disabledReason = selectedId === language.id
+            ? ""
+            : (disabledReasons.automaticReasons.get(normalizedId) || disabledReasons.selectedReasons.get(normalizedId) || "");
+          return `
+            <option value="${escapeHtml(language.id)}"${selectedId === language.id ? " selected" : ""}${disabledReason ? " disabled" : ""}${disabledReason ? ` data-disabled-reason="${escapeHtml(disabledReason)}"` : ""}>${escapeHtml(language.label)}</option>
+          `;
+        }).join("");
 
         return `
           <label class="row generic-dropdown-field feat-choice-field" data-language-field-key="${escapeHtml(slotKey)}" data-language-placeholder="Selecione um idioma...">

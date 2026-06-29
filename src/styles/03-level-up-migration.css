@@ -820,6 +820,16 @@ select[multiple] option {
   background: rgba(139,94,52,0.12);
 }
 
+.dropdown-suggestion.is-disabled {
+  cursor: not-allowed;
+  opacity: 0.56;
+}
+
+.dropdown-suggestion.is-disabled:hover,
+.dropdown-suggestion.is-disabled.is-active {
+  background: transparent;
+}
+
 .dropdown-suggestion.is-touch-preview {
   background: rgba(139,94,52,0.16);
   box-shadow: inset 3px 0 0 var(--accent);

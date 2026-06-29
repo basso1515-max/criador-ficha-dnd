@@ -2253,8 +2253,8 @@ import {
     Object.keys(CUSTOM_SELECT_FIELDS_2024).forEach((key) => syncCustomSelectField2024(key));
   }
 
-  function createCustomSelectField2024({ key, input, select, suggestions, hoverCard, placeholder, describeOption, onCommit, showSuggestionSummary = true, allowClear = false }) {
-    const field = { key, input, select, suggestions, hoverCard, placeholder, describeOption, onCommit, showSuggestionSummary, allowClear };
+  function createCustomSelectField2024({ key, input, select, suggestions, hoverCard, placeholder, describeOption, onCommit, showSuggestionSummary = true, allowClear = false, showDisabledOptions = false }) {
+    const field = { key, input, select, suggestions, hoverCard, placeholder, describeOption, onCommit, showSuggestionSummary, allowClear, showDisabledOptions };
     if (!input || !select || !suggestions || !hoverCard) return field;
 
     installMobileDropdownKeyboardGate({
@@ -2279,11 +2279,13 @@ import {
   function getCustomSelectOptions2024(field) {
     const canClear = field?.allowClear && field.select?.value;
     return Array.from(field?.select?.options || [])
-      .filter((option) => option.value ? !option.disabled : canClear)
+      .filter((option) => (option.value ? (!option.disabled || field.showDisabledOptions) : canClear))
       .map((option) => {
         const details = option.value ? field.describeOption(option.value, option.textContent) || {} : {};
         const label = option.value ? option.textContent : "Limpar";
-        return { value: option.value, label, searchText: normalizePt(`${label} ${details.search || ""}`), group: details.group || "", details };
+        const disabled = Boolean(option.value && option.disabled);
+        const disabledReason = disabled ? option.dataset?.disabledReason || "" : "";
+        return { value: option.value, label, disabled, disabledReason, searchText: normalizePt(`${label} ${details.search || ""}`), group: details.group || "", details };
       });
   }
 
@@ -2497,8 +2499,9 @@ import {
       previousGroup = option.group || previousGroup;
       return `
         ${groupHeader}
-        <div class="dropdown-suggestion" data-value="${escapeHtml(option.value)}">
+        <div class="dropdown-suggestion${option.disabled ? " is-disabled" : ""}" data-value="${escapeHtml(option.value)}" aria-disabled="${option.disabled ? "true" : "false"}">
           <strong>${escapeHtml(option.label)}</strong>
+          ${option.disabledReason ? `<small>${escapeHtml(option.disabledReason)}</small>` : ""}
           ${field.showSuggestionSummary && option.details?.summary ? `<small>${escapeHtml(option.details.summary)}</small>` : ""}
         </div>
       `;
@@ -2506,6 +2509,7 @@ import {
     field.suggestions.hidden = false;
 
     field.suggestions.querySelectorAll(".dropdown-suggestion").forEach((node) => {
+      if (node.getAttribute("aria-disabled") === "true") return;
       const value = node.getAttribute("data-value");
       bindDropdownSuggestionInteraction2024(node, {
         container: field.suggestions,
@@ -2530,6 +2534,7 @@ import {
         (option.details.lines && option.details.lines.length)
         || option.details.body
         || option.details.summary
+        || option.disabledReason
       )
     );
     if (!hasExtraInfo || !field?.hoverCard) {
@@ -2541,6 +2546,7 @@ import {
       <strong>${escapeHtml(option.label)}</strong>
       ${(option.details.lines || []).map((line) => `<p>${escapeHtml(line)}</p>`).join("")}
       ${option.details.body ? `<p>${escapeHtml(option.details.body)}</p>` : ""}
+      ${option.disabledReason ? `<p class="dropdown-hover-warning">${escapeHtml(option.disabledReason)}</p>` : ""}
     `;
     field.hoverCard.hidden = false;
     return true;
@@ -2790,6 +2796,7 @@ import {
         describeOption: describeLanguageOption2024,
         onCommit: () => onLanguageChoiceChanged2024({ target: select }),
         showSuggestionSummary: true,
+        showDisabledOptions: true,
       });
       syncCustomSelectField2024(fieldKey);
     });
@@ -10160,12 +10167,43 @@ import {
     return known;
   }
 
+  function getAutomaticLanguageReasonMap2024(race = getSelectedRace(), classEntries = getResolvedClassEntries2024()) {
+    const resolvedEntries = Array.isArray(classEntries) ? getResolvedClassEntries2024(classEntries) : getResolvedClassEntries2024();
+    const reasons = new Map();
+    const add = (languageId, sourceLabel) => {
+      const normalized = String(languageId || "").trim();
+      if (!normalized || reasons.has(normalized)) return;
+      reasons.set(normalized, `idioma aprendido automaticamente em ${sourceLabel}`);
+    };
+
+    add("comum", "criação");
+    (race?.idiomas || []).filter(Boolean).forEach((languageId) => add(languageId, "espécie"));
+    resolvedEntries.forEach((entry) => {
+      if (entry.classId === "druida" && entry.level >= 1) add("druidico", entry.classData?.nome || "Druida");
+      if (entry.classId === "ladino" && entry.level >= 1) add("giria-dos-ladroes", entry.classData?.nome || "Ladino");
+    });
+
+    return reasons;
+  }
+
+  function getSelectedLanguageReasonMap2024(previousValues, definitions, currentDefinitionId = "") {
+    const reasonByChoice = new Map((definitions || []).map((definition) => [definition.id, definition.label]));
+    const reasons = new Map();
+
+    Array.from(previousValues?.entries?.() || []).forEach(([choiceId, languageId]) => {
+      if (!languageId || choiceId === currentDefinitionId) return;
+      reasons.set(languageId, `idioma já selecionado em ${reasonByChoice.get(choiceId) || "outra área"}`);
+    });
+
+    return reasons;
+  }
+
   function renderLanguageChoices2024() {
     if (!el.languageChoices) return;
 
     const race = getSelectedRace();
     const classEntries = getResolvedClassEntries2024();
-    const fixedLanguageIds = new Set(getFixedLanguageIds2024(race, classEntries));
+    const automaticReasons = getAutomaticLanguageReasonMap2024(race, classEntries);
     const previousValues = getSelectedLanguageChoiceValueMap2024();
     const definitions = getLanguageChoiceDefinitions2024(classEntries);
 
@@ -10230,11 +10268,16 @@ import {
           .filter(([choiceId, value]) => choiceId !== definition.id && value)
           .map(([, value]) => value)
       );
-      const allowedLanguageIds = (definition.options || [])
-        .filter((languageId) => !fixedLanguageIds.has(languageId))
-        .filter((languageId) => !blockedByOtherChoices.has(languageId) || languageId === currentValue);
+      const selectedReasons = getSelectedLanguageReasonMap2024(previousValues, definitions, definition.id);
+      const disabledReasons = new Map();
+      (definition.options || []).forEach((languageId) => {
+        if (languageId === currentValue) return;
+        const reason = automaticReasons.get(languageId)
+          || (blockedByOtherChoices.has(languageId) ? selectedReasons.get(languageId) || "idioma já selecionado em outra área" : "");
+        if (reason) disabledReasons.set(languageId, reason);
+      });
 
-      populateLanguageSelect2024(select, allowedLanguageIds, "Selecione...");
+      populateLanguageSelect2024(select, definition.options || [], "Selecione...", disabledReasons);
       if (currentValue && listOptionValues2024(select).includes(currentValue)) {
         select.value = currentValue;
       }
@@ -14650,7 +14693,7 @@ import {
     return origin ? `${formatLanguageLabel(id)} (${origin})` : formatLanguageLabel(id);
   }
 
-  function populateLanguageSelect2024(select, allowedLanguageIds, placeholder = "Selecione...") {
+  function populateLanguageSelect2024(select, allowedLanguageIds, placeholder = "Selecione...", disabledReasons = new Map()) {
     if (!select) return;
     const currentValue = select.value;
     const allowed = new Set((allowedLanguageIds || []).filter(Boolean));
@@ -14677,6 +14720,11 @@ import {
         const option = document.createElement("option");
         option.value = languageId;
         option.textContent = formatLanguageOptionLabel2024(languageId);
+        const disabledReason = disabledReasons.get(languageId) || "";
+        if (disabledReason && currentValue !== languageId) {
+          option.disabled = true;
+          option.dataset.disabledReason = disabledReason;
+        }
         optgroup.appendChild(option);
       });
       select.appendChild(optgroup);
