@@ -10509,6 +10509,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     default: {
       minSize: 6,
       maxSize: 12,
+      emergencyMinSize: 3.5,
       step: 0.5,
       paddingX: 2,
       paddingY: 2,

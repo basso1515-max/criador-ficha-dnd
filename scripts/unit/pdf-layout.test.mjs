@@ -59,6 +59,48 @@ test("fitPdfTextToField troca separadores incompatíveis antes de aplicar no PDF
   assert.equal(layout.text, "Div.: Mielikki - Símb.: Folha de carvalho - Dom.: Natureza");
 });
 
+test("fitPdfTextToField reduz fonte abaixo do minimo preferido para evitar vazamento horizontal", () => {
+  const layout = fitPdfTextToField(
+    "abcdefghijklmnopqrst",
+    makeTextField({ width: 70, height: 20, multiline: false }),
+    fakeFont,
+    {
+      minSize: 8,
+      maxSize: 10,
+      emergencyMinSize: 4,
+      step: 1,
+      paddingX: 0,
+      paddingY: 0,
+      lineHeightFactor: 1,
+    }
+  );
+
+  assert.equal(layout.text, "abcdefghijklmnopqrst");
+  assert.equal(layout.fontSize, 7);
+});
+
+test("fitPdfTextToField encurta linha unica quando nem a fonte de emergencia cabe", () => {
+  const layout = fitPdfTextToField(
+    "abcdefghijklmnopqrstuvwxyz1234567890",
+    makeTextField({ width: 40, height: 20, multiline: false }),
+    fakeFont,
+    {
+      minSize: 8,
+      maxSize: 8,
+      emergencyMinSize: 4,
+      step: 1,
+      paddingX: 0,
+      paddingY: 0,
+      lineHeightFactor: 1,
+    }
+  );
+
+  assert(layout.text.endsWith("..."));
+  assert(layout.text.length < "abcdefghijklmnopqrstuvwxyz1234567890".length);
+  assert(layout.text.length * layout.fontSize * 0.5 <= 40);
+  assert.equal(layout.fontSize, 4);
+});
+
 test("fitPdfTextToField trunca texto multiline que excede o campo no tamanho minimo", () => {
   const longText = Array.from({ length: 40 }, (_, index) => `Linha ${index + 1} com texto suficiente`).join("\n");
   const layout = fitPdfTextToField(
@@ -78,4 +120,29 @@ test("fitPdfTextToField trunca texto multiline que excede o campo no tamanho min
   assert(layout.text.endsWith("..."));
   assert(layout.text.split("\n").length <= 5);
   assert.equal(layout.fontSize, 5);
+});
+
+test("fitPdfTextToField mantem reticencias de multiline truncado dentro da largura", () => {
+  const layout = fitPdfTextToField(
+    [
+      "abcdefghijklmnop",
+      "qrstuvwxyzabcdef",
+      "ghijklmnopqrstuv",
+    ].join("\n"),
+    makeTextField({ width: 22, height: 8 }),
+    fakeFont,
+    {
+      minSize: 4,
+      maxSize: 4,
+      step: 1,
+      paddingX: 0,
+      paddingY: 0,
+      lineHeightFactor: 1,
+    }
+  );
+
+  assert(layout.text.endsWith("..."));
+  layout.text.split("\n").forEach((line) => {
+    assert(line.length * layout.fontSize * 0.5 <= 22);
+  });
 });

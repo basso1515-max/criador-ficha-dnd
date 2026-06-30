@@ -122,18 +122,27 @@ function wrapPdfTextToWidth(text, maxWidth, font, fontSize) {
   return lines.join("\n");
 }
 
-function truncatePdfLinesToHeight(text, maxHeight, fontSize, lineHeightFactor) {
+function ellipsizePdfLineToWidth(text, maxWidth, font, fontSize) {
+  const suffix = "...";
+  let current = String(text || "").replace(/\s+$/g, "").replace(/\.\.\.$/, "").replace(/\s+$/g, "");
+  if (measurePdfTextWidth(font, suffix, fontSize) > maxWidth) return "";
+
+  while (current && measurePdfTextWidth(font, `${current}${suffix}`, fontSize) > maxWidth) {
+    current = current.slice(0, -1).replace(/\s+$/g, "");
+  }
+
+  return current ? `${current}${suffix}` : suffix;
+}
+
+function truncatePdfLinesToHeight(text, maxHeight, fontSize, lineHeightFactor, maxWidth = Infinity, font = null) {
   const lines = String(text || "").split("\n");
   const maxLines = Math.max(1, Math.floor(maxHeight / Math.max(1, fontSize * lineHeightFactor)));
   if (lines.length <= maxLines) return text;
 
   const keptLines = lines.slice(0, maxLines);
-  const suffix = "...";
   const lastIndex = keptLines.length - 1;
   const lastLine = keptLines[lastIndex] || "";
-  keptLines[lastIndex] = lastLine.endsWith(suffix)
-    ? lastLine
-    : `${lastLine.replace(/\s+$/g, "")}${suffix}`;
+  keptLines[lastIndex] = ellipsizePdfLineToWidth(lastLine, maxWidth, font, fontSize);
   return keptLines.join("\n");
 }
 
@@ -147,6 +156,7 @@ export function fitPdfTextToField(text, field, font, options = {}) {
   };
   delete config.presets;
   delete config.fallbackWrap;
+  const emergencyMinSize = Math.max(1, Math.min(config.minSize, Number(config.emergencyMinSize) || config.minSize));
 
   const normalized = normalizePdfTextValue(text, config.multiline);
   if (!normalized) {
@@ -166,7 +176,15 @@ export function fitPdfTextToField(text, field, font, options = {}) {
   const maxWidth = Math.max(4, rect.width - (config.paddingX * 2));
   const maxHeight = Math.max(4, rect.height - (config.paddingY * 2));
 
-  for (let fontSize = config.maxSize; fontSize >= config.minSize; fontSize -= config.step) {
+  const fontSizes = [];
+  for (let fontSize = config.maxSize; fontSize >= emergencyMinSize; fontSize -= config.step) {
+    fontSizes.push(fontSize);
+  }
+  if (!fontSizes.some((fontSize) => Math.abs(fontSize - emergencyMinSize) < 0.001)) {
+    fontSizes.push(emergencyMinSize);
+  }
+
+  for (const fontSize of fontSizes) {
     const processedText = config.multiline
       ? wrapPdfTextToWidth(normalized, maxWidth, font, fontSize)
       : normalized;
@@ -180,12 +198,12 @@ export function fitPdfTextToField(text, field, font, options = {}) {
     }
   }
 
-  const fallbackSize = config.minSize;
+  const fallbackSize = emergencyMinSize;
   const fallbackText = config.multiline ? wrapPdfTextToWidth(normalized, maxWidth, font, fallbackSize) : normalized;
   return {
     text: config.multiline
-      ? truncatePdfLinesToHeight(fallbackText, maxHeight, fallbackSize, config.lineHeightFactor)
-      : fallbackText,
+      ? truncatePdfLinesToHeight(fallbackText, maxHeight, fallbackSize, config.lineHeightFactor, maxWidth, font)
+      : ellipsizePdfLineToWidth(fallbackText, maxWidth, font, fallbackSize),
     fontSize: fallbackSize,
   };
 }

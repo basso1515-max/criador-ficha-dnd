@@ -10,6 +10,7 @@ export const PDF_TEXT_LAYOUT_PRESETS_2024 = {
   default: {
     minSize: 5.5,
     maxSize: 10,
+    emergencyMinSize: 3.5,
     step: 0.5,
     paddingX: 2,
     paddingY: 2,
