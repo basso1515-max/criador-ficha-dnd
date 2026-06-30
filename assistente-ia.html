@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Sheetfy | Assistente de IA</title>
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <script src="./src/theme-boot.js"></script>
+  <link rel="stylesheet" href="./src/styles/home.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=EB+Garamond:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Libre+Baskerville:wght@400;700&family=Uncial+Antiqua&display=swap" rel="stylesheet">
+  <script type="module" defer src="./src/analytics.js"></script>
+  <script type="module" defer src="./src/theme.js"></script>
+  <script type="module" defer src="./src/ai-character-flow.js"></script>
+</head>
+
+<body data-active-screen="ai-assistant" data-ai-flow-page="assistant">
+  <section class="app-screen ai-flow-screen" data-edition-theme>
+    <header class="container ai-flow-header">
+      <div class="version-toolbar">
+        <div class="version-toolbar-actions">
+          <a data-choice-link href="./criacao.html?edition=5e" class="ghost-button">Voltar</a>
+          <a href="./index.html" class="secondary-button">Seleção de edição</a>
+          <button type="button" class="theme-toggle editor-theme-toggle" data-theme-toggle aria-label="Alternar tema"></button>
+        </div>
+      </div>
+    </header>
+
+    <main class="container ai-flow-shell ai-assistant-shell">
+      <section class="ai-flow-hero" aria-labelledby="assistantTitle">
+        <p class="version-option-tag" data-edition-tag>ASSISTENTE</p>
+        <h1 id="assistantTitle">Transforme sua ideia em ficha inicial</h1>
+        <p data-edition-description>
+          Escreva a história, conceito ou referências de tom. A IA sugere uma ficha coerente e você revisa tudo no editor antes de gerar o PDF.
+        </p>
+      </section>
+
+      <form id="aiCharacterForm" class="ai-assistant-form" method="post">
+        <label class="row">
+          <span>Ideia ou história do personagem</span>
+          <textarea
+            id="aiCharacterPrompt"
+            name="prompt"
+            rows="10"
+            maxlength="6000"
+            required
+            placeholder="Ex.: Uma ex-guarda de cidade portuária que fez um pacto para salvar a irmã, carrega culpa por uma tragédia no cais e evita confiar em nobres."
+          ></textarea>
+        </label>
+
+        <div class="ai-form-grid">
+          <label class="row">
+            <span>Tom da personagem</span>
+            <input id="aiCharacterTone" name="tone" type="text" maxlength="80" value="aventura heroica" />
+          </label>
+
+          <label class="row">
+            <span>Preferência de escolhas</span>
+            <select id="aiCharacterComplexity" name="complexity">
+              <option value="equilibrada" selected>Equilibrada</option>
+              <option value="simples">Simples para jogar</option>
+              <option value="otimizada">Mais otimizada</option>
+            </select>
+          </label>
+        </div>
+
+        <div id="aiCharacterPreview" class="ai-result-panel" hidden></div>
+
+        <div class="ai-form-actions">
+          <button id="aiCharacterSubmit" type="submit" class="primary">Gerar ficha inicial</button>
+          <a data-manual-link href="./5e.html" class="secondary-button">Criar manualmente</a>
+        </div>
+
+        <p id="aiCharacterStatus" class="note ai-status" aria-live="polite"></p>
+      </form>
+    </main>
+
+    <button type="button" class="theme-toggle site-theme-toggle" data-theme-toggle aria-label="Alternar tema"></button>
+  </section>
+</body>
+</html>

@@ -1,4 +1,5 @@
 import { handleAccountApi } from "../server/account-api.js";
+import handleAiCharacterApi from "../server/ai-character-api.js";
 import handleCharacterShareApi from "../server/character-share-api.js";
 import handleCommunityStatsApi from "../server/community-stats-api.js";
 
@@ -20,6 +21,10 @@ export default function handler(req, res) {
 
   if (pathname === "/api/community-stats") {
     return handleCommunityStatsApi(req, res);
+  }
+
+  if (pathname === "/api/ai-character") {
+    return handleAiCharacterApi(req, res);
   }
 
   if (pathname === "/api/character-shares" || pathname.startsWith("/api/character-shares/")) {

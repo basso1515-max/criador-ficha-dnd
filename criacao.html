@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Sheetfy | Como criar sua ficha</title>
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <script src="./src/theme-boot.js"></script>
+  <link rel="stylesheet" href="./src/styles/home.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=EB+Garamond:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Libre+Baskerville:wght@400;700&family=Uncial+Antiqua&display=swap" rel="stylesheet">
+  <script type="module" defer src="./src/analytics.js"></script>
+  <script type="module" defer src="./src/theme.js"></script>
+  <script type="module" defer src="./src/ai-character-flow.js"></script>
+</head>
+
+<body data-active-screen="creation-choice" data-ai-flow-page="choice">
+  <section class="app-screen ai-flow-screen" data-edition-theme>
+    <header class="container ai-flow-header">
+      <div class="version-toolbar">
+        <div class="version-toolbar-actions">
+          <a href="./index.html" class="ghost-button">Voltar para a seleção</a>
+          <button type="button" class="theme-toggle editor-theme-toggle" data-theme-toggle aria-label="Alternar tema"></button>
+        </div>
+      </div>
+    </header>
+
+    <main class="container ai-flow-shell">
+      <section class="ai-flow-hero" aria-labelledby="creationChoiceTitle">
+        <p class="version-option-tag" data-edition-tag>CRIAÇÃO</p>
+        <h1 id="creationChoiceTitle">Como você quer criar sua ficha?</h1>
+        <p data-edition-description>
+          Escolha se prefere preencher tudo manualmente ou começar com uma ficha sugerida a partir da ideia do personagem.
+        </p>
+      </section>
+
+      <section class="ai-choice-grid" aria-label="Modos de criação">
+        <a class="ai-choice-card ai-choice-card--manual" data-manual-link href="./5e.html">
+          <span class="ai-choice-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" focusable="false">
+              <path d="M4 19.5V5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-1.5Z" />
+              <path d="M8 7h6" />
+              <path d="M8 11h8" />
+              <path d="M8 15h5" />
+            </svg>
+          </span>
+          <strong>Fazer manualmente</strong>
+          <span>Abre o editor completo para você escolher classe, origem, atributos, equipamentos e textos.</span>
+        </a>
+
+        <a class="ai-choice-card ai-choice-card--assisted" data-assistant-link href="./assistente-ia.html?edition=5e">
+          <span class="ai-choice-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" focusable="false">
+              <path d="M12 3 9.5 8.5 4 11l5.5 2.5L12 19l2.5-5.5L20 11l-5.5-2.5L12 3Z" />
+              <path d="M5 4v3" />
+              <path d="M3.5 5.5h3" />
+              <path d="M19 17v3" />
+              <path d="M17.5 18.5h3" />
+            </svg>
+          </span>
+          <strong>Gerar por ideia ou história</strong>
+          <span>Conte o conceito do personagem e receba uma base preenchida para revisar no editor.</span>
+        </a>
+      </section>
+    </main>
+
+    <button type="button" class="theme-toggle site-theme-toggle" data-theme-toggle aria-label="Alternar tema"></button>
+  </section>
+</body>
+</html>

@@ -4,6 +4,7 @@ import { createReadStream, existsSync, statSync } from "node:fs";
 import { createServer } from "node:http";
 import path from "node:path";
 import { configureAccountApiStore, handleAccountApi } from "../server/account-api.js";
+import handleAiCharacterApi from "../server/ai-character-api.js";
 import handleCharacterShareApi, { configureCharacterShareApiStore } from "../server/character-share-api.js";
 import { readCommunityStats } from "../server/community-stats-store.js";
 import { createLocalJsonAccountStore } from "../server/local-json-account-store.js";
@@ -102,6 +103,11 @@ const server = createServer(async (req, res) => {
 
     if (url.pathname === "/api/community-stats") {
       await handleCommunityStatsApi(req, res);
+      return;
+    }
+
+    if (url.pathname === "/api/ai-character") {
+      await handleAiCharacterApi(req, res);
       return;
     }
 
