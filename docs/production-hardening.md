@@ -2,13 +2,20 @@
 
 Este projeto pode rodar localmente sem muita cerimônia, mas publicação pública pede alguns cuidados extras. Use esta lista antes de abrir o app para outras pessoas.
 
+## Identidade
+
+- A marca pública é `Sheetfy`; use esse nome em UI, títulos HTML, remetentes/assuntos de e-mail e apps OAuth.
+- O domínio público canônico é `https://sheetfy.vercel.app`; use-o em `ACCOUNT_PUBLIC_BASE_URL`, links de e-mail e callbacks OAuth.
+- O projeto Vercel canônico é `criador-ficha-dnd`; use esse slug somente para metadata de infraestrutura, `.vercel/project.json`, guardrails e referências ao repositório/deploy.
+- Não use `criador-ficha-dnd` como marca pública nem `https://criador-ficha-dnd.vercel.app` como URL pública de e-mail/OAuth. Esse domínio, se existir, deve redirecionar para `https://sheetfy.vercel.app`.
+
 ## Ambiente
 
 - Configure HTTPS no domínio final.
 - Use Upstash Redis persistente em produção.
 - Defina `UPSTASH_REDIS_REST_URL` e `UPSTASH_REDIS_REST_TOKEN` somente no painel da Vercel ou no provedor de deploy.
 - Defina `ACCOUNT_PASSWORD_PEPPER` como um segredo longo e aleatório antes de criar contas reais, se quiser uma camada extra para hashes de senha.
-- Configure `RESEND_API_KEY`, `ACCOUNT_EMAIL_FROM` e, se necessário, `ACCOUNT_PUBLIC_BASE_URL` para recuperação de senha e validação de e-mail.
+- Configure `RESEND_API_KEY`, `ACCOUNT_EMAIL_FROM` e `ACCOUNT_PUBLIC_BASE_URL=https://sheetfy.vercel.app` para recuperação de senha, validação de e-mail e callbacks OAuth em produção.
 - Nunca habilite `ACCOUNT_EMAIL_DEBUG_RESPONSE` em produção.
 - Não publique `.env.local`, dumps de Redis, `server-data/`, logs ou arquivos gerados em `out/`.
 - Rode `npm audit --omit=dev` antes do deploy.
@@ -63,7 +70,7 @@ Este projeto pode rodar localmente sem muita cerimônia, mas publicação públi
 ## Promoção De Deploy
 
 - O projeto Vercel canônico para produção é `criador-ficha-dnd` (`prj_loq25T1SeNYEx5LkJn12UQ5EBQmo`).
-- O domínio público principal é `https://sheetfy.vercel.app`; `https://criador-ficha-dnd.vercel.app` deve redirecionar para ele.
+- O domínio público principal é `https://sheetfy.vercel.app`; `https://criador-ficha-dnd.vercel.app` deve redirecionar para ele e não deve aparecer como URL pública de conta/OAuth.
 - Mantenha a Git Integration do Vercel conectada somente nesse projeto, no repositório `basso1515-max/criador-ficha-dnd`, branch de produção `main`.
 - Não conecte o mesmo repositório/branch a outro projeto Vercel, pois cada projeto conectado dispara um deploy de produção separado para o mesmo push.
 - Publique produção com `git push origin main` e deixe a Git Integration do projeto canônico criar o deploy.

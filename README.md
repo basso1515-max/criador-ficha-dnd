@@ -78,6 +78,15 @@ Já possui criação guiada, espécies, antecedentes, classes, talentos, magias,
 - Upstash Redis em produção.
 - Armazenamento JSON local para desenvolvimento.
 
+## Identidade De Marca E Deploy
+
+A separação entre marca pública e identidade de deploy é intencional:
+
+- `Sheetfy` é a marca pública. Use esse nome em títulos HTML, textos de interface, remetentes/assuntos de e-mail de conta e cadastros públicos de OAuth.
+- `https://sheetfy.vercel.app` é o domínio público canônico. Use esse domínio em `ACCOUNT_PUBLIC_BASE_URL`, links de e-mail e callbacks de OAuth em produção.
+- `criador-ficha-dnd` é a identidade de infraestrutura: slug do repositório, projeto Vercel canônico e guardrails de deploy. Não use esse slug como marca pública, título HTML, nome de app OAuth ou URL pública de e-mail.
+- `https://criador-ficha-dnd.vercel.app`, se existir, é apenas alias técnico do projeto Vercel e deve redirecionar para o domínio público `https://sheetfy.vercel.app`.
+
 ## Organização Do Frontend
 
 Os entrypoints mantidos para compatibilidade com o HTML são:
@@ -268,12 +277,12 @@ ACCOUNT_EMAIL_NAME
 ACCOUNT_PUBLIC_BASE_URL
 ```
 
-`ACCOUNT_PUBLIC_BASE_URL` define a URL pública usada nos links e callbacks de OAuth. Fora de `localhost`, ela é obrigatória e deve apontar para o domínio canônico, por exemplo `https://sheetfy.vercel.app`. Sem `RESEND_API_KEY` ou remetente, o cadastro e a recuperação continuam funcionando, mas o servidor apenas registra aviso nos logs. `ACCOUNT_EMAIL_DEBUG_RESPONSE=1` existe só para testes locais e não deve ser usado em produção.
-Use `ACCOUNT_EMAIL_NAME=Sheetfy` para que remetente e assuntos dos e-mails de conta carreguem o novo nome.
+`ACCOUNT_PUBLIC_BASE_URL` define a URL pública usada nos links e callbacks de OAuth. Fora de `localhost`, ela é obrigatória e, em produção, deve apontar para `https://sheetfy.vercel.app`, não para o slug do projeto Vercel. Sem `RESEND_API_KEY` ou remetente, o cadastro e a recuperação continuam funcionando, mas o servidor apenas registra aviso nos logs. `ACCOUNT_EMAIL_DEBUG_RESPONSE=1` existe só para testes locais e não deve ser usado em produção.
+Use `ACCOUNT_EMAIL_NAME=Sheetfy` para que remetente e assuntos dos e-mails de conta carreguem a marca pública.
 
 ### Login Social
 
-O app também oferece login com Google e Facebook via OAuth. Configure, no painel de cada provedor, a URL de callback:
+O app também oferece login com Google e Facebook via OAuth. Configure, no painel de cada provedor, a URL de callback. Em produção, o callback usa o domínio público da marca mesmo que o projeto Vercel canônico seja `criador-ficha-dnd`:
 
 ```text
 http://127.0.0.1:8000/api/accounts/oauth/callback
@@ -297,7 +306,7 @@ Na página do usuário, provedores sociais vinculados podem ser desvinculados co
 
 ## Deploy Na Vercel
 
-O projeto Vercel canônico de produção é `criador-ficha-dnd` (`prj_loq25T1SeNYEx5LkJn12UQ5EBQmo`) e a produção deve sair somente da Git Integration desse projeto na branch `main`. Antes de publicar, conecte um Redis persistente ao projeto e configure as variáveis `UPSTASH_REDIS_REST_URL` e `UPSTASH_REDIS_REST_TOKEN` no ambiente da Vercel. Depois, valide localmente:
+O projeto Vercel canônico de produção é `criador-ficha-dnd` (`prj_loq25T1SeNYEx5LkJn12UQ5EBQmo`) e a produção deve sair somente da Git Integration desse projeto na branch `main`. Essa identidade de infraestrutura não muda a marca pública `Sheetfy` nem o domínio público `https://sheetfy.vercel.app`. Antes de publicar, conecte um Redis persistente ao projeto e configure as variáveis `UPSTASH_REDIS_REST_URL` e `UPSTASH_REDIS_REST_TOKEN` no ambiente da Vercel. Depois, valide localmente:
 
 ```powershell
 vercel env pull .env.local --yes
