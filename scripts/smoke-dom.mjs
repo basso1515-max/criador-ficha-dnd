@@ -291,6 +291,97 @@ const smokePages = [
               }
             });
         };
+        const assertMagicTouchSelectionFlow5e = async () => {
+          const listSelector = "#magicSourcesList";
+          const hoverSelector = "#magicSpellHoverCard";
+          const normalize = (value) => String(value || "")
+            .normalize("NFD")
+            .replace(/[\\u0300-\\u036f]/g, "")
+            .toLowerCase();
+          const enabledUncheckedItems = (root) => Array.from(root.querySelectorAll(".spell-check-item"))
+            .filter((item) => {
+              const input = item.querySelector('input[type="checkbox"][data-source-key][data-kind]');
+              return input && !input.disabled && !input.checked;
+            });
+          const checklistEntry = Array.from(document.querySelectorAll(listSelector + " .spell-checklist[data-scroll-key]"))
+            .map((checklist) => ({ checklist, items: enabledUncheckedItems(checklist) }))
+            .find((entry) => entry.items.length >= 2 && entry.checklist.scrollHeight > entry.checklist.clientHeight + 4);
+          assert(checklistEntry, "Lista rolável de magias 5e ausente para testar toque mobile.");
+          const { checklist, items } = checklistEntry;
+          const scrollKey = checklist.getAttribute("data-scroll-key");
+          checklist.scrollTop = Math.min(96, checklist.scrollHeight - checklist.clientHeight);
+          const expectedScrollTop = checklist.scrollTop;
+          assert(expectedScrollTop > 0, "Lista de magias 5e não aceitou rolagem antes da seleção por toque.");
+          const inputKey = (input) => ({
+            sourceKey: input.getAttribute("data-source-key"),
+            kind: input.getAttribute("data-kind"),
+            value: input.value,
+          });
+          const findInputByKey = (key) => Array.from(document.querySelectorAll(listSelector + ' input[type="checkbox"][data-source-key][data-kind]'))
+            .find((input) => input.value === key.value
+              && input.getAttribute("data-source-key") === key.sourceKey
+              && input.getAttribute("data-kind") === key.kind);
+          const tapSpell = (item, x = 180, y = 220) => {
+            item.dispatchEvent(new PointerEvent("pointerdown", {
+              bubbles: true,
+              pointerType: "touch",
+              clientX: x,
+              clientY: y,
+            }));
+            item.dispatchEvent(new MouseEvent("click", {
+              bubbles: true,
+              cancelable: true,
+              detail: 1,
+              clientX: x,
+              clientY: y,
+            }));
+          };
+          const assertHoverShows = async (name, message) => {
+            await waitForCondition(() => {
+              const hover = document.querySelector(hoverSelector);
+              const text = hover?.textContent || "";
+              return hover && !hover.hidden && normalize(text).includes(normalize(name)) && /Tempo|Alcance|Duração/.test(text);
+            }, message);
+          };
+          const firstItem = items[0];
+          const secondItem = items[1];
+          const firstInput = firstItem.querySelector('input[type="checkbox"][data-source-key][data-kind]');
+          const secondInput = secondItem.querySelector('input[type="checkbox"][data-source-key][data-kind]');
+          const firstKey = inputKey(firstInput);
+          const secondKey = inputKey(secondInput);
+          const firstName = firstItem.querySelector("strong")?.textContent || firstKey.value;
+          const secondName = secondItem.querySelector("strong")?.textContent || secondKey.value;
+
+          tapSpell(firstItem);
+          await assertHoverShows(firstName, "Primeiro toque 5e não abriu o card da magia.");
+          assert(!firstInput.checked, "Primeiro toque 5e selecionou a magia antes da confirmação.");
+
+          tapSpell(secondItem, 200, 240);
+          await assertHoverShows(secondName, "Toque em outra magia 5e não trocou o card ativo.");
+          assert(!secondInput.checked, "Toque em outra magia 5e deveria apenas trocar o card ativo.");
+
+          tapSpell(secondItem, 200, 240);
+          await waitForCondition(() => {
+            const selectedInput = findInputByKey(secondKey);
+            const restoredChecklist = Array.from(document.querySelectorAll(listSelector + " .spell-checklist[data-scroll-key]"))
+              .find((node) => node.getAttribute("data-scroll-key") === scrollKey);
+            return selectedInput?.checked && restoredChecklist && Math.abs(restoredChecklist.scrollTop - expectedScrollTop) <= 4;
+          }, "Segundo toque 5e não selecionou a magia preservando a rolagem da lista.");
+
+          const freshFirstInput = findInputByKey(firstKey);
+          const freshFirstItem = freshFirstInput?.closest(".spell-check-item");
+          assert(freshFirstItem, "Magia 5e inicial sumiu após selecionar outra magia.");
+          tapSpell(freshFirstItem, 180, 220);
+          await assertHoverShows(firstName, "Toque 5e após seleção não reabriu o card.");
+          document.body.dispatchEvent(new MouseEvent("click", {
+            bubbles: true,
+            cancelable: true,
+            detail: 1,
+            clientX: 4,
+            clientY: 4,
+          }));
+          await waitForCondition(() => document.querySelector(hoverSelector)?.hidden, "Toque fora 5e não fechou o card da magia.");
+        };
         const fightingStyleSelects = () => Array.from(document.querySelectorAll("#fightingStyleContainer select[data-style-slot-key]"));
         const chooseFightingStyle = (value = "", slotIndex = 0) => {
           const select = fightingStyleSelects()[slotIndex];
@@ -658,6 +749,7 @@ const smokePages = [
         assert(metamagic.size === 4, "Metamagia 5e permitiu escolha duplicada no smoke.");
 
         await assertFeatureSlots("Mago", 20, [["spell-mastery-1", 1], ["spell-mastery-2", 1], ["signature-spells", 2]]);
+        await assertMagicTouchSelectionFlow5e();
         chooseFeature("spell-mastery-1");
         chooseFeature("spell-mastery-2");
         chooseFeature("signature-spells", "", 0);
@@ -1053,6 +1145,97 @@ const smokePages = [
         const setClassLevel = (classId, level) => {
           setValue("#classe2024", classId, ["change"]);
           setValue("#nivel2024", level, ["input", "change"]);
+        };
+        const assertMagicTouchSelectionFlow2024 = async () => {
+          const listSelector = "#magicSourcesList2024";
+          const hoverSelector = "#magicSpellHoverCard2024";
+          const normalize = (value) => String(value || "")
+            .normalize("NFD")
+            .replace(/[\\u0300-\\u036f]/g, "")
+            .toLowerCase();
+          const enabledUncheckedItems = (root) => Array.from(root.querySelectorAll(".spell-check-item"))
+            .filter((item) => {
+              const input = item.querySelector('input[type="checkbox"][data-source-key][data-kind]');
+              return input && !input.disabled && !input.checked;
+            });
+          const checklistEntry = Array.from(document.querySelectorAll(listSelector + " .spell-checklist[data-scroll-key]"))
+            .map((checklist) => ({ checklist, items: enabledUncheckedItems(checklist) }))
+            .find((entry) => entry.items.length >= 2 && entry.checklist.scrollHeight > entry.checklist.clientHeight + 4);
+          assert(checklistEntry, "Lista rolável de magias 2024 ausente para testar toque mobile.");
+          const { checklist, items } = checklistEntry;
+          const scrollKey = checklist.getAttribute("data-scroll-key");
+          checklist.scrollTop = Math.min(96, checklist.scrollHeight - checklist.clientHeight);
+          const expectedScrollTop = checklist.scrollTop;
+          assert(expectedScrollTop > 0, "Lista de magias 2024 não aceitou rolagem antes da seleção por toque.");
+          const inputKey = (input) => ({
+            sourceKey: input.getAttribute("data-source-key"),
+            kind: input.getAttribute("data-kind"),
+            value: input.value,
+          });
+          const findInputByKey = (key) => Array.from(document.querySelectorAll(listSelector + ' input[type="checkbox"][data-source-key][data-kind]'))
+            .find((input) => input.value === key.value
+              && input.getAttribute("data-source-key") === key.sourceKey
+              && input.getAttribute("data-kind") === key.kind);
+          const tapSpell = (item, x = 180, y = 220) => {
+            item.dispatchEvent(new PointerEvent("pointerdown", {
+              bubbles: true,
+              pointerType: "touch",
+              clientX: x,
+              clientY: y,
+            }));
+            item.dispatchEvent(new MouseEvent("click", {
+              bubbles: true,
+              cancelable: true,
+              detail: 1,
+              clientX: x,
+              clientY: y,
+            }));
+          };
+          const assertHoverShows = async (name, message) => {
+            await waitForCondition(() => {
+              const hover = document.querySelector(hoverSelector);
+              const text = hover?.textContent || "";
+              return hover && !hover.hidden && normalize(text).includes(normalize(name)) && /Tempo|Alcance|Duração/.test(text);
+            }, message);
+          };
+          const firstItem = items[0];
+          const secondItem = items[1];
+          const firstInput = firstItem.querySelector('input[type="checkbox"][data-source-key][data-kind]');
+          const secondInput = secondItem.querySelector('input[type="checkbox"][data-source-key][data-kind]');
+          const firstKey = inputKey(firstInput);
+          const secondKey = inputKey(secondInput);
+          const firstName = firstItem.querySelector("strong")?.textContent || firstKey.value;
+          const secondName = secondItem.querySelector("strong")?.textContent || secondKey.value;
+
+          tapSpell(firstItem);
+          await assertHoverShows(firstName, "Primeiro toque 2024 não abriu o card da magia.");
+          assert(!firstInput.checked, "Primeiro toque 2024 selecionou a magia antes da confirmação.");
+
+          tapSpell(secondItem, 200, 240);
+          await assertHoverShows(secondName, "Toque em outra magia 2024 não trocou o card ativo.");
+          assert(!secondInput.checked, "Toque em outra magia 2024 deveria apenas trocar o card ativo.");
+
+          tapSpell(secondItem, 200, 240);
+          await waitForCondition(() => {
+            const selectedInput = findInputByKey(secondKey);
+            const restoredChecklist = Array.from(document.querySelectorAll(listSelector + " .spell-checklist[data-scroll-key]"))
+              .find((node) => node.getAttribute("data-scroll-key") === scrollKey);
+            return selectedInput?.checked && restoredChecklist && Math.abs(restoredChecklist.scrollTop - expectedScrollTop) <= 4;
+          }, "Segundo toque 2024 não selecionou a magia preservando a rolagem da lista.");
+
+          const freshFirstInput = findInputByKey(firstKey);
+          const freshFirstItem = freshFirstInput?.closest(".spell-check-item");
+          assert(freshFirstItem, "Magia 2024 inicial sumiu após selecionar outra magia.");
+          tapSpell(freshFirstItem, 180, 220);
+          await assertHoverShows(firstName, "Toque 2024 após seleção não reabriu o card.");
+          document.body.dispatchEvent(new MouseEvent("click", {
+            bubbles: true,
+            cancelable: true,
+            detail: 1,
+            clientX: 4,
+            clientY: 4,
+          }));
+          await waitForCondition(() => document.querySelector(hoverSelector)?.hidden, "Toque fora 2024 não fechou o card da magia.");
         };
         const featureSelects = () => Array.from(document.querySelectorAll("#featureChoicesContainer2024 select[data-feature-choice-slot-key]"));
         const selectsForFeature = (featureId) => featureSelects()
@@ -1503,6 +1686,8 @@ const smokePages = [
         assertFeatureSummary("6/6");
 
         assertFeatureSlots("mago", 20, [["scholar", 1], ["spell-mastery-1", 1], ["spell-mastery-2", 1], ["signature-spells", 2]]);
+        await waitForLazyCatalogs2024();
+        await assertMagicTouchSelectionFlow2024();
         markSkill("arcanismo");
         chooseFeature("scholar", "arcanismo");
         chooseFeature("spell-mastery-1");
