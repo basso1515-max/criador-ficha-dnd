@@ -17,6 +17,9 @@
   <section class="app-screen ai-flow-screen" data-edition-theme>
     <header class="container ai-flow-header">
       <div class="version-toolbar">
+        <a href="./index.html" class="ai-flow-brand" aria-label="Voltar para a página inicial do Sheetfy">
+          <span>Sheetfy</span>
+        </a>
         <div class="version-toolbar-actions">
           <a href="./index.html" class="ghost-button">Voltar para a seleção</a>
           <button type="button" class="theme-toggle editor-theme-toggle" data-theme-toggle aria-label="Alternar tema"></button>
@@ -26,44 +29,36 @@
 
     <main class="container ai-flow-shell">
       <section class="ai-flow-hero" aria-labelledby="creationChoiceTitle">
-        <p class="version-option-tag" data-edition-tag>CRIAÇÃO</p>
-        <h1 id="creationChoiceTitle">Como você quer criar sua ficha?</h1>
-        <p data-edition-description>
-          Escolha se prefere preencher tudo manualmente ou começar com uma ficha sugerida a partir da ideia do personagem.
-        </p>
+        <div class="ai-flow-hero-copy">
+          <p class="version-option-tag" data-edition-tag>CRIAÇÃO</p>
+          <h1 id="creationChoiceTitle">Como você quer criar sua ficha?</h1>
+          <p data-edition-description>
+            Escolha se prefere preencher tudo manualmente ou começar com uma ficha sugerida a partir da ideia do personagem.
+          </p>
+        </div>
+        <div class="ai-flow-compass" aria-hidden="true">
+          <span>Manual</span>
+          <span>IA</span>
+          <span>PDF</span>
+        </div>
       </section>
 
       <section class="ai-choice-grid" aria-label="Modos de criação">
         <a class="ai-choice-card ai-choice-card--manual" data-manual-link href="./5e.html">
-          <span class="ai-choice-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" focusable="false">
-              <path d="M4 19.5V5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-1.5Z" />
-              <path d="M8 7h6" />
-              <path d="M8 11h8" />
-              <path d="M8 15h5" />
-            </svg>
-          </span>
+          <span class="ai-choice-mark" aria-hidden="true">01</span>
+          <span class="ai-choice-kicker">Controle total</span>
           <strong>Fazer manualmente</strong>
           <span>Abre o editor completo para você escolher classe, origem, atributos, equipamentos e textos.</span>
         </a>
 
         <a class="ai-choice-card ai-choice-card--assisted" data-assistant-link href="./assistente-ia.html?edition=5e">
-          <span class="ai-choice-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" focusable="false">
-              <path d="M12 3 9.5 8.5 4 11l5.5 2.5L12 19l2.5-5.5L20 11l-5.5-2.5L12 3Z" />
-              <path d="M5 4v3" />
-              <path d="M3.5 5.5h3" />
-              <path d="M19 17v3" />
-              <path d="M17.5 18.5h3" />
-            </svg>
-          </span>
+          <span class="ai-choice-mark" aria-hidden="true">02</span>
+          <span class="ai-choice-kicker">Rascunho inteligente</span>
           <strong>Gerar por ideia ou história</strong>
           <span>Conte o conceito do personagem e receba uma base preenchida para revisar no editor.</span>
         </a>
       </section>
     </main>
-
-    <button type="button" class="theme-toggle site-theme-toggle" data-theme-toggle aria-label="Alternar tema"></button>
   </section>
 </body>
 </html>

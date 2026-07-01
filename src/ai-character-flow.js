@@ -25,6 +25,94 @@ const EDITIONS = {
   },
 };
 
+const EXAMPLE_COUNT = 4;
+const PROMPT_EXAMPLES = {
+  "5e": {
+    concepts: [
+      "Um ladino elfo sombrio e sarcástico",
+      "Uma clériga humana cega da Ordem da Luz",
+      "Um bárbaro anão muito musculoso",
+      "Uma feiticeira gnoma caótica",
+      "Um patrulheiro tiefling treinado por monges cartógrafos",
+      "Uma barda meio-orc avessa a plateias nobres",
+      "Um mago halfling de modos impecáveis",
+      "Uma paladina draconata exilada",
+    ],
+    origins: [
+      "cresceu nos becos de uma cidade flutuante",
+      "carrega um escudo gigante gravado com runas antigas",
+      "na verdade é um cozinheiro profissional sensível",
+      "é obcecada por explosões acidentais e chapéus pontudos",
+      "roubou o próprio nome de um contrato infernal",
+      "foi salva por uma caravana que colecionava mapas proibidos",
+      "aprendeu magia copiando receitas de uma avó bruxa",
+      "guardou o último sino de um templo afundado",
+    ],
+    drives: [
+      "quer provar que coragem não precisa fazer barulho",
+      "procura a pessoa que apagou uma noite inteira da sua memória",
+      "viaja para pagar uma dívida que ninguém mais lembra",
+      "busca um lar onde sua reputação ainda não chegou",
+      "precisa escoltar uma relíquia que sussurra conselhos ruins",
+      "quer transformar uma tragédia familiar em lenda heroica",
+      "caça um monstro que só aparece em festas elegantes",
+      "prometeu nunca abandonar alguém na estrada outra vez",
+    ],
+    flaws: [
+      "mas sempre mente quando sente medo",
+      "mas coleciona pequenos presságios e confia demais neles",
+      "mas evita liderar porque uma ordem antiga deu errado",
+      "mas ri nos momentos mais inadequados",
+      "mas se apega rápido demais a qualquer grupo gentil",
+      "mas não consegue resistir a portas trancadas",
+      "mas desconfia de elogios sinceros",
+      "mas protege inimigos rendidos com teimosia absoluta",
+    ],
+  },
+  "5.5e-2024": {
+    concepts: [
+      "Uma guerreira aasimar com treinamento de sentinela",
+      "Um bruxo humano que conversa com o eco do patrono",
+      "Uma ladina halfling especializada em resgates impossíveis",
+      "Um druida elfo que anota sonhos de animais",
+      "Uma monja gnoma criada em uma biblioteca subterrânea",
+      "Um bardo draconato de voz baixa e presença enorme",
+      "Uma patrulheira orc guia de pântanos luminosos",
+      "Um clérigo anão que perdeu a fé e manteve os milagres",
+    ],
+    origins: [
+      "foi escolhida por uma estrela caída durante uma vigília",
+      "herdou uma máscara que responde antes dele pensar",
+      "cresceu abrindo cofres para libertar prisioneiros",
+      "viveu anos cuidando de uma floresta que muda de lugar",
+      "decorou tratados de combate como quem lê poemas",
+      "cantava para acalmar dragões jovens em uma fortaleza distante",
+      "aprendeu a sobreviver seguindo luzes que ninguém mais vê",
+      "carrega um martelo sagrado que ficou silencioso",
+    ],
+    drives: [
+      "quer descobrir se destino é bênção ou cobrança",
+      "procura uma forma de negociar sem perder a própria voz",
+      "viaja para libertar alguém que ainda acredita nela",
+      "quer impedir que uma rota antiga acorde algo faminto",
+      "busca transformar disciplina em liberdade",
+      "precisa provar que delicadeza também pode comandar uma sala",
+      "quer mapear um lugar que os mapas se recusam a mostrar",
+      "tenta merecer os milagres que ainda acontecem em suas mãos",
+    ],
+    flaws: [
+      "mas interpreta coincidências como missões pessoais",
+      "mas anota segredos em lugares fáceis demais de achar",
+      "mas confunde prudência com fuga",
+      "mas negocia com criaturas que deveria evitar",
+      "mas prefere perder a admitir que está cansada",
+      "mas nunca sabe quando uma apresentação acabou",
+      "mas responde provocações com honestidade perigosa",
+      "mas teme que a fé volte no pior momento possível",
+    ],
+  },
+};
+
 const page = document.body?.dataset.aiFlowPage || "";
 const editionKey = readEditionKey();
 const edition = EDITIONS[editionKey] || EDITIONS["5e"];
@@ -78,6 +166,8 @@ function bindAssistantForm() {
   const submitButton = /** @type {HTMLButtonElement | null} */ (document.getElementById("aiCharacterSubmit"));
   const status = document.getElementById("aiCharacterStatus");
   const preview = document.getElementById("aiCharacterPreview");
+
+  bindPromptExamples(prompt, status);
 
   form?.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -156,7 +246,62 @@ function setStatus(element, message, tone = "info") {
 function setLoading(button, loading) {
   if (!button) return;
   button.disabled = loading;
-  button.textContent = loading ? "Gerando..." : "Gerar ficha inicial";
+  button.textContent = loading ? "Conjurando..." : "Conjurar ficha por IA";
+}
+
+function bindPromptExamples(prompt, status) {
+  const grid = document.querySelector("[data-ai-example-grid]");
+  const refreshButton = /** @type {HTMLButtonElement | null} */ (document.getElementById("aiExamplesRefresh"));
+  if (!grid || !prompt) return;
+
+  const renderExamples = () => {
+    grid.replaceChildren(...buildPromptExamples(editionKey).map((example) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "ai-example-button";
+      button.textContent = example;
+      button.addEventListener("click", () => {
+        prompt.value = example;
+        prompt.focus();
+        prompt.setSelectionRange(prompt.value.length, prompt.value.length);
+        setStatus(status, "Exemplo carregado. Ajuste o que quiser antes de conjurar a ficha.", "info");
+      });
+      return button;
+    }));
+  };
+
+  renderExamples();
+  refreshButton?.addEventListener("click", renderExamples);
+}
+
+function buildPromptExamples(editionKey) {
+  const parts = PROMPT_EXAMPLES[editionKey] || PROMPT_EXAMPLES["5e"];
+  const concepts = takeRandom(parts.concepts, EXAMPLE_COUNT);
+  const origins = takeRandom(parts.origins, EXAMPLE_COUNT);
+  const drives = takeRandom(parts.drives, EXAMPLE_COUNT);
+  const flaws = takeRandom(parts.flaws, EXAMPLE_COUNT);
+
+  return Array.from({ length: EXAMPLE_COUNT }, (_, index) => (
+    `${concepts[index]} que ${origins[index]}. ${capitalizeSentence(drives[index])}, ${flaws[index]}.`
+  ));
+}
+
+function takeRandom(list, count) {
+  const shuffled = shuffle([...list]);
+  return Array.from({ length: count }, (_, index) => shuffled[index % shuffled.length]);
+}
+
+function shuffle(list) {
+  for (let index = list.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1));
+    [list[index], list[swapIndex]] = [list[swapIndex], list[index]];
+  }
+  return list;
+}
+
+function capitalizeSentence(value) {
+  const text = String(value || "");
+  return text ? `${text[0].toUpperCase()}${text.slice(1)}` : "";
 }
 
 function getWritableStorage() {

@@ -17,6 +17,9 @@
   <section class="app-screen ai-flow-screen" data-edition-theme>
     <header class="container ai-flow-header">
       <div class="version-toolbar">
+        <a href="./index.html" class="ai-flow-brand" aria-label="Voltar para a página inicial do Sheetfy">
+          <span>Sheetfy</span>
+        </a>
         <div class="version-toolbar-actions">
           <a data-choice-link href="./criacao.html?edition=5e" class="ghost-button">Voltar</a>
           <a href="./index.html" class="secondary-button">Seleção de edição</a>
@@ -27,11 +30,18 @@
 
     <main class="container ai-flow-shell ai-assistant-shell">
       <section class="ai-flow-hero" aria-labelledby="assistantTitle">
-        <p class="version-option-tag" data-edition-tag>ASSISTENTE</p>
-        <h1 id="assistantTitle">Transforme sua ideia em ficha inicial</h1>
-        <p data-edition-description>
-          Escreva a história, conceito ou referências de tom. A IA sugere uma ficha coerente e você revisa tudo no editor antes de gerar o PDF.
-        </p>
+        <div class="ai-flow-hero-copy">
+          <p class="version-option-tag" data-edition-tag>ASSISTENTE</p>
+          <h1 id="assistantTitle">Transforme sua ideia em ficha inicial</h1>
+          <p data-edition-description>
+            Escreva a história, conceito ou referências de tom. A IA sugere uma ficha coerente e você revisa tudo no editor antes de gerar o PDF.
+          </p>
+        </div>
+        <div class="ai-flow-compass" aria-hidden="true">
+          <span>Ideia</span>
+          <span>Escolhas</span>
+          <span>Editor</span>
+        </div>
       </section>
 
       <form id="aiCharacterForm" class="ai-assistant-form" method="post">
@@ -46,6 +56,14 @@
             placeholder="Ex.: Uma ex-guarda de cidade portuária que fez um pacto para salvar a irmã, carrega culpa por uma tragédia no cais e evita confiar em nobres."
           ></textarea>
         </label>
+
+        <section class="ai-prompt-examples" aria-labelledby="promptExamplesTitle">
+          <div class="ai-examples-heading">
+            <span id="promptExamplesTitle">Exemplos para inspirar</span>
+            <button id="aiExamplesRefresh" type="button" class="ai-reroll-button">Novos exemplos</button>
+          </div>
+          <div class="ai-example-grid" data-ai-example-grid></div>
+        </section>
 
         <div class="ai-form-grid">
           <label class="row">
@@ -66,15 +84,13 @@
         <div id="aiCharacterPreview" class="ai-result-panel" hidden></div>
 
         <div class="ai-form-actions">
-          <button id="aiCharacterSubmit" type="submit" class="primary">Gerar ficha inicial</button>
+          <button id="aiCharacterSubmit" type="submit" class="primary">Conjurar ficha por IA</button>
           <a data-manual-link href="./5e.html" class="secondary-button">Criar manualmente</a>
         </div>
 
         <p id="aiCharacterStatus" class="note ai-status" aria-live="polite"></p>
       </form>
     </main>
-
-    <button type="button" class="theme-toggle site-theme-toggle" data-theme-toggle aria-label="Alternar tema"></button>
   </section>
 </body>
 </html>
