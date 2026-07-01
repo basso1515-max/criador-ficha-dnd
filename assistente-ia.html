@@ -71,14 +71,29 @@
             <input id="aiCharacterTone" name="tone" type="text" maxlength="80" value="aventura heroica" />
           </label>
 
-          <label class="row">
-            <span>Preferência de escolhas</span>
+          <div class="row ai-field-with-help">
+            <div class="ai-label-row">
+              <label for="aiCharacterComplexity">Preferência de escolhas</label>
+              <span class="ai-help">
+                <button
+                  type="button"
+                  class="ai-help-trigger"
+                  aria-describedby="complexityHelp"
+                  aria-label="Entenda as preferências de escolhas"
+                >?</button>
+                <span id="complexityHelp" class="ai-help-card" role="tooltip">
+                  <strong>Equilibrada</strong> mistura história e escolhas úteis, sem otimizar tudo.
+                  <strong>Simples para jogar</strong> prioriza opções fáceis de conduzir na mesa.
+                  <strong>Mais otimizada</strong> favorece sinergias mecânicas, atributos fortes e escolhas eficientes.
+                </span>
+              </span>
+            </div>
             <select id="aiCharacterComplexity" name="complexity">
               <option value="equilibrada" selected>Equilibrada</option>
               <option value="simples">Simples para jogar</option>
               <option value="otimizada">Mais otimizada</option>
             </select>
-          </label>
+          </div>
         </div>
 
         <div id="aiCharacterPreview" class="ai-result-panel" hidden></div>
