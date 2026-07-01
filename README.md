@@ -14,6 +14,7 @@ O projeto nasceu de um sonho bem claro: fazer uma ficha da forma como a WotC pla
 - Permite salvar personagens em conta local/servidor.
 - Inclui fluxo de migração de personagens da 5e para a 5.5e.
 - Tem assistente de avanço de nível, multiclasse e escolhas guiadas.
+- Pode gerar um rascunho inicial por IA em `criacao.html` -> `assistente-ia.html` -> editor, quando a OpenAI estiver configurada.
 
 ## Por Que Esse Projeto Existe
 
@@ -43,6 +44,8 @@ Já possui criação guiada, espécies, antecedentes, classes, talentos, magias,
 ## Principais Telas
 
 - `index.html`: tela inicial e escolha da edição.
+- `criacao.html`: escolha entre criação manual e rascunho por IA para a edição selecionada.
+- `assistente-ia.html`: assistente que transforma uma ideia em rascunho temporário e redireciona ao editor.
 - `5e.html`: editor de D&D 5e com exportação para PDF.
 - `5.5e-2024.html`: editor de D&D 5.5e / 2024.
 - `conta.html`: entrada e criação de conta.
@@ -63,6 +66,8 @@ Já possui criação guiada, espécies, antecedentes, classes, talentos, magias,
 │   └── styles/           # CSS dividido por área do produto
 ├── 5e.html               # Editor 5e
 ├── 5.5e-2024.html        # Editor 5.5e / 2024
+├── criacao.html          # Escolha entre editor manual e assistente de IA
+├── assistente-ia.html    # Assistente de IA para rascunho inicial
 ├── conta.html            # Login/cadastro
 ├── index.html            # Home
 ├── minha-conta.html      # Área do usuário
@@ -75,6 +80,7 @@ Já possui criação guiada, espécies, antecedentes, classes, talentos, magias,
 - `pdf-lib` para preencher e gerar PDFs.
 - `pdfjs-dist` e `pdf-parse` em utilitários de PDF.
 - API serverless na Vercel.
+- OpenAI Responses API para o assistente de criação por IA.
 - Upstash Redis em produção.
 - Armazenamento JSON local para desenvolvimento.
 
@@ -110,7 +116,26 @@ Cada motor foi quebrado em módulos por responsabilidade:
 
 Para reduzir duplicação entre os editores, utilitários compartilhados ficam em `src/shared/`, como helpers de texto e layout de PDF. As validações em `scripts/check.mjs` leem os módulos de cada edição como um conjunto, então as checagens estruturais continuam cobrindo os motores mesmo depois da separação.
 
-As entradas CSS são separadas por superfície para manter o carregamento inicial enxuto: `src/styles/editor.css` atende os editores, `src/styles/home.css` atende a home, `src/styles/account.css` cobre conta, usuário, admin e páginas legais, e `src/styles/community-stats.css` cobre estatísticas. `src/style.css` fica apenas como índice legado e não deve voltar para os HTMLs públicos.
+As entradas CSS são separadas por superfície para manter o carregamento inicial enxuto: `src/styles/editor.css` atende os editores, `src/styles/home.css` atende a home, criação e assistente de IA, `src/styles/account.css` cobre conta, usuário, admin e páginas legais, e `src/styles/community-stats.css` cobre estatísticas. `src/style.css` fica apenas como índice legado e não deve voltar para os HTMLs públicos.
+
+## Assistente De IA
+
+O fluxo público de criação passa por `criacao.html`, opcionalmente por `assistente-ia.html`, e termina no editor da edição escolhida. O assistente grava um rascunho temporário em `PENDING_EDITOR_DRAFT_KEY` (`dnd_sheet_pending_editor_draft_v1`) e o editor restaura esse snapshot antes de limpar a chave.
+
+A rota `/api/ai-character` expõe `GET` para disponibilidade e `POST` para geração. Sem `OPENAI_API_KEY`, ou quando a OpenAI responde com erro de modelo/quota/autenticação, a API retorna indisponibilidade controlada e a UI desabilita o botão de IA com fallback manual.
+
+Configure em produção:
+
+```text
+OPENAI_API_KEY
+OPENAI_CHARACTER_MODEL
+```
+
+`OPENAI_CHARACTER_MODEL` é opcional; se ausente, a API usa `OPENAI_MODEL` ou o padrão interno. Para checar o rollout sem gerar personagem, use:
+
+```powershell
+Invoke-RestMethod http://127.0.0.1:8000/api/ai-character
+```
 
 ## Rodando Localmente
 
@@ -129,6 +154,8 @@ npm run serve
 Acesse:
 
 - Home: `http://127.0.0.1:8000/`
+- Criação 5e: `http://127.0.0.1:8000/criacao.html?edition=5e`
+- Criação 5.5e: `http://127.0.0.1:8000/criacao.html?edition=5.5e-2024`
 - Editor 5e: `http://127.0.0.1:8000/5e.html`
 - Editor 5.5e: `http://127.0.0.1:8000/5.5e-2024.html`
 - Minha conta: `http://127.0.0.1:8000/minha-conta.html`
@@ -321,6 +348,7 @@ O repositório consegue validar metadata local, branch permitida e ausência de 
 
 As telas consomem estas rotas:
 
+- `/api/ai-character`
 - `/api/account/current`
 - `/api/accounts/login`
 - `/api/accounts/register`

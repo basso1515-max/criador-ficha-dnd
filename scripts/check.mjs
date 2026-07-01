@@ -74,8 +74,12 @@ const requiredFiles = [
   "conta.html",
   "minha-conta.html",
   "usuario.html",
+  "criacao.html",
+  "assistente-ia.html",
   "5e.html",
   "5.5e-2024.html",
+  "src/ai-character-draft.js",
+  "src/ai-character-flow.js",
   "src/script.js",
   "src/script-2024.js",
   "src/shared/pdf-lib-loader.js",
@@ -87,10 +91,13 @@ const requiredFiles = [
   "src/styles/community-stats.css",
   "src/styles/editor.css",
   "src/styles/home.css",
+  "src/styles/11-ai-character-flow.css",
   "src/styles/public-theme.css",
   "src/styles/theme-toggle.css",
   "src/community-stats-page.js",
   "src/shared/community-stats.js",
+  "server/ai-character-api.js",
+  "server/env-loader.js",
   "assets/pdf/5e/ficha5e.pdf",
   "assets/pdf/5e/pdf-map.json",
   "assets/pdf/5.5e/ficha5.5e.pdf",
@@ -175,6 +182,8 @@ function validatePublicSurfaceStyles() {
   const errors = [];
   const surfaceStyles = new Map([
     ["index.html", "src/styles/home.css"],
+    ["criacao.html", "src/styles/home.css"],
+    ["assistente-ia.html", "src/styles/home.css"],
     ["conta.html", "src/styles/account.css"],
     ["minha-conta.html", "src/styles/account.css"],
     ["admin.html", "src/styles/account.css"],
@@ -270,6 +279,57 @@ function normalizeRelativePath(file) {
 }
 
 validatePublicSurfaceStyles();
+
+function validateAiCharacterRolloutGuardrails() {
+  const errors = [];
+  const criacaoHtml = readFileSync(path.join(root, "criacao.html"), "utf8");
+  const assistantHtml = readFileSync(path.join(root, "assistente-ia.html"), "utf8");
+  const flowSource = readFileSync(path.join(root, "src/ai-character-flow.js"), "utf8");
+  const draftSource = readFileSync(path.join(root, "src/ai-character-draft.js"), "utf8");
+  const apiSource = readFileSync(path.join(root, "server/ai-character-api.js"), "utf8");
+  const readme = readFileSync(path.join(root, "README.md"), "utf8");
+  const productionDocs = readFileSync(path.join(root, "docs/production-hardening.md"), "utf8");
+
+  [
+    ["criacao.html", criacaoHtml, 'data-ai-flow-page="choice"'],
+    ["criacao.html", criacaoHtml, "data-ai-requires-availability"],
+    ["criacao.html", criacaoHtml, "data-ai-availability-status"],
+    ["assistente-ia.html", assistantHtml, 'data-ai-flow-page="assistant"'],
+    ["assistente-ia.html", assistantHtml, "aiCharacterForm"],
+    ["assistente-ia.html", assistantHtml, "data-ai-availability-status"],
+    ["src/ai-character-draft.js", draftSource, "PENDING_EDITOR_DRAFT_KEY"],
+    ["src/ai-character-flow.js", flowSource, "checkAiAvailability"],
+    ["src/ai-character-flow.js", flowSource, "/api/ai-character"],
+    ["src/ai-character-flow.js", flowSource, "PENDING_EDITOR_DRAFT_KEY"],
+    ["server/ai-character-api.js", apiSource, "getAiCharacterAvailability"],
+    ["server/ai-character-api.js", apiSource, "missing_openai_api_key"],
+    ["server/ai-character-api.js", apiSource, "openai_model_unavailable"],
+    ["server/ai-character-api.js", apiSource, "openai_quota_unavailable"],
+  ].forEach(([file, source, marker]) => {
+    if (!source.includes(marker)) {
+      errors.push(`${file}: guardrail do assistente de IA sem marcador ${marker}.`);
+    }
+  });
+
+  ["OPENAI_API_KEY", "OPENAI_CHARACTER_MODEL", "/api/ai-character"].forEach((marker) => {
+    if (!readme.includes(marker)) {
+      errors.push(`README.md: documentacao do assistente de IA sem ${marker}.`);
+    }
+    if (!productionDocs.includes(marker)) {
+      errors.push(`docs/production-hardening.md: checklist de IA sem ${marker}.`);
+    }
+  });
+
+  if (errors.length) {
+    console.error("\nValidacao do rollout do assistente de IA falhou:");
+    errors.forEach((error) => console.error(`- ${error}`));
+    process.exit(1);
+  }
+
+  console.log("OK: rollout do assistente de IA protegido");
+}
+
+validateAiCharacterRolloutGuardrails();
 
 function validateLazyLoadedCatalogs() {
   const errors = [];

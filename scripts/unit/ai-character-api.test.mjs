@@ -4,6 +4,8 @@ import {
   EDITION_CONFIGS,
   buildCharacterJsonSchema,
   buildOpenAiInput,
+  getAiCharacterAvailability,
+  getOpenAiErrorInfo,
   normalizeRecommendation,
 } from "../../server/ai-character-api.js";
 
@@ -96,5 +98,38 @@ describe("AI character API normalization", () => {
     assert.ok(schema.required.includes("physicalDescription"));
     assert.ok(schema.required.includes("selectedSkillIds"));
     assert.ok(schema.required.includes("expertiseSkillIds"));
+  });
+
+  it("reports AI character availability without requiring a live OpenAI call", () => {
+    const missingKey = getAiCharacterAvailability({
+      OPENAI_API_KEY: "",
+      OPENAI_CHARACTER_MODEL: "gpt-test",
+    });
+    assert.equal(missingKey.available, false);
+    assert.equal(missingKey.reason, "missing_openai_api_key");
+    assert.equal(missingKey.checks.openaiApiKey, false);
+    assert.equal(missingKey.checks.model, true);
+
+    const ready = getAiCharacterAvailability({
+      OPENAI_API_KEY: "sk-test",
+      OPENAI_CHARACTER_MODEL: "gpt-test",
+    });
+    assert.equal(ready.available, true);
+    assert.equal(ready.checks.openaiApiKey, true);
+    assert.equal(ready.checks.model, true);
+  });
+
+  it("maps OpenAI readiness failures to clear service-unavailable reasons", () => {
+    const quota = getOpenAiErrorInfo({
+      error: { message: "You exceeded your current quota." },
+    }, 429);
+    assert.equal(quota.statusCode, 503);
+    assert.equal(quota.reason, "openai_quota_unavailable");
+
+    const model = getOpenAiErrorInfo({
+      error: { message: "The model does not exist or you do not have access to it." },
+    }, 400);
+    assert.equal(model.statusCode, 503);
+    assert.equal(model.reason, "openai_model_unavailable");
   });
 });

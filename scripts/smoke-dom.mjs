@@ -11,6 +11,267 @@ const HOST = "127.0.0.1";
 const PAGE_TIMEOUT_MS = 20_000;
 const SERVER_TIMEOUT_MS = 30_000;
 const CHROME_TIMEOUT_MS = 60_000;
+const PENDING_EDITOR_DRAFT_KEY = "dnd_sheet_pending_editor_draft_v1";
+
+const AI_SMOKE_CHARACTER_5E = {
+  name: "Mira Smoke 5e",
+  classId: "patrulheiro",
+  classLabel: "Patrulheiro",
+  classValue: "Patrulheiro",
+  subclassId: "patrulheiro-cacador",
+  subclassLabel: "Cacador",
+  subclassValue: "Cacador",
+  raceId: "humano",
+  raceLabel: "Humano",
+  raceValue: "Humano",
+  subraceId: "",
+  subraceLabel: "",
+  subraceValue: "",
+  backgroundId: "heroi-do-povo",
+  backgroundLabel: "Heroi do Povo",
+  backgroundValue: "Heroi do Povo",
+  level: 3,
+  alignmentId: "Neutro Bom",
+  alignmentLabel: "Neutro Bom",
+  divinityId: "",
+  divinityLabel: "",
+  abilityScores: { for: 10, des: 15, con: 13, int: 12, sab: 14, car: 8 },
+  physicalDescription: {
+    age: 32,
+    height: "1,72 m",
+    weight: "68 kg",
+    eyes: "castanhos",
+    skin: "morena",
+    hair: "preto curto",
+  },
+  appearance: "Capa verde, botas gastas e um arco simples.",
+  personalityTraits: "Observa antes de falar.",
+  ideals: "Proteger trilhas e viajantes.",
+  bonds: "A vila que a acolheu.",
+  flaws: "Assume riscos sozinha.",
+  backstory: "Aprendeu a sobreviver guiando caravanas.",
+  allies: "Batedores da fronteira.",
+  treasure: "Um mapa dobrado.",
+  extraProficiencies: "Ferramentas de cartografo.",
+  equipmentNotes: "Arco longo, corda e capa impermeavel.",
+  selectedSkillIds: ["percepcao", "sobrevivencia"],
+  expertiseSkillIds: [],
+  reasoning: "Rascunho smoke para validar o fluxo 5e.",
+};
+
+const AI_SMOKE_CHARACTER_2024 = {
+  name: "Iara Smoke 2024",
+  classId: "guardiao",
+  classLabel: "Guardiao",
+  classValue: "guardiao",
+  subclassId: "guardiao-cacador",
+  subclassLabel: "Cacador",
+  subclassValue: "guardiao-cacador",
+  raceId: "humano",
+  raceLabel: "Humano",
+  raceValue: "humano",
+  subraceId: "",
+  subraceLabel: "",
+  subraceValue: "",
+  backgroundId: "guia",
+  backgroundLabel: "Guia",
+  backgroundValue: "guia",
+  level: 2,
+  alignmentId: "neutro-bom",
+  alignmentLabel: "Neutro Bom",
+  divinityId: "",
+  divinityLabel: "",
+  abilityScores: { for: 10, des: 15, con: 13, int: 12, sab: 14, car: 8 },
+  physicalDescription: {
+    age: 29,
+    height: "1,70 m",
+    weight: "65 kg",
+    eyes: "verdes",
+    skin: "morena clara",
+    hair: "trancado",
+  },
+  appearance: "Armadura leve marcada por viagens longas.",
+  personalityTraits: "Fala pouco e age rapido.",
+  ideals: "Nenhum grupo deve se perder no ermo.",
+  bonds: "Um circulo de guias da serra.",
+  flaws: "Confia demais na propria leitura do terreno.",
+  backstory: "Mapeou rotas proibidas para salvar uma caravana.",
+  allies: "Guardas de estrada.",
+  treasure: "Uma bussola antiga.",
+  extraProficiencies: "Kit de curandeiro e mapas.",
+  equipmentNotes: "Arco curto, mochila e simbolo de patrulha.",
+  selectedSkillIds: ["percepcao", "sobrevivencia"],
+  expertiseSkillIds: ["sobrevivencia"],
+  reasoning: "Rascunho smoke para validar o fluxo 2024.",
+};
+
+function buildAiAvailableInitScript(character) {
+  const payload = JSON.stringify({ edition: "smoke", character });
+  return `
+    (() => {
+      const originalFetch = window.fetch.bind(window);
+      const payload = ${payload};
+      window.fetch = (input, init = {}) => {
+        const requestUrl = new URL(typeof input === "string" ? input : input?.url || "", window.location.href);
+        const method = String(init?.method || input?.method || "GET").toUpperCase();
+        if (requestUrl.pathname === "/api/ai-character") {
+          if (method === "GET") {
+            return Promise.resolve(new Response(JSON.stringify({
+              available: true,
+              reason: "",
+              message: "Assistente de IA disponivel.",
+              checks: { openaiApiKey: true, model: true },
+            }), {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            }));
+          }
+          if (method === "POST") {
+            return Promise.resolve(new Response(JSON.stringify(payload), {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            }));
+          }
+        }
+        return originalFetch(input, init);
+      };
+    })();
+  `;
+}
+
+const AI_UNAVAILABLE_INIT_SCRIPT = `
+  (() => {
+    const originalFetch = window.fetch.bind(window);
+    window.fetch = (input, init = {}) => {
+      const requestUrl = new URL(typeof input === "string" ? input : input?.url || "", window.location.href);
+      if (requestUrl.pathname === "/api/ai-character") {
+        return Promise.resolve(new Response(JSON.stringify({
+          available: false,
+          reason: "missing_openai_api_key",
+          message: "Assistente de IA temporariamente indisponivel. Crie manualmente enquanto a configuracao da OpenAI e revisada.",
+          checks: { openaiApiKey: false, model: true },
+        }), {
+          status: 503,
+          headers: { "Content-Type": "application/json" },
+        }));
+      }
+      return originalFetch(input, init);
+    };
+  })();
+`;
+
+function buildAiChoiceNavigationSetup(expectedAssistantHref) {
+  return `
+    (async () => {
+      const assert = (condition, message) => {
+        if (!condition) throw new Error(message);
+      };
+      const waitForCondition = async (predicate, message, timeoutMs = 8000) => {
+        const start = Date.now();
+        while (Date.now() - start < timeoutMs) {
+          if (predicate()) return;
+          await new Promise((resolve) => setTimeout(resolve, 40));
+        }
+        throw new Error(message);
+      };
+      await waitForCondition(() => {
+        const link = document.querySelector("[data-assistant-link]");
+        return link?.getAttribute("href") === ${JSON.stringify(expectedAssistantHref)};
+      }, "Link do assistente nao ficou disponivel.");
+      assert(document.querySelector("[data-manual-link]")?.getAttribute("href"), "Link manual ausente na escolha.");
+      window.__DND_AI_SMOKE_NEXT_URL__ = document.querySelector("[data-assistant-link]").href;
+    })();
+  `;
+}
+
+function buildAiAssistantFlowSetup({ edition, expectedName, expectedReturnTo }) {
+  return `
+    (async () => {
+      const assert = (condition, message) => {
+        if (!condition) throw new Error(message);
+      };
+      const waitForCondition = async (predicate, message, timeoutMs = 8000) => {
+        const start = Date.now();
+        let lastError = null;
+        while (Date.now() - start < timeoutMs) {
+          try {
+            if (predicate()) return;
+          } catch (error) {
+            lastError = error;
+          }
+          await new Promise((resolve) => setTimeout(resolve, 40));
+        }
+        throw new Error(message + (lastError ? ": " + lastError.message : ""));
+      };
+      const pendingKey = ${JSON.stringify(PENDING_EDITOR_DRAFT_KEY)};
+      const readPendingDraft = () => sessionStorage.getItem(pendingKey) || localStorage.getItem(pendingKey);
+      sessionStorage.removeItem(pendingKey);
+      localStorage.removeItem(pendingKey);
+
+      let redirectCallback = null;
+      const nativeSetTimeout = window.setTimeout.bind(window);
+      window.setTimeout = (callback, delay = 0, ...args) => {
+        if (Number(delay) === 700 && typeof callback === "function") {
+          redirectCallback = () => callback(...args);
+          return 1;
+        }
+        return nativeSetTimeout(callback, delay, ...args);
+      };
+
+      await waitForCondition(() => !document.querySelector("#aiCharacterSubmit")?.disabled, "Botao de IA nao ficou disponivel.");
+      document.querySelector("#aiCharacterPrompt").value = "Uma patrulheira criada para validar o fluxo automatizado de IA.";
+      document.querySelector("#aiCharacterForm").requestSubmit();
+
+      await waitForCondition(() => {
+        const preview = document.querySelector("#aiCharacterPreview");
+        return preview && !preview.hidden && preview.textContent.includes(${JSON.stringify(expectedName)});
+      }, "Preview basico do assistente nao mostrou o personagem gerado.");
+
+      const rawDraft = readPendingDraft();
+      assert(rawDraft, "Assistente nao persistiu rascunho pendente.");
+      const draft = JSON.parse(rawDraft);
+      assert(draft.edition === ${JSON.stringify(edition)}, "Edicao incorreta no rascunho pendente: " + draft.edition);
+      assert(draft.returnTo === ${JSON.stringify(expectedReturnTo)}, "Destino incorreto no rascunho pendente: " + draft.returnTo);
+      assert(draft.payload?.name === ${JSON.stringify(expectedName)}, "Nome incorreto no rascunho pendente.");
+      assert(draft.payload?.snapshot?.fields?.length > 0, "Snapshot do rascunho pendente esta vazio.");
+      assert(redirectCallback, "Assistente nao agendou redirecionamento ao editor.");
+      window.__DND_AI_SMOKE_NEXT_URL__ = new URL(${JSON.stringify(expectedReturnTo)}, location.href).href;
+    })();
+  `;
+}
+
+function buildAiEditorVerification({ expectedPath, nameSelector, classSelector, expectedName, expectedClassValue, previewSelector }) {
+  return `
+    (async () => {
+      const assert = (condition, message) => {
+        if (!condition) throw new Error(message);
+      };
+      const waitForCondition = async (predicate, message, timeoutMs = 10000) => {
+        const start = Date.now();
+        let lastError = null;
+        while (Date.now() - start < timeoutMs) {
+          try {
+            if (predicate()) return;
+          } catch (error) {
+            lastError = error;
+          }
+          await new Promise((resolve) => setTimeout(resolve, 40));
+        }
+        throw new Error(message + (lastError ? ": " + lastError.message : ""));
+      };
+      const pendingKey = ${JSON.stringify(PENDING_EDITOR_DRAFT_KEY)};
+      await waitForCondition(() => (
+        location.pathname.endsWith(${JSON.stringify(expectedPath)})
+        && document.querySelector(${JSON.stringify(nameSelector)})?.value === ${JSON.stringify(expectedName)}
+      ), "Editor nao recebeu o rascunho do assistente.");
+      assert(document.querySelector(${JSON.stringify(classSelector)})?.value === ${JSON.stringify(expectedClassValue)}, "Classe do rascunho nao foi aplicada no editor.");
+      await waitForCondition(() => (
+        (document.querySelector(${JSON.stringify(previewSelector)})?.textContent || "").includes(${JSON.stringify(expectedName)})
+      ), "Preview do editor nao refletiu o rascunho da IA.");
+      assert(!sessionStorage.getItem(pendingKey) && !localStorage.getItem(pendingKey), "Rascunho pendente nao foi limpo apos restaurar no editor.");
+    })();
+  `;
+}
 
 const smokePages = [
   {
@@ -43,6 +304,96 @@ const smokePages = [
       "#adminAccountForm",
       "#adminDeletedCharacters",
     ],
+  },
+  {
+    name: "ai-choice-5e-navigation",
+    path: "/criacao.html?edition=5e",
+    selectors: ["#creationChoiceTitle", "[data-manual-link]", "[data-assistant-link]", "[data-ai-availability-status]"],
+    initScript: buildAiAvailableInitScript(AI_SMOKE_CHARACTER_5E),
+    setup: buildAiChoiceNavigationSetup("./assistente-ia.html?edition=5e"),
+    followUrlExpression: "window.__DND_AI_SMOKE_NEXT_URL__",
+    afterSetupSelectors: ["#aiCharacterForm", "#aiCharacterPrompt", "#aiCharacterSubmit"],
+  },
+  {
+    name: "ai-choice-2024-navigation",
+    path: "/criacao.html?edition=5.5e-2024",
+    selectors: ["#creationChoiceTitle", "[data-manual-link]", "[data-assistant-link]", "[data-ai-availability-status]"],
+    initScript: buildAiAvailableInitScript(AI_SMOKE_CHARACTER_2024),
+    setup: buildAiChoiceNavigationSetup("./assistente-ia.html?edition=5.5e-2024"),
+    followUrlExpression: "window.__DND_AI_SMOKE_NEXT_URL__",
+    afterSetupSelectors: ["#aiCharacterForm", "#aiCharacterPrompt", "#aiCharacterSubmit"],
+  },
+  {
+    name: "ai-assistant-unavailable",
+    path: "/assistente-ia.html?edition=5e",
+    selectors: ["#aiCharacterForm", "#aiCharacterPrompt", "#aiCharacterSubmit", "#aiCharacterStatus"],
+    initScript: AI_UNAVAILABLE_INIT_SCRIPT,
+    setup: `
+      (async () => {
+        const assert = (condition, message) => {
+          if (!condition) throw new Error(message);
+        };
+        const waitForCondition = async (predicate, message, timeoutMs = 8000) => {
+          const start = Date.now();
+          while (Date.now() - start < timeoutMs) {
+            if (predicate()) return;
+            await new Promise((resolve) => setTimeout(resolve, 40));
+          }
+          throw new Error(message);
+        };
+        await waitForCondition(() => {
+          const submit = document.querySelector("#aiCharacterSubmit");
+          const status = document.querySelector("#aiCharacterStatus");
+          return submit?.disabled
+            && submit.textContent.includes("indisponivel")
+            && !status?.hidden
+            && status.textContent.includes("Assistente de IA temporariamente indisponivel");
+        }, "Assistente nao exibiu UX clara de IA indisponivel.");
+        assert(document.querySelector("[data-manual-link]")?.getAttribute("href") === "./5e.html", "Fallback manual ausente no assistente indisponivel.");
+      })();
+    `,
+  },
+  {
+    name: "ai-assistant-5e-draft-to-editor",
+    path: "/assistente-ia.html?edition=5e",
+    selectors: ["#aiCharacterForm", "#aiCharacterPrompt", "#aiCharacterSubmit", "#aiCharacterPreview"],
+    initScript: buildAiAvailableInitScript(AI_SMOKE_CHARACTER_5E),
+    setup: buildAiAssistantFlowSetup({
+      edition: "5e",
+      expectedName: AI_SMOKE_CHARACTER_5E.name,
+      expectedReturnTo: "5e.html",
+    }),
+    followUrlExpression: "window.__DND_AI_SMOKE_NEXT_URL__",
+    afterSetupSelectors: ["#nome", "#classe", "#preview"],
+    afterSetup: buildAiEditorVerification({
+      expectedPath: "/5e.html",
+      nameSelector: "#nome",
+      classSelector: "#classe",
+      expectedName: AI_SMOKE_CHARACTER_5E.name,
+      expectedClassValue: AI_SMOKE_CHARACTER_5E.classValue,
+      previewSelector: "#preview",
+    }),
+  },
+  {
+    name: "ai-assistant-2024-draft-to-editor",
+    path: "/assistente-ia.html?edition=5.5e-2024",
+    selectors: ["#aiCharacterForm", "#aiCharacterPrompt", "#aiCharacterSubmit", "#aiCharacterPreview"],
+    initScript: buildAiAvailableInitScript(AI_SMOKE_CHARACTER_2024),
+    setup: buildAiAssistantFlowSetup({
+      edition: "5.5e-2024",
+      expectedName: AI_SMOKE_CHARACTER_2024.name,
+      expectedReturnTo: "5.5e-2024.html",
+    }),
+    followUrlExpression: "window.__DND_AI_SMOKE_NEXT_URL__",
+    afterSetupSelectors: ["#nome2024", "#classe2024", "#preview2024"],
+    afterSetup: buildAiEditorVerification({
+      expectedPath: "/5.5e-2024.html",
+      nameSelector: "#nome2024",
+      classSelector: "#classe2024",
+      expectedName: AI_SMOKE_CHARACTER_2024.name,
+      expectedClassValue: AI_SMOKE_CHARACTER_2024.classValue,
+      previewSelector: "#preview2024",
+    }),
   },
   {
     name: "5e-save-overwrite",
@@ -2175,18 +2526,53 @@ async function main() {
 
   const results = [];
   for (const page of smokePages) {
-    await navigate(cdp, `${baseUrl}${page.path}`);
-    await assertPageLoaded(cdp, page);
-
-    if (page.setup) {
-      await evaluate(cdp, page.setup);
-      for (const selector of page.afterSetupSelectors || []) {
-        await waitForSelector(cdp, selector);
-      }
+    console.log(`Smoke: ${page.name}`);
+    let pageInitScriptId = "";
+    if (page.initScript) {
+      const result = await cdp.send("Page.addScriptToEvaluateOnNewDocument", {
+        source: page.initScript,
+      });
+      pageInitScriptId = result.identifier || "";
     }
 
-    const title = await evaluate(cdp, "document.title");
-    results.push(`${page.name}: ${title}`);
+    try {
+      await navigate(cdp, `${baseUrl}${page.path}`);
+      await assertPageLoaded(cdp, page);
+
+      if (page.setup) {
+        await evaluate(cdp, page.setup);
+      }
+
+      if (page.followUrlExpression) {
+        const followUrl = await evaluate(cdp, page.followUrlExpression);
+        if (!followUrl) {
+          throw new Error(`Fluxo ${page.name} nao informou URL de continuidade.`);
+        }
+        await navigate(cdp, followUrl, { clearDrafts: false, cacheBust: false });
+        for (const selector of page.afterSetupSelectors || []) {
+          await waitForSelector(cdp, selector);
+        }
+        if (page.afterSetup) {
+          await evaluate(cdp, page.afterSetup);
+        }
+      } else {
+        for (const selector of page.afterSetupSelectors || []) {
+          await waitForSelector(cdp, selector);
+        }
+        if (page.afterSetup) {
+          await evaluate(cdp, page.afterSetup);
+        }
+      }
+
+      const title = await evaluate(cdp, "document.title");
+      results.push(`${page.name}: ${title}`);
+    } finally {
+      if (pageInitScriptId) {
+        await cdp.send("Page.removeScriptToEvaluateOnNewDocument", {
+          identifier: pageInitScriptId,
+        }).catch(() => {});
+      }
+    }
   }
 
   if (consoleProblems.length) {
@@ -2206,13 +2592,17 @@ async function assertPageLoaded(cdp, page) {
   }
 }
 
-async function navigate(cdp, url) {
-  await clearSmokeEditorDrafts(cdp);
-  const targetUrl = getSmokeNavigationUrl(url);
+async function navigate(cdp, url, options = {}) {
+  if (options.clearDrafts !== false) {
+    await clearSmokeEditorDrafts(cdp);
+  }
+  const targetUrl = options.cacheBust === false ? url : getSmokeNavigationUrl(url);
+  const loadEvent = cdp.waitForEvent("Page.loadEventFired", PAGE_TIMEOUT_MS).catch(() => null);
   const response = await cdp.send("Page.navigate", { url: targetUrl });
   if (response.errorText) {
     throw new Error(`Falha ao navegar para ${targetUrl}: ${response.errorText}`);
   }
+  await loadEvent;
 
   const safeUrl = JSON.stringify(targetUrl);
   await waitForFunction(
@@ -2236,6 +2626,7 @@ async function clearSmokeEditorDrafts(cdp) {
         try {
           ["localStorage", "sessionStorage"].forEach((storageName) => {
             const storage = window[storageName];
+            storage.removeItem("dnd_sheet_pending_editor_draft_v1");
             storage.removeItem("dnd_sheet_auto_editor_draft_v1:5e");
             storage.removeItem("dnd_sheet_auto_editor_draft_v1:5.5e-2024");
           });
@@ -2317,7 +2708,7 @@ function connectCdp(webSocketUrl) {
           const id = nextId++;
           ws.send(JSON.stringify({ id, method, params }));
           return new Promise((resolvePending, rejectPending) => {
-            pending.set(id, { resolve: resolvePending, reject: rejectPending });
+            pending.set(id, { method, resolve: resolvePending, reject: rejectPending });
           });
         },
         waitForEvent(method, timeoutMs = PAGE_TIMEOUT_MS) {
@@ -2348,10 +2739,10 @@ function connectCdp(webSocketUrl) {
     ws.addEventListener("message", (event) => {
       const message = JSON.parse(String(event.data));
       if (message.id && pending.has(message.id)) {
-        const { resolve: resolvePending, reject: rejectPending } = pending.get(message.id);
+        const { method, resolve: resolvePending, reject: rejectPending } = pending.get(message.id);
         pending.delete(message.id);
         if (message.error) {
-          rejectPending(new Error(message.error.message || "Erro CDP."));
+          rejectPending(new Error(`${method}: ${message.error.message || "Erro CDP."}`));
         } else {
           resolvePending(message.result || {});
         }

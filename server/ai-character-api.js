@@ -19,6 +19,7 @@ const MAX_BODY_BYTES = 32_000;
 const MAX_PROMPT_LENGTH = 6_000;
 const EDITIONS = ["5e", "5.5e-2024"];
 const ABILITIES = ["for", "des", "con", "int", "sab", "car"];
+const AI_UNAVAILABLE_MESSAGE = "Assistente de IA temporariamente indisponivel. Crie manualmente enquanto a configuracao da OpenAI e revisada.";
 const OLD_AGE_RE = /\b(velh[ao]s?|idos[ao]s?|anci(?:a|ã)[os]?|ancia|anciã|veteran[ao]s?)\b/i;
 const EXPLICIT_AGE_RE = /\b(?:idade\s*(?:de)?\s*)?(\d{1,4})\s*(?:anos?|anos?\s+de\s+idade|de\s+idade)\b/i;
 const CHOICE_SEPARATOR_RE = /\s*(?:\/|,?\s+ou\s+|,?\s+OU\s+)\s*/;
@@ -70,9 +71,10 @@ const EDITION_CONFIGS = {
 export { EDITION_CONFIGS };
 
 class HttpError extends Error {
-  constructor(statusCode, message) {
+  constructor(statusCode, message, reason = "") {
     super(message);
     this.statusCode = statusCode;
+    this.reason = reason;
   }
 }
 
@@ -84,12 +86,24 @@ export default async function handleAiCharacterApi(req, res) {
       return;
     }
 
+    if (req.method === "GET") {
+      loadLocalEnvOnce(process.cwd());
+      const availability = getAiCharacterAvailability();
+      sendJson(res, availability.available ? 200 : 503, availability);
+      return;
+    }
+
     if (req.method !== "POST") {
       throw new HttpError(405, "Metodo nao permitido.");
     }
 
     assertSameOrigin(req);
     loadLocalEnvOnce(process.cwd());
+
+    const availability = getAiCharacterAvailability();
+    if (!availability.available) {
+      throw new HttpError(503, availability.message, availability.reason);
+    }
 
     const input = validateRequestBody(await readJsonBody(req));
     const config = EDITION_CONFIGS[input.edition];
@@ -103,8 +117,48 @@ export default async function handleAiCharacterApi(req, res) {
     const statusCode = error instanceof HttpError ? error.statusCode : 500;
     sendJson(res, statusCode, {
       message: error?.message || "Erro interno do servidor.",
+      reason: error instanceof HttpError ? error.reason || undefined : undefined,
     });
   }
+}
+
+export function getAiCharacterAvailability(env = process.env) {
+  const apiKey = String(env.OPENAI_API_KEY || "").trim();
+  const model = readConfiguredOpenAiModel(env);
+
+  if (!apiKey) {
+    return {
+      available: false,
+      reason: "missing_openai_api_key",
+      message: AI_UNAVAILABLE_MESSAGE,
+      checks: {
+        openaiApiKey: false,
+        model: Boolean(model),
+      },
+    };
+  }
+
+  if (!model) {
+    return {
+      available: false,
+      reason: "missing_openai_model",
+      message: "Assistente de IA sem modelo configurado. Defina OPENAI_CHARACTER_MODEL antes de liberar o recurso.",
+      checks: {
+        openaiApiKey: true,
+        model: false,
+      },
+    };
+  }
+
+  return {
+    available: true,
+    reason: "",
+    message: "Assistente de IA disponivel.",
+    checks: {
+      openaiApiKey: true,
+      model: true,
+    },
+  };
 }
 
 function validateRequestBody(body) {
@@ -131,10 +185,8 @@ function validateRequestBody(body) {
 }
 
 async function generateCharacterRecommendation(input, config) {
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) {
-    throw new HttpError(500, "OPENAI_API_KEY nao configurada no servidor.");
-  }
+  const apiKey = String(process.env.OPENAI_API_KEY || "").trim();
+  const model = readConfiguredOpenAiModel(process.env);
 
   const response = await fetch(OPENAI_RESPONSES_URL, {
     method: "POST",
@@ -143,7 +195,7 @@ async function generateCharacterRecommendation(input, config) {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: process.env.OPENAI_CHARACTER_MODEL || process.env.OPENAI_MODEL || DEFAULT_MODEL,
+      model,
       input: buildOpenAiInput(input, config),
       text: {
         format: {
@@ -158,10 +210,15 @@ async function generateCharacterRecommendation(input, config) {
 
   const data = await readResponseJson(response);
   if (!response.ok) {
-    throw new HttpError(response.status, getOpenAiErrorMessage(data, response.status));
+    const info = getOpenAiErrorInfo(data, response.status);
+    throw new HttpError(info.statusCode, info.message, info.reason);
   }
 
   return parseOpenAiRecommendation(data);
+}
+
+function readConfiguredOpenAiModel(env = process.env) {
+  return String(env.OPENAI_CHARACTER_MODEL || env.OPENAI_MODEL || DEFAULT_MODEL).trim();
 }
 
 export function buildOpenAiInput(input, config) {
@@ -616,18 +673,41 @@ function readOutputText(data) {
   return "";
 }
 
-function getOpenAiErrorMessage(data, statusCode) {
+export function getOpenAiErrorInfo(data, statusCode) {
   const message = String(data?.error?.message || data?.message || "");
   if (statusCode === 401 || /api key|authentication|auth/i.test(message)) {
-    return "A chave da OpenAI nao foi aceita. Confira a configuracao do servidor.";
+    return {
+      statusCode: 503,
+      reason: "openai_auth_unavailable",
+      message: "A chave da OpenAI nao foi aceita. Confira OPENAI_API_KEY no ambiente de producao.",
+    };
   }
   if (statusCode === 429 || /quota|billing|rate limit/i.test(message)) {
-    return "A geracao por IA esta sem quota ou billing ativo na OpenAI. Confira o projeto da chave e tente novamente.";
+    return {
+      statusCode: 503,
+      reason: "openai_quota_unavailable",
+      message: "A geracao por IA esta sem quota ou billing ativo na OpenAI. Confira o projeto da chave e tente novamente.",
+    };
+  }
+  if (statusCode === 404 || /model|modelo/i.test(message)) {
+    return {
+      statusCode: 503,
+      reason: "openai_model_unavailable",
+      message: "O modelo da OpenAI configurado para o assistente nao esta disponivel. Confira OPENAI_CHARACTER_MODEL.",
+    };
   }
   if (statusCode >= 500) {
-    return "A OpenAI ficou indisponivel por alguns instantes. Tente novamente em breve.";
+    return {
+      statusCode: 503,
+      reason: "openai_service_unavailable",
+      message: "A OpenAI ficou indisponivel por alguns instantes. Tente novamente em breve.",
+    };
   }
-  return "Nao foi possivel gerar a ficha agora. Tente ajustar a ideia e enviar novamente.";
+  return {
+    statusCode: 502,
+    reason: "openai_generation_failed",
+    message: "Nao foi possivel gerar a ficha agora. Tente ajustar a ideia e enviar novamente.",
+  };
 }
 
 function assertSameOrigin(req) {

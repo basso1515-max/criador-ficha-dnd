@@ -43,6 +43,8 @@
         </div>
       </section>
 
+      <p id="aiAvailabilityStatus" class="note ai-status ai-availability-status" data-ai-availability-status aria-live="polite" hidden></p>
+
       <section class="ai-choice-grid" aria-label="Modos de criação">
         <a class="ai-choice-card ai-choice-card--manual" data-manual-link href="./5e.html">
           <span class="ai-choice-icon ai-choice-icon--paper" aria-hidden="true">
@@ -59,7 +61,7 @@
           <span>Abre o editor completo para você escolher classe, origem, atributos, equipamentos e textos.</span>
         </a>
 
-        <a class="ai-choice-card ai-choice-card--assisted" data-assistant-link href="./assistente-ia.html?edition=5e">
+        <a class="ai-choice-card ai-choice-card--assisted" data-assistant-link data-ai-requires-availability href="./assistente-ia.html?edition=5e">
           <span class="ai-choice-icon ai-choice-icon--spark" aria-hidden="true">
             <svg viewBox="0 0 24 24" focusable="false">
               <path d="M12 2.8 9.1 9.1 2.8 12l6.3 2.9L12 21.2l2.9-6.3 6.3-2.9-6.3-2.9z" />

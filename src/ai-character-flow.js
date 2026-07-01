@@ -26,6 +26,7 @@ const EDITIONS = {
 };
 
 const EXAMPLE_COUNT = 4;
+const AI_UNAVAILABLE_MESSAGE = "Assistente de IA temporariamente indisponivel. Crie manualmente enquanto a configuracao da OpenAI e revisada.";
 const PROMPT_EXAMPLES = {
   "5e": {
     concepts: [
@@ -116,11 +117,17 @@ const PROMPT_EXAMPLES = {
 const page = document.body?.dataset.aiFlowPage || "";
 const editionKey = readEditionKey();
 const edition = EDITIONS[editionKey] || EDITIONS["5e"];
+let aiAvailability = {
+  available: true,
+  reason: "",
+  message: "Assistente de IA disponivel.",
+};
 
 applyEditionChrome();
+const availabilityReady = bindAiAvailability();
 
 if (page === "assistant") {
-  bindAssistantForm();
+  bindAssistantForm(availabilityReady);
 }
 
 function readEditionKey() {
@@ -158,7 +165,7 @@ function applyEditionChrome() {
   }
 }
 
-function bindAssistantForm() {
+function bindAssistantForm(availabilityReady) {
   const form = /** @type {HTMLFormElement | null} */ (document.getElementById("aiCharacterForm"));
   const prompt = /** @type {HTMLTextAreaElement | null} */ (document.getElementById("aiCharacterPrompt"));
   const tone = /** @type {HTMLInputElement | null} */ (document.getElementById("aiCharacterTone"));
@@ -171,6 +178,12 @@ function bindAssistantForm() {
 
   form?.addEventListener("submit", async (event) => {
     event.preventDefault();
+    await availabilityReady;
+    if (!aiAvailability.available) {
+      setStatus(status, aiAvailability.message || AI_UNAVAILABLE_MESSAGE, "warning");
+      return;
+    }
+
     setStatus(status, "Consultando a IA e montando a ficha inicial...", "info");
     setLoading(submitButton, true);
     if (preview) preview.hidden = true;
@@ -190,11 +203,137 @@ function bindAssistantForm() {
         window.location.href = edition.editorUrl;
       }, 700);
     } catch (error) {
+      if (isAiAvailabilityError(error)) {
+        aiAvailability = {
+          available: false,
+          reason: String(error.reason || ""),
+          message: getErrorMessage(error),
+        };
+        applyAiAvailabilityState(aiAvailability);
+      }
       setStatus(status, getErrorMessage(error), "warning");
     } finally {
-      setLoading(submitButton, false);
+      if (aiAvailability.available) {
+        setLoading(submitButton, false);
+      } else {
+        setSubmitAvailability(submitButton, { available: false, pending: false });
+      }
     }
   });
+}
+
+function bindAiAvailability() {
+  const statusElements = Array.from(document.querySelectorAll("[data-ai-availability-status]"));
+  const submitButton = /** @type {HTMLButtonElement | null} */ (document.getElementById("aiCharacterSubmit"));
+  const assistedLinks = Array.from(document.querySelectorAll("[data-ai-requires-availability]"));
+  const shouldCheck = statusElements.length || submitButton || assistedLinks.length;
+  if (!shouldCheck) return Promise.resolve(aiAvailability);
+
+  applyAiAvailabilityState({ ...aiAvailability, pending: true });
+
+  return checkAiAvailability()
+    .then((availability) => {
+      aiAvailability = availability;
+      applyAiAvailabilityState(aiAvailability);
+      return aiAvailability;
+    })
+    .catch(() => {
+      aiAvailability = {
+        available: false,
+        reason: "ai_status_unavailable",
+        message: "Nao foi possivel confirmar a disponibilidade da IA. Use a criacao manual por enquanto.",
+      };
+      applyAiAvailabilityState(aiAvailability);
+      return aiAvailability;
+    });
+}
+
+async function checkAiAvailability() {
+  const response = await fetch("/api/ai-character", {
+    method: "GET",
+    credentials: "same-origin",
+    headers: {
+      Accept: "application/json",
+    },
+  });
+  const data = await response.json().catch(() => ({}));
+  if (typeof data?.available === "boolean") {
+    return normalizeAvailability(data);
+  }
+  if (!response.ok) {
+    return {
+      available: false,
+      reason: "ai_status_unavailable",
+      message: data?.message || AI_UNAVAILABLE_MESSAGE,
+    };
+  }
+  return normalizeAvailability({ available: true, message: "Assistente de IA disponivel." });
+}
+
+function normalizeAvailability(data) {
+  const available = Boolean(data?.available);
+  return {
+    available,
+    reason: String(data?.reason || ""),
+    message: String(data?.message || (available ? "Assistente de IA disponivel." : AI_UNAVAILABLE_MESSAGE)),
+  };
+}
+
+function applyAiAvailabilityState(availability) {
+  const pending = Boolean(availability.pending);
+  const available = Boolean(availability.available) && !pending;
+  const unavailableMessage = availability.message || AI_UNAVAILABLE_MESSAGE;
+
+  document.body?.classList.toggle("ai-is-unavailable", !available && !pending);
+  document.body?.classList.toggle("ai-is-checking", pending);
+
+  document.querySelectorAll("[data-ai-availability-status]").forEach((element) => {
+    if (pending && page !== "assistant") {
+      setStatus(element, "", "info");
+      return;
+    }
+
+    if (pending) {
+      setStatus(element, "Verificando disponibilidade da IA...", "info");
+      return;
+    }
+
+    setStatus(element, available ? "" : unavailableMessage, available ? "info" : "warning");
+  });
+
+  document.querySelectorAll("[data-ai-requires-availability]").forEach((link) => {
+    setAiLinkAvailability(/** @type {HTMLAnchorElement} */ (link), available);
+  });
+
+  setSubmitAvailability(
+    /** @type {HTMLButtonElement | null} */ (document.getElementById("aiCharacterSubmit")),
+    { available, pending }
+  );
+}
+
+function setAiLinkAvailability(link, available) {
+  if (!link) return;
+  if (!link.dataset.availableHref && link.getAttribute("href")) {
+    link.dataset.availableHref = link.getAttribute("href") || "";
+  }
+
+  link.classList.toggle("is-disabled", !available);
+  link.setAttribute("aria-disabled", available ? "false" : "true");
+  if (available) {
+    const href = link.dataset.availableHref;
+    if (href) link.setAttribute("href", href);
+    link.removeAttribute("tabindex");
+    return;
+  }
+
+  link.removeAttribute("href");
+  link.setAttribute("tabindex", "-1");
+}
+
+function setSubmitAvailability(button, { available, pending }) {
+  if (!button) return;
+  button.disabled = !available || pending;
+  button.textContent = pending ? "Verificando IA..." : available ? "Conjurar ficha por IA" : "IA indisponivel";
 }
 
 async function requestCharacter(payload) {
@@ -209,7 +348,10 @@ async function requestCharacter(payload) {
   });
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
-    throw new Error(data?.message || "Não foi possível gerar a ficha agora.");
+    const error = new Error(data?.message || "Não foi possível gerar a ficha agora.");
+    error.reason = data?.reason || "";
+    error.statusCode = response.status;
+    throw error;
   }
   return data;
 }
@@ -237,6 +379,9 @@ function renderPreview(preview, character) {
 function setStatus(element, message, tone = "info") {
   if (!element) return;
   element.textContent = message || "";
+  if ("hidden" in element) {
+    element.hidden = !message;
+  }
   element.classList.remove("status-info", "status-success", "status-warning");
   if (message) {
     element.classList.add(tone === "success" ? "status-success" : tone === "warning" ? "status-warning" : "status-info");
@@ -319,6 +464,17 @@ function getWritableStorage() {
 
 function getErrorMessage(error) {
   return error instanceof Error ? error.message : "Não foi possível gerar a ficha agora.";
+}
+
+function isAiAvailabilityError(error) {
+  const statusCode = Number(error?.statusCode || 0);
+  const reason = String(error?.reason || "");
+  return statusCode === 503 && (
+    reason.includes("openai_")
+    || reason === "missing_openai_api_key"
+    || reason === "missing_openai_model"
+    || reason === "ai_status_unavailable"
+  );
 }
 
 function escapeHtml(value) {
