@@ -76,6 +76,7 @@ export function bindCharacterBasicsEvents2024(el, handlers = {}) {
     hideHoverCard: handlers.hideDivinityHoverCard,
     attachSuggestionBlur: handlers.attachDropdownSuggestionContainerTouchBlur,
   });
+  on(el.divindadePanteao, "change", handlers.onDivinityPantheonChanged);
 
   on(el.abilityScores, "input", handlers.onAbilityScoresChanged);
   on(el.abilityScores, "change", handlers.onAbilityScoresChanged);

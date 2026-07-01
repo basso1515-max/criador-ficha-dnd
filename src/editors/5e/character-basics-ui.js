@@ -89,6 +89,7 @@ export function bindCharacterBasicsEvents5e(el, handlers = {}) {
     hideHoverCard: handlers.hideDivinityHoverCard,
     attachSuggestionBlur: handlers.attachDropdownSuggestionContainerTouchBlur,
   });
+  on(el.divindadePanteao, "change", handlers.onDivinityPantheonChanged);
 
   [el.traitsSelect, el.ideaisSelect, el.vinculosSelect, el.defeitosSelect].forEach((select) => {
     on(select, "change", handlers.updatePreview);

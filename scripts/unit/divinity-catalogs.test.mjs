@@ -5,12 +5,14 @@ import {
   DATASET_VERSION as DIVINDADES_VERSION_5E,
   META_DIVINDADES as META_DIVINDADES_5E,
   DOMINIOS as DOMINIOS_5E,
+  PANTEOES as PANTEOES_5E,
   DIVINDADES as DIVINDADES_5E,
 } from "../../src/data/5e/divindades.js";
 import {
   DATASET_VERSION as DIVINDADES_VERSION_2024,
   META_DIVINDADES as META_DIVINDADES_2024,
   DOMINIOS as DOMINIOS_2024,
+  DIVINDADES_2024_IDS,
   DIVINDADES as DIVINDADES_2024,
 } from "../../src/data/5.5e/divindades.js";
 import {
@@ -57,4 +59,41 @@ test("catalogo de divindades 5.5e permanece subconjunto identitario da 5e", () =
 
   assert.deepEqual(errors, []);
   assert.equal(Object.keys(DIVINDADES_2024).every((id) => id in DIVINDADES_5E), true);
+});
+
+test("catalogo 5e cobre panteoes oficiais de Forgotten Realms pos-Segunda Separacao", () => {
+  assert.equal(Object.keys(DIVINDADES_5E).length, 122);
+  assert.equal(Object.keys(PANTEOES_5E).length, 9);
+
+  const divinityPantheons = new Set(Object.values(DIVINDADES_5E).map((divinity) => divinity.panteaoId));
+  Object.keys(PANTEOES_5E).forEach((pantheonId) => {
+    assert.equal(divinityPantheons.has(pantheonId), true, `panteao sem divindades: ${pantheonId}`);
+  });
+
+  [
+    "gwaeron",
+    "berronar_truesilver",
+    "eilistraee",
+    "brandobaris",
+    "baervan_wildwanderer",
+    "luthic",
+    "anhur",
+    "ghaunadaur",
+    "shaundakul",
+  ].forEach((id) => {
+    assert.ok(DIVINDADES_5E[id], `divindade esperada ausente no catalogo 5e: ${id}`);
+  });
+});
+
+test("catalogo 5.5e usa o recorte moderno de 42 deuses de Faerun", () => {
+  assert.equal(Object.keys(DIVINDADES_2024).length, 42);
+  assert.deepEqual(Object.keys(DIVINDADES_2024), DIVINDADES_2024_IDS);
+
+  ["eilistraee", "lolth", "shaundakul"].forEach((id) => {
+    assert.ok(DIVINDADES_2024[id], `divindade moderna esperada ausente no catalogo 5.5e: ${id}`);
+  });
+
+  ["akadi", "grumbar", "gwaeron", "hoar", "istishia", "jergal", "kossuth", "savras", "valkur"].forEach((id) => {
+    assert.equal(DIVINDADES_2024[id], undefined, `divindade fora do recorte 5.5e: ${id}`);
+  });
 });

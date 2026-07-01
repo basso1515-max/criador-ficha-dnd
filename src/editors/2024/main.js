@@ -2,7 +2,6 @@ import { RACAS, SUBRACAS, META_RACAS, ENUMS_RACAS } from "../../data/5.5e/racas.
 import { CLASSES as CLASSES_2024, META_CLASSES } from "../../data/5.5e/classes.js";
 import { SUBCLASSES } from "../../data/5.5e/subclasses.js";
 import { ANTECEDENTES, META_ANTECEDENTES } from "../../data/5.5e/antecedentes.js";
-import { DIVINDADES } from "../../data/5.5e/divindades.js";
 import { TALENTOS, META_TALENTOS } from "../../data/5.5e/talentos.js";
 import { ARMADURAS } from "../../data/5.5e/armaduras.js";
 import { ARMAS, PROPRIEDADES_ARMA, PROPRIEDADES_MAESTRIA_ARMA } from "../../data/5.5e/armas.js";
@@ -198,7 +197,7 @@ import {
   const SUBCLASS_LIST = sortByLocale(Object.values(SUBCLASSES || {}), "nome");
   const FEAT_LIST = sortByLocale([...TALENTOS], "name_pt");
   const ORIGIN_FEATS = FEAT_LIST.filter((feat) => feat?.categoria === "origem");
-  const DIVINITIES_2024 = sortByLocale(Object.values(DIVINDADES || {}), "nome");
+  let DIVINITIES_2024 = [];
 
   const RACE_BY_ID = new Map(RACE_LIST.map((item) => [item.id, item]));
   const SUBRACE_BY_ID = new Map(SUBRACE_LIST.map((item) => [item.id, item]));
@@ -248,7 +247,31 @@ import {
     [...FEAT_SKILL_PROFICIENCY_OPTIONS_2024, ...FEAT_TOOL_PROFICIENCY_OPTIONS_2024],
     "label"
   );
-  const DIVINITY_BY_NAME_2024 = new Map(DIVINITIES_2024.map((item) => [normalizePt(item.nome), item]));
+  let DIVINITY_BY_NAME_2024 = new Map();
+  let divinityCatalogLoadPromise2024 = null;
+
+  function isDivinityCatalogLoaded2024() {
+    return DIVINITY_BY_NAME_2024.size > 0;
+  }
+
+  async function ensureDivinityCatalogLoaded2024() {
+    if (isDivinityCatalogLoaded2024()) return DIVINITIES_2024;
+
+    if (!divinityCatalogLoadPromise2024) {
+      divinityCatalogLoadPromise2024 = import("../../data/5.5e/divindades.js")
+        .then(({ DIVINDADES }) => {
+          DIVINITIES_2024 = sortByLocale(Object.values(DIVINDADES || {}), "nome");
+          DIVINITY_BY_NAME_2024 = new Map(DIVINITIES_2024.map((item) => [normalizePt(item.nome), item]));
+          return DIVINITIES_2024;
+        })
+        .catch((error) => {
+          divinityCatalogLoadPromise2024 = null;
+          throw error;
+        });
+    }
+
+    return divinityCatalogLoadPromise2024;
+  }
   const SKILL_LABEL_BY_ID = new Map(SKILL_OPTIONS.map((item) => [item.id, item.label]));
   const ALIGNMENT_BY_ID_2024 = new Map(ALIGNMENTS_2024.map((item) => [item.id, item]));
   const ALIGNMENT_BY_LABEL_2024 = new Map(ALIGNMENTS_2024.map((item) => [item.label, item]));
@@ -573,6 +596,7 @@ import {
     alinhamento: document.getElementById("alignment2024"),
     alignmentInfo: document.getElementById("alignmentInfo2024"),
     divindadeInput: document.getElementById("divindadeInput2024"),
+    divindadePanteao: document.getElementById("divindadePanteao2024"),
     divindadeSuggestions: document.getElementById("divindadeSuggestions2024"),
     divindadeHoverCard: document.getElementById("divindadeHoverCard2024"),
     divindade: document.getElementById("divindade2024"),
@@ -1099,6 +1123,7 @@ import {
     });
     initializeMulticlassUi2024();
     initializeLevelUpAssistant2024();
+    populateDivinityPantheonFilter2024();
 
     bindCharacterBasicsEvents2024(el, {
       onCoreSelectionChanged: renderAll,
@@ -1118,6 +1143,7 @@ import {
       onHitPointRollsInput: onHitPointRollsInput2024,
       onHitPointRollsClick: onHitPointRollsClick2024,
       onDivinityChanged: onDivinityChanged2024,
+      onDivinityPantheonChanged: onDivinityPantheonChanged2024,
       consumeDropdownInteractionBlur: consumeDropdownInteractionBlur2024,
       hideDivinitySuggestions: hideDivinitySuggestions2024,
       hideDivinityHoverCard: hideDivinityHoverCard2024,
@@ -4725,18 +4751,70 @@ import {
       .map((entry) => entry.divinity);
   }
 
+  function getDivinityPantheonId2024(divinity) {
+    return String(divinity?.panteaoId || normalizePt(divinity?.panteao || "")).trim();
+  }
+
+  function getSelectedDivinityPantheonId2024() {
+    return String(el.divindadePanteao?.value || "").trim();
+  }
+
+  function isDivinityInSelectedPantheon2024(divinity) {
+    const selectedPantheon = getSelectedDivinityPantheonId2024();
+    return !selectedPantheon || getDivinityPantheonId2024(divinity) === selectedPantheon;
+  }
+
+  function populateDivinityPantheonFilter2024() {
+    if (!el.divindadePanteao) return;
+
+    const pantheons = Array.from(
+      DIVINITIES_2024.reduce((map, divinity) => {
+        const id = getDivinityPantheonId2024(divinity);
+        if (id && !map.has(id)) {
+          map.set(id, divinity.panteao || id);
+        }
+        return map;
+      }, new Map())
+    ).sort((left, right) => String(left[1]).localeCompare(String(right[1]), "pt-BR"));
+
+    const selectedValue = el.divindadePanteao.value;
+    el.divindadePanteao.innerHTML = "";
+
+    const allOption = document.createElement("option");
+    allOption.value = "";
+    allOption.textContent = "Todos os panteões";
+    el.divindadePanteao.appendChild(allOption);
+
+    pantheons.forEach(([id, label]) => {
+      const option = document.createElement("option");
+      option.value = id;
+      option.textContent = label;
+      el.divindadePanteao.appendChild(option);
+    });
+
+    if (Array.from(el.divindadePanteao.options).some((option) => option.value === selectedValue)) {
+      el.divindadePanteao.value = selectedValue;
+    }
+  }
+
+  async function onDivinityPantheonChanged2024() {
+    await onDivinityChanged2024({ showSuggestions: true, allowEmptySuggestions: true, showAllOnFocus: true });
+  }
+
   function getDivinityMatches2024(query) {
     const preferredAlignment = parseAlignmentAxes2024(el.alinhamento?.value || "");
+    const divinityPool = DIVINITIES_2024.filter(isDivinityInSelectedPantheon2024);
     if (!query) {
-      return orderDivinityMatches2024(DIVINITIES_2024.slice(), preferredAlignment, { compatibleOnly: true }).slice(0, 24);
+      return orderDivinityMatches2024(divinityPool.slice(), preferredAlignment, { compatibleOnly: true }).slice(0, 24);
     }
 
-    const matches = DIVINITIES_2024.filter((divinity) => {
+    const matches = divinityPool.filter((divinity) => {
       const normalizedName = normalizePt(divinity.nome);
       return normalizedName.includes(query)
         || normalizePt(divinity.domínio).includes(query)
         || normalizePt(divinity.alinhamento).includes(query)
-        || normalizePt(divinity.símbolo).includes(query);
+        || normalizePt(divinity.símbolo).includes(query)
+        || normalizePt(divinity.panteao).includes(query);
     });
     return orderDivinityMatches2024(matches, preferredAlignment).slice(0, 24);
   }
@@ -4758,6 +4836,7 @@ import {
 
     el.divindadeHoverCard.innerHTML = `
       <strong>${escapeHtml(divinity.nome)}</strong>
+      <p>${escapeHtml(`Panteão: ${divinity.panteao}`)}</p>
       <p>${escapeHtml(`Domínio: ${divinity.domínio}`)}</p>
       <p>${escapeHtml(`Alinhamento: ${divinity.alinhamento}`)}</p>
       <p>${escapeHtml(`Símbolo: ${divinity.símbolo}`)}</p>
@@ -4772,7 +4851,7 @@ import {
     const value = String(el.divindade?.value || el.divindadeInput?.value || "").trim();
     const divinity = DIVINITY_BY_NAME_2024.get(normalizePt(value));
     el.divindadeInfo.textContent = divinity
-      ? `Domínio: ${divinity.domínio} • Alinhamento: ${divinity.alinhamento} • Símbolo: ${divinity.símbolo}`
+      ? `Panteão: ${divinity.panteao} • Domínio: ${divinity.domínio} • Alinhamento: ${divinity.alinhamento} • Símbolo: ${divinity.símbolo}`
       : "";
   }
 
@@ -4803,7 +4882,7 @@ import {
     el.divindadeSuggestions.innerHTML = matches.map((divinity) => `
       <div class="dropdown-suggestion" data-divinity="${escapeHtml(divinity.nome)}">
         <strong>${escapeHtml(divinity.nome)}</strong>
-        <small>${escapeHtml(`Domínio: ${divinity.domínio} • Alinhamento: ${divinity.alinhamento}`)}</small>
+        <small>${escapeHtml(`${divinity.panteao} • Domínio: ${divinity.domínio} • Alinhamento: ${divinity.alinhamento}`)}</small>
       </div>
     `).join("");
     el.divindadeSuggestions.hidden = false;
@@ -4821,7 +4900,15 @@ import {
     });
   }
 
-  function onDivinityChanged2024({ showSuggestions = false, allowEmptySuggestions = false, showAllOnFocus = false } = {}) {
+  async function onDivinityChanged2024({ showSuggestions = false, allowEmptySuggestions = false, showAllOnFocus = false } = {}) {
+    try {
+      await ensureDivinityCatalogLoaded2024();
+    } catch (error) {
+      console.error("Nao foi possivel carregar o catalogo de divindades 2024:", error);
+    }
+
+    populateDivinityPantheonFilter2024();
+
     const query = normalizePt(el.divindadeInput?.value || "");
     const exact = DIVINITY_BY_NAME_2024.get(query);
     if (el.divindade) {
@@ -9264,6 +9351,8 @@ import {
   async function randomizeSheet2024({ mode = "all" } = {}) {
     const overwrite = mode === "all";
     try {
+      await ensureDivinityCatalogLoaded2024();
+
       withDeferredHeavyUi2024(() => {
         applyRandomIdentitySelections2024({ overwrite });
         applyRandomAttributes2024({ overwrite });
@@ -14457,6 +14546,16 @@ import {
         await yieldUi2024();
       }
 
+      if (!isDivinityCatalogLoaded2024()) {
+        writeLoadingTab2024(
+          loadingTab,
+          "Carregando divindades...",
+          "O catálogo de panteões entra sob demanda para manter a página inicial mais leve."
+        );
+        await ensureDivinityCatalogLoaded2024();
+        await yieldUi2024();
+      }
+
       const pdfMap = await loadPdfMap2024();
       const templateUrl = pdfMap?.meta?.template || DEFAULT_TEMPLATE_URL_2024;
       writeLoadingTab2024(
@@ -14539,6 +14638,7 @@ import {
 
     const buildGeneratedPdf = async (overrides = {}) => {
       await ensurePdfLibLoaded();
+      await ensureDivinityCatalogLoaded2024();
       await ensureSpellCatalogForCurrentMagic2024({ refreshUi: false });
       await loadFeatureSummaries2024();
 

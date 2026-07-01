@@ -2,7 +2,6 @@ import { RACAS, SUBRACAS as RACE_SUBRACAS, ENUMS_RACAS } from "../../data/5e/rac
 import { CLASSES } from "../../data/5e/classes.js";
 import { SUBCLASSES } from "../../data/5e/subclasses.js";
 import { ANTECEDENTES } from "../../data/5e/antecedentes.js";
-import { DIVINDADES } from "../../data/5e/divindades.js";
 import { ARMAS, PROPRIEDADES_ARMA } from "../../data/5e/armas.js";
 import { ARMADURAS } from "../../data/5e/armaduras.js";
 import { EQUIPMENT_OPTION_LISTS, CLASS_EQUIPMENT_RULES, BACKGROUND_EQUIPMENT_RULES } from "../../data/5e/equipamento-inicial.js";
@@ -165,7 +164,7 @@ const escapeHtml = (value) => escapeHtmlBase(value, "&#039;");
   const SUBRACES = Object.values(RACE_SUBRACAS);
   const CLASS_LIST = Object.values(CLASSES);
   const BACKGROUNDS = Object.values(ANTECEDENTES);
-  const DIVINITIES = Object.values(DIVINDADES);
+  let DIVINITIES = [];
   const FEAT_LIST = [...TALENTOS].sort((a, b) => String(a.name_pt || a.name || "").localeCompare(String(b.name_pt || b.name || ""), "pt-BR"));
   const LANGUAGE_OPTIONS = Object.entries(ENUMS_RACAS?.idiomas || {})
     .map(([id, label]) => ({ id, label }))
@@ -180,7 +179,7 @@ const SUBCLASS_BY_NORMALIZED_NAME = new Map(
   Object.values(SUBCLASSES).map((subclass) => [normalizePt(subclass.nome), subclass])
 );
 const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.nome, background]));
-  const DIVINITY_BY_NAME = new Map(DIVINITIES.map((divinity) => [normalizePt(divinity.nome), divinity]));
+  let DIVINITY_BY_NAME = new Map();
   const FEAT_BY_ID = new Map(FEAT_LIST.map((feat) => [feat.id, feat]));
   const LANGUAGE_LABEL_BY_ID = new Map(LANGUAGE_OPTIONS.map((language) => [language.id, language.label]));
   const LANGUAGE_ID_BY_LABEL = new Map(LANGUAGE_OPTIONS.map((language) => [normalizePt(language.label), language.id]));
@@ -223,6 +222,30 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
   let getWarlockPactBoonById = () => null;
   let warlockCatalogLoadPromise = null;
   let warlockCatalogLoadError = null;
+  let divinityCatalogLoadPromise = null;
+
+  function isDivinityCatalogLoaded() {
+    return DIVINITY_BY_NAME.size > 0;
+  }
+
+  async function ensureDivinityCatalogLoaded() {
+    if (isDivinityCatalogLoaded()) return DIVINITIES;
+
+    if (!divinityCatalogLoadPromise) {
+      divinityCatalogLoadPromise = import("../../data/5e/divindades.js")
+        .then(({ DIVINDADES }) => {
+          DIVINITIES = Object.values(DIVINDADES || {});
+          DIVINITY_BY_NAME = new Map(DIVINITIES.map((divinity) => [normalizePt(divinity.nome), divinity]));
+          return DIVINITIES;
+        })
+        .catch((error) => {
+          divinityCatalogLoadPromise = null;
+          throw error;
+        });
+    }
+
+    return divinityCatalogLoadPromise;
+  }
 
   function isSpellCatalogLoaded() {
     return SPELL_BY_ID.size > 0;
@@ -433,6 +456,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     alinhamentoInfo: $("alinhamentoInfo"),
     xp: $("xp"),
     divindade: $("divindade"),
+    divindadePanteao: $("divindadePanteao"),
     divindadeSuggestions: $("divindadeSuggestions"),
     divindadeHoverCard: $("divindadeHoverCard"),
     divindadeInfo: $("divindadeInfo"),
@@ -897,6 +921,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       renderFightingStyleChoices,
     });
     updateNameRandomizerButtonsState();
+    populateDivinityPantheonFilter();
     bindCharacterBasicsEvents5e(el, {
       attributeInputs: ATTRIBUTE_INPUTS,
       onSkillSelectionChanged,
@@ -922,6 +947,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       updatePhysicalProfileInfo,
       onAlignmentChanged,
       onDivinityChanged,
+      onDivinityPantheonChanged,
       consumeDropdownInteractionBlur,
       hideAlignmentSuggestions,
       hideAlignmentHoverCard,
@@ -9009,12 +9035,70 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     return base
       .sort((a, b) => {
         if (b.score !== a.score) return b.score - a.score;
-        return a.index - b.index;
+        return String(a.divinity?.nome || "").localeCompare(String(b.divinity?.nome || ""), "pt-BR");
       })
       .map((entry) => entry.divinity);
   }
 
-  function onDivinityChanged({ showSuggestions = false, allowEmptySuggestions = false, showAllOnFocus = false } = {}) {
+  function getDivinityPantheonId(divinity) {
+    return String(divinity?.panteaoId || normalizePt(divinity?.panteao || "")).trim();
+  }
+
+  function getSelectedDivinityPantheonId() {
+    return String(el.divindadePanteao?.value || "").trim();
+  }
+
+  function isDivinityInSelectedPantheon(divinity) {
+    const selectedPantheon = getSelectedDivinityPantheonId();
+    return !selectedPantheon || getDivinityPantheonId(divinity) === selectedPantheon;
+  }
+
+  function populateDivinityPantheonFilter() {
+    if (!el.divindadePanteao) return;
+
+    const pantheons = Array.from(
+      DIVINITIES.reduce((map, divinity) => {
+        const id = getDivinityPantheonId(divinity);
+        if (id && !map.has(id)) {
+          map.set(id, divinity.panteao || id);
+        }
+        return map;
+      }, new Map())
+    ).sort((left, right) => String(left[1]).localeCompare(String(right[1]), "pt-BR"));
+
+    const selectedValue = el.divindadePanteao.value;
+    el.divindadePanteao.innerHTML = "";
+
+    const allOption = document.createElement("option");
+    allOption.value = "";
+    allOption.textContent = "Todos os panteões";
+    el.divindadePanteao.appendChild(allOption);
+
+    pantheons.forEach(([id, label]) => {
+      const option = document.createElement("option");
+      option.value = id;
+      option.textContent = label;
+      el.divindadePanteao.appendChild(option);
+    });
+
+    if (Array.from(el.divindadePanteao.options).some((option) => option.value === selectedValue)) {
+      el.divindadePanteao.value = selectedValue;
+    }
+  }
+
+  async function onDivinityPantheonChanged() {
+    await onDivinityChanged({ showSuggestions: true, allowEmptySuggestions: true, showAllOnFocus: true });
+  }
+
+  async function onDivinityChanged({ showSuggestions = false, allowEmptySuggestions = false, showAllOnFocus = false } = {}) {
+    try {
+      await ensureDivinityCatalogLoaded();
+    } catch (error) {
+      console.error("Nao foi possivel carregar o catalogo de divindades 5e:", error);
+    }
+
+    populateDivinityPantheonFilter();
+
     const query = normalizePt(el.divindade.value);
     const d = DIVINITY_BY_NAME.get(query);
     if (showSuggestions) {
@@ -9027,21 +9111,23 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       el.divindadeInfo.textContent = "";
       return;
     }
-    el.divindadeInfo.textContent = `Domínio: ${d.domínio} • Alinhamento: ${d.alinhamento} • Símbolo: ${d.símbolo}`;
+    el.divindadeInfo.textContent = `Panteão: ${d.panteao} • Domínio: ${d.domínio} • Alinhamento: ${d.alinhamento} • Símbolo: ${d.símbolo}`;
   }
 
   function getDivinityMatches(query) {
     const preferredAlignment = parseAlignmentAxes(el.alinhamento.value);
+    const divinityPool = DIVINITIES.filter(isDivinityInSelectedPantheon);
     if (!query) {
-      return orderDivinityMatches(DIVINITIES.slice(), preferredAlignment, { compatibleOnly: true });
+      return orderDivinityMatches(divinityPool.slice(), preferredAlignment, { compatibleOnly: true });
     }
 
-    const matches = DIVINITIES.filter((divinity) => {
+    const matches = divinityPool.filter((divinity) => {
       const normalizedName = normalizePt(divinity.nome);
       return normalizedName.includes(query)
         || normalizePt(divinity.domínio).includes(query)
         || normalizePt(divinity.alinhamento).includes(query)
-        || normalizePt(divinity.símbolo).includes(query);
+        || normalizePt(divinity.símbolo).includes(query)
+        || normalizePt(divinity.panteao).includes(query);
     });
     return orderDivinityMatches(matches, preferredAlignment);
   }
@@ -9062,7 +9148,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     el.divindadeSuggestions.innerHTML = matches.map((divinity) => `
       <div class="dropdown-suggestion" data-divinity="${escapeHtml(divinity.nome)}">
         <strong>${escapeHtml(divinity.nome)}</strong>
-        <small>${escapeHtml(`Domínio: ${divinity.domínio} • Alinhamento: ${divinity.alinhamento}`)}</small>
+        <small>${escapeHtml(`${divinity.panteao} • Domínio: ${divinity.domínio} • Alinhamento: ${divinity.alinhamento}`)}</small>
       </div>
     `).join("");
 
@@ -9094,6 +9180,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
 
     el.divindadeHoverCard.innerHTML = `
       <strong>${escapeHtml(divinity.nome)}</strong>
+      <p>${escapeHtml(`Panteão: ${divinity.panteao}`)}</p>
       <p>${escapeHtml(`Domínio: ${divinity.domínio}`)}</p>
       <p>${escapeHtml(`Alinhamento: ${divinity.alinhamento}`)}</p>
       <p>${escapeHtml(`Símbolo: ${divinity.símbolo}`)}</p>
@@ -9431,6 +9518,8 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     const overwrite = mode === "all";
 
     try {
+      await ensureDivinityCatalogLoaded();
+
       withDeferredHeavyUi(() => {
         setStatus(overwrite ? "Aleatorizando toda a ficha..." : "Aleatorizando o restante da ficha...");
 
@@ -9508,8 +9597,10 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
 
     if (el.divindade && (overwrite || !String(el.divindade.value || "").trim())) {
       const normalizedAlignment = normalizePt(el.alinhamento?.value || "");
-      const divinityPool = DIVINITIES.filter((divinity) => normalizePt(divinity.alinhamento || "") === normalizedAlignment);
-      el.divindade.value = (pickRandom(divinityPool.length ? divinityPool : DIVINITIES) || {}).nome || "";
+      const filteredDivinities = DIVINITIES.filter(isDivinityInSelectedPantheon);
+      const fallbackDivinities = filteredDivinities.length ? filteredDivinities : DIVINITIES;
+      const divinityPool = fallbackDivinities.filter((divinity) => normalizePt(divinity.alinhamento || "") === normalizedAlignment);
+      el.divindade.value = (pickRandom(divinityPool.length ? divinityPool : fallbackDivinities) || {}).nome || "";
       onDivinityChanged();
     } else {
       onDivinityChanged();
@@ -16251,6 +16342,8 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
   }
 
   async function gerarFichaPdf(tab, overrides = {}) {
+    await ensureDivinityCatalogLoaded();
+
     const state = overrides.state || collectState();
     if (!state.nome) throw new Error("Informe o nome do personagem.");
 
@@ -17272,6 +17365,7 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
 
       async generatePdfBase64(overrides = {}) {
         await ensurePdfLibLoaded();
+        await ensureDivinityCatalogLoaded();
 
         try {
           await pdfMapLoadPromise;
