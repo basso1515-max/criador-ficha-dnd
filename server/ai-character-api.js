@@ -9,7 +9,8 @@ import { RACAS as RACAS_2024, SUBRACAS as SUBRACAS_2024 } from "../src/data/5.5e
 import { ANTECEDENTES as ANTECEDENTES_2024 } from "../src/data/5.5e/antecedentes.js";
 import { DIVINDADES as DIVINDADES_2024 } from "../src/data/5.5e/divindades.js";
 import { ALIGNMENTS_2024 } from "../src/editors/2024/rules-config.js";
-import { alinhamento as ALIGNMENTS_5E } from "../src/editors/5e/static-options.js";
+import { SKILL_OPTIONS as SKILL_OPTIONS_2024 } from "../src/editors/2024/rules-config.js";
+import { SKILLS as SKILLS_5E, alinhamento as ALIGNMENTS_5E } from "../src/editors/5e/static-options.js";
 import { loadLocalEnvOnce } from "./env-loader.js";
 
 const OPENAI_RESPONSES_URL = "https://api.openai.com/v1/responses";
@@ -18,6 +19,26 @@ const MAX_BODY_BYTES = 32_000;
 const MAX_PROMPT_LENGTH = 6_000;
 const EDITIONS = ["5e", "5.5e-2024"];
 const ABILITIES = ["for", "des", "con", "int", "sab", "car"];
+const OLD_AGE_RE = /\b(velh[ao]s?|idos[ao]s?|anci(?:a|ã)[os]?|ancia|anciã|veteran[ao]s?)\b/i;
+const EXPLICIT_AGE_RE = /\b(?:idade\s*(?:de)?\s*)?(\d{1,4})\s*(?:anos?|anos?\s+de\s+idade|de\s+idade)\b/i;
+const CHOICE_SEPARATOR_RE = /\s*(?:\/|,?\s+ou\s+|,?\s+OU\s+)\s*/;
+
+const CLASS_SKILL_PRIORITIES = {
+  artifice: ["arcanismo", "investigacao", "percepcao", "historia", "natureza", "medicina"],
+  barbaro: ["atletismo", "percepcao", "intimidacao", "sobrevivencia", "natureza", "adestrarAnimais"],
+  bardo: ["persuasao", "atuacao", "enganacao", "percepcao", "intuicao", "historia", "furtividade"],
+  bruxo: ["arcanismo", "enganacao", "intimidacao", "investigacao", "historia", "religiao"],
+  clerigo: ["religiao", "intuicao", "medicina", "persuasao", "historia"],
+  druida: ["natureza", "sobrevivencia", "percepcao", "adestrarAnimais", "medicina", "intuicao"],
+  feiticeiro: ["arcanismo", "persuasao", "enganacao", "intuicao", "intimidacao", "religiao"],
+  guerreiro: ["atletismo", "percepcao", "intimidacao", "acrobacia", "intuicao", "sobrevivencia"],
+  ladino: ["furtividade", "prestidigitacao", "enganacao", "investigacao", "percepcao", "acrobacia", "intuicao"],
+  mago: ["arcanismo", "investigacao", "historia", "religiao", "intuicao", "medicina"],
+  monge: ["acrobacia", "intuicao", "furtividade", "atletismo", "historia", "religiao"],
+  paladino: ["persuasao", "intuicao", "atletismo", "intimidacao", "religiao", "medicina"],
+  patrulheiro: ["percepcao", "sobrevivencia", "furtividade", "natureza", "investigacao", "adestrarAnimais"],
+  guardiao: ["percepcao", "sobrevivencia", "furtividade", "natureza", "investigacao", "adestrarAnimais"],
+};
 
 const EDITION_CONFIGS = {
   "5e": {
@@ -29,6 +50,7 @@ const EDITION_CONFIGS = {
     backgrounds: Object.values(ANTECEDENTES_5E),
     divinities: Object.values(DIVINDADES_5E),
     alignments: ALIGNMENTS_5E.map((item) => ({ id: item.nome, label: item.nome })),
+    skills: SKILLS_5E.map((item) => ({ id: item.key, label: item.nome })),
     valueMode: "label",
   },
   "5.5e-2024": {
@@ -40,9 +62,12 @@ const EDITION_CONFIGS = {
     backgrounds: Object.values(ANTECEDENTES_2024),
     divinities: Object.values(DIVINDADES_2024),
     alignments: ALIGNMENTS_2024.map((item) => ({ id: item.id, label: item.label })),
+    skills: SKILL_OPTIONS_2024.map((item) => ({ id: item.id, label: item.label })),
     valueMode: "id",
   },
 };
+
+export { EDITION_CONFIGS };
 
 class HttpError extends Error {
   constructor(statusCode, message) {
@@ -139,7 +164,7 @@ async function generateCharacterRecommendation(input, config) {
   return parseOpenAiRecommendation(data);
 }
 
-function buildOpenAiInput(input, config) {
+export function buildOpenAiInput(input, config) {
   return [
     {
       role: "system",
@@ -150,7 +175,11 @@ function buildOpenAiInput(input, config) {
             "Voce e um assistente de criacao de personagens de D&D para o Sheetfy.",
             "Responda apenas com JSON valido no schema solicitado.",
             "Use somente opcoes presentes nos catalogos enviados.",
-            "Prefira personagens coesos com a historia do usuario, sem otimizar alem do pedido.",
+            "Trate detalhes dados pelo usuario como restricoes fortes: idade, especie, aparencia, passado, tom e papel narrativo nao podem ser contraditos.",
+            "Se o usuario descrever alguem como velho, velha, idoso, idosa, anciao, ancia ou veterano, escolha uma idade numerica coerente com isso para a especie; nunca use uma idade jovem como 25 anos nesse caso, salvo se o usuario pedir explicitamente esse numero.",
+            "A ficha deve vir completa em todas as preferencias: escolha atributos, pericias, expertise quando existir, equipamento textual e descricoes concretas.",
+            "A preferencia muda o criterio, nao a completude: simples prioriza coerencia narrativa e escolhas faceis de jogar; equilibrada mistura historia com escolhas mecanicamente uteis; otimizada prioriza sinergia mecanica, atributos fortes e poderio, sem contradizer restricoes centrais do usuario.",
+            "Nao deixe decisoes internas para o usuario em campos narrativos. Nao escreva alternativas com 'ou', barras, parenteses opcionais ou listas do tipo cabelo castanho OU ruivo OU loiro; escolha uma unica opcao concreta.",
             "Escreva todos os textos em portugues do Brasil.",
             "Nao inclua conteudo sexual explicito, odio, crueldade grafica ou referencias a personagens protegidos por direitos autorais.",
           ].join(" "),
@@ -167,6 +196,11 @@ function buildOpenAiInput(input, config) {
             userIdea: input.prompt,
             requestedTone: input.tone,
             optimizationPreference: input.complexity,
+            requiredBehavior: {
+              completeness: "Preencha a ficha como rascunho jogavel. Escolha pericias e expertise quando as regras da classe permitirem.",
+              concreteText: "Descricoes devem ser finais e especificas, sem pedir novas escolhas ao usuario.",
+              physicalConsistency: "physicalDescription.age deve bater com qualquer sinal de idade no userIdea e a appearance deve repetir essa idade de forma natural.",
+            },
             availableOptions: buildCatalogPrompt(config),
           }),
         },
@@ -195,10 +229,15 @@ function buildCatalogPrompt(config) {
     backgrounds: config.backgrounds.map((item) => ({ id: item.id, label: item.nome, description: item.descricao || "" })),
     alignments: config.alignments,
     divinities: config.divinities.slice(0, 80).map((item) => ({ id: item.id, label: item.nome })),
+    skills: config.skills,
+    skillGuidance: {
+      selectedSkillIds: "IDs das pericias escolhidas pela classe, origem, especie ou recursos opcionais. Evite duplicar pericias fixas do antecedente quando possivel.",
+      expertiseSkillIds: "IDs das pericias que devem receber expertise/especializacao quando a classe ou recurso atual liberar essa escolha.",
+    },
   };
 }
 
-function buildCharacterJsonSchema() {
+export function buildCharacterJsonSchema() {
   return {
     type: "object",
     additionalProperties: false,
@@ -213,6 +252,9 @@ function buildCharacterJsonSchema() {
       "alignmentId",
       "divinityId",
       "abilityScores",
+      "physicalDescription",
+      "selectedSkillIds",
+      "expertiseSkillIds",
       "appearance",
       "personalityTraits",
       "ideals",
@@ -240,6 +282,29 @@ function buildCharacterJsonSchema() {
         additionalProperties: false,
         required: ABILITIES,
         properties: Object.fromEntries(ABILITIES.map((ability) => [ability, { type: "integer", minimum: 8, maximum: 15 }])),
+      },
+      physicalDescription: {
+        type: "object",
+        additionalProperties: false,
+        required: ["age", "height", "weight", "eyes", "skin", "hair"],
+        properties: {
+          age: { type: "integer", minimum: 0, maximum: 1000 },
+          height: { type: "string", maxLength: 40 },
+          weight: { type: "string", maxLength: 40 },
+          eyes: { type: "string", maxLength: 80 },
+          skin: { type: "string", maxLength: 80 },
+          hair: { type: "string", maxLength: 100 },
+        },
+      },
+      selectedSkillIds: {
+        type: "array",
+        maxItems: 12,
+        items: { type: "string", maxLength: 80 },
+      },
+      expertiseSkillIds: {
+        type: "array",
+        maxItems: 8,
+        items: { type: "string", maxLength: 80 },
       },
       appearance: { type: "string", maxLength: 700 },
       personalityTraits: { type: "string", maxLength: 500 },
@@ -269,7 +334,7 @@ function parseOpenAiRecommendation(data) {
   }
 }
 
-function normalizeRecommendation(recommendation, input, config) {
+export function normalizeRecommendation(recommendation, input, config) {
   const cls = findById(config.classes, recommendation.classId) || pickFirst(config.classes);
   const validSubclasses = config.subclasses.filter((item) => item.classeBase === cls?.id);
   const subclass = findById(validSubclasses, recommendation.subclassId) || pickFirst(validSubclasses);
@@ -282,6 +347,11 @@ function normalizeRecommendation(recommendation, input, config) {
     || pickFirst(config.alignments);
   const divinity = findById(config.divinities, recommendation.divinityId) || null;
   const level = clampInt(recommendation.level, 1, 20);
+  const abilityScores = normalizeAbilityScores(recommendation.abilityScores);
+  const physicalDescription = normalizePhysicalDescription(recommendation.physicalDescription, { input, race });
+  const selectedSkillIds = normalizeSelectedSkillIds(recommendation.selectedSkillIds, { config, cls, background, abilityScores, input });
+  const expertiseSkillIds = normalizeExpertiseSkillIds(recommendation.expertiseSkillIds, selectedSkillIds, { config });
+  const appearance = normalizeAppearanceText(recommendation.appearance, physicalDescription);
 
   return {
     name: sanitizeText(recommendation.name, 80) || "Personagem sem nome",
@@ -305,20 +375,198 @@ function normalizeRecommendation(recommendation, input, config) {
     alignmentLabel: alignment?.label || "",
     divinityId: divinity?.id || "",
     divinityLabel: divinity?.nome || "",
-    abilityScores: normalizeAbilityScores(recommendation.abilityScores),
-    appearance: sanitizeText(recommendation.appearance, 700),
-    personalityTraits: sanitizeText(recommendation.personalityTraits, 500),
-    ideals: sanitizeText(recommendation.ideals, 500),
-    bonds: sanitizeText(recommendation.bonds, 500),
-    flaws: sanitizeText(recommendation.flaws, 500),
-    backstory: sanitizeText(recommendation.backstory, 1600),
-    allies: sanitizeText(recommendation.allies, 700),
-    treasure: sanitizeText(recommendation.treasure, 500),
-    extraProficiencies: sanitizeText(recommendation.extraProficiencies, 500),
-    equipmentNotes: sanitizeText(recommendation.equipmentNotes, 700),
-    reasoning: sanitizeText(recommendation.reasoning, 700),
+    abilityScores,
+    physicalDescription,
+    selectedSkillIds,
+    expertiseSkillIds,
+    appearance,
+    personalityTraits: sanitizeConcreteText(recommendation.personalityTraits, 500),
+    ideals: sanitizeConcreteText(recommendation.ideals, 500),
+    bonds: sanitizeConcreteText(recommendation.bonds, 500),
+    flaws: sanitizeConcreteText(recommendation.flaws, 500),
+    backstory: sanitizeConcreteText(recommendation.backstory, 1600),
+    allies: sanitizeConcreteText(recommendation.allies, 700),
+    treasure: sanitizeConcreteText(recommendation.treasure, 500),
+    extraProficiencies: sanitizeConcreteText(recommendation.extraProficiencies, 500),
+    equipmentNotes: sanitizeConcreteText(recommendation.equipmentNotes, 700),
+    reasoning: sanitizeConcreteText(recommendation.reasoning, 700),
     sourcePrompt: sanitizeText(input.prompt, 600),
   };
+}
+
+function normalizePhysicalDescription(value = {}, { input, race } = {}) {
+  const explicitAge = extractExplicitAge(input?.prompt);
+  const oldMinimum = getOldAgeMinimum(input?.prompt, race);
+  const rawAge = clampInt(value?.age, 0, 1000);
+  const inferredOldAge = oldMinimum ? oldMinimum + (String(input?.prompt || "").length % 17) : 0;
+  const age = explicitAge || (oldMinimum ? Math.max(rawAge || 0, inferredOldAge) : rawAge);
+
+  return {
+    age,
+    height: sanitizePhysicalChoice(value?.height, 40),
+    weight: sanitizePhysicalChoice(value?.weight, 40),
+    eyes: sanitizePhysicalChoice(value?.eyes, 80),
+    skin: sanitizePhysicalChoice(value?.skin, 80),
+    hair: sanitizePhysicalChoice(value?.hair, 100),
+  };
+}
+
+function normalizeAppearanceText(value, physicalDescription) {
+  const details = [];
+  if (physicalDescription?.age) details.push(`${physicalDescription.age} anos`);
+  if (physicalDescription?.height) details.push(physicalDescription.height);
+  if (physicalDescription?.weight) details.push(physicalDescription.weight);
+  if (physicalDescription?.eyes) details.push(`olhos ${physicalDescription.eyes}`);
+  if (physicalDescription?.skin) details.push(`pele ${physicalDescription.skin}`);
+  if (physicalDescription?.hair) details.push(`cabelo ${physicalDescription.hair}`);
+
+  const base = sanitizeConcreteText(value, 700);
+  const physicalLine = details.length ? `Aparencia fisica definida: ${details.join(", ")}.` : "";
+  return sanitizeConcreteText([physicalLine, base].filter(Boolean).join(" "), 700);
+}
+
+function normalizeSelectedSkillIds(value, { config, cls, background, abilityScores, input } = {}) {
+  const validSkillIds = new Set((config?.skills || []).map((skill) => skill.id));
+  const classRule = cls?.proficiencias?.periciasEscolha || {};
+  const classPool = (classRule.from || []).filter((skillId) => validSkillIds.has(skillId));
+  const fixedSkills = new Set((background?.pericias || []).filter((skillId) => validSkillIds.has(skillId)));
+  const requested = normalizeSkillIdList(value, validSkillIds)
+    .filter((skillId) => !fixedSkills.has(skillId))
+    .filter((skillId) => !classPool.length || classPool.includes(skillId));
+  const targetCount = clampInt(classRule.picks, 0, classPool.length || 12);
+  if (!targetCount) return requested;
+
+  const selected = [];
+  const add = (skillId) => {
+    if (!skillId || fixedSkills.has(skillId) || selected.includes(skillId)) return;
+    if (classPool.length && !classPool.includes(skillId)) return;
+    selected.push(skillId);
+  };
+
+  requested.forEach(add);
+  rankSkillOptions({ cls, classPool, abilityScores, prompt: input?.prompt }).forEach(add);
+  classPool.forEach(add);
+
+  return selected.slice(0, targetCount);
+}
+
+function normalizeExpertiseSkillIds(value, selectedSkillIds = [], { config } = {}) {
+  const validSkillIds = new Set((config?.skills || []).map((skill) => skill.id));
+  const requested = normalizeSkillIdList(value, validSkillIds);
+  const selected = [];
+  const add = (skillId) => {
+    if (!skillId || selected.includes(skillId)) return;
+    if (selectedSkillIds.length && !selectedSkillIds.includes(skillId)) return;
+    selected.push(skillId);
+  };
+  requested.forEach(add);
+  selectedSkillIds.forEach(add);
+  return selected.slice(0, 8);
+}
+
+function normalizeSkillIdList(value, validSkillIds) {
+  return Array.from(new Set(
+    (Array.isArray(value) ? value : [])
+      .map((skillId) => String(skillId || "").trim())
+      .filter((skillId) => validSkillIds.has(skillId))
+  ));
+}
+
+function rankSkillOptions({ cls, classPool = [], abilityScores = {}, prompt = "" } = {}) {
+  const pool = Array.from(new Set(classPool || []));
+  const priority = CLASS_SKILL_PRIORITIES[cls?.id] || [];
+  const promptText = normalizeSearchText(prompt);
+  const abilityRanks = Object.entries(abilityScores || {})
+    .sort((a, b) => Number(b[1] || 0) - Number(a[1] || 0))
+    .map(([ability]) => ability);
+
+  return pool.slice().sort((a, b) => {
+    const promptScoreA = promptText.includes(normalizeSearchText(skillLabelFromId(a))) ? -20 : 0;
+    const promptScoreB = promptText.includes(normalizeSearchText(skillLabelFromId(b))) ? -20 : 0;
+    const priorityA = priority.includes(a) ? priority.indexOf(a) : 99;
+    const priorityB = priority.includes(b) ? priority.indexOf(b) : 99;
+    const abilityA = abilityRanks.indexOf(skillAbilityFromId(a));
+    const abilityB = abilityRanks.indexOf(skillAbilityFromId(b));
+    return (promptScoreA - promptScoreB)
+      || (priorityA - priorityB)
+      || ((abilityA < 0 ? 99 : abilityA) - (abilityB < 0 ? 99 : abilityB))
+      || a.localeCompare(b, "pt-BR");
+  });
+}
+
+function skillLabelFromId(skillId) {
+  return String(skillId || "")
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .replaceAll("-", " ");
+}
+
+function skillAbilityFromId(skillId) {
+  const map = {
+    acrobacia: "des",
+    adestrarAnimais: "sab",
+    arcanismo: "int",
+    atletismo: "for",
+    atuacao: "car",
+    enganacao: "car",
+    furtividade: "des",
+    historia: "int",
+    intimidacao: "car",
+    intuicao: "sab",
+    investigacao: "int",
+    medicina: "sab",
+    natureza: "int",
+    percepcao: "sab",
+    persuasao: "car",
+    prestidigitacao: "des",
+    religiao: "int",
+    sobrevivencia: "sab",
+  };
+  return map[skillId] || "";
+}
+
+function sanitizeConcreteText(value, maxLength) {
+  return removeInternalChoiceAlternatives(sanitizeText(value, maxLength)).slice(0, maxLength);
+}
+
+function sanitizePhysicalChoice(value, maxLength) {
+  const text = sanitizeText(value, maxLength);
+  if (!text) return "";
+  return removeInternalChoiceAlternatives(text.split(CHOICE_SEPARATOR_RE)[0] || text).slice(0, maxLength);
+}
+
+function removeInternalChoiceAlternatives(text = "") {
+  return String(text || "")
+    .replace(/\b(cabelos?|olhos?|pele|altura|peso)\s+([^.;,\n]{1,70}?)\s+ou\s+([^.;,\n]{1,70})/gi, (_, label, first) => `${label} ${String(first || "").trim()}`)
+    .replace(/\b(castanh[oa]s?|ruiv[oa]s?|loir[oa]s?|pret[oa]s?|branc[oa]s?|gris[ao]lh[oa]s?|azuis?|verdes?|acinzentad[oa]s?|dourad[oa]s?)\s+ou\s+(?:castanh[oa]s?|ruiv[oa]s?|loir[oa]s?|pret[oa]s?|branc[oa]s?|gris[ao]lh[oa]s?|azuis?|verdes?|acinzentad[oa]s?|dourad[oa]s?)/gi, "$1")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function extractExplicitAge(prompt = "") {
+  const match = String(prompt || "").match(EXPLICIT_AGE_RE);
+  if (!match) return 0;
+  return clampInt(match[1], 0, 1000);
+}
+
+function getOldAgeMinimum(prompt = "", race = null) {
+  if (!OLD_AGE_RE.test(String(prompt || ""))) return 0;
+  const raceText = normalizeSearchText(`${race?.id || ""} ${race?.nome || ""}`);
+  if (raceText.includes("elf")) return 350;
+  if (raceText.includes("anao") || raceText.includes("anão")) return 220;
+  if (raceText.includes("gnom")) return 250;
+  if (raceText.includes("halfling")) return 80;
+  if (raceText.includes("orc")) return 55;
+  if (raceText.includes("dracon")) return 55;
+  return 65;
+}
+
+function normalizeSearchText(text = "") {
+  return String(text || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
 }
 
 function findSubracesForRace(config, race) {

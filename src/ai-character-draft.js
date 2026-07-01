@@ -62,6 +62,12 @@ function buildPreset5e(character) {
     field("subraca", character.subraceValue, { tag: "select" }),
     field("alinhamento", character.alignmentLabel),
     field("divindade", character.divinityLabel),
+    field("idade", character.physicalDescription?.age, { inputType: "number" }),
+    field("altura", character.physicalDescription?.height),
+    field("peso", character.physicalDescription?.weight),
+    field("olhos", character.physicalDescription?.eyes),
+    field("pele", character.physicalDescription?.skin),
+    field("cabelo", character.physicalDescription?.hair),
     field("traits", character.personalityTraits, { tag: "textarea" }),
     field("ideais", character.ideals, { tag: "textarea" }),
     field("vinculos", character.bonds, { tag: "textarea" }),
@@ -76,6 +82,8 @@ function buildPreset5e(character) {
   ABILITIES.forEach((ability) => {
     fields.push(field(ability, character.abilityScores?.[ability] || 10, { inputType: "number" }));
   });
+  appendSkillChoiceFields(fields, character);
+  appendExpertiseChoiceFields(fields, character, "5e");
 
   return {
     version: 1,
@@ -108,7 +116,7 @@ function buildPreset2024(character) {
     field("alignment2024", character.alignmentId, { tag: "select" }),
     field("divindadeInput2024", character.divinityLabel),
     field("divindade2024", character.divinityId, { tag: "input", inputType: "hidden" }),
-    field("appearance2024", character.appearance, { tag: "textarea" }),
+    field("appearance2024", buildAppearanceText(character), { tag: "textarea" }),
     field("notes2024", appendAiNote([
       character.personalityTraits,
       character.ideals,
@@ -128,6 +136,8 @@ function buildPreset2024(character) {
       inputType: "number",
     }));
   });
+  appendSkillChoiceFields(fields, character);
+  appendExpertiseChoiceFields(fields, character, "5.5e-2024");
 
   return {
     version: 1,
@@ -149,12 +159,107 @@ function field(id, value, options = {}) {
     data: options.data || {},
     optionValue: "",
     value: String(value ?? ""),
-    checked: false,
+    checked: Boolean(options.checked),
     ordinal: 0,
   };
+}
+
+function appendSkillChoiceFields(fields, character) {
+  normalizeStringList(character.selectedSkillIds).forEach((skillId) => {
+    fields.push(field("", "", {
+      tag: "input",
+      inputType: "checkbox",
+      data: { "data-skill": skillId },
+      checked: true,
+    }));
+  });
+}
+
+function appendExpertiseChoiceFields(fields, character, editionKey) {
+  const slotKeys = buildExpertiseSlotKeys(character, editionKey);
+  if (!slotKeys.length) return;
+
+  const skillIds = normalizeStringList(character.expertiseSkillIds).length
+    ? normalizeStringList(character.expertiseSkillIds)
+    : normalizeStringList(character.selectedSkillIds);
+
+  skillIds.slice(0, slotKeys.length).forEach((skillId, index) => {
+    fields.push(field("", skillId, {
+      tag: "select",
+      data: { "data-expertise-slot-key": slotKeys[index] },
+    }));
+  });
+}
+
+function buildExpertiseSlotKeys(character, editionKey) {
+  const classId = String(character.classId || "").trim();
+  const subclassId = String(character.subclassId || "").trim();
+  const level = clampInt(character.level, 1, 20);
+  const sources = [];
+
+  if (editionKey === "5.5e-2024") {
+    if (classId === "bardo") {
+      if (level >= 2) sources.push({ key: "primary:expertise-2", picks: 2 });
+      if (level >= 9) sources.push({ key: "primary:expertise-9", picks: 2 });
+    }
+    if (classId === "ladino") {
+      if (level >= 1) sources.push({ key: "primary:expertise-1", picks: 2 });
+      if (level >= 6) sources.push({ key: "primary:expertise-6", picks: 2 });
+    }
+    if (classId === "guardiao") {
+      if (level >= 2) sources.push({ key: "primary:expertise-2", picks: 1 });
+      if (level >= 9) sources.push({ key: "primary:expertise-9", picks: 2 });
+    }
+  } else {
+    if (classId === "ladino") {
+      if (level >= 1) sources.push({ key: "primary:ladino:1", picks: 2 });
+      if (level >= 6) sources.push({ key: "primary:ladino:6", picks: 2 });
+    }
+    if (classId === "bardo") {
+      if (level >= 3) sources.push({ key: "primary:bardo:3", picks: 2 });
+      if (level >= 10) sources.push({ key: "primary:bardo:10", picks: 2 });
+    }
+    if (subclassId === "clerigo-conhecimento" && level >= 1) {
+      sources.push({ key: "primary:clerigo-conhecimento:1", picks: 2 });
+    }
+  }
+
+  return sources.flatMap((source) => (
+    Array.from({ length: source.picks }, (_, index) => `${source.key}:slot-${index}`)
+  ));
+}
+
+function buildAppearanceText(character) {
+  const physical = [
+    character.physicalDescription?.age ? `${character.physicalDescription.age} anos` : "",
+    character.physicalDescription?.height,
+    character.physicalDescription?.weight,
+    character.physicalDescription?.eyes ? `olhos ${character.physicalDescription.eyes}` : "",
+    character.physicalDescription?.skin ? `pele ${character.physicalDescription.skin}` : "",
+    character.physicalDescription?.hair ? `cabelo ${character.physicalDescription.hair}` : "",
+  ].filter(Boolean);
+
+  return [
+    physical.length ? `Fisico: ${physical.join(", ")}.` : "",
+    character.appearance,
+  ].filter(Boolean).join("\n\n");
 }
 
 function appendAiNote(text, character) {
   const reasoning = character.reasoning ? `\n\nSugestão da IA: ${character.reasoning}` : "";
   return `${String(text || "").trim()}${reasoning}`.trim();
+}
+
+function normalizeStringList(value) {
+  return Array.from(new Set(
+    (Array.isArray(value) ? value : [])
+      .map((item) => String(item || "").trim())
+      .filter(Boolean)
+  ));
+}
+
+function clampInt(value, min, max) {
+  const number = Number.parseInt(String(value ?? ""), 10);
+  if (!Number.isFinite(number)) return min;
+  return Math.max(min, Math.min(max, number));
 }
