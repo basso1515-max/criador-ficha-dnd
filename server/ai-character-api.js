@@ -26,8 +26,26 @@ const CHOICE_SEPARATOR_RE = /\s*(?:\/|,?\s+ou\s+|,?\s+OU\s+)\s*/;
 const CATALOG_OPTION_ALIASES = {
   "barbaro-magia-selvagem": ["magia selvagem", "wild magic", "wild magic barbarian"],
   "feiticeiro-magia-selvagem": ["magia selvagem", "feiticaria selvagem", "wild magic", "wild magic sorcerer"],
+  "elfo-silvestre": ["elfa silvestre", "elfo da floresta", "elfa da floresta", "wood elf"],
   "pequenino-lotusden": ["lotusden", "lotusden halfling"],
   "shadar-kai": ["shadar kai", "shadar-kai"],
+};
+const DIVINITY_FEATURED_LIMIT = 28;
+const DIVINITY_CLASS_DEFAULT_IDS = {
+  clerigo: ["lathander", "ilmater", "selune", "mystra", "chauntea", "eldath", "oghma", "kelemvor", "shaundakul"],
+  paladino: ["torm", "tyr", "helm", "ilmater", "bahamut", "nobanion", "tempus", "cavaleira_vermelha"],
+};
+const DIVINITY_DOMAIN_PROMPT_TERMS = {
+  conhecimento: ["conhecimento", "saber", "segredo", "profecia", "livro", "estudo", "arcano", "tradicao", "memoria"],
+  vida: ["vida", "cura", "curandeiro", "proteger", "protecao", "comunidade", "misericordia", "paz"],
+  luz: ["luz", "sol", "fogo", "chama", "aurora", "esperanca", "revelacao"],
+  natureza: ["natureza", "floresta", "bosque", "selvagem", "animal", "animais", "ermo", "ciclo"],
+  tempestade: ["tempestade", "trovao", "vento", "mar", "oceano", "navegacao", "navio", "relampago"],
+  guerra: ["guerra", "batalha", "combate", "coragem", "estrategia", "honra", "juramento", "paladino"],
+  trapaca: ["enganacao", "engano", "truque", "ladrao", "sombra", "sorte", "azar", "mudanca"],
+  magia: ["magia", "arcano", "trama", "misterio", "feitico", "ritual"],
+  protecao: ["protecao", "proteger", "guarda", "dever", "seguranca", "juramento", "inocentes"],
+  morte: ["morte", "morto", "luto", "alma", "memoria", "submundo", "necrotico"],
 };
 
 const CLASS_SKILL_PRIORITIES = {
@@ -269,7 +287,7 @@ export function buildOpenAiInput(input, config) {
               physicalConsistency: "physicalDescription.age deve bater com qualquer sinal de idade no userIdea e a appearance deve repetir essa idade de forma natural.",
             },
             contextHints,
-            availableOptions: buildCatalogPrompt(config),
+            availableOptions: buildCatalogPrompt(config, input),
           }),
         },
       ],
@@ -277,7 +295,7 @@ export function buildOpenAiInput(input, config) {
   ];
 }
 
-function buildCatalogPrompt(config) {
+function buildCatalogPrompt(config, input = {}) {
   return {
     classes: config.classes.map((item) => ({
       id: item.id,
@@ -319,12 +337,137 @@ function buildCatalogPrompt(config) {
       keywords: buildCatalogKeywords(item),
     })),
     alignments: config.alignments,
-    divinities: config.divinities.slice(0, 80).map((item) => ({ id: item.id, label: item.nome })),
+    divinities: buildDivinityCatalogPrompt(config, input),
     skills: config.skills,
     skillGuidance: {
       selectedSkillIds: "IDs das pericias escolhidas pela classe, origem, especie ou recursos opcionais. Evite duplicar pericias fixas do antecedente quando possivel.",
       expertiseSkillIds: "IDs das pericias que devem receber expertise/especializacao quando a classe ou recurso atual liberar essa escolha.",
     },
+  };
+}
+
+function buildDivinityCatalogPrompt(config, input = {}) {
+  const prompt = input?.prompt || "";
+  const analysis = analyzePromptCatalogIntent(prompt, config);
+  const ranked = rankDivinityOptions(config.divinities, {
+    prompt,
+    classId: analysis.resolved.classId,
+    explicitDivinityId: analysis.resolved.divinityId,
+  });
+
+  return {
+    instruction: "Use featured primeiro para clerigos, paladinos e historias com tema religioso. catalog e exaustivo; divinityId deve ser um id presente nele.",
+    catalogFormat: "id|nome|dominios|panteaoId",
+    catalog: config.divinities.map(formatCompactDivinity),
+    featured: ranked
+      .filter((entry, index) => entry.score > 0 || index < 8)
+      .slice(0, DIVINITY_FEATURED_LIMIT)
+      .map((entry) => formatFeaturedDivinity(entry.item, entry.reasons)),
+  };
+}
+
+function rankDivinityOptions(divinities = [], { prompt = "", classId = "", explicitDivinityId = "" } = {}) {
+  const promptText = normalizeSearchText(prompt);
+  const promptTokens = new Set(promptText.split(" ").filter((token) => token.length >= 4));
+  const defaultIds = DIVINITY_CLASS_DEFAULT_IDS[classId] || [];
+
+  return (divinities || [])
+    .map((item, index) => {
+      let score = 0;
+      const reasons = [];
+      const addReason = (reason) => {
+        if (!reason || reasons.includes(reason) || reasons.length >= 4) return;
+        reasons.push(reason);
+      };
+
+      if (item.id === explicitDivinityId) {
+        score += 500;
+        addReason("divindade citada diretamente pelo usuario");
+      }
+
+      if (defaultIds.includes(item.id)) {
+        score += 120 - (defaultIds.indexOf(item.id) * 6);
+        addReason(`boa referencia padrao para ${classId}`);
+      }
+
+      const nameMatches = buildCatalogSearchTerms(item)
+        .map((term) => normalizeSearchText(term.text))
+        .filter((term) => term.length >= 3 && containsNormalizedPhrase(promptText, term));
+      if (nameMatches.length) {
+        score += 240;
+        addReason("nome ou alias citado na historia");
+      }
+
+      for (const domain of readDivinityDomains(item)) {
+        const domainId = normalizeSearchText(domain);
+        const hintTerms = DIVINITY_DOMAIN_PROMPT_TERMS[domainId] || [];
+        if (promptText && (containsNormalizedPhrase(promptText, domainId) || hintTerms.some((term) => containsNormalizedPhrase(promptText, normalizeSearchText(term))))) {
+          score += 70;
+          addReason(`dominio ${domain}`);
+        }
+      }
+
+      const searchableTokens = new Set(normalizeSearchText([
+        item.id,
+        item.nome,
+        readDivinityDomainText(item),
+        item.alinhamento,
+        item.panteao,
+        item.panteaoId,
+        item.descricaoCurta,
+        item["símbolo"],
+      ].filter(Boolean).join(" ")).split(" ").filter((token) => token.length >= 4));
+      const overlap = Array.from(promptTokens).filter((token) => searchableTokens.has(token));
+      if (overlap.length) {
+        score += overlap.length * 22;
+        addReason(`historia combina com ${overlap.slice(0, 3).join(", ")}`);
+      }
+
+      if (classId === "clerigo" && score > 0) {
+        score += 20;
+      }
+      if (classId === "paladino") {
+        const normalizedAlignment = normalizeSearchText(item.alinhamento);
+        const normalizedDescription = normalizeSearchText(item.descricaoCurta);
+        const domains = readDivinityDomains(item).map(normalizeSearchText);
+        if (domains.some((domain) => ["guerra", "protecao", "vida"].includes(domain))) {
+          score += 28;
+          addReason("dominios combinam com juramentos e dever sagrado");
+        }
+        if (normalizedAlignment.includes("leal") || normalizedAlignment.includes("bom")) {
+          score += 18;
+          addReason("alinhamento favorece paladinos heroicos");
+        }
+        if (["paladino", "dever", "justica", "coragem", "sacrificio", "inocentes", "tiranos"].some((term) => normalizedDescription.includes(term))) {
+          score += 28;
+          addReason("descricao reforca ideal de paladino");
+        }
+      }
+
+      return { item, index, score, reasons };
+    })
+    .sort((a, b) => b.score - a.score || a.index - b.index);
+}
+
+function formatCompactDivinity(item = {}) {
+  return [
+    item.id || "",
+    item.nome || "",
+    readDivinityDomains(item).join("/") || "",
+    item.panteaoId || "",
+  ].join("|");
+}
+
+function formatFeaturedDivinity(item = {}, reasons = []) {
+  return {
+    id: item.id || "",
+    label: item.nome || "",
+    domains: readDivinityDomains(item),
+    pantheon: item.panteao || item.panteaoId || "",
+    alignment: item.alinhamento || "",
+    scope: item.recorteCanonico || item.era || "",
+    story: sanitizeText(item.descricaoCurta, 180),
+    why: reasons.join("; "),
   };
 }
 
@@ -445,7 +588,9 @@ export function normalizeRecommendation(recommendation, input, config) {
   const alignment = config.alignments.find((item) => item.id === recommendation.alignmentId)
     || config.alignments.find((item) => item.label === recommendation.alignmentId)
     || pickFirst(config.alignments);
-  const divinity = findById(config.divinities, recommendation.divinityId) || null;
+  const divinity = findById(config.divinities, promptIntent.divinityId)
+    || findById(config.divinities, recommendation.divinityId)
+    || null;
   const level = clampInt(recommendation.level, 1, 20);
   const abilityScores = normalizeAbilityScores(recommendation.abilityScores);
   const physicalDescription = normalizePhysicalDescription(recommendation.physicalDescription, { input, race });
@@ -668,6 +813,7 @@ function buildPromptContextHints(prompt = "", config) {
     ...analysis.explicit.classes.slice(0, 3).map((match) => formatCatalogHintMatch("class", match)),
     ...analysis.explicit.subclasses.slice(0, 3).map((match) => formatCatalogHintMatch("subclass", match)),
     ...analysis.explicit.backgrounds.slice(0, 3).map((match) => formatCatalogHintMatch("background", match)),
+    ...analysis.explicit.divinities.slice(0, 3).map((match) => formatCatalogHintMatch("divinity", match)),
   ];
 
   return {
@@ -690,6 +836,7 @@ function analyzePromptCatalogIntent(prompt = "", config) {
     classes: findCatalogMatches(config.classes, "class", promptText),
     subclasses: findCatalogMatches(config.subclasses, "subclass", promptText),
     backgrounds: findCatalogMatches(config.backgrounds, "background", promptText),
+    divinities: findCatalogMatches(config.divinities, "divinity", promptText),
   };
   const narrative = inferNarrativeCatalogMatches(promptText, config, explicit);
   const resolved = resolveCatalogIntentFromMatches(explicit, narrative);
@@ -740,6 +887,10 @@ function inferNarrativeCatalogMatches(promptText = "", config, explicit) {
   const mentionsPequenino = explicitRaceIds.has("pequenino")
     || containsNormalizedPhrase(promptText, "pequenino")
     || containsNormalizedPhrase(promptText, "halfling");
+  const mentionsElf = explicitRaceIds.has("elfo")
+    || containsNormalizedPhrase(promptText, "elfo")
+    || containsNormalizedPhrase(promptText, "elfa")
+    || containsNormalizedPhrase(promptText, "elf");
   const hasForestOrFeyContext = hasAnyPromptPhrase(promptText, [
     "floresta",
     "bosque",
@@ -765,6 +916,19 @@ function inferNarrativeCatalogMatches(promptText = "", config, explicit) {
         id: lotusden.id,
         label: lotusden.nome,
         reason: "Pequenino ligado a floresta, natureza ou seres feericos combina com Lotusden.",
+      });
+    }
+  }
+  if (!hasExplicitSubrace && mentionsElf && hasForestOrFeyContext) {
+    const woodElf = findById(config.subraces, "elfo-silvestre")
+      || findById(config.subraces, "elfo-da-floresta");
+    if (woodElf) {
+      suggestions.push({
+        kind: "subrace",
+        item: woodElf,
+        id: woodElf.id,
+        label: woodElf.nome,
+        reason: "Elfo ligado a floresta, natureza ou seres feericos combina com linhagem silvestre.",
       });
     }
   }
@@ -836,6 +1000,7 @@ function resolveCatalogIntentFromMatches(explicit, narrative) {
     classId,
     subclassId: subclass?.id || "",
     backgroundId: pickBestCatalogMatch(explicit.backgrounds)?.id || "",
+    divinityId: pickBestCatalogMatch(explicit.divinities)?.id || "",
   };
 }
 
@@ -871,12 +1036,14 @@ function buildResolvedPriorityHint(resolved, config) {
   const cls = findById(config.classes, resolved.classId);
   const subclass = findById(config.subclasses, resolved.subclassId);
   const background = findById(config.backgrounds, resolved.backgroundId);
+  const divinity = findById(config.divinities, resolved.divinityId);
 
   if (race) entries.push(formatCatalogHintMatch("race", { item: race }));
   if (subrace) entries.push(formatCatalogHintMatch("subrace", { item: subrace }));
   if (cls) entries.push(formatCatalogHintMatch("class", { item: cls }));
   if (subclass) entries.push(formatCatalogHintMatch("subclass", { item: subclass }));
   if (background) entries.push(formatCatalogHintMatch("background", { item: background }));
+  if (divinity) entries.push(formatCatalogHintMatch("divinity", { item: divinity }));
   return entries;
 }
 
@@ -976,6 +1143,17 @@ function readSubraceParentId(subrace) {
     || subrace?.parent
     || subrace?.raceId
     || "";
+}
+
+function readDivinityDomainText(divinity = {}) {
+  return divinity["domínio"] || divinity.dominio || divinity.dominios || "";
+}
+
+function readDivinityDomains(divinity = {}) {
+  return String(readDivinityDomainText(divinity))
+    .split(",")
+    .map((domain) => domain.trim())
+    .filter(Boolean);
 }
 
 function readOptionValue(config, option) {

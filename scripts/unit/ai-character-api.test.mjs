@@ -161,6 +161,83 @@ describe("AI character API normalization", () => {
     assert.match(promptText, /raceId\\":\\"pequenino/);
   });
 
+  it("keeps the full compact 5e divinity catalog and features Shaundakul for travel clerics", () => {
+    const input = buildOpenAiInput({
+      edition: "5e",
+      prompt: "Um clérigo das viagens e estradas de Faerûn que guia caravanas por caminhos esquecidos.",
+      tone: "aventura de fronteira",
+      complexity: "equilibrada",
+    }, EDITION_CONFIGS["5e"]);
+    const divinities = readAvailableDivinities(input);
+
+    assert.equal(divinities.catalog.length, EDITION_CONFIGS["5e"].divinities.length);
+    assert.ok(divinities.catalog.some((entry) => entry.startsWith("shaundakul|Shaundakul|")));
+    assert.ok(readFeaturedDivinityIds(divinities).includes("shaundakul"));
+  });
+
+  it("keeps the expanded 5e catalog useful for paladin stories beyond the old 80 item slice", () => {
+    const input = buildOpenAiInput({
+      edition: "5e",
+      prompt: "Um paladino leal bom inspirado pelo rei leão, protetor dos fracos contra tiranos.",
+      tone: "juramento heroico",
+      complexity: "otimizada",
+    }, EDITION_CONFIGS["5e"]);
+    const divinities = readAvailableDivinities(input);
+
+    assert.equal(divinities.catalog.length, EDITION_CONFIGS["5e"].divinities.length);
+    assert.ok(divinities.catalog.some((entry) => entry.startsWith("nobanion|Nobanion|")));
+    assert.ok(readFeaturedDivinityIds(divinities).includes("nobanion"));
+  });
+
+  it("features the 2024 Forgotten Realms divinity cut for clerics", () => {
+    const input = buildOpenAiInput({
+      edition: "5.5e-2024",
+      prompt: "Um clérigo viajante que guia caravanas e explora caminhos esquecidos de Faerûn.",
+      tone: "fantasia heroica",
+      complexity: "equilibrada",
+    }, EDITION_CONFIGS["5.5e-2024"]);
+    const divinities = readAvailableDivinities(input);
+
+    assert.equal(divinities.catalog.length, EDITION_CONFIGS["5.5e-2024"].divinities.length);
+    assert.ok(divinities.catalog.some((entry) => entry.startsWith("shaundakul|Shaundakul|")));
+    assert.ok(readFeaturedDivinityIds(divinities).includes("shaundakul"));
+  });
+
+  it("features 2024 paladin-friendly deities without losing the compact catalog", () => {
+    const input = buildOpenAiInput({
+      edition: "5.5e-2024",
+      prompt: "Um paladino da justiça, dever e sacrifício que protege inocentes.",
+      tone: "juramento solene",
+      complexity: "otimizada",
+    }, EDITION_CONFIGS["5.5e-2024"]);
+    const divinities = readAvailableDivinities(input);
+    const featuredIds = readFeaturedDivinityIds(divinities);
+
+    assert.equal(divinities.catalog.length, EDITION_CONFIGS["5.5e-2024"].divinities.length);
+    assert.ok(featuredIds.includes("torm"));
+    assert.ok(featuredIds.includes("tyr"));
+  });
+
+  it("preserves an explicitly requested expanded divinity during normalization", () => {
+    const character = normalizeRecommendation(
+      {
+        ...baseRecommendation,
+        classId: "clerigo",
+        divinityId: "torm",
+      },
+      {
+        edition: "5e",
+        prompt: "Um clérigo de Shaundakul que guarda estradas esquecidas.",
+        tone: "viagem sagrada",
+        complexity: "equilibrada",
+      },
+      EDITION_CONFIGS["5e"]
+    );
+
+    assert.equal(character.divinityId, "shaundakul");
+    assert.equal(character.divinityLabel, "Shaundakul");
+  });
+
   it("reports AI character availability without requiring a live OpenAI call", () => {
     const missingKey = getAiCharacterAvailability({
       OPENAI_API_KEY: "",
@@ -194,3 +271,11 @@ describe("AI character API normalization", () => {
     assert.equal(model.reason, "openai_model_unavailable");
   });
 });
+
+function readAvailableDivinities(input) {
+  return JSON.parse(input[1].content[0].text).availableOptions.divinities;
+}
+
+function readFeaturedDivinityIds(divinities) {
+  return divinities.featured.map((item) => item.id);
+}
