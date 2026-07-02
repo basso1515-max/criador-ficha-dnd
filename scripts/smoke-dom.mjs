@@ -109,11 +109,29 @@ const AI_SMOKE_CHARACTER_2024 = {
 function buildAiAvailableInitScript(character, expectedRequest = {}) {
   const payload = JSON.stringify({ edition: "smoke", character });
   const requestContract = JSON.stringify(expectedRequest);
+  const accountPayload = JSON.stringify({
+    account: {
+      id: "account_ai_smoke",
+      displayName: "Smoke IA",
+      email: "smoke-ai@example.com",
+      role: "user",
+      characterLimitPerEdition: 10,
+      characterLimitsByEdition: { "5e": 10, "5.5e-2024": 10 },
+      passwordSet: true,
+      emailVerified: true,
+      emailVerifiedAt: "2026-01-01T00:00:00.000Z",
+      authProviders: [],
+      createdAt: "2026-01-01T00:00:00.000Z",
+      characters: { "5e": [], "5.5e-2024": [] },
+      deletedCharacters: { "5e": [], "5.5e-2024": [] },
+    },
+  });
   return `
     (() => {
       const originalFetch = window.fetch.bind(window);
       const payload = ${payload};
       const expectedRequest = ${requestContract};
+      const accountPayload = ${accountPayload};
       const assertRequestContract = (body) => {
         if (expectedRequest.edition && body.edition !== expectedRequest.edition) {
           throw new Error("Assistente enviou edicao inesperada: " + body.edition);
@@ -128,6 +146,12 @@ function buildAiAvailableInitScript(character, expectedRequest = {}) {
       window.fetch = (input, init = {}) => {
         const requestUrl = new URL(typeof input === "string" ? input : input?.url || "", window.location.href);
         const method = String(init?.method || input?.method || "GET").toUpperCase();
+        if (requestUrl.pathname === "/api/account/current") {
+          return Promise.resolve(new Response(JSON.stringify(accountPayload), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          }));
+        }
         if (requestUrl.pathname === "/api/ai-character") {
           if (method === "GET") {
             return Promise.resolve(new Response(JSON.stringify({
@@ -135,6 +159,7 @@ function buildAiAvailableInitScript(character, expectedRequest = {}) {
               reason: "",
               message: "Assistente de IA disponivel.",
               checks: { openaiApiKey: true, model: true },
+              quota: { limit: 5, used: 0, remaining: 5, windowHours: 5, windowSeconds: 18000 },
             }), {
               status: 200,
               headers: { "Content-Type": "application/json" },
@@ -149,7 +174,10 @@ function buildAiAvailableInitScript(character, expectedRequest = {}) {
             }
             assertRequestContract(requestBody);
             window.__DND_AI_SMOKE_LAST_REQUEST__ = requestBody;
-            return Promise.resolve(new Response(JSON.stringify(payload), {
+            return Promise.resolve(new Response(JSON.stringify({
+              ...payload,
+              quota: { limit: 5, used: 1, remaining: 4, windowHours: 5, windowSeconds: 18000 },
+            }), {
               status: 200,
               headers: { "Content-Type": "application/json" },
             }));
@@ -166,6 +194,28 @@ const AI_UNAVAILABLE_INIT_SCRIPT = `
     const originalFetch = window.fetch.bind(window);
     window.fetch = (input, init = {}) => {
       const requestUrl = new URL(typeof input === "string" ? input : input?.url || "", window.location.href);
+      if (requestUrl.pathname === "/api/account/current") {
+        return Promise.resolve(new Response(JSON.stringify({
+          account: {
+            id: "account_ai_unavailable",
+            displayName: "Smoke IA",
+            email: "smoke-ai@example.com",
+            role: "user",
+            characterLimitPerEdition: 10,
+            characterLimitsByEdition: { "5e": 10, "5.5e-2024": 10 },
+            passwordSet: true,
+            emailVerified: true,
+            emailVerifiedAt: "2026-01-01T00:00:00.000Z",
+            authProviders: [],
+            createdAt: "2026-01-01T00:00:00.000Z",
+            characters: { "5e": [], "5.5e-2024": [] },
+            deletedCharacters: { "5e": [], "5.5e-2024": [] },
+          },
+        }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }));
+      }
       if (requestUrl.pathname === "/api/ai-character") {
         return Promise.resolve(new Response(JSON.stringify({
           available: false,
@@ -174,6 +224,33 @@ const AI_UNAVAILABLE_INIT_SCRIPT = `
           checks: { openaiApiKey: false, model: true },
         }), {
           status: 503,
+          headers: { "Content-Type": "application/json" },
+        }));
+      }
+      return originalFetch(input, init);
+    };
+  })();
+`;
+
+const AI_LOGIN_REQUIRED_INIT_SCRIPT = `
+  (() => {
+    const originalFetch = window.fetch.bind(window);
+    window.fetch = (input, init = {}) => {
+      const requestUrl = new URL(typeof input === "string" ? input : input?.url || "", window.location.href);
+      if (requestUrl.pathname === "/api/account/current") {
+        return Promise.resolve(new Response(JSON.stringify({ account: null }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }));
+      }
+      if (requestUrl.pathname === "/api/ai-character") {
+        return Promise.resolve(new Response(JSON.stringify({
+          available: false,
+          reason: "login_required",
+          message: "Entre em uma conta para usar a IA.",
+          checks: { authenticated: false },
+        }), {
+          status: 401,
           headers: { "Content-Type": "application/json" },
         }));
       }
@@ -346,6 +423,40 @@ const smokePages = [
     setup: buildAiChoiceNavigationSetup("./assistente-ia.html?edition=5.5e-2024"),
     followUrlExpression: "window.__DND_AI_SMOKE_NEXT_URL__",
     afterSetupSelectors: ["#aiCharacterForm", "#aiCharacterPrompt", "#aiCharacterSubmit"],
+  },
+  {
+    name: "ai-assistant-login-required",
+    path: "/assistente-ia.html?edition=5e",
+    selectors: ["#aiCharacterForm", "#aiCharacterPrompt", "#aiCharacterSubmit", "#aiPromptInsight", "#aiCharacterStatus", "[data-ai-login-link]"],
+    initScript: AI_LOGIN_REQUIRED_INIT_SCRIPT,
+    setup: `
+      (async () => {
+        const assert = (condition, message) => {
+          if (!condition) throw new Error(message);
+        };
+        const waitForCondition = async (predicate, message, timeoutMs = 8000) => {
+          const start = Date.now();
+          while (Date.now() - start < timeoutMs) {
+            if (predicate()) return;
+            await new Promise((resolve) => setTimeout(resolve, 40));
+          }
+          throw new Error(message);
+        };
+        await waitForCondition(() => {
+          const submit = document.querySelector("#aiCharacterSubmit");
+          const status = document.querySelector("#aiCharacterStatus");
+          const loginLink = document.querySelector("[data-ai-login-link]");
+          return submit?.disabled
+            && submit.textContent.includes("Entrar para usar IA")
+            && !status?.hidden
+            && status.textContent.includes("Entre em uma conta")
+            && loginLink
+            && !loginLink.hidden
+            && loginLink.getAttribute("href").includes("conta.html");
+        }, "Assistente nao bloqueou IA para usuario anonimo com CTA de login.");
+        assert(document.body.classList.contains("ai-login-required"), "Classe de estado login_required ausente.");
+      })();
+    `,
   },
   {
     name: "ai-assistant-unavailable",

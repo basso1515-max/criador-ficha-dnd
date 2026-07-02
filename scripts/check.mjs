@@ -301,6 +301,8 @@ function validateAiCharacterRolloutGuardrails() {
     ["src/ai-character-draft.js", draftSource, "PENDING_EDITOR_DRAFT_KEY"],
     ["src/ai-character-flow.js", flowSource, "checkAiAvailability"],
     ["src/ai-character-flow.js", flowSource, "bindPromptInsight"],
+    ["src/ai-character-flow.js", flowSource, "login_required"],
+    ["src/ai-character-flow.js", flowSource, "ai_generation_limit_reached"],
     ["src/ai-character-flow.js", flowSource, "data-ai-open-editor"],
     ["src/ai-character-flow.js", flowSource, "/api/ai-character"],
     ["src/ai-character-flow.js", flowSource, "PENDING_EDITOR_DRAFT_KEY"],
@@ -308,13 +310,17 @@ function validateAiCharacterRolloutGuardrails() {
     ["server/ai-character-api.js", apiSource, "missing_openai_api_key"],
     ["server/ai-character-api.js", apiSource, "openai_model_unavailable"],
     ["server/ai-character-api.js", apiSource, "openai_quota_unavailable"],
+    ["server/ai-character-api.js", apiSource, "login_required"],
+    ["server/ai-character-api.js", apiSource, "ai_generation_limit_reached"],
+    ["server/ai-character-api.js", apiSource, "AI_CHARACTER_GENERATION_LIMIT"],
+    ["server/ai-character-api.js", apiSource, "AI_CHARACTER_GENERATION_WINDOW_HOURS"],
   ].forEach(([file, source, marker]) => {
     if (!source.includes(marker)) {
       errors.push(`${file}: guardrail do assistente de IA sem marcador ${marker}.`);
     }
   });
 
-  ["OPENAI_API_KEY", "OPENAI_CHARACTER_MODEL", "/api/ai-character"].forEach((marker) => {
+  ["OPENAI_API_KEY", "OPENAI_CHARACTER_MODEL", "AI_CHARACTER_GENERATION_LIMIT", "AI_CHARACTER_GENERATION_WINDOW_HOURS", "/api/ai-character"].forEach((marker) => {
     if (!readme.includes(marker)) {
       errors.push(`README.md: documentacao do assistente de IA sem ${marker}.`);
     }

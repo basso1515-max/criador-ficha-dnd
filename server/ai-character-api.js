@@ -35,6 +35,11 @@ import {
   SPELLCASTING_RULES as SPELLCASTING_RULES_5E,
   SUBCLASS_SPELLCASTING_RULES as SUBCLASS_SPELLCASTING_RULES_5E,
 } from "../src/editors/5e/rules-config.js";
+import {
+  findAuthenticatedAccountForRequest,
+  getAccountApiStore,
+  requireAuthenticatedAccountForRequest,
+} from "./account-api.js";
 import { loadLocalEnvOnce } from "./env-loader.js";
 
 const OPENAI_RESPONSES_URL = "https://api.openai.com/v1/responses";
@@ -50,6 +55,14 @@ const CATALOG_PROMPT_LIMITS = {
   equipmentOptions: 42,
 };
 const AI_UNAVAILABLE_MESSAGE = "Assistente de IA temporariamente indisponivel. Crie manualmente enquanto a configuracao da OpenAI e revisada.";
+const AI_LOGIN_REQUIRED_MESSAGE = "Entre em uma conta para usar a IA.";
+const DEFAULT_AI_GENERATION_LIMIT = 5;
+const DEFAULT_AI_GENERATION_WINDOW_HOURS = 5;
+const MIN_AI_GENERATION_LIMIT = 1;
+const MAX_AI_GENERATION_LIMIT = 100;
+const MIN_AI_GENERATION_WINDOW_HOURS = 1;
+const MAX_AI_GENERATION_WINDOW_HOURS = 168;
+const STORE_PREFIX = "dnd-sheet";
 const OLD_AGE_RE = /\b(velh[ao]s?|idos[ao]s?|anci(?:a|ã)[os]?|ancia|anciã|veteran[ao]s?)\b/i;
 const EXPLICIT_AGE_RE = /\b(?:idade\s*(?:de)?\s*)?(\d{1,4})\s*(?:anos?|anos?\s+de\s+idade|de\s+idade)\b/i;
 const CHOICE_SEPARATOR_RE = /\s*(?:\/|,?\s+ou\s+|,?\s+OU\s+)\s*/;
@@ -211,10 +224,11 @@ const EDITION_CONFIGS = {
 export { EDITION_CONFIGS };
 
 class HttpError extends Error {
-  constructor(statusCode, message, reason = "") {
+  constructor(statusCode, message, reason = "", details = {}) {
     super(message);
     this.statusCode = statusCode;
     this.reason = reason;
+    this.details = details;
   }
 }
 
@@ -228,8 +242,28 @@ export default async function handleAiCharacterApi(req, res) {
 
     if (req.method === "GET") {
       loadLocalEnvOnce(process.cwd());
+      const auth = await findAuthenticatedAccountForRequest(req);
+      if (!auth) {
+        sendJson(res, 401, buildLoginRequiredAvailability());
+        return;
+      }
+
       const availability = getAiCharacterAvailability();
-      sendJson(res, availability.available ? 200 : 503, availability);
+      if (!availability.available) {
+        sendJson(res, 503, availability);
+        return;
+      }
+
+      const quota = await getAiGenerationQuota(auth.account.id);
+      if (quota.remaining < 1) {
+        sendJson(res, 429, buildLimitReachedAvailability(quota));
+        return;
+      }
+
+      sendJson(res, 200, {
+        ...availability,
+        quota,
+      });
       return;
     }
 
@@ -239,25 +273,32 @@ export default async function handleAiCharacterApi(req, res) {
 
     assertSameOrigin(req);
     loadLocalEnvOnce(process.cwd());
+    const { account } = await requireAiAuthenticatedAccount(req);
 
     const availability = getAiCharacterAvailability();
     if (!availability.available) {
       throw new HttpError(503, availability.message, availability.reason);
     }
 
+    await assertCanGenerateWithAi(account.id);
+
     const input = validateRequestBody(await readJsonBody(req));
     const config = EDITION_CONFIGS[input.edition];
     const recommendation = await generateCharacterRecommendation(input, config);
+    const quota = await recordSuccessfulAiGeneration(account.id);
 
     sendJson(res, 200, {
       edition: input.edition,
       character: normalizeRecommendation(recommendation, input, config),
+      quota,
     });
   } catch (error) {
-    const statusCode = error instanceof HttpError ? error.statusCode : 500;
+    const isHttpError = error instanceof HttpError || Number(error?.statusCode || 0) > 0;
+    const statusCode = isHttpError ? Number(error?.statusCode) : 500;
     sendJson(res, statusCode, {
       message: error?.message || "Erro interno do servidor.",
-      reason: error instanceof HttpError ? error.reason || undefined : undefined,
+      reason: isHttpError ? error.reason || undefined : undefined,
+      ...(error?.details && typeof error.details === "object" ? error.details : {}),
     });
   }
 }
@@ -299,6 +340,113 @@ export function getAiCharacterAvailability(env = process.env) {
       model: true,
     },
   };
+}
+
+function buildLoginRequiredAvailability() {
+  return {
+    available: false,
+    reason: "login_required",
+    message: AI_LOGIN_REQUIRED_MESSAGE,
+    checks: {
+      authenticated: false,
+    },
+  };
+}
+
+function buildLimitReachedAvailability(quota) {
+  return {
+    available: false,
+    reason: "ai_generation_limit_reached",
+    message: buildAiGenerationLimitMessage(quota),
+    quota,
+  };
+}
+
+async function requireAiAuthenticatedAccount(req) {
+  try {
+    return await requireAuthenticatedAccountForRequest(req);
+  } catch (error) {
+    if (Number(error?.statusCode || 0) === 401) {
+      throw new HttpError(401, AI_LOGIN_REQUIRED_MESSAGE, "login_required");
+    }
+    throw error;
+  }
+}
+
+async function assertCanGenerateWithAi(accountId, env = process.env) {
+  const quota = await getAiGenerationQuota(accountId, env);
+  if (quota.remaining > 0) return quota;
+
+  throw new HttpError(
+    429,
+    buildAiGenerationLimitMessage(quota),
+    "ai_generation_limit_reached",
+    { quota }
+  );
+}
+
+async function getAiGenerationQuota(accountId, env = process.env) {
+  const store = getAccountApiStore();
+  const limit = readAiGenerationLimit(env);
+  const windowHours = readAiGenerationWindowHours(env);
+  const windowSeconds = windowHours * 60 * 60;
+  const used = Math.max(0, Math.trunc(Number(await store.get(keyAiGenerationCount(accountId)) || 0)));
+  const resetAtMs = Number(await store.get(keyAiGenerationReset(accountId)) || 0);
+  const now = Date.now();
+  const resetAfterSeconds = resetAtMs > now ? Math.max(1, Math.ceil((resetAtMs - now) / 1000)) : 0;
+
+  return {
+    limit,
+    used,
+    remaining: Math.max(0, limit - used),
+    windowHours,
+    windowSeconds,
+    resetAfterSeconds,
+    resetAt: resetAfterSeconds ? new Date(resetAtMs).toISOString() : "",
+  };
+}
+
+async function recordSuccessfulAiGeneration(accountId, env = process.env) {
+  const store = getAccountApiStore();
+  const windowHours = readAiGenerationWindowHours(env);
+  const windowSeconds = windowHours * 60 * 60;
+  const used = Math.max(0, Math.trunc(Number(await store.incr(keyAiGenerationCount(accountId)) || 0)));
+
+  if (used === 1) {
+    const resetAtMs = Date.now() + windowSeconds * 1000;
+    await store.expire(keyAiGenerationCount(accountId), windowSeconds);
+    await store.set(keyAiGenerationReset(accountId), resetAtMs, { ex: windowSeconds });
+  }
+
+  return await getAiGenerationQuota(accountId, env);
+}
+
+function keyAiGenerationCount(accountId) {
+  return `${STORE_PREFIX}:ai-character-generations:${accountId}`;
+}
+
+function keyAiGenerationReset(accountId) {
+  return `${STORE_PREFIX}:ai-character-generations-reset:${accountId}`;
+}
+
+function readAiGenerationLimit(env = process.env) {
+  const configured = Number(env.AI_CHARACTER_GENERATION_LIMIT);
+  const value = Number.isFinite(configured) ? configured : DEFAULT_AI_GENERATION_LIMIT;
+  return Math.max(MIN_AI_GENERATION_LIMIT, Math.min(MAX_AI_GENERATION_LIMIT, Math.trunc(value)));
+}
+
+function readAiGenerationWindowHours(env = process.env) {
+  const configured = Number(env.AI_CHARACTER_GENERATION_WINDOW_HOURS);
+  const value = Number.isFinite(configured) ? configured : DEFAULT_AI_GENERATION_WINDOW_HOURS;
+  return Math.max(MIN_AI_GENERATION_WINDOW_HOURS, Math.min(MAX_AI_GENERATION_WINDOW_HOURS, Math.trunc(value)));
+}
+
+function buildAiGenerationLimitMessage(quota) {
+  const limit = Math.max(1, Number(quota?.limit || DEFAULT_AI_GENERATION_LIMIT));
+  const windowHours = Math.max(1, Number(quota?.windowHours || DEFAULT_AI_GENERATION_WINDOW_HOURS));
+  const generationLabel = limit === 1 ? "geracao" : "geracoes";
+  const hourLabel = windowHours === 1 ? "hora" : "horas";
+  return `Limite de ${limit} ${generationLabel} por IA atingido. Tente novamente em ate ${windowHours} ${hourLabel}.`;
 }
 
 function validateRequestBody(body) {

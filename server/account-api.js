@@ -1706,6 +1706,18 @@ async function requireAuthenticatedAccount(redis, req) {
   return auth;
 }
 
+export function getAccountApiStore() {
+  return getRedis();
+}
+
+export async function findAuthenticatedAccountForRequest(req) {
+  return await findAuthenticatedAccount(getRedis(), req);
+}
+
+export async function requireAuthenticatedAccountForRequest(req) {
+  return await requireAuthenticatedAccount(getRedis(), req);
+}
+
 async function clearCurrentSession(redis, req, res) {
   const token = getSessionToken(req);
   if (token) {

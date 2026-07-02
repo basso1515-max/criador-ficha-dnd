@@ -1,6 +1,11 @@
 import assert from "node:assert/strict";
+import { mkdtempSync, rmSync } from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import { Readable } from "node:stream";
 import { describe, it } from "node:test";
-import {
+import { configureAccountApiStore, handleAccountApi } from "../../server/account-api.js";
+import handleAiCharacterApi, {
   EDITION_CONFIGS,
   buildCharacterJsonSchema,
   buildOpenAiInput,
@@ -8,6 +13,7 @@ import {
   getOpenAiErrorInfo,
   normalizeRecommendation,
 } from "../../server/ai-character-api.js";
+import { createLocalJsonAccountStore } from "../../server/local-json-account-store.js";
 
 const baseRecommendation = {
   name: "Dona Mira",
@@ -390,6 +396,70 @@ describe("AI character API normalization", () => {
     assert.equal(ready.checks.model, true);
   });
 
+  it("requires login and limits successful AI generations per account window", async (t) => {
+    const restore = setupAiApiIntegrationTest(t);
+    let openAiCalls = 0;
+    globalThis.fetch = async () => {
+      openAiCalls += 1;
+      return new Response(JSON.stringify({
+        output_text: JSON.stringify(baseRecommendation),
+      }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    };
+
+    const anonymous = await callAiApi({ method: "GET" });
+    assert.equal(anonymous.statusCode, 401);
+    assert.equal(anonymous.body.reason, "login_required");
+
+    const register = await callAccountApi({
+      method: "POST",
+      pathname: "/api/accounts/register",
+      body: {
+        displayName: "Teste IA",
+        email: "ai-limit@example.com",
+        password: "C0dexSheetfy!2026",
+      },
+    });
+    assert.equal(register.statusCode, 201);
+    const cookie = readCookieHeader(register);
+    assert.ok(cookie.includes("dnd_sheet_session="));
+
+    const available = await callAiApi({ method: "GET", headers: { cookie } });
+    assert.equal(available.statusCode, 200);
+    assert.equal(available.body.quota.limit, 2);
+    assert.equal(available.body.quota.remaining, 2);
+
+    const first = await callAiApi({
+      method: "POST",
+      headers: { cookie },
+      body: buildAiRequestBody(),
+    });
+    assert.equal(first.statusCode, 200);
+    assert.equal(first.body.quota.remaining, 1);
+
+    const second = await callAiApi({
+      method: "POST",
+      headers: { cookie },
+      body: buildAiRequestBody("Uma maga humana velha que investiga ruinas soterradas e protege aprendizes perdidos."),
+    });
+    assert.equal(second.statusCode, 200);
+    assert.equal(second.body.quota.remaining, 0);
+
+    const limited = await callAiApi({
+      method: "POST",
+      headers: { cookie },
+      body: buildAiRequestBody("Um clerigo viajante que guia caravanas por estradas tomadas por neblina arcana."),
+    });
+    assert.equal(limited.statusCode, 429);
+    assert.equal(limited.body.reason, "ai_generation_limit_reached");
+    assert.equal(limited.body.quota.remaining, 0);
+    assert.equal(openAiCalls, 2);
+
+    restore();
+  });
+
   it("maps OpenAI readiness failures to clear service-unavailable reasons", () => {
     const quota = getOpenAiErrorInfo({
       error: { message: "You exceeded your current quota." },
@@ -411,4 +481,118 @@ function readAvailableDivinities(input) {
 
 function readFeaturedDivinityIds(divinities) {
   return divinities.featured.map((item) => item.id);
+}
+
+function setupAiApiIntegrationTest(t) {
+  const originalFetch = globalThis.fetch;
+  const originalEnv = {
+    OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+    OPENAI_CHARACTER_MODEL: process.env.OPENAI_CHARACTER_MODEL,
+    AI_CHARACTER_GENERATION_LIMIT: process.env.AI_CHARACTER_GENERATION_LIMIT,
+    AI_CHARACTER_GENERATION_WINDOW_HOURS: process.env.AI_CHARACTER_GENERATION_WINDOW_HOURS,
+    ACCOUNT_EMAIL_DEBUG_RESPONSE: process.env.ACCOUNT_EMAIL_DEBUG_RESPONSE,
+  };
+  const tempDir = mkdtempSync(path.join(os.tmpdir(), "sheetfy-ai-test-"));
+  const accountsFile = path.join(tempDir, "accounts.json");
+
+  configureAccountApiStore(createLocalJsonAccountStore({ accountsFile }));
+  process.env.OPENAI_API_KEY = "sk-test";
+  process.env.OPENAI_CHARACTER_MODEL = "gpt-test";
+  process.env.AI_CHARACTER_GENERATION_LIMIT = "2";
+  process.env.AI_CHARACTER_GENERATION_WINDOW_HOURS = "5";
+  process.env.ACCOUNT_EMAIL_DEBUG_RESPONSE = "";
+
+  let restored = false;
+  const restore = () => {
+    if (restored) return;
+    restored = true;
+    globalThis.fetch = originalFetch;
+    restoreEnv(originalEnv);
+    configureAccountApiStore(null);
+    rmSync(tempDir, { recursive: true, force: true });
+  };
+  t.after(restore);
+  return restore;
+}
+
+function restoreEnv(values) {
+  Object.entries(values).forEach(([key, value]) => {
+    if (value === undefined) {
+      delete process.env[key];
+    } else {
+      process.env[key] = value;
+    }
+  });
+}
+
+function buildAiRequestBody(prompt = "Uma ladina humana velha que liderou pequenos golpes durante muitas decadas.") {
+  return {
+    edition: "5e",
+    prompt,
+    tone: "aventura urbana",
+    complexity: "equilibrada",
+  };
+}
+
+async function callAccountApi({ method = "GET", pathname, body = undefined, headers = {} }) {
+  const req = makeMockRequest({ method, pathname, body, headers });
+  const res = makeMockResponse();
+  await handleAccountApi(req, res, pathname);
+  return readMockResponse(res);
+}
+
+async function callAiApi({ method = "GET", body = undefined, headers = {} } = {}) {
+  const req = makeMockRequest({ method, pathname: "/api/ai-character", body, headers });
+  const res = makeMockResponse();
+  await handleAiCharacterApi(req, res);
+  return readMockResponse(res);
+}
+
+function makeMockRequest({ method = "GET", pathname = "/", body = undefined, headers = {} }) {
+  const payload = body === undefined ? [] : [JSON.stringify(body)];
+  const req = Readable.from(payload);
+  req.method = method;
+  req.url = pathname;
+  req.headers = {
+    host: "localhost:8000",
+    origin: "http://localhost:8000",
+    "content-type": "application/json",
+    "x-forwarded-for": "127.0.0.1",
+    ...headers,
+  };
+  req.socket = { remoteAddress: "127.0.0.1", encrypted: false };
+  return req;
+}
+
+function makeMockResponse() {
+  const headers = new Map();
+  return {
+    statusCode: 200,
+    body: "",
+    setHeader(name, value) {
+      headers.set(String(name).toLowerCase(), value);
+    },
+    getHeader(name) {
+      return headers.get(String(name).toLowerCase());
+    },
+    end(chunk = "") {
+      this.body += chunk ? String(chunk) : "";
+    },
+  };
+}
+
+function readMockResponse(res) {
+  return {
+    statusCode: res.statusCode,
+    body: res.body ? JSON.parse(res.body) : {},
+    getHeader: (name) => res.getHeader(name),
+  };
+}
+
+function readCookieHeader(response) {
+  const value = response.getHeader("Set-Cookie");
+  return (Array.isArray(value) ? value : [value])
+    .filter(Boolean)
+    .map((cookie) => String(cookie).split(";")[0])
+    .join("; ");
 }

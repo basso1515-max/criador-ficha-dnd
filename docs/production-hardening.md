@@ -18,13 +18,14 @@ Este projeto pode rodar localmente sem muita cerimônia, mas publicação públi
 - Configure `RESEND_API_KEY`, `ACCOUNT_EMAIL_FROM` e `ACCOUNT_PUBLIC_BASE_URL=https://sheetfy.vercel.app` para recuperação de senha, validação de e-mail e callbacks OAuth em produção.
 - Configure `OPENAI_API_KEY` para liberar o assistente `/api/ai-character`.
 - Defina `OPENAI_CHARACTER_MODEL` quando quiser fixar o modelo do assistente; se ausente, a API usa `OPENAI_MODEL` ou o padrão interno.
+- Ajuste `AI_CHARACTER_GENERATION_LIMIT` e `AI_CHARACTER_GENERATION_WINDOW_HOURS` se o padrão de 5 gerações bem-sucedidas a cada 5 horas por conta ficar apertado ou folgado demais.
 - Nunca habilite `ACCOUNT_EMAIL_DEBUG_RESPONSE` em produção.
 - Não publique `.env.local`, dumps de Redis, `server-data/`, logs ou arquivos gerados em `out/`.
 - Rode `npm audit --omit=dev` antes do deploy.
 - Rode `npm test` antes de promover uma versão. Ele cobre validação estrutural, smoke DOM, conta/API e exportação PDF 5e/2024.
 - Se precisar isolar falhas, rode `npm run check`, `npm run smoke:dom`, `npm run test:e2e`, `npm run test:pdf:5e` e `npm run test:pdf:2024`.
 - Garanta que Chrome ou Edge esteja disponível para os testes headless; se necessário, defina `CHROME_PATH`.
-- Confira `GET /api/ai-character` em produção. Ele deve retornar `available: true`; sem chave/modelo/quota pronta, a UI deve manter criação manual disponível e bloquear apenas o botão de IA.
+- Confira `GET /api/ai-character` em produção com uma conta logada. Ele deve retornar `available: true` e quota restante; sem login, ou sem chave/modelo/quota pronta, a UI deve manter criação manual disponível e bloquear apenas o botão de IA.
 
 ## Segredos
 
@@ -70,7 +71,7 @@ Este projeto pode rodar localmente sem muita cerimônia, mas publicação públi
 - Ative logs da Vercel para erros de API.
 - Acompanhe falhas de cadastro/login/salvamento depois de cada deploy.
 - Confira `/api/community-stats` depois de publicar, pois ele depende do mesmo Redis persistente usado pelas contas.
-- Confira `/api/ai-character` depois de publicar. Erros de autenticação, modelo ou quota da OpenAI devem aparecer como indisponibilidade controlada, não como botão quebrado.
+- Confira `/api/ai-character` depois de publicar. Falta de login (`login_required`), limite por conta (`ai_generation_limit_reached`) e erros de autenticação, modelo ou quota da OpenAI devem aparecer como indisponibilidade controlada, não como botão quebrado.
 - Se o app receber usuários externos, considere alertas simples para erro 5xx e limite de Redis.
 
 ## Promoção De Deploy
@@ -83,6 +84,6 @@ Este projeto pode rodar localmente sem muita cerimônia, mas publicação públi
 - O arquivo `.vercel/project.json` fica versionado de propósito para travar a metadata local no projeto canônico.
 - Rode `npm run deploy:guardrails` antes de mudanças de deploy; o mesmo guardrail roda em `npm test` no CI.
 - Valide a produção com criação de conta, salvamento de personagem, geração de PDF e estatísticas públicas.
-- Valide o fluxo `criacao.html` -> `assistente-ia.html` -> editor nas duas edições. Quando `OPENAI_API_KEY`, modelo ou quota não estiverem prontos, confirme que a criação manual continua acessível.
+- Valide o fluxo `criacao.html` -> `assistente-ia.html` -> editor nas duas edições com conta logada e sem login. Quando `OPENAI_API_KEY`, modelo, quota da OpenAI ou limite por conta não estiverem prontos, confirme que a criação manual continua acessível.
 - A checagem de que nenhum outro projeto Vercel está conectado ao mesmo repositório/branch depende do painel ou da API da Vercel; confirme isso fora do código antes de mexer em integrações.
 - Em caso de regressão em produção, use `vercel rollback` e investigue a falha antes de novo deploy.

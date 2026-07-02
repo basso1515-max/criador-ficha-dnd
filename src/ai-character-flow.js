@@ -1,5 +1,6 @@
 // @ts-check
 
+import { getCurrentUser, hydrateAccountStorage } from "./account-storage.js";
 import { PENDING_EDITOR_DRAFT_KEY, buildAiCharacterDraft, buildSummary } from "./ai-character-draft.js";
 
 const EDITIONS = {
@@ -27,6 +28,7 @@ const EDITIONS = {
 
 const EXAMPLE_COUNT = 4;
 const AI_UNAVAILABLE_MESSAGE = "Assistente de IA temporariamente indisponivel. Crie manualmente enquanto a configuracao da OpenAI e revisada.";
+const AI_LOGIN_REQUIRED_MESSAGE = "Entre em uma conta para usar a IA.";
 const PROMPT_EXAMPLES = {
   "5e": {
     concepts: [
@@ -134,6 +136,7 @@ let aiAvailability = {
   available: true,
   reason: "",
   message: "Assistente de IA disponivel.",
+  quota: null,
 };
 
 applyEditionChrome();
@@ -170,6 +173,10 @@ function applyEditionChrome() {
   });
   document.querySelectorAll("[data-choice-link]").forEach((link) => {
     link.setAttribute("href", edition.choiceUrl);
+  });
+  document.querySelectorAll("[data-ai-login-link]").forEach((link) => {
+    const returnTo = `assistente-ia.html?edition=${encodeURIComponent(editionKey)}`;
+    link.setAttribute("href", `./conta.html?returnTo=${encodeURIComponent(returnTo)}`);
   });
 
   const titleSuffix = ` | ${edition.label}`;
@@ -213,13 +220,14 @@ function bindAssistantForm(availabilityReady) {
       const character = result.character;
       savePendingDraft(editionKey, character);
       renderPreview(preview, character, edition.editorUrl);
-      setStatus(status, "Rascunho pronto. Revise a proposta e abra no editor quando quiser.", "success");
+      setStatus(status, `Rascunho pronto. Revise a proposta e abra no editor quando quiser.${formatQuotaStatus(result.quota)}`, "success");
     } catch (error) {
       if (isAiAvailabilityError(error)) {
         aiAvailability = {
           available: false,
           reason: String(error.reason || ""),
           message: getErrorMessage(error),
+          quota: error.quota || null,
         };
         applyAiAvailabilityState(aiAvailability);
       }
@@ -228,7 +236,11 @@ function bindAssistantForm(availabilityReady) {
       if (aiAvailability.available) {
         setLoading(submitButton, false);
       } else {
-        setSubmitAvailability(submitButton, { available: false, pending: false });
+        setSubmitAvailability(submitButton, {
+          available: false,
+          pending: false,
+          reason: aiAvailability.reason,
+        });
       }
     }
   });
@@ -243,7 +255,17 @@ function bindAiAvailability() {
 
   applyAiAvailabilityState({ ...aiAvailability, pending: true });
 
-  return checkAiAvailability()
+  return hydrateAccountStorage()
+    .then(() => {
+      if (!getCurrentUser()) {
+        return normalizeAvailability({
+          available: false,
+          reason: "login_required",
+          message: AI_LOGIN_REQUIRED_MESSAGE,
+        });
+      }
+      return checkAiAvailability();
+    })
     .then((availability) => {
       aiAvailability = availability;
       applyAiAvailabilityState(aiAvailability);
@@ -288,6 +310,7 @@ function normalizeAvailability(data) {
     available,
     reason: String(data?.reason || ""),
     message: String(data?.message || (available ? "Assistente de IA disponivel." : AI_UNAVAILABLE_MESSAGE)),
+    quota: data?.quota && typeof data.quota === "object" ? data.quota : null,
   };
 }
 
@@ -295,9 +318,12 @@ function applyAiAvailabilityState(availability) {
   const pending = Boolean(availability.pending);
   const available = Boolean(availability.available) && !pending;
   const unavailableMessage = availability.message || AI_UNAVAILABLE_MESSAGE;
+  const reason = String(availability.reason || "");
 
   document.body?.classList.toggle("ai-is-unavailable", !available && !pending);
   document.body?.classList.toggle("ai-is-checking", pending);
+  document.body?.classList.toggle("ai-login-required", reason === "login_required" && !pending);
+  document.body?.classList.toggle("ai-limit-reached", reason === "ai_generation_limit_reached" && !pending);
 
   document.querySelectorAll("[data-ai-availability-status]").forEach((element) => {
     if (pending && page !== "assistant") {
@@ -317,9 +343,13 @@ function applyAiAvailabilityState(availability) {
     setAiLinkAvailability(/** @type {HTMLAnchorElement} */ (link), available);
   });
 
+  document.querySelectorAll("[data-ai-login-link]").forEach((link) => {
+    link.hidden = reason !== "login_required" || pending;
+  });
+
   setSubmitAvailability(
     /** @type {HTMLButtonElement | null} */ (document.getElementById("aiCharacterSubmit")),
-    { available, pending }
+    { available, pending, reason }
   );
 }
 
@@ -342,10 +372,26 @@ function setAiLinkAvailability(link, available) {
   link.setAttribute("tabindex", "-1");
 }
 
-function setSubmitAvailability(button, { available, pending }) {
+function setSubmitAvailability(button, { available, pending, reason = "" }) {
   if (!button) return;
   button.disabled = !available || pending;
-  button.textContent = pending ? "Verificando IA..." : available ? "Conjurar ficha por IA" : "IA indisponivel";
+  if (pending) {
+    button.textContent = "Verificando IA...";
+    return;
+  }
+  if (available) {
+    button.textContent = "Conjurar ficha por IA";
+    return;
+  }
+  if (reason === "login_required") {
+    button.textContent = "Entrar para usar IA";
+    return;
+  }
+  if (reason === "ai_generation_limit_reached") {
+    button.textContent = "Limite de IA atingido";
+    return;
+  }
+  button.textContent = "IA indisponivel";
 }
 
 async function requestCharacter(payload) {
@@ -363,6 +409,7 @@ async function requestCharacter(payload) {
     const error = new Error(data?.message || "Não foi possível gerar a ficha agora.");
     error.reason = data?.reason || "";
     error.statusCode = response.status;
+    error.quota = data?.quota || null;
     throw error;
   }
   return data;
@@ -639,9 +686,20 @@ function getErrorMessage(error) {
   return error instanceof Error ? error.message : "Não foi possível gerar a ficha agora.";
 }
 
+function formatQuotaStatus(quota) {
+  if (!quota || typeof quota !== "object") return "";
+  const remaining = Number(quota.remaining);
+  if (!Number.isFinite(remaining)) return "";
+  const value = Math.max(0, Math.trunc(remaining));
+  const label = value === 1 ? "geracao" : "geracoes";
+  return ` Restam ${value} ${label} nesta janela.`;
+}
+
 function isAiAvailabilityError(error) {
   const statusCode = Number(error?.statusCode || 0);
   const reason = String(error?.reason || "");
+  if (statusCode === 401 && reason === "login_required") return true;
+  if (statusCode === 429 && reason === "ai_generation_limit_reached") return true;
   return statusCode === 503 && (
     reason.includes("openai_")
     || reason === "missing_openai_api_key"
