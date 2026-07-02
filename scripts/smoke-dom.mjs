@@ -230,24 +230,18 @@ function buildAiAssistantFlowSetup({ edition, expectedName, expectedReturnTo, pr
       sessionStorage.removeItem(pendingKey);
       localStorage.removeItem(pendingKey);
 
-      let redirectCallback = null;
-      const nativeSetTimeout = window.setTimeout.bind(window);
-      window.setTimeout = (callback, delay = 0, ...args) => {
-        if (Number(delay) === 700 && typeof callback === "function") {
-          redirectCallback = () => callback(...args);
-          return 1;
-        }
-        return nativeSetTimeout(callback, delay, ...args);
-      };
-
       await waitForCondition(() => !document.querySelector("#aiCharacterSubmit")?.disabled, "Botao de IA nao ficou disponivel.");
-      document.querySelector("#aiCharacterPrompt").value = ${JSON.stringify(promptText)};
+      const prompt = document.querySelector("#aiCharacterPrompt");
+      prompt.value = ${JSON.stringify(promptText)};
+      prompt.dispatchEvent(new Event("input", { bubbles: true }));
+      assert(document.querySelector("#aiPromptInsight")?.textContent.includes("Pedido"), "Leitura do pedido ausente no assistente.");
       document.querySelector("#aiCharacterForm").requestSubmit();
 
       await waitForCondition(() => {
         const preview = document.querySelector("#aiCharacterPreview");
-        return preview && !preview.hidden && preview.textContent.includes(${JSON.stringify(expectedName)});
-      }, "Preview basico do assistente nao mostrou o personagem gerado.");
+        const openEditor = preview?.querySelector("[data-ai-open-editor]");
+        return preview && !preview.hidden && preview.textContent.includes(${JSON.stringify(expectedName)}) && openEditor?.getAttribute("href");
+      }, "Revisao do assistente nao mostrou o personagem gerado com acao de editor.");
 
       const lastRequest = window.__DND_AI_SMOKE_LAST_REQUEST__;
       assert(lastRequest?.edition === ${JSON.stringify(edition)}, "Assistente enviou edicao incorreta para a API.");
@@ -259,8 +253,7 @@ function buildAiAssistantFlowSetup({ edition, expectedName, expectedReturnTo, pr
       assert(draft.returnTo === ${JSON.stringify(expectedReturnTo)}, "Destino incorreto no rascunho pendente: " + draft.returnTo);
       assert(draft.payload?.name === ${JSON.stringify(expectedName)}, "Nome incorreto no rascunho pendente.");
       assert(draft.payload?.snapshot?.fields?.length > 0, "Snapshot do rascunho pendente esta vazio.");
-      assert(redirectCallback, "Assistente nao agendou redirecionamento ao editor.");
-      window.__DND_AI_SMOKE_NEXT_URL__ = new URL(${JSON.stringify(expectedReturnTo)}, location.href).href;
+      window.__DND_AI_SMOKE_NEXT_URL__ = document.querySelector("[data-ai-open-editor]").href;
     })();
   `;
 }
@@ -357,7 +350,7 @@ const smokePages = [
   {
     name: "ai-assistant-unavailable",
     path: "/assistente-ia.html?edition=5e",
-    selectors: ["#aiCharacterForm", "#aiCharacterPrompt", "#aiCharacterSubmit", "#aiCharacterStatus"],
+    selectors: ["#aiCharacterForm", "#aiCharacterPrompt", "#aiCharacterSubmit", "#aiPromptInsight", "#aiCharacterStatus"],
     initScript: AI_UNAVAILABLE_INIT_SCRIPT,
     setup: `
       (async () => {
@@ -387,7 +380,7 @@ const smokePages = [
   {
     name: "ai-assistant-5e-draft-to-editor",
     path: "/assistente-ia.html?edition=5e",
-    selectors: ["#aiCharacterForm", "#aiCharacterPrompt", "#aiCharacterSubmit", "#aiCharacterPreview"],
+    selectors: ["#aiCharacterForm", "#aiCharacterPrompt", "#aiCharacterSubmit", "#aiPromptInsight", "#aiCharacterPreview"],
     initScript: buildAiAvailableInitScript(AI_SMOKE_CHARACTER_5E),
     setup: buildAiAssistantFlowSetup({
       edition: "5e",
@@ -408,7 +401,7 @@ const smokePages = [
   {
     name: "ai-assistant-2024-draft-to-editor",
     path: "/assistente-ia.html?edition=5.5e-2024",
-    selectors: ["#aiCharacterForm", "#aiCharacterPrompt", "#aiCharacterSubmit", "#aiCharacterPreview"],
+    selectors: ["#aiCharacterForm", "#aiCharacterPrompt", "#aiCharacterSubmit", "#aiPromptInsight", "#aiCharacterPreview"],
     initScript: buildAiAvailableInitScript(AI_SMOKE_CHARACTER_2024, {
       edition: "5.5e-2024",
       prompt: AI_SMOKE_2024_PROMPT,

@@ -77,6 +77,44 @@ const DIVINITY_DOMAIN_PROMPT_TERMS = {
   protecao: ["protecao", "proteger", "guarda", "dever", "seguranca", "juramento", "inocentes"],
   morte: ["morte", "morto", "luto", "alma", "memoria", "submundo", "necrotico"],
 };
+const PROMPT_SIGNAL_GROUPS = [
+  {
+    id: "combate",
+    label: "combate",
+    terms: ["combate", "batalha", "duelo", "guerra", "soldado", "mercenario", "arma", "escudo", "arena", "monstro", "cacador"],
+    guidance: "priorize atributos, pericias, talentos, equipamento e magias que sustentem desempenho em combate.",
+  },
+  {
+    id: "furtividade",
+    label: "furtividade",
+    terms: ["furtivo", "furtiva", "sombra", "ladrao", "roubo", "assassino", "espiao", "infiltr", "golpe", "arromb"],
+    guidance: "valorize Destreza, pericias discretas, ferramentas e escolhas que ajudem infiltracao.",
+  },
+  {
+    id: "magia",
+    label: "magia",
+    terms: ["magia", "magico", "magica", "feitico", "ritual", "arcano", "patrono", "pacto", "bruxa", "bruxo", "maldicao", "sobrenatural"],
+    guidance: "escolha uma fonte de magia clara e magias que expressem o conceito narrativo.",
+  },
+  {
+    id: "social",
+    label: "social",
+    terms: ["nobre", "corte", "diplom", "mentira", "convencer", "negoci", "perform", "plateia", "carisma", "politic"],
+    guidance: "inclua pericias sociais e tracos de personalidade uteis em interacao.",
+  },
+  {
+    id: "exploracao",
+    label: "exploracao",
+    terms: ["floresta", "trilha", "mapa", "viagem", "estrada", "caravana", "ruina", "explor", "fronteira", "ermo", "selva", "montanha"],
+    guidance: "favoreca sobrevivencia, percepcao, mobilidade e equipamento de viagem.",
+  },
+  {
+    id: "sagrado",
+    label: "sagrado",
+    terms: ["templo", "deus", "deusa", "divindade", "fe", "milagre", "sagrado", "juramento", "paladino", "clerigo", "ordem"],
+    guidance: "resolva divindade, alinhamento e motivacao espiritual de forma coerente.",
+  },
+];
 
 const CLASS_SKILL_PRIORITIES = {
   artifice: ["arcanismo", "investigacao", "percepcao", "historia", "natureza", "medicina"],
@@ -325,6 +363,7 @@ function readConfiguredOpenAiModel(env = process.env) {
 
 export function buildOpenAiInput(input, config) {
   const contextHints = buildPromptContextHints(input.prompt, config);
+  const generationBrief = buildGenerationBrief(input, config, contextHints);
 
   return [
     {
@@ -345,6 +384,7 @@ export function buildOpenAiInput(input, config) {
             "Quando a classe, subclasse, origem ou talento permitir magia, selecione spellIds com IDs presentes no catalogo e dentro dos limites indicados; prefira magias que combinem com a historia do usuario.",
             "Quando houver pacotes oficiais de equipamento, preencha equipmentPackageHints com uma opcao disponivel; complemente equipmentNotes com itens tematicos, sem substituir escolhas oficiais.",
             "A preferencia muda o criterio, nao a completude: simples prioriza coerencia narrativa e escolhas faceis de jogar; equilibrada mistura historia com escolhas mecanicamente uteis; otimizada prioriza sinergia mecanica, atributos fortes e poderio, sem contradizer restricoes centrais do usuario.",
+            "Use generationBrief para decidir a ordem das escolhas e para escrever uma justificativa curta no campo reasoning. O campo reasoning deve explicar a proposta final, nao revelar cadeia de pensamento.",
             "Nao deixe decisoes internas para o usuario em campos narrativos. Nao escreva alternativas com 'ou', barras, parenteses opcionais ou listas do tipo cabelo castanho OU ruivo OU loiro; escolha uma unica opcao concreta.",
             "Escreva todos os textos em portugues do Brasil.",
             "Nao inclua conteudo sexual explicito, odio, crueldade grafica ou referencias a personagens protegidos por direitos autorais.",
@@ -369,6 +409,7 @@ export function buildOpenAiInput(input, config) {
               catalogIntegrity: "featIds, spellIds e equipmentPackageHints devem usar apenas IDs enviados em availableOptions.",
             },
             contextHints,
+            generationBrief,
             availableOptions: buildCatalogPrompt(config, input),
           }),
         },
@@ -813,14 +854,16 @@ export function normalizeRecommendation(recommendation, input, config) {
   const subrace = findById(validSubraces, promptIntent.subraceId)
     || findById(validSubraces, recommendation.subraceId)
     || null;
-  const background = findById(config.backgrounds, recommendation.backgroundId) || pickFirst(config.backgrounds);
+  const background = findById(config.backgrounds, promptIntent.backgroundId)
+    || findById(config.backgrounds, recommendation.backgroundId)
+    || pickFirst(config.backgrounds);
   const alignment = config.alignments.find((item) => item.id === recommendation.alignmentId)
     || config.alignments.find((item) => item.label === recommendation.alignmentId)
     || pickFirst(config.alignments);
   const divinity = findById(config.divinities, promptIntent.divinityId)
     || findById(config.divinities, recommendation.divinityId)
     || null;
-  const level = clampInt(recommendation.level, 1, 20);
+  const level = extractRequestedLevel(input?.prompt) || clampInt(recommendation.level, 1, 20);
   const abilityScores = normalizeAbilityScores(recommendation.abilityScores);
   const physicalDescription = normalizePhysicalDescription(recommendation.physicalDescription, { input, race });
   const selectedSkillIds = normalizeSelectedSkillIds(recommendation.selectedSkillIds, { config, cls, background, abilityScores, input });
@@ -1495,6 +1538,60 @@ function removeInternalChoiceAlternatives(text = "") {
     .replace(/\b(castanh[oa]s?|ruiv[oa]s?|loir[oa]s?|pret[oa]s?|branc[oa]s?|gris[ao]lh[oa]s?|azuis?|verdes?|acinzentad[oa]s?|dourad[oa]s?)\s+ou\s+(?:castanh[oa]s?|ruiv[oa]s?|loir[oa]s?|pret[oa]s?|branc[oa]s?|gris[ao]lh[oa]s?|azuis?|verdes?|acinzentad[oa]s?|dourad[oa]s?)/gi, "$1")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+function buildGenerationBrief(input = {}, config, contextHints = {}) {
+  const prompt = input?.prompt || "";
+  const signals = collectPromptSignals(prompt);
+  const requestedLevel = extractRequestedLevel(prompt);
+  const explicitAge = extractExplicitAge(prompt);
+  const hasOldAgeSignal = OLD_AGE_RE.test(String(prompt || ""));
+  const hasExactCatalogMatches = Array.isArray(contextHints?.exactCatalogMatches) && contextHints.exactCatalogMatches.length > 0;
+  const hasNarrativeSuggestions = Array.isArray(contextHints?.narrativeSuggestions) && contextHints.narrativeSuggestions.length > 0;
+
+  return {
+    instruction: "Monte uma ficha inicial pronta para revisao no editor, resolvendo catalogo, mecanica e narrativa nesta ordem.",
+    decisionPriority: [
+      "1. Respeite restricoes explicitas do usuario e exactCatalogMatches.",
+      "2. Use resolvedPriority e narrativeSuggestions apenas para completar lacunas ou desempatar.",
+      "3. Ajuste atributos, pericias, talentos, magias e equipamentos ao foco detectado.",
+      "4. Mantenha textos finais, concretos e jogaveis.",
+    ],
+    requestedLevel: requestedLevel || "",
+    ageSignal: explicitAge || (hasOldAgeSignal ? "personagem idoso/veterano" : ""),
+    tone: sanitizeText(input?.tone, 80) || "aventura heroica",
+    optimizationPreference: input?.complexity || "equilibrada",
+    promptSignals: signals.map((signal) => ({
+      id: signal.id,
+      label: signal.label,
+      guidance: signal.guidance,
+    })),
+    catalogConfidence: {
+      hasExactCatalogMatches,
+      hasNarrativeSuggestions,
+      edition: config?.label || "",
+    },
+    reasoningStyle: "No campo reasoning, explique em 1 ou 2 frases por que a classe, especie/raca e escolhas centrais combinam com a ideia. Nao inclua cadeia de pensamento.",
+  };
+}
+
+function collectPromptSignals(prompt = "") {
+  const promptText = normalizeSearchText(prompt);
+  if (!promptText) return [];
+
+  return PROMPT_SIGNAL_GROUPS
+    .map((group, index) => {
+      const matchedTerms = group.terms.filter((term) => {
+        const normalizedTerm = normalizeSearchText(term);
+        return normalizedTerm.length >= 5
+          ? promptText.includes(normalizedTerm)
+          : containsNormalizedPhrase(promptText, normalizedTerm);
+      });
+      return matchedTerms.length ? { ...group, index, matchedTerms } : null;
+    })
+    .filter(Boolean)
+    .sort((a, b) => b.matchedTerms.length - a.matchedTerms.length || a.index - b.index)
+    .slice(0, 4);
 }
 
 function extractExplicitAge(prompt = "") {

@@ -45,7 +45,7 @@ Já possui criação guiada, espécies, antecedentes, classes, talentos, magias,
 
 - `index.html`: tela inicial e escolha da edição.
 - `criacao.html`: escolha entre criação manual e rascunho por IA para a edição selecionada.
-- `assistente-ia.html`: assistente que transforma uma ideia em rascunho temporário e redireciona ao editor.
+- `assistente-ia.html`: assistente que transforma uma ideia em rascunho temporário, mostra uma revisão da proposta e abre o editor quando o usuário confirma.
 - `5e.html`: editor de D&D 5e com exportação para PDF.
 - `5.5e-2024.html`: editor de D&D 5.5e / 2024.
 - `conta.html`: entrada e criação de conta.
@@ -120,7 +120,7 @@ As entradas CSS são separadas por superfície para manter o carregamento inicia
 
 ## Assistente De IA
 
-O fluxo público de criação passa por `criacao.html`, opcionalmente por `assistente-ia.html`, e termina no editor da edição escolhida. O assistente grava um rascunho temporário em `PENDING_EDITOR_DRAFT_KEY` (`dnd_sheet_pending_editor_draft_v1`) e o editor restaura esse snapshot antes de limpar a chave.
+O fluxo público de criação passa por `criacao.html`, opcionalmente por `assistente-ia.html`, e termina no editor da edição escolhida. O assistente mostra uma leitura do pedido, grava um rascunho temporário em `PENDING_EDITOR_DRAFT_KEY` (`dnd_sheet_pending_editor_draft_v1`) e deixa o usuário abrir o editor depois de revisar a proposta. O editor restaura esse snapshot antes de limpar a chave.
 
 A rota `/api/ai-character` expõe `GET` para disponibilidade e `POST` para geração. Sem `OPENAI_API_KEY`, ou quando a OpenAI responde com erro de modelo/quota/autenticação, a API retorna indisponibilidade controlada e a UI desabilita o botão de IA com fallback manual.
 

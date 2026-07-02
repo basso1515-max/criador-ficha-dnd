@@ -113,6 +113,19 @@ const PROMPT_EXAMPLES = {
     ],
   },
 };
+const PROMPT_SIGNAL_GROUPS = [
+  { id: "combate", label: "Combate", terms: ["combate", "batalha", "duelo", "guerra", "soldado", "mercenario", "arma", "escudo", "arena", "cacador"] },
+  { id: "furtividade", label: "Furtividade", terms: ["furtivo", "furtiva", "sombra", "ladrao", "roubo", "assassino", "espiao", "infiltr", "golpe", "arromb"] },
+  { id: "magia", label: "Magia", terms: ["magia", "magico", "magica", "feitico", "ritual", "arcano", "patrono", "pacto", "bruxa", "bruxo", "sobrenatural"] },
+  { id: "social", label: "Social", terms: ["nobre", "corte", "diplom", "mentira", "convencer", "negoci", "perform", "plateia", "carisma", "politic"] },
+  { id: "exploracao", label: "Exploração", terms: ["floresta", "trilha", "mapa", "viagem", "estrada", "caravana", "ruina", "explor", "fronteira", "ermo"] },
+  { id: "sagrado", label: "Sagrado", terms: ["templo", "deus", "deusa", "divindade", "fe", "milagre", "sagrado", "juramento", "paladino", "clerigo"] },
+];
+const COMPLEXITY_LABELS = {
+  simples: "Simples para jogar",
+  equilibrada: "Equilibrada",
+  otimizada: "Mais otimizada",
+};
 
 const page = document.body?.dataset.aiFlowPage || "";
 const editionKey = readEditionKey();
@@ -173,8 +186,10 @@ function bindAssistantForm(availabilityReady) {
   const submitButton = /** @type {HTMLButtonElement | null} */ (document.getElementById("aiCharacterSubmit"));
   const status = document.getElementById("aiCharacterStatus");
   const preview = document.getElementById("aiCharacterPreview");
+  const insight = document.getElementById("aiPromptInsight");
 
   bindPromptExamples(prompt, status);
+  bindPromptInsight(prompt, tone, complexity, insight);
 
   form?.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -197,11 +212,8 @@ function bindAssistantForm(availabilityReady) {
       });
       const character = result.character;
       savePendingDraft(editionKey, character);
-      renderPreview(preview, character);
-      setStatus(status, "Ficha inicial criada. Abrindo o editor para revisão...", "success");
-      window.setTimeout(() => {
-        window.location.href = edition.editorUrl;
-      }, 700);
+      renderPreview(preview, character, edition.editorUrl);
+      setStatus(status, "Rascunho pronto. Revise a proposta e abra no editor quando quiser.", "success");
     } catch (error) {
       if (isAiAvailabilityError(error)) {
         aiAvailability = {
@@ -367,13 +379,174 @@ function savePendingDraft(editionKey, character) {
   ));
 }
 
-function renderPreview(preview, character) {
+function renderPreview(preview, character, editorUrl) {
   if (!preview) return;
   preview.hidden = false;
-  preview.innerHTML = `
-    <strong>${escapeHtml(character.name || "Personagem sem nome")}</strong>
-    <span>${escapeHtml(buildSummary(character))}</span>
-  `;
+  preview.replaceChildren();
+
+  const header = document.createElement("div");
+  header.className = "ai-result-header";
+
+  const titleGroup = document.createElement("div");
+  titleGroup.className = "ai-result-title";
+  const title = document.createElement("strong");
+  title.textContent = character.name || "Personagem sem nome";
+  const summary = document.createElement("span");
+  summary.textContent = buildSummary(character);
+  titleGroup.append(title, summary);
+
+  const actionLink = document.createElement("a");
+  actionLink.href = editorUrl;
+  actionLink.className = "primary ai-open-editor-button";
+  actionLink.setAttribute("data-ai-open-editor", "true");
+  actionLink.textContent = "Abrir no editor";
+  header.append(titleGroup, actionLink);
+
+  const details = document.createElement("dl");
+  details.className = "ai-result-details";
+  [
+    ["Atributos", formatAbilityLine(character.abilityScores)],
+    ["Talentos", formatList(character.featLabels)],
+    ["Magias", formatList(character.spellLabels)],
+    ["Equipamento", character.equipmentNotes],
+  ]
+    .filter(([, value]) => Boolean(value))
+    .slice(0, 4)
+    .forEach(([label, value]) => {
+      const term = document.createElement("dt");
+      term.textContent = label;
+      const description = document.createElement("dd");
+      description.textContent = String(value);
+      details.append(term, description);
+    });
+
+  const reasoning = document.createElement("p");
+  reasoning.className = "ai-result-reasoning";
+  reasoning.textContent = character.reasoning || "A proposta foi salva como rascunho para revisão no editor.";
+
+  const reviseButton = document.createElement("button");
+  reviseButton.type = "button";
+  reviseButton.className = "secondary-button ai-adjust-prompt-button";
+  reviseButton.textContent = "Ajustar pedido";
+  reviseButton.addEventListener("click", () => {
+    const prompt = /** @type {HTMLTextAreaElement | null} */ (document.getElementById("aiCharacterPrompt"));
+    prompt?.focus();
+    prompt?.scrollIntoView({ behavior: "smooth", block: "center" });
+  });
+
+  const actions = document.createElement("div");
+  actions.className = "ai-result-actions";
+  actions.append(reviseButton);
+
+  preview.append(header, details, reasoning, actions);
+}
+
+function bindPromptInsight(prompt, tone, complexity, panel) {
+  if (!prompt || !panel) return;
+
+  const update = () => {
+    renderPromptInsight(panel, {
+      prompt: prompt.value,
+      tone: tone?.value || "",
+      complexity: complexity?.value || "equilibrada",
+    });
+  };
+
+  prompt.addEventListener("input", update);
+  tone?.addEventListener("input", update);
+  complexity?.addEventListener("change", update);
+  update();
+}
+
+function renderPromptInsight(panel, { prompt, tone, complexity }) {
+  const title = panel.querySelector("[data-ai-insight-title]");
+  const grid = panel.querySelector("[data-ai-insight-grid]");
+  if (!grid) return;
+
+  const promptLength = String(prompt || "").trim().length;
+  const level = extractPromptLevel(prompt);
+  const signals = collectPromptSignals(prompt);
+  const toneLabel = String(tone || "").trim() || "aventura heroica";
+  const focus = signals.length ? signals.map((signal) => signal.label).join(", ") : "História primeiro";
+  const items = [
+    ["Edição", edition.label],
+    ["Nível", level ? `Nível ${level}` : "Livre"],
+    ["Foco", focus],
+    ["Tom", toneLabel],
+    ["Critério", COMPLEXITY_LABELS[complexity] || COMPLEXITY_LABELS.equilibrada],
+  ];
+
+  if (title) {
+    title.textContent = promptLength >= 80
+      ? "Pedido rico"
+      : promptLength >= 20
+        ? "Pedido suficiente"
+        : "Ideia em formação";
+  }
+
+  grid.replaceChildren(...items.map(([label, value]) => {
+    const item = document.createElement("span");
+    item.className = "ai-insight-pill";
+
+    const labelElement = document.createElement("small");
+    labelElement.textContent = label;
+    const valueElement = document.createElement("strong");
+    valueElement.textContent = value;
+    item.append(labelElement, valueElement);
+    return item;
+  }));
+}
+
+function collectPromptSignals(prompt = "") {
+  const text = normalizePromptText(prompt);
+  if (!text) return [];
+
+  return PROMPT_SIGNAL_GROUPS
+    .map((group, index) => {
+      const hits = group.terms.filter((term) => {
+        const normalizedTerm = normalizePromptText(term);
+        return normalizedTerm.length >= 5
+          ? text.includes(normalizedTerm)
+          : ` ${text} `.includes(` ${normalizedTerm} `);
+      });
+      return hits.length ? { ...group, hits, index } : null;
+    })
+    .filter(Boolean)
+    .sort((a, b) => b.hits.length - a.hits.length || a.index - b.index)
+    .slice(0, 3);
+}
+
+function extractPromptLevel(prompt = "") {
+  const text = normalizePromptText(prompt);
+  const patterns = [
+    /\b(?:nivel|level|lvl)\s*(?:de\s*)?([1-9]|1[0-9]|20)\b/,
+    /\b([1-9]|1[0-9]|20)\s*(?:o|º)?\s*(?:nivel|level)\b/,
+  ];
+  for (const pattern of patterns) {
+    const match = text.match(pattern);
+    if (match) return match[1];
+  }
+  return "";
+}
+
+function normalizePromptText(value = "") {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+function formatAbilityLine(scores = {}) {
+  const labels = { for: "FOR", des: "DES", con: "CON", int: "INT", sab: "SAB", car: "CAR" };
+  return ["for", "des", "con", "int", "sab", "car"]
+    .map((key) => `${labels[key]} ${Number(scores?.[key] || 10)}`)
+    .join(", ");
+}
+
+function formatList(value = []) {
+  return Array.isArray(value) && value.length ? value.slice(0, 6).join(", ") : "";
 }
 
 function setStatus(element, message, tone = "info") {
@@ -475,13 +648,4 @@ function isAiAvailabilityError(error) {
     || reason === "missing_openai_model"
     || reason === "ai_status_unavailable"
   );
-}
-
-function escapeHtml(value) {
-  return String(value ?? "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
 }

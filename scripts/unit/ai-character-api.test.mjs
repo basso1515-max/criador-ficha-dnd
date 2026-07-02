@@ -231,6 +231,8 @@ describe("AI character API normalization", () => {
     assert.match(promptText, /Nao deixe decisoes internas/);
     assert.match(promptText, /physicalDescription/);
     assert.match(promptText, /contextHints/);
+    assert.match(promptText, /generationBrief/);
+    assert.match(promptText, /reasoningStyle/);
     assert.match(promptText, /featIds/);
     assert.match(promptText, /spellIds/);
     assert.match(promptText, /equipmentPackageHints/);
@@ -240,6 +242,27 @@ describe("AI character API normalization", () => {
     assert.ok(schema.required.includes("featIds"));
     assert.ok(schema.required.includes("spellIds"));
     assert.ok(schema.required.includes("equipmentPackageHints"));
+  });
+
+  it("preserves explicit level and background from the prompt during normalization", () => {
+    const character = normalizeRecommendation(
+      {
+        ...baseRecommendation,
+        backgroundId: "criminoso",
+        level: 1,
+      },
+      {
+        edition: "5e",
+        prompt: "Mago humano nivel 4 com antecedente Sábio, estudioso de ruínas antigas.",
+        tone: "fantasia academica",
+        complexity: "equilibrada",
+      },
+      EDITION_CONFIGS["5e"]
+    );
+
+    assert.equal(character.level, 4);
+    assert.equal(character.backgroundId, "sabio");
+    assert.equal(character.backgroundLabel, "Sábio");
   });
 
   it("sends contextual catalog hints to the model before generation", () => {
