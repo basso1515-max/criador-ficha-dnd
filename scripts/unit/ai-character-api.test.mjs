@@ -105,6 +105,28 @@ describe("AI character API normalization", () => {
     assert.equal(character.subraceLabel, "Shadar-kai");
   });
 
+  it("preserves an explicitly requested 2024 subrace and its parent species", () => {
+    const character = normalizeRecommendation(
+      {
+        ...baseRecommendation,
+        raceId: "humano",
+        subraceId: "",
+      },
+      {
+        edition: "5.5e-2024",
+        prompt: "Quero uma elfa silvestre criada entre patrulhas antigas da floresta.",
+        tone: "fantasia de floresta",
+        complexity: "equilibrada",
+      },
+      EDITION_CONFIGS["5.5e-2024"]
+    );
+
+    assert.equal(character.raceId, "elfo");
+    assert.equal(character.raceLabel, "Elfo");
+    assert.equal(character.subraceId, "elfo-silvestre");
+    assert.equal(character.subraceLabel, "Elfo Silvestre");
+  });
+
   it("uses strong forest-fey context to prefer Lotusden and Wild Magic Sorcerer", () => {
     const character = normalizeRecommendation(
       {
@@ -125,6 +147,30 @@ describe("AI character API normalization", () => {
 
     assert.equal(character.raceId, "pequenino");
     assert.equal(character.subraceId, "pequenino-lotusden");
+    assert.equal(character.classId, "feiticeiro");
+    assert.equal(character.subclassId, "feiticeiro-magia-selvagem");
+  });
+
+  it("uses strong 2024 forest-fey context to prefer Wood Elf and Wild Magic Sorcerer", () => {
+    const character = normalizeRecommendation(
+      {
+        ...baseRecommendation,
+        classId: "druida",
+        subclassId: "druida-terra",
+        raceId: "humano",
+        subraceId: "",
+      },
+      {
+        edition: "5.5e-2024",
+        prompt: "Um elfo criado entre trilhas antigas da floresta, com magia latente despertada pela convivencia com fadas e outros seres magicos.",
+        tone: "conto feerico",
+        complexity: "equilibrada",
+      },
+      EDITION_CONFIGS["5.5e-2024"]
+    );
+
+    assert.equal(character.raceId, "elfo");
+    assert.equal(character.subraceId, "elfo-silvestre");
     assert.equal(character.classId, "feiticeiro");
     assert.equal(character.subclassId, "feiticeiro-magia-selvagem");
   });
@@ -159,6 +205,21 @@ describe("AI character API normalization", () => {
     assert.match(promptText, /pequenino-lotusden/);
     assert.match(promptText, /feiticeiro-magia-selvagem/);
     assert.match(promptText, /raceId\\":\\"pequenino/);
+  });
+
+  it("sends 2024 contextual catalog hints to the model before generation", () => {
+    const input = buildOpenAiInput({
+      edition: "5.5e-2024",
+      prompt: "Um elfo com magia despertada por fadas da floresta.",
+      tone: "conto feerico",
+      complexity: "simples",
+    }, EDITION_CONFIGS["5.5e-2024"]);
+    const promptText = JSON.stringify(input);
+
+    assert.match(promptText, /elfo-silvestre/);
+    assert.match(promptText, /feiticeiro-magia-selvagem/);
+    assert.match(promptText, /raceId\\":\\"elfo/);
+    assert.match(promptText, /classId\\":\\"feiticeiro/);
   });
 
   it("keeps the full compact 5e divinity catalog and features Shaundakul for travel clerics", () => {

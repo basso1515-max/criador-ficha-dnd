@@ -12,6 +12,7 @@ const PAGE_TIMEOUT_MS = 20_000;
 const SERVER_TIMEOUT_MS = 30_000;
 const CHROME_TIMEOUT_MS = 60_000;
 const PENDING_EDITOR_DRAFT_KEY = "dnd_sheet_pending_editor_draft_v1";
+const AI_SMOKE_2024_PROMPT = "Um elfo criado entre trilhas antigas da floresta, com magia latente despertada pela convivencia com fadas e outros seres magicos.";
 
 const AI_SMOKE_CHARACTER_5E = {
   name: "Mira Smoke 5e",
@@ -60,57 +61,70 @@ const AI_SMOKE_CHARACTER_5E = {
 };
 
 const AI_SMOKE_CHARACTER_2024 = {
-  name: "Iara Smoke 2024",
-  classId: "guardiao",
-  classLabel: "Guardiao",
-  classValue: "guardiao",
-  subclassId: "guardiao-cacador",
-  subclassLabel: "Cacador",
-  subclassValue: "guardiao-cacador",
-  raceId: "humano",
-  raceLabel: "Humano",
-  raceValue: "humano",
-  subraceId: "",
-  subraceLabel: "",
-  subraceValue: "",
+  name: "Lyra Smoke 2024",
+  classId: "feiticeiro",
+  classLabel: "Feiticeiro",
+  classValue: "feiticeiro",
+  subclassId: "feiticeiro-magia-selvagem",
+  subclassLabel: "Feiticaria Selvagem",
+  subclassValue: "feiticeiro-magia-selvagem",
+  raceId: "elfo",
+  raceLabel: "Elfo",
+  raceValue: "elfo",
+  subraceId: "elfo-silvestre",
+  subraceLabel: "Elfo Silvestre",
+  subraceValue: "elfo-silvestre",
   backgroundId: "guia",
   backgroundLabel: "Guia",
   backgroundValue: "guia",
-  level: 2,
+  level: 3,
   alignmentId: "neutro-bom",
   alignmentLabel: "Neutro Bom",
   divinityId: "",
   divinityLabel: "",
-  abilityScores: { for: 10, des: 15, con: 13, int: 12, sab: 14, car: 8 },
+  abilityScores: { for: 8, des: 14, con: 13, int: 12, sab: 10, car: 15 },
   physicalDescription: {
-    age: 29,
-    height: "1,70 m",
-    weight: "65 kg",
-    eyes: "verdes",
-    skin: "morena clara",
-    hair: "trancado",
+    age: 120,
+    height: "1,68 m",
+    weight: "54 kg",
+    eyes: "dourados",
+    skin: "clara",
+    hair: "castanho com folhas presas",
   },
-  appearance: "Armadura leve marcada por viagens longas.",
-  personalityTraits: "Fala pouco e age rapido.",
-  ideals: "Nenhum grupo deve se perder no ermo.",
-  bonds: "Um circulo de guias da serra.",
-  flaws: "Confia demais na propria leitura do terreno.",
-  backstory: "Mapeou rotas proibidas para salvar uma caravana.",
-  allies: "Guardas de estrada.",
-  treasure: "Uma bussola antiga.",
-  extraProficiencies: "Kit de curandeiro e mapas.",
-  equipmentNotes: "Arco curto, mochila e simbolo de patrulha.",
-  selectedSkillIds: ["percepcao", "sobrevivencia"],
-  expertiseSkillIds: ["sobrevivencia"],
-  reasoning: "Rascunho smoke para validar o fluxo 2024.",
+  appearance: "Manto verde gasto e pequenas faiscas instaveis ao redor das maos.",
+  personalityTraits: "Ouve sinais da floresta antes de responder.",
+  ideals: "A magia deve proteger quem vive entre trilhas esquecidas.",
+  bonds: "As fadas que despertaram seu dom.",
+  flaws: "Confia demais em pressagios caoticos.",
+  backstory: "A magia latente surgiu depois de anos convivendo com fadas e espiritos da mata.",
+  allies: "Um circulo discreto de guardioes silvestres.",
+  treasure: "Uma folha cristalizada que vibra quando a magia falha.",
+  extraProficiencies: "Idioma Silvestre e mapas de clareiras feericas.",
+  equipmentNotes: "Cajado, foco arcano de madeira viva e manto de viagem.",
+  selectedSkillIds: ["arcanismo", "persuasao"],
+  expertiseSkillIds: [],
+  reasoning: "Rascunho smoke para validar o fluxo 2024 com especie, subespecie, classe e subclasse inferidas.",
 };
 
-function buildAiAvailableInitScript(character) {
+function buildAiAvailableInitScript(character, expectedRequest = {}) {
   const payload = JSON.stringify({ edition: "smoke", character });
+  const requestContract = JSON.stringify(expectedRequest);
   return `
     (() => {
       const originalFetch = window.fetch.bind(window);
       const payload = ${payload};
+      const expectedRequest = ${requestContract};
+      const assertRequestContract = (body) => {
+        if (expectedRequest.edition && body.edition !== expectedRequest.edition) {
+          throw new Error("Assistente enviou edicao inesperada: " + body.edition);
+        }
+        if (expectedRequest.prompt && body.prompt !== expectedRequest.prompt) {
+          throw new Error("Assistente enviou prompt inesperado.");
+        }
+        if (expectedRequest.promptIncludes && !String(body.prompt || "").includes(expectedRequest.promptIncludes)) {
+          throw new Error("Assistente nao enviou o trecho esperado do prompt.");
+        }
+      };
       window.fetch = (input, init = {}) => {
         const requestUrl = new URL(typeof input === "string" ? input : input?.url || "", window.location.href);
         const method = String(init?.method || input?.method || "GET").toUpperCase();
@@ -127,6 +141,14 @@ function buildAiAvailableInitScript(character) {
             }));
           }
           if (method === "POST") {
+            let requestBody = {};
+            try {
+              requestBody = JSON.parse(String(init?.body || "{}"));
+            } catch {
+              throw new Error("Assistente enviou corpo JSON invalido para a API de IA.");
+            }
+            assertRequestContract(requestBody);
+            window.__DND_AI_SMOKE_LAST_REQUEST__ = requestBody;
             return Promise.resolve(new Response(JSON.stringify(payload), {
               status: 200,
               headers: { "Content-Type": "application/json" },
@@ -184,7 +206,7 @@ function buildAiChoiceNavigationSetup(expectedAssistantHref) {
   `;
 }
 
-function buildAiAssistantFlowSetup({ edition, expectedName, expectedReturnTo }) {
+function buildAiAssistantFlowSetup({ edition, expectedName, expectedReturnTo, promptText = "Uma patrulheira criada para validar o fluxo automatizado de IA." }) {
   return `
     (async () => {
       const assert = (condition, message) => {
@@ -219,7 +241,7 @@ function buildAiAssistantFlowSetup({ edition, expectedName, expectedReturnTo }) 
       };
 
       await waitForCondition(() => !document.querySelector("#aiCharacterSubmit")?.disabled, "Botao de IA nao ficou disponivel.");
-      document.querySelector("#aiCharacterPrompt").value = "Uma patrulheira criada para validar o fluxo automatizado de IA.";
+      document.querySelector("#aiCharacterPrompt").value = ${JSON.stringify(promptText)};
       document.querySelector("#aiCharacterForm").requestSubmit();
 
       await waitForCondition(() => {
@@ -227,6 +249,9 @@ function buildAiAssistantFlowSetup({ edition, expectedName, expectedReturnTo }) 
         return preview && !preview.hidden && preview.textContent.includes(${JSON.stringify(expectedName)});
       }, "Preview basico do assistente nao mostrou o personagem gerado.");
 
+      const lastRequest = window.__DND_AI_SMOKE_LAST_REQUEST__;
+      assert(lastRequest?.edition === ${JSON.stringify(edition)}, "Assistente enviou edicao incorreta para a API.");
+      assert(lastRequest?.prompt === ${JSON.stringify(promptText)}, "Assistente nao enviou o prompt esperado para a API.");
       const rawDraft = readPendingDraft();
       assert(rawDraft, "Assistente nao persistiu rascunho pendente.");
       const draft = JSON.parse(rawDraft);
@@ -240,7 +265,7 @@ function buildAiAssistantFlowSetup({ edition, expectedName, expectedReturnTo }) 
   `;
 }
 
-function buildAiEditorVerification({ expectedPath, nameSelector, classSelector, expectedName, expectedClassValue, previewSelector }) {
+function buildAiEditorVerification({ expectedPath, nameSelector, classSelector, expectedName, expectedClassValue, previewSelector, expectedFields = [] }) {
   return `
     (async () => {
       const assert = (condition, message) => {
@@ -264,7 +289,13 @@ function buildAiEditorVerification({ expectedPath, nameSelector, classSelector, 
         location.pathname.endsWith(${JSON.stringify(expectedPath)})
         && document.querySelector(${JSON.stringify(nameSelector)})?.value === ${JSON.stringify(expectedName)}
       ), "Editor nao recebeu o rascunho do assistente.");
-      assert(document.querySelector(${JSON.stringify(classSelector)})?.value === ${JSON.stringify(expectedClassValue)}, "Classe do rascunho nao foi aplicada no editor.");
+      const expectedFieldChecks = [
+        { selector: ${JSON.stringify(classSelector)}, value: ${JSON.stringify(expectedClassValue)}, label: "classe" },
+        ...${JSON.stringify(expectedFields)},
+      ];
+      await waitForCondition(() => expectedFieldChecks.every((field) => (
+        document.querySelector(field.selector)?.value === String(field.value)
+      )), "Campos principais do rascunho da IA nao foram aplicados no editor.");
       await waitForCondition(() => (
         (document.querySelector(${JSON.stringify(previewSelector)})?.textContent || "").includes(${JSON.stringify(expectedName)})
       ), "Preview do editor nao refletiu o rascunho da IA.");
@@ -378,14 +409,18 @@ const smokePages = [
     name: "ai-assistant-2024-draft-to-editor",
     path: "/assistente-ia.html?edition=5.5e-2024",
     selectors: ["#aiCharacterForm", "#aiCharacterPrompt", "#aiCharacterSubmit", "#aiCharacterPreview"],
-    initScript: buildAiAvailableInitScript(AI_SMOKE_CHARACTER_2024),
+    initScript: buildAiAvailableInitScript(AI_SMOKE_CHARACTER_2024, {
+      edition: "5.5e-2024",
+      prompt: AI_SMOKE_2024_PROMPT,
+    }),
     setup: buildAiAssistantFlowSetup({
       edition: "5.5e-2024",
       expectedName: AI_SMOKE_CHARACTER_2024.name,
       expectedReturnTo: "5.5e-2024.html",
+      promptText: AI_SMOKE_2024_PROMPT,
     }),
     followUrlExpression: "window.__DND_AI_SMOKE_NEXT_URL__",
-    afterSetupSelectors: ["#nome2024", "#classe2024", "#preview2024"],
+    afterSetupSelectors: ["#nome2024", "#classe2024", "#subclasse2024", "#raca2024", "#subraca2024", "#preview2024"],
     afterSetup: buildAiEditorVerification({
       expectedPath: "/5.5e-2024.html",
       nameSelector: "#nome2024",
@@ -393,6 +428,11 @@ const smokePages = [
       expectedName: AI_SMOKE_CHARACTER_2024.name,
       expectedClassValue: AI_SMOKE_CHARACTER_2024.classValue,
       previewSelector: "#preview2024",
+      expectedFields: [
+        { selector: "#subclasse2024", value: AI_SMOKE_CHARACTER_2024.subclassValue, label: "subclasse" },
+        { selector: "#raca2024", value: AI_SMOKE_CHARACTER_2024.raceValue, label: "especie" },
+        { selector: "#subraca2024", value: AI_SMOKE_CHARACTER_2024.subraceValue, label: "subespecie" },
+      ],
     }),
   },
   {
