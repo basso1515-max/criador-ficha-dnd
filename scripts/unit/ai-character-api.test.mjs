@@ -83,6 +83,52 @@ describe("AI character API normalization", () => {
     assert.equal(character.expertiseSkillIds[0], "prestidigitacao");
   });
 
+  it("preserves an explicitly requested subrace and its parent race", () => {
+    const character = normalizeRecommendation(
+      {
+        ...baseRecommendation,
+        raceId: "anao",
+        subraceId: "",
+      },
+      {
+        edition: "5e",
+        prompt: "Quero um personagem Shadar-Kai sombrio marcado pela Rainha Corvo.",
+        tone: "fantasia sombria",
+        complexity: "equilibrada",
+      },
+      EDITION_CONFIGS["5e"]
+    );
+
+    assert.equal(character.raceId, "elfo");
+    assert.equal(character.raceLabel, "Elfo");
+    assert.equal(character.subraceId, "shadar-kai");
+    assert.equal(character.subraceLabel, "Shadar-kai");
+  });
+
+  it("uses strong forest-fey context to prefer Lotusden and Wild Magic Sorcerer", () => {
+    const character = normalizeRecommendation(
+      {
+        ...baseRecommendation,
+        classId: "druida",
+        subclassId: "druida-terra",
+        raceId: "humano",
+        subraceId: "",
+      },
+      {
+        edition: "5e",
+        prompt: "Um pequenino criado entre trilhas antigas da floresta, com magia latente despertada pela convivencia com fadas e outros seres magicos.",
+        tone: "conto feerico",
+        complexity: "equilibrada",
+      },
+      EDITION_CONFIGS["5e"]
+    );
+
+    assert.equal(character.raceId, "pequenino");
+    assert.equal(character.subraceId, "pequenino-lotusden");
+    assert.equal(character.classId, "feiticeiro");
+    assert.equal(character.subclassId, "feiticeiro-magia-selvagem");
+  });
+
   it("documents concrete completion expectations in the OpenAI input and schema", () => {
     const input = buildOpenAiInput({
       edition: "5e",
@@ -95,9 +141,24 @@ describe("AI character API normalization", () => {
 
     assert.match(promptText, /Nao deixe decisoes internas/);
     assert.match(promptText, /physicalDescription/);
+    assert.match(promptText, /contextHints/);
     assert.ok(schema.required.includes("physicalDescription"));
     assert.ok(schema.required.includes("selectedSkillIds"));
     assert.ok(schema.required.includes("expertiseSkillIds"));
+  });
+
+  it("sends contextual catalog hints to the model before generation", () => {
+    const input = buildOpenAiInput({
+      edition: "5e",
+      prompt: "Um pequenino com magia despertada por fadas da floresta.",
+      tone: "conto feerico",
+      complexity: "simples",
+    }, EDITION_CONFIGS["5e"]);
+    const promptText = JSON.stringify(input);
+
+    assert.match(promptText, /pequenino-lotusden/);
+    assert.match(promptText, /feiticeiro-magia-selvagem/);
+    assert.match(promptText, /raceId\\":\\"pequenino/);
   });
 
   it("reports AI character availability without requiring a live OpenAI call", () => {

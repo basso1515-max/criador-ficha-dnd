@@ -23,6 +23,12 @@ const AI_UNAVAILABLE_MESSAGE = "Assistente de IA temporariamente indisponivel. C
 const OLD_AGE_RE = /\b(velh[ao]s?|idos[ao]s?|anci(?:a|ã)[os]?|ancia|anciã|veteran[ao]s?)\b/i;
 const EXPLICIT_AGE_RE = /\b(?:idade\s*(?:de)?\s*)?(\d{1,4})\s*(?:anos?|anos?\s+de\s+idade|de\s+idade)\b/i;
 const CHOICE_SEPARATOR_RE = /\s*(?:\/|,?\s+ou\s+|,?\s+OU\s+)\s*/;
+const CATALOG_OPTION_ALIASES = {
+  "barbaro-magia-selvagem": ["magia selvagem", "wild magic", "wild magic barbarian"],
+  "feiticeiro-magia-selvagem": ["magia selvagem", "feiticaria selvagem", "wild magic", "wild magic sorcerer"],
+  "pequenino-lotusden": ["lotusden", "lotusden halfling"],
+  "shadar-kai": ["shadar kai", "shadar-kai"],
+};
 
 const CLASS_SKILL_PRIORITIES = {
   artifice: ["arcanismo", "investigacao", "percepcao", "historia", "natureza", "medicina"],
@@ -222,6 +228,8 @@ function readConfiguredOpenAiModel(env = process.env) {
 }
 
 export function buildOpenAiInput(input, config) {
+  const contextHints = buildPromptContextHints(input.prompt, config);
+
   return [
     {
       role: "system",
@@ -233,6 +241,8 @@ export function buildOpenAiInput(input, config) {
             "Responda apenas com JSON valido no schema solicitado.",
             "Use somente opcoes presentes nos catalogos enviados.",
             "Trate detalhes dados pelo usuario como restricoes fortes: idade, especie, aparencia, passado, tom e papel narrativo nao podem ser contraditos.",
+            "Quando o usuario citar uma raca, sub-raca, classe ou subclasse do catalogo, preserve essa escolha; se citar uma sub-raca ou subclasse, use tambem a raca/classe pai indicada pelo catalogo.",
+            "Use as pistas de contexto enviadas para resolver sinonimos, nomes em ingles e sugestoes narrativas fortes antes de escolher fallbacks genericos.",
             "Se o usuario descrever alguem como velho, velha, idoso, idosa, anciao, ancia ou veterano, escolha uma idade numerica coerente com isso para a especie; nunca use uma idade jovem como 25 anos nesse caso, salvo se o usuario pedir explicitamente esse numero.",
             "A ficha deve vir completa em todas as preferencias: escolha atributos, pericias, expertise quando existir, equipamento textual e descricoes concretas.",
             "A preferencia muda o criterio, nao a completude: simples prioriza coerencia narrativa e escolhas faceis de jogar; equilibrada mistura historia com escolhas mecanicamente uteis; otimizada prioriza sinergia mecanica, atributos fortes e poderio, sem contradizer restricoes centrais do usuario.",
@@ -258,6 +268,7 @@ export function buildOpenAiInput(input, config) {
               concreteText: "Descricoes devem ser finais e especificas, sem pedir novas escolhas ao usuario.",
               physicalConsistency: "physicalDescription.age deve bater com qualquer sinal de idade no userIdea e a appearance deve repetir essa idade de forma natural.",
             },
+            contextHints,
             availableOptions: buildCatalogPrompt(config),
           }),
         },
@@ -268,22 +279,45 @@ export function buildOpenAiInput(input, config) {
 
 function buildCatalogPrompt(config) {
   return {
-    classes: config.classes.map((item) => ({ id: item.id, label: item.nome, description: item.descricao || "" })),
+    classes: config.classes.map((item) => ({
+      id: item.id,
+      label: item.nome,
+      englishLabel: item.nomeEN || "",
+      description: item.descricao || "",
+      keywords: buildCatalogKeywords(item),
+    })),
     subclasses: config.subclasses.map((item) => ({
       id: item.id,
       label: item.nome,
-      classId: item.classeBase,
+      englishLabel: item.nomeEN || "",
+      classId: readSubclassParentId(item),
       minLevel: item.nivel || 3,
       description: item.descricao || "",
+      keywords: buildCatalogKeywords(item),
     })),
-    races: config.races.map((item) => ({ id: item.id, label: item.nome, description: item.descricao || "" })),
+    races: config.races.map((item) => ({
+      id: item.id,
+      label: item.nome,
+      englishLabel: item.nomeEN || "",
+      description: item.descricao || "",
+      subraceIds: Array.isArray(item.subracas) ? item.subracas : [],
+      keywords: buildCatalogKeywords(item),
+    })),
     subraces: config.subraces.map((item) => ({
       id: item.id,
       label: item.nome,
-      raceId: item.raca || item.racaBase || item.parent || "",
+      englishLabel: item.nomeEN || "",
+      raceId: readSubraceParentId(item),
       description: item.descricao || "",
+      keywords: buildCatalogKeywords(item),
     })),
-    backgrounds: config.backgrounds.map((item) => ({ id: item.id, label: item.nome, description: item.descricao || "" })),
+    backgrounds: config.backgrounds.map((item) => ({
+      id: item.id,
+      label: item.nome,
+      englishLabel: item.nomeEN || "",
+      description: item.descricao || "",
+      keywords: buildCatalogKeywords(item),
+    })),
     alignments: config.alignments,
     divinities: config.divinities.slice(0, 80).map((item) => ({ id: item.id, label: item.nome })),
     skills: config.skills,
@@ -392,12 +426,21 @@ function parseOpenAiRecommendation(data) {
 }
 
 export function normalizeRecommendation(recommendation, input, config) {
-  const cls = findById(config.classes, recommendation.classId) || pickFirst(config.classes);
-  const validSubclasses = config.subclasses.filter((item) => item.classeBase === cls?.id);
-  const subclass = findById(validSubclasses, recommendation.subclassId) || pickFirst(validSubclasses);
-  const race = findById(config.races, recommendation.raceId) || pickFirst(config.races);
+  const promptIntent = resolvePromptCatalogIntent(input?.prompt, config);
+  const cls = findById(config.classes, promptIntent.classId)
+    || findById(config.classes, recommendation.classId)
+    || pickFirst(config.classes);
+  const validSubclasses = config.subclasses.filter((item) => readSubclassParentId(item) === cls?.id);
+  const subclass = findById(validSubclasses, promptIntent.subclassId)
+    || findById(validSubclasses, recommendation.subclassId)
+    || pickFirst(validSubclasses);
+  const race = findById(config.races, promptIntent.raceId)
+    || findById(config.races, recommendation.raceId)
+    || pickFirst(config.races);
   const validSubraces = findSubracesForRace(config, race);
-  const subrace = findById(validSubraces, recommendation.subraceId) || null;
+  const subrace = findById(validSubraces, promptIntent.subraceId)
+    || findById(validSubraces, recommendation.subraceId)
+    || null;
   const background = findById(config.backgrounds, recommendation.backgroundId) || pickFirst(config.backgrounds);
   const alignment = config.alignments.find((item) => item.id === recommendation.alignmentId)
     || config.alignments.find((item) => item.label === recommendation.alignmentId)
@@ -617,6 +660,289 @@ function getOldAgeMinimum(prompt = "", race = null) {
   return 65;
 }
 
+function buildPromptContextHints(prompt = "", config) {
+  const analysis = analyzePromptCatalogIntent(prompt, config);
+  const exactCatalogMatches = [
+    ...analysis.explicit.races.slice(0, 3).map((match) => formatCatalogHintMatch("race", match)),
+    ...analysis.explicit.subraces.slice(0, 3).map((match) => formatCatalogHintMatch("subrace", match)),
+    ...analysis.explicit.classes.slice(0, 3).map((match) => formatCatalogHintMatch("class", match)),
+    ...analysis.explicit.subclasses.slice(0, 3).map((match) => formatCatalogHintMatch("subclass", match)),
+    ...analysis.explicit.backgrounds.slice(0, 3).map((match) => formatCatalogHintMatch("background", match)),
+  ];
+
+  return {
+    instruction: "Priorize exactCatalogMatches como restricoes fortes. Use narrativeSuggestions como desempate quando o usuario nao nomear uma opcao explicitamente. Se uma subrace/subclass for escolhida, preserve tambem seu parentId.",
+    exactCatalogMatches,
+    narrativeSuggestions: analysis.narrative.map((match) => formatCatalogHintMatch(match.kind, match)),
+    resolvedPriority: buildResolvedPriorityHint(analysis.resolved, config),
+  };
+}
+
+function resolvePromptCatalogIntent(prompt = "", config) {
+  return analyzePromptCatalogIntent(prompt, config).resolved;
+}
+
+function analyzePromptCatalogIntent(prompt = "", config) {
+  const promptText = normalizeSearchText(prompt);
+  const explicit = {
+    races: findCatalogMatches(config.races, "race", promptText),
+    subraces: findCatalogMatches(config.subraces, "subrace", promptText),
+    classes: findCatalogMatches(config.classes, "class", promptText),
+    subclasses: findCatalogMatches(config.subclasses, "subclass", promptText),
+    backgrounds: findCatalogMatches(config.backgrounds, "background", promptText),
+  };
+  const narrative = inferNarrativeCatalogMatches(promptText, config, explicit);
+  const resolved = resolveCatalogIntentFromMatches(explicit, narrative);
+
+  return { explicit, narrative, resolved };
+}
+
+function findCatalogMatches(items = [], kind, promptText = "") {
+  if (!promptText) return [];
+
+  return (items || [])
+    .map((item) => {
+      let bestScore = 0;
+      let bestTerm = "";
+      for (const term of buildCatalogSearchTerms(item)) {
+        const normalizedTerm = normalizeSearchText(term.text);
+        if (!normalizedTerm || normalizedTerm.length < 3) continue;
+        if (!containsNormalizedPhrase(promptText, normalizedTerm)) continue;
+
+        const score = term.score + normalizedTerm.length / 100;
+        if (score > bestScore) {
+          bestScore = score;
+          bestTerm = normalizedTerm;
+        }
+      }
+      if (!bestScore) return null;
+      return { kind, item, id: item.id, label: item.nome || item.label || item.id, score: bestScore, matchedTerm: bestTerm };
+    })
+    .filter(Boolean)
+    .sort((a, b) => b.score - a.score || String(a.label).localeCompare(String(b.label), "pt-BR"));
+}
+
+function buildCatalogSearchTerms(item = {}) {
+  const aliases = CATALOG_OPTION_ALIASES[item.id] || [];
+  return [
+    { text: item.nome || item.label || "", score: 110 },
+    { text: item.nomeEN || "", score: 105 },
+    { text: item.id || "", score: 100 },
+    ...aliases.map((alias) => ({ text: alias, score: 95 })),
+  ];
+}
+
+function inferNarrativeCatalogMatches(promptText = "", config, explicit) {
+  const suggestions = [];
+  const explicitRaceIds = new Set(explicit.races.map((match) => match.id));
+  const hasExplicitSubrace = explicit.subraces.length > 0;
+  const hasExplicitClassOrSubclass = explicit.classes.length > 0 || explicit.subclasses.length > 0;
+  const mentionsPequenino = explicitRaceIds.has("pequenino")
+    || containsNormalizedPhrase(promptText, "pequenino")
+    || containsNormalizedPhrase(promptText, "halfling");
+  const hasForestOrFeyContext = hasAnyPromptPhrase(promptText, [
+    "floresta",
+    "bosque",
+    "mata",
+    "natureza",
+    "natural",
+    "plantas",
+    "druid",
+    "fada",
+    "fadas",
+    "feeric",
+    "silvestre",
+    "ser magico",
+    "seres magicos",
+  ]);
+
+  if (!hasExplicitSubrace && mentionsPequenino && hasForestOrFeyContext) {
+    const lotusden = findById(config.subraces, "pequenino-lotusden");
+    if (lotusden) {
+      suggestions.push({
+        kind: "subrace",
+        item: lotusden,
+        id: lotusden.id,
+        label: lotusden.nome,
+        reason: "Pequenino ligado a floresta, natureza ou seres feericos combina com Lotusden.",
+      });
+    }
+  }
+
+  const hasAwakenedMagic = hasAnyPromptPhrase(promptText, ["magia", "magico", "magica", "poder", "dom", "feitic"])
+    && hasAnyPromptPhrase(promptText, ["despert", "aflor", "inata", "latente", "convivencia", "manifest"]);
+  const hasWildMagicContext = hasAnyPromptPhrase(promptText, [
+    "floresta",
+    "bosque",
+    "fada",
+    "fadas",
+    "feeric",
+    "ser magico",
+    "seres magicos",
+    "caos",
+    "caotic",
+    "imprevis",
+    "selvagem",
+  ]);
+
+  if (!hasExplicitClassOrSubclass && hasAwakenedMagic && hasWildMagicContext) {
+    const sorcerer = findById(config.classes, "feiticeiro");
+    const wildMagic = findById(config.subclasses, "feiticeiro-magia-selvagem");
+    if (sorcerer) {
+      suggestions.push({
+        kind: "class",
+        item: sorcerer,
+        id: sorcerer.id,
+        label: sorcerer.nome,
+        reason: "Magia inata ou desperta no personagem combina com Feiticeiro.",
+      });
+    }
+    if (wildMagic) {
+      suggestions.push({
+        kind: "subclass",
+        item: wildMagic,
+        id: wildMagic.id,
+        label: wildMagic.nome,
+        reason: "Magia desperta por contato feerico/natural combina com Magia Selvagem.",
+      });
+    }
+  }
+
+  return suggestions;
+}
+
+function resolveCatalogIntentFromMatches(explicit, narrative) {
+  const explicitRace = pickBestCatalogMatch(explicit.races);
+  const explicitSubrace = pickBestCatalogMatch(explicit.subraces, explicitRace?.id, readSubraceParentId);
+  const narrativeSubrace = explicitSubrace
+    ? null
+    : pickBestCatalogMatch(narrative.filter((match) => match.kind === "subrace"), explicitRace?.id, readSubraceParentId);
+  const subrace = explicitSubrace || narrativeSubrace;
+  const narrativeRace = pickBestCatalogMatch(narrative.filter((match) => match.kind === "race"));
+  const raceId = readSubraceParentId(subrace) || explicitRace?.id || narrativeRace?.id || "";
+
+  const explicitClass = pickBestCatalogMatch(explicit.classes);
+  const explicitSubclass = pickBestCatalogMatch(explicit.subclasses, explicitClass?.id, readSubclassParentId);
+  const narrativeSubclass = explicitSubclass
+    ? null
+    : pickBestCatalogMatch(narrative.filter((match) => match.kind === "subclass"), explicitClass?.id, readSubclassParentId);
+  const subclass = explicitSubclass || narrativeSubclass;
+  const narrativeClass = pickBestCatalogMatch(narrative.filter((match) => match.kind === "class"));
+  const classId = readSubclassParentId(subclass) || explicitClass?.id || narrativeClass?.id || "";
+
+  return {
+    raceId,
+    subraceId: subrace?.id || "",
+    classId,
+    subclassId: subclass?.id || "",
+    backgroundId: pickBestCatalogMatch(explicit.backgrounds)?.id || "",
+  };
+}
+
+function pickBestCatalogMatch(matches = [], parentId = "", readParentId = null) {
+  const filtered = parentId && readParentId
+    ? matches.filter((match) => readParentId(match.item) === parentId)
+    : matches;
+  return filtered[0]?.item || null;
+}
+
+function formatCatalogHintMatch(kind, match) {
+  const item = match.item || match;
+  const parentId = kind === "subrace"
+    ? readSubraceParentId(item)
+    : kind === "subclass"
+      ? readSubclassParentId(item)
+      : "";
+
+  return {
+    kind,
+    id: item.id || "",
+    label: item.nome || item.label || "",
+    ...(parentId ? { parentId } : {}),
+    ...(match.matchedTerm ? { matchedTerm: match.matchedTerm } : {}),
+    ...(match.reason ? { reason: match.reason } : {}),
+  };
+}
+
+function buildResolvedPriorityHint(resolved, config) {
+  const entries = [];
+  const race = findById(config.races, resolved.raceId);
+  const subrace = findById(config.subraces, resolved.subraceId);
+  const cls = findById(config.classes, resolved.classId);
+  const subclass = findById(config.subclasses, resolved.subclassId);
+  const background = findById(config.backgrounds, resolved.backgroundId);
+
+  if (race) entries.push(formatCatalogHintMatch("race", { item: race }));
+  if (subrace) entries.push(formatCatalogHintMatch("subrace", { item: subrace }));
+  if (cls) entries.push(formatCatalogHintMatch("class", { item: cls }));
+  if (subclass) entries.push(formatCatalogHintMatch("subclass", { item: subclass }));
+  if (background) entries.push(formatCatalogHintMatch("background", { item: background }));
+  return entries;
+}
+
+function containsNormalizedPhrase(text = "", phrase = "") {
+  if (!text || !phrase) return false;
+  return ` ${text} `.includes(` ${phrase} `);
+}
+
+function hasAnyPromptPhrase(promptText = "", phrases = []) {
+  return phrases.some((phrase) => promptText.includes(phrase));
+}
+
+function buildCatalogKeywords(item = {}) {
+  const text = [
+    item.id,
+    item.nome,
+    item.nomeEN,
+    item.descricao,
+    ...collectTraitTexts(item.tracos),
+    ...collectFeatureTexts(item.features),
+  ].filter(Boolean).join(" ");
+  const stopWords = new Set([
+    "acao",
+    "cada",
+    "como",
+    "com",
+    "contra",
+    "dano",
+    "descanso",
+    "efeito",
+    "ganha",
+    "magia",
+    "nivel",
+    "para",
+    "pode",
+    "por",
+    "seu",
+    "sua",
+    "uma",
+    "voce",
+  ]);
+  const keywords = [];
+
+  for (const token of normalizeSearchText(text).split(" ")) {
+    if (token.length < 4 || stopWords.has(token) || keywords.includes(token)) continue;
+    keywords.push(token);
+    if (keywords.length >= 12) break;
+  }
+
+  return keywords;
+}
+
+function collectTraitTexts(traits = []) {
+  if (!Array.isArray(traits)) return [];
+  return traits.flatMap((trait) => [trait?.nome, trait?.resumo, trait?.descricao]);
+}
+
+function collectFeatureTexts(features = {}) {
+  if (!features || typeof features !== "object") return [];
+  return Object.values(features).flatMap((list) => (
+    Array.isArray(list)
+      ? list.flatMap((feature) => [feature?.nome, feature?.resumo, feature?.descricao])
+      : []
+  ));
+}
+
 function normalizeSearchText(text = "") {
   return String(text || "")
     .normalize("NFD")
@@ -631,9 +957,25 @@ function findSubracesForRace(config, race) {
   return config.subraces.filter((subrace) => (
     subrace?.raca === race.id
     || subrace?.racaBase === race.id
+    || subrace?.base === race.id
+    || subrace?.race === race.id
     || subrace?.parent === race.id
     || subrace?.raceId === race.id
   ));
+}
+
+function readSubclassParentId(subclass) {
+  return subclass?.classeBase || subclass?.classId || subclass?.classe || "";
+}
+
+function readSubraceParentId(subrace) {
+  return subrace?.raca
+    || subrace?.racaBase
+    || subrace?.base
+    || subrace?.race
+    || subrace?.parent
+    || subrace?.raceId
+    || "";
 }
 
 function readOptionValue(config, option) {
