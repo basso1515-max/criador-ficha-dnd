@@ -84,6 +84,8 @@ function buildPreset5e(character) {
   });
   appendSkillChoiceFields(fields, character);
   appendExpertiseChoiceFields(fields, character, "5e");
+  appendFeatChoiceFields(fields, character, "5e");
+  appendEquipmentChoiceFields(fields, character, "5e");
 
   return {
     version: 1,
@@ -91,7 +93,7 @@ function buildPreset5e(character) {
     fields,
     extra: {
       multiclassRowIds: [],
-      selectedSpellsBySource: {},
+      selectedSpellsBySource: normalizeSpellSelectionSnapshot(character.selectedSpellsBySource),
     },
   };
 }
@@ -138,6 +140,8 @@ function buildPreset2024(character) {
   });
   appendSkillChoiceFields(fields, character);
   appendExpertiseChoiceFields(fields, character, "5.5e-2024");
+  appendFeatChoiceFields(fields, character, "5.5e-2024");
+  appendEquipmentChoiceFields(fields, character, "5.5e-2024");
 
   return {
     version: 1,
@@ -145,7 +149,7 @@ function buildPreset2024(character) {
     fields,
     extra: {
       multiclassRowIds: [],
-      selectedSpellsBySource: {},
+      selectedSpellsBySource: normalizeSpellSelectionSnapshot(character.selectedSpellsBySource),
     },
   };
 }
@@ -157,7 +161,7 @@ function field(id, value, options = {}) {
     id,
     name: options.name || "",
     data: options.data || {},
-    optionValue: "",
+    optionValue: String(options.optionValue ?? ""),
     value: String(value ?? ""),
     checked: Boolean(options.checked),
     ordinal: 0,
@@ -189,6 +193,83 @@ function appendExpertiseChoiceFields(fields, character, editionKey) {
       data: { "data-expertise-slot-key": slotKeys[index] },
     }));
   });
+}
+
+function appendFeatChoiceFields(fields, character, editionKey) {
+  normalizeChoiceEntries(character.featChoiceSlots)
+    .filter((slot) => slot.editionKey === editionKey && slot.slotKey && slot.featId)
+    .forEach((slot) => {
+      if (editionKey === "5e" && slot.requiresModeField) {
+        fields.push(field("", "feat", {
+          tag: "select",
+          data: {
+            "data-feat-asi-slot-key": slot.slotKey,
+            "data-feat-asi-field": "mode",
+          },
+        }));
+      }
+
+      fields.push(field("", slot.featId, {
+        tag: "select",
+        data: editionKey === "5.5e-2024"
+          ? { "data-feat-choice-id": slot.slotKey }
+          : { "data-feat-slot-key": slot.slotKey },
+      }));
+    });
+}
+
+function appendEquipmentChoiceFields(fields, character, editionKey) {
+  normalizeChoiceEntries(character.equipmentChoiceFields)
+    .filter((choice) => choice.editionKey === editionKey)
+    .forEach((choice) => {
+      if (choice.inputType === "radio" && choice.name && choice.optionValue) {
+        fields.push(field("", "", {
+          tag: "input",
+          inputType: "radio",
+          name: choice.name,
+          optionValue: choice.optionValue,
+          checked: true,
+        }));
+        return;
+      }
+
+      if (choice.inputType === "select" && choice.data && choice.value) {
+        fields.push(field("", choice.value, {
+          tag: "select",
+          data: normalizeDataAttributes(choice.data),
+        }));
+      }
+    });
+}
+
+function normalizeChoiceEntries(value) {
+  return Array.isArray(value)
+    ? value.filter((entry) => entry && typeof entry === "object")
+    : [];
+}
+
+function normalizeDataAttributes(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  return Object.fromEntries(
+    Object.entries(value)
+      .map(([key, entryValue]) => [String(key), String(entryValue ?? "")])
+      .filter(([key, entryValue]) => key.startsWith("data-") && entryValue)
+  );
+}
+
+function normalizeSpellSelectionSnapshot(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  return Object.fromEntries(
+    Object.entries(value)
+      .filter(([, entry]) => entry && typeof entry === "object" && !Array.isArray(entry))
+      .map(([sourceKey, entry]) => [
+        String(sourceKey),
+        {
+          cantrips: normalizeStringList(entry.cantrips),
+          spells: normalizeStringList(entry.spells),
+        },
+      ])
+  );
 }
 
 function buildExpertiseSlotKeys(character, editionKey) {

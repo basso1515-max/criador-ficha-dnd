@@ -4,8 +4,10 @@ import { buildAiCharacterDraft, buildPreset, buildSummary } from "../../src/ai-c
 
 const sampleCharacter = {
   name: "Lyra da Maré",
+  classId: "patrulheiro",
   classLabel: "Patrulheiro",
   classValue: "Patrulheiro",
+  subclassId: "patrulheiro-cacador",
   subclassLabel: "Caçador",
   subclassValue: "Caçador",
   raceLabel: "Elfo",
@@ -38,6 +40,21 @@ const sampleCharacter = {
   equipmentNotes: "Arco longo, capa impermeável e diário.",
   selectedSkillIds: ["percepcao", "sobrevivencia", "furtividade"],
   expertiseSkillIds: ["percepcao"],
+  featChoiceSlots: [{
+    editionKey: "5e",
+    slotKey: "classe:patrulheiro:asi-4:slot-0",
+    featId: "atirador-de-elite",
+    requiresModeField: true,
+  }],
+  selectedSpellsBySource: {
+    primary: { cantrips: [], spells: ["marca-do-cacador"] },
+  },
+  equipmentChoiceFields: [{
+    editionKey: "5e",
+    inputType: "select",
+    data: { "data-equipment-selection-key": "class:patrulheiro|armadura-inicial|option" },
+    value: "couro-e-arco-longo",
+  }],
   reasoning: "A história favorece uma guardiã rastreadora.",
 };
 
@@ -54,6 +71,10 @@ describe("AI character draft preset", () => {
     assert.equal(findField(draft.payload.snapshot, "idade").value, "68");
     assert.equal(findField(draft.payload.snapshot, "cabelo").value, "grisalho preso em tranças");
     assert.equal(findDataField(draft.payload.snapshot, "data-skill", "percepcao").checked, true);
+    assert.equal(findDataField(draft.payload.snapshot, "data-feat-asi-slot-key", "classe:patrulheiro:asi-4:slot-0").value, "feat");
+    assert.equal(findDataField(draft.payload.snapshot, "data-feat-slot-key", "classe:patrulheiro:asi-4:slot-0").value, "atirador-de-elite");
+    assert.equal(findDataField(draft.payload.snapshot, "data-equipment-selection-key", "class:patrulheiro|armadura-inicial|option").value, "couro-e-arco-longo");
+    assert.deepEqual(draft.payload.snapshot.extra.selectedSpellsBySource.primary.spells, ["marca-do-cacador"]);
     assert.match(findField(draft.payload.snapshot, "historiaPersonagem").value, /Sugestão da IA/);
   });
 
@@ -73,6 +94,20 @@ describe("AI character draft preset", () => {
       alignmentId: "neutro-bom",
       divinityId: "eldath",
       divinityLabel: "Eldath",
+      featChoiceSlots: [{
+        editionKey: "5.5e-2024",
+        slotKey: "class-feat-primary-4",
+        featId: "mestre-atirador",
+      }],
+      selectedSpellsBySource: {
+        primary: { cantrips: [], spells: ["marca-do-cacador"] },
+      },
+      equipmentChoiceFields: [{
+        editionKey: "5.5e-2024",
+        inputType: "radio",
+        name: "class-pacote",
+        optionValue: "a",
+      }],
     };
     const preset = buildPreset(character2024, "5.5e-2024");
 
@@ -83,6 +118,9 @@ describe("AI character draft preset", () => {
     assert.equal(findNamedField(preset, "base-des").value, "15");
     assert.equal(findDataField(preset, "data-skill", "sobrevivencia").checked, true);
     assert.equal(findDataField(preset, "data-expertise-slot-key", "primary:expertise-2:slot-0").value, "percepcao");
+    assert.equal(findDataField(preset, "data-feat-choice-id", "class-feat-primary-4").value, "mestre-atirador");
+    assert.equal(findNamedOptionField(preset, "class-pacote", "a").checked, true);
+    assert.deepEqual(preset.extra.selectedSpellsBySource.primary.spells, ["marca-do-cacador"]);
     assert.match(findField(preset, "notes2024").value, /Perdeu o mentor/);
   });
 
@@ -100,6 +138,12 @@ function findField(preset, id) {
 function findNamedField(preset, name) {
   const field = preset.fields.find((item) => item.name === name);
   assert.ok(field, `Expected named field ${name}`);
+  return field;
+}
+
+function findNamedOptionField(preset, name, optionValue) {
+  const field = preset.fields.find((item) => item.name === name && item.optionValue === optionValue);
+  assert.ok(field, `Expected named option field ${name}=${optionValue}`);
   return field;
 }
 

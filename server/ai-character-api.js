@@ -3,14 +3,38 @@ import { SUBCLASSES as SUBCLASSES_5E } from "../src/data/5e/subclasses.js";
 import { RACAS as RACAS_5E, SUBRACAS as SUBRACAS_5E } from "../src/data/5e/racas.js";
 import { ANTECEDENTES as ANTECEDENTES_5E } from "../src/data/5e/antecedentes.js";
 import { DIVINDADES as DIVINDADES_5E } from "../src/data/5e/divindades.js";
+import { TALENTOS as TALENTOS_5E } from "../src/data/5e/talentos.js";
+import { MAGIAS as MAGIAS_5E } from "../src/data/5e/magias.js";
+import {
+  CLASS_EQUIPMENT_RULES as CLASS_EQUIPMENT_RULES_5E,
+  BACKGROUND_EQUIPMENT_RULES as BACKGROUND_EQUIPMENT_RULES_5E,
+} from "../src/data/5e/equipamento-inicial.js";
 import { CLASSES as CLASSES_2024 } from "../src/data/5.5e/classes.js";
 import { SUBCLASSES as SUBCLASSES_2024 } from "../src/data/5.5e/subclasses.js";
 import { RACAS as RACAS_2024, SUBRACAS as SUBRACAS_2024 } from "../src/data/5.5e/racas.js";
 import { ANTECEDENTES as ANTECEDENTES_2024 } from "../src/data/5.5e/antecedentes.js";
 import { DIVINDADES as DIVINDADES_2024 } from "../src/data/5.5e/divindades.js";
-import { ALIGNMENTS_2024 } from "../src/editors/2024/rules-config.js";
-import { SKILL_OPTIONS as SKILL_OPTIONS_2024 } from "../src/editors/2024/rules-config.js";
+import { TALENTOS as TALENTOS_2024 } from "../src/data/5.5e/talentos.js";
+import { MAGIAS as MAGIAS_2024 } from "../src/data/5.5e/magias.js";
+import {
+  CLASS_EQUIPMENT_RULES as CLASS_EQUIPMENT_RULES_2024,
+  BACKGROUND_EQUIPMENT_RULES as BACKGROUND_EQUIPMENT_RULES_2024,
+} from "../src/data/5.5e/equipamento-inicial.js";
+import {
+  CLASS_FEATS_2024,
+  FEAT_LEVELS_2024,
+  ALIGNMENTS_2024,
+  SKILL_OPTIONS as SKILL_OPTIONS_2024,
+  SPELLCASTING_RULES_2024,
+  SUBCLASS_SPELLCASTING_RULES_2024,
+} from "../src/editors/2024/rules-config.js";
 import { SKILLS as SKILLS_5E, alinhamento as ALIGNMENTS_5E } from "../src/editors/5e/static-options.js";
+import {
+  CLASS_FEAT_OPTION_LEVELS,
+  DEFAULT_CLASS_FEAT_OPTION_LEVELS,
+  SPELLCASTING_RULES as SPELLCASTING_RULES_5E,
+  SUBCLASS_SPELLCASTING_RULES as SUBCLASS_SPELLCASTING_RULES_5E,
+} from "../src/editors/5e/rules-config.js";
 import { loadLocalEnvOnce } from "./env-loader.js";
 
 const OPENAI_RESPONSES_URL = "https://api.openai.com/v1/responses";
@@ -19,6 +43,12 @@ const MAX_BODY_BYTES = 32_000;
 const MAX_PROMPT_LENGTH = 6_000;
 const EDITIONS = ["5e", "5.5e-2024"];
 const ABILITIES = ["for", "des", "con", "int", "sab", "car"];
+const PRIMARY_SOURCE_KEY = "primary";
+const CATALOG_PROMPT_LIMITS = {
+  feats: 80,
+  spells: 90,
+  equipmentOptions: 42,
+};
 const AI_UNAVAILABLE_MESSAGE = "Assistente de IA temporariamente indisponivel. Crie manualmente enquanto a configuracao da OpenAI e revisada.";
 const OLD_AGE_RE = /\b(velh[ao]s?|idos[ao]s?|anci(?:a|ã)[os]?|ancia|anciã|veteran[ao]s?)\b/i;
 const EXPLICIT_AGE_RE = /\b(?:idade\s*(?:de)?\s*)?(\d{1,4})\s*(?:anos?|anos?\s+de\s+idade|de\s+idade)\b/i;
@@ -65,8 +95,39 @@ const CLASS_SKILL_PRIORITIES = {
   guardiao: ["percepcao", "sobrevivencia", "furtividade", "natureza", "investigacao", "adestrarAnimais"],
 };
 
+const CLASS_FEAT_PRIORITIES = {
+  artifice: ["artifista", "conjurador-belico", "conjurador-de-guerra", "especialista-em-pericia", "especialista-em-pericias", "mente-agucada", "iniciado-magico"],
+  barbaro: ["mestre-em-armas-grandes", "mestre-das-armas-pesadas", "atacante-selvagem", "vigoroso", "resistente", "sentinela"],
+  bardo: ["ator", "lider-inspirador", "musico", "especialista-em-pericia", "especialista-em-pericias", "iniciado-magico"],
+  bruxo: ["conjurador-belico", "conjurador-de-guerra", "toque-das-sombras", "toque-feerico", "telepatico", "iniciado-magico"],
+  clerigo: ["conjurador-belico", "conjurador-de-guerra", "curandeiro", "lider-inspirador", "iniciado-magico", "conjurador-de-rituais"],
+  druida: ["conjurador-belico", "conjurador-de-guerra", "curandeiro", "telepatico", "iniciado-magico", "vigoroso", "resistente"],
+  feiticeiro: ["conjurador-belico", "conjurador-de-guerra", "toque-feerico", "adepto-elemental", "telecinetico", "iniciado-magico"],
+  guerreiro: ["mestre-em-armas-grandes", "mestre-das-armas-pesadas", "mestre-atirador", "atirador-de-elite", "sentinela", "duelista-defensivo", "vigoroso", "resistente"],
+  ladino: ["sorrateiro", "alerta", "sortudo", "especialista-em-pericia", "especialista-em-pericias", "mestre-atirador", "atirador-de-elite"],
+  mago: ["conjurador-belico", "conjurador-de-guerra", "mente-agucada", "conjurador-de-rituais", "telecinetico", "adepto-elemental"],
+  monge: ["velocista", "atleta", "alerta", "vigoroso", "habilidoso"],
+  paladino: ["mestre-em-escudos", "mestre-do-escudo", "lider-inspirador", "conjurador-belico", "conjurador-de-guerra", "sentinela", "vigoroso", "resistente"],
+  patrulheiro: ["mestre-atirador", "atirador-de-elite", "sorrateiro", "alerta", "iniciado-magico", "velocista"],
+  guardiao: ["mestre-atirador", "sorrateiro", "alerta", "iniciado-magico", "velocista"],
+};
+
+const CLASS_SPELL_TAG_PRIORITIES = {
+  artifice: ["utilidade", "defesa", "suporte", "controle"],
+  bardo: ["controle", "social", "suporte", "utilidade", "cura"],
+  bruxo: ["dano", "controle", "sombras", "maldição", "utilidade"],
+  clerigo: ["cura", "suporte", "defesa", "radiante", "utilidade"],
+  druida: ["natureza", "cura", "controle", "animal", "exploracao"],
+  feiticeiro: ["dano", "controle", "fogo", "mobilidade", "defesa"],
+  mago: ["controle", "dano", "utilidade", "defesa", "ritual"],
+  paladino: ["defesa", "cura", "radiante", "combate", "suporte"],
+  patrulheiro: ["exploracao", "dano", "natureza", "furtividade", "controle"],
+  guardiao: ["exploracao", "dano", "natureza", "furtividade", "controle"],
+};
+
 const EDITION_CONFIGS = {
   "5e": {
+    editionKey: "5e",
     label: "D&D 5e",
     classes: Object.values(CLASSES_5E),
     subclasses: Object.values(SUBCLASSES_5E),
@@ -74,11 +135,20 @@ const EDITION_CONFIGS = {
     subraces: Object.values(SUBRACAS_5E),
     backgrounds: Object.values(ANTECEDENTES_5E),
     divinities: Object.values(DIVINDADES_5E),
+    feats: TALENTOS_5E,
+    spells: flattenSpellCatalog(MAGIAS_5E),
+    classEquipmentRules: CLASS_EQUIPMENT_RULES_5E,
+    backgroundEquipmentRules: BACKGROUND_EQUIPMENT_RULES_5E,
+    classFeatLevels: CLASS_FEAT_OPTION_LEVELS,
+    defaultClassFeatLevels: DEFAULT_CLASS_FEAT_OPTION_LEVELS,
+    spellcastingRules: SPELLCASTING_RULES_5E,
+    subclassSpellcastingRules: SUBCLASS_SPELLCASTING_RULES_5E,
     alignments: ALIGNMENTS_5E.map((item) => ({ id: item.nome, label: item.nome })),
     skills: SKILLS_5E.map((item) => ({ id: item.key, label: item.nome })),
     valueMode: "label",
   },
   "5.5e-2024": {
+    editionKey: "5.5e-2024",
     label: "D&D 5.5e (2024)",
     classes: Object.values(CLASSES_2024),
     subclasses: Object.values(SUBCLASSES_2024),
@@ -86,6 +156,14 @@ const EDITION_CONFIGS = {
     subraces: Object.values(SUBRACAS_2024),
     backgrounds: Object.values(ANTECEDENTES_2024),
     divinities: Object.values(DIVINDADES_2024),
+    feats: TALENTOS_2024,
+    spells: flattenSpellCatalog(MAGIAS_2024),
+    classEquipmentRules: CLASS_EQUIPMENT_RULES_2024,
+    backgroundEquipmentRules: BACKGROUND_EQUIPMENT_RULES_2024,
+    classFeatLevels: CLASS_FEATS_2024,
+    defaultClassFeatLevels: FEAT_LEVELS_2024,
+    spellcastingRules: SPELLCASTING_RULES_2024,
+    subclassSpellcastingRules: SUBCLASS_SPELLCASTING_RULES_2024,
     alignments: ALIGNMENTS_2024.map((item) => ({ id: item.id, label: item.label })),
     skills: SKILL_OPTIONS_2024.map((item) => ({ id: item.id, label: item.label })),
     valueMode: "id",
@@ -263,6 +341,9 @@ export function buildOpenAiInput(input, config) {
             "Use as pistas de contexto enviadas para resolver sinonimos, nomes em ingles e sugestoes narrativas fortes antes de escolher fallbacks genericos.",
             "Se o usuario descrever alguem como velho, velha, idoso, idosa, anciao, ancia ou veterano, escolha uma idade numerica coerente com isso para a especie; nunca use uma idade jovem como 25 anos nesse caso, salvo se o usuario pedir explicitamente esse numero.",
             "A ficha deve vir completa em todas as preferencias: escolha atributos, pericias, expertise quando existir, equipamento textual e descricoes concretas.",
+            "Quando a combinacao escolhida permitir talentos, selecione featIds com IDs presentes no catalogo e coerentes com nivel, classe e prompt.",
+            "Quando a classe, subclasse, origem ou talento permitir magia, selecione spellIds com IDs presentes no catalogo e dentro dos limites indicados; prefira magias que combinem com a historia do usuario.",
+            "Quando houver pacotes oficiais de equipamento, preencha equipmentPackageHints com uma opcao disponivel; complemente equipmentNotes com itens tematicos, sem substituir escolhas oficiais.",
             "A preferencia muda o criterio, nao a completude: simples prioriza coerencia narrativa e escolhas faceis de jogar; equilibrada mistura historia com escolhas mecanicamente uteis; otimizada prioriza sinergia mecanica, atributos fortes e poderio, sem contradizer restricoes centrais do usuario.",
             "Nao deixe decisoes internas para o usuario em campos narrativos. Nao escreva alternativas com 'ou', barras, parenteses opcionais ou listas do tipo cabelo castanho OU ruivo OU loiro; escolha uma unica opcao concreta.",
             "Escreva todos os textos em portugues do Brasil.",
@@ -282,9 +363,10 @@ export function buildOpenAiInput(input, config) {
             requestedTone: input.tone,
             optimizationPreference: input.complexity,
             requiredBehavior: {
-              completeness: "Preencha a ficha como rascunho jogavel. Escolha pericias e expertise quando as regras da classe permitirem.",
+              completeness: "Preencha a ficha como rascunho jogavel. Escolha pericias, expertise, talentos, magias e equipamento quando as regras e catalogos enviados permitirem.",
               concreteText: "Descricoes devem ser finais e especificas, sem pedir novas escolhas ao usuario.",
               physicalConsistency: "physicalDescription.age deve bater com qualquer sinal de idade no userIdea e a appearance deve repetir essa idade de forma natural.",
+              catalogIntegrity: "featIds, spellIds e equipmentPackageHints devem usar apenas IDs enviados em availableOptions.",
             },
             contextHints,
             availableOptions: buildCatalogPrompt(config, input),
@@ -338,6 +420,9 @@ function buildCatalogPrompt(config, input = {}) {
     })),
     alignments: config.alignments,
     divinities: buildDivinityCatalogPrompt(config, input),
+    feats: buildFeatCatalogPrompt(config, input),
+    spells: buildSpellCatalogPrompt(config, input),
+    equipment: buildEquipmentCatalogPrompt(config, input),
     skills: config.skills,
     skillGuidance: {
       selectedSkillIds: "IDs das pericias escolhidas pela classe, origem, especie ou recursos opcionais. Evite duplicar pericias fixas do antecedente quando possivel.",
@@ -363,6 +448,128 @@ function buildDivinityCatalogPrompt(config, input = {}) {
       .filter((entry, index) => entry.score > 0 || index < 8)
       .slice(0, DIVINITY_FEATURED_LIMIT)
       .map((entry) => formatFeaturedDivinity(entry.item, entry.reasons)),
+    };
+}
+
+function buildFeatCatalogPrompt(config, input = {}) {
+  const prompt = input?.prompt || "";
+  const analysis = analyzePromptCatalogIntent(prompt, config);
+  const level = extractRequestedLevel(prompt) || 4;
+  const ranked = rankFeatOptions(config.feats, {
+    config,
+    prompt,
+    classId: analysis.resolved.classId,
+    level,
+    abilityScores: null,
+    strictEligibility: false,
+  });
+
+  return {
+    instruction: "Use featIds somente com IDs de featured. Talentos fixos de antecedente 2024 ja entram pelo antecedente; use featIds para escolhas livres quando existirem slots.",
+    featured: ranked.slice(0, CATALOG_PROMPT_LIMITS.feats).map(({ item, reasons }) => formatFeatPromptEntry(item, reasons)),
+  };
+}
+
+function buildSpellCatalogPrompt(config, input = {}) {
+  const prompt = input?.prompt || "";
+  const analysis = analyzePromptCatalogIntent(prompt, config);
+  const level = extractRequestedLevel(prompt) || 1;
+  const spellRule = getSpellRuleForChoice({
+    config,
+    classId: analysis.resolved.classId,
+    subclassId: analysis.resolved.subclassId,
+    level,
+    abilityScores: {},
+  });
+  const sourceClassId = spellRule?.sourceClassId || analysis.resolved.classId || "";
+  const maxSpellLevel = spellRule?.maxSpellLevel || 1;
+  const ranked = rankSpellOptions(config.spells, {
+    prompt,
+    sourceClassId,
+    maxSpellLevel,
+    strictClass: Boolean(sourceClassId),
+  });
+
+  return {
+    instruction: "Use spellIds somente com IDs de featured. O servidor vai aplicar limites por classe e nivel; prefira truques e magias de baixo circulo quando o nivel nao for citado.",
+    sourceKey: PRIMARY_SOURCE_KEY,
+    limitsHint: spellRule ? {
+      classId: analysis.resolved.classId,
+      sourceClassId,
+      cantripLimit: spellRule.cantripLimit,
+      spellLimit: spellRule.spellLimit,
+      maxSpellLevel,
+    } : null,
+    featured: ranked.slice(0, CATALOG_PROMPT_LIMITS.spells).map(({ item, reasons }) => formatSpellPromptEntry(item, reasons)),
+  };
+}
+
+function buildEquipmentCatalogPrompt(config, input = {}) {
+  const prompt = input?.prompt || "";
+  const analysis = analyzePromptCatalogIntent(prompt, config);
+  const classRule = config.classEquipmentRules?.[analysis.resolved.classId];
+  const backgroundRule = config.backgroundEquipmentRules?.[analysis.resolved.backgroundId];
+  const classOptions = compactEquipmentRuleOptions(classRule, "class");
+  const backgroundOptions = compactEquipmentRuleOptions(backgroundRule, "background");
+
+  return {
+    instruction: "Preencha equipmentPackageHints.classPackageId/backgroundPackageId quando houver uma opcao clara. Use IDs de packageOptions; deixe string vazia se nao houver pacote aplicavel.",
+    classId: analysis.resolved.classId,
+    backgroundId: analysis.resolved.backgroundId,
+    classPackageOptions: classOptions.slice(0, CATALOG_PROMPT_LIMITS.equipmentOptions),
+    backgroundPackageOptions: backgroundOptions.slice(0, CATALOG_PROMPT_LIMITS.equipmentOptions),
+  };
+}
+
+function compactEquipmentRuleOptions(ruleSource, sourceType) {
+  const options = [];
+  (ruleSource?.groups || []).forEach((group) => {
+    if (!Array.isArray(group?.options) || !group.options.length) return;
+    group.options.forEach((option) => {
+      options.push({
+        id: option.id || "",
+        groupId: group.id || "",
+        sourceType,
+        label: option.label || option.id || "",
+        summary: summarizeEquipmentOption(option),
+      });
+    });
+  });
+  return options;
+}
+
+function summarizeEquipmentOption(option = {}) {
+  const grantText = (option.grants || [])
+    .map((grant) => grant?.value || grant?.label || grant?.ref || grant?.pool || "")
+    .filter(Boolean)
+    .slice(0, 4)
+    .join(", ");
+  return sanitizeText(grantText, 180);
+}
+
+function formatFeatPromptEntry(item = {}, reasons = []) {
+  return {
+    id: item.id || "",
+    label: item.name_pt || item.nome || item.name || item.id || "",
+    category: item.categoria || "",
+    tags: Array.isArray(item.tags) ? item.tags.slice(0, 6) : [],
+    prerequisites: Array.isArray(item.prerequisites) ? item.prerequisites.slice(0, 3) : [],
+    summary: sanitizeText(item.description_pt || item.descricao || item.description_en || "", 180),
+    why: reasons.join("; "),
+  };
+}
+
+function formatSpellPromptEntry(item = {}, reasons = []) {
+  return {
+    id: item.id || "",
+    label: item.nome || item.id || "",
+    englishLabel: item.nomeEN || "",
+    level: Number(item.nivel || 0),
+    school: item.escola || "",
+    classes: Array.isArray(item.classes) ? item.classes.slice(0, 8) : [],
+    tags: Array.isArray(item.tags) ? item.tags.slice(0, 6) : [],
+    summary: sanitizeText(item.resumo || item.descricao || "", 160),
+    why: reasons.join("; "),
   };
 }
 
@@ -489,6 +696,9 @@ export function buildCharacterJsonSchema() {
       "physicalDescription",
       "selectedSkillIds",
       "expertiseSkillIds",
+      "featIds",
+      "spellIds",
+      "equipmentPackageHints",
       "appearance",
       "personalityTraits",
       "ideals",
@@ -539,6 +749,25 @@ export function buildCharacterJsonSchema() {
         type: "array",
         maxItems: 8,
         items: { type: "string", maxLength: 80 },
+      },
+      featIds: {
+        type: "array",
+        maxItems: 8,
+        items: { type: "string", maxLength: 120 },
+      },
+      spellIds: {
+        type: "array",
+        maxItems: 32,
+        items: { type: "string", maxLength: 120 },
+      },
+      equipmentPackageHints: {
+        type: "object",
+        additionalProperties: false,
+        required: ["classPackageId", "backgroundPackageId"],
+        properties: {
+          classPackageId: { type: "string", maxLength: 80 },
+          backgroundPackageId: { type: "string", maxLength: 80 },
+        },
       },
       appearance: { type: "string", maxLength: 700 },
       personalityTraits: { type: "string", maxLength: 500 },
@@ -596,7 +825,18 @@ export function normalizeRecommendation(recommendation, input, config) {
   const physicalDescription = normalizePhysicalDescription(recommendation.physicalDescription, { input, race });
   const selectedSkillIds = normalizeSelectedSkillIds(recommendation.selectedSkillIds, { config, cls, background, abilityScores, input });
   const expertiseSkillIds = normalizeExpertiseSkillIds(recommendation.expertiseSkillIds, selectedSkillIds, { config });
+  const featIds = normalizeFeatIds(recommendation.featIds, { config, cls, race, background, level, abilityScores, input });
+  const featChoiceSlots = buildFeatChoiceSlots({ config, cls, race, level, featIds });
+  const selectedSpellsBySource = normalizeSelectedSpellsBySource(recommendation.spellIds, { config, cls, subclass, level, abilityScores, input });
+  const spellIds = collectSpellIdsFromSelection(selectedSpellsBySource);
+  const equipmentChoiceFields = buildEquipmentChoiceFields(recommendation.equipmentPackageHints, { config, cls, background, input });
   const appearance = normalizeAppearanceText(recommendation.appearance, physicalDescription);
+  const equipmentNotes = buildEquipmentNotes(recommendation.equipmentNotes, {
+    config,
+    featIds,
+    spellIds,
+    equipmentChoiceFields,
+  });
 
   return {
     name: sanitizeText(recommendation.name, 80) || "Personagem sem nome",
@@ -624,6 +864,13 @@ export function normalizeRecommendation(recommendation, input, config) {
     physicalDescription,
     selectedSkillIds,
     expertiseSkillIds,
+    featIds,
+    featLabels: featIds.map((featId) => getFeatLabel(config, featId)).filter(Boolean),
+    featChoiceSlots,
+    selectedSpellsBySource,
+    spellIds,
+    spellLabels: spellIds.map((spellId) => getSpellLabel(config, spellId)).filter(Boolean),
+    equipmentChoiceFields,
     appearance,
     personalityTraits: sanitizeConcreteText(recommendation.personalityTraits, 500),
     ideals: sanitizeConcreteText(recommendation.ideals, 500),
@@ -633,7 +880,7 @@ export function normalizeRecommendation(recommendation, input, config) {
     allies: sanitizeConcreteText(recommendation.allies, 700),
     treasure: sanitizeConcreteText(recommendation.treasure, 500),
     extraProficiencies: sanitizeConcreteText(recommendation.extraProficiencies, 500),
-    equipmentNotes: sanitizeConcreteText(recommendation.equipmentNotes, 700),
+    equipmentNotes,
     reasoning: sanitizeConcreteText(recommendation.reasoning, 700),
     sourcePrompt: sanitizeText(input.prompt, 600),
   };
@@ -707,6 +954,469 @@ function normalizeExpertiseSkillIds(value, selectedSkillIds = [], { config } = {
   requested.forEach(add);
   selectedSkillIds.forEach(add);
   return selected.slice(0, 8);
+}
+
+function normalizeFeatIds(value, { config, cls, race, background, level, abilityScores, input } = {}) {
+  const capacity = getFeatChoiceCapacity({ config, cls, race, background, level });
+  if (!capacity) return [];
+
+  const validFeatIds = new Set((config?.feats || []).map((feat) => feat.id));
+  const requested = normalizeIdList(value, validFeatIds);
+  const selected = [];
+  const add = (featId) => {
+    if (!featId || selected.includes(featId) || !validFeatIds.has(featId)) return;
+    const feat = findById(config.feats, featId);
+    if (!isFeatProbablyEligible(feat, { config, cls, level, abilityScores })) return;
+    selected.push(featId);
+  };
+
+  requested.forEach(add);
+  rankFeatOptions(config.feats, {
+    config,
+    prompt: input?.prompt || "",
+    classId: cls?.id || "",
+    level,
+    abilityScores,
+    strictEligibility: true,
+  }).forEach(({ item }) => add(item.id));
+
+  return selected.slice(0, capacity);
+}
+
+function getFeatChoiceCapacity({ config, cls, race, background, level } = {}) {
+  const classFeatLevels = getClassFeatLevels(config, cls?.id).filter((requiredLevel) => Number(level || 1) >= requiredLevel);
+  let capacity = classFeatLevels.length;
+
+  if (config?.editionKey === "5.5e-2024" && race?.id === "humano") {
+    capacity += 1;
+  }
+  if (config?.editionKey === "5e") {
+    const directBackgroundPicks = Number(background?.escolhasTalentos?.picks || 0);
+    capacity += Math.max(0, directBackgroundPicks);
+  }
+
+  return Math.min(capacity, 8);
+}
+
+function getClassFeatLevels(config, classId = "") {
+  const customLevels = config?.classFeatLevels?.[classId];
+  const levels = Array.isArray(customLevels) ? customLevels : config?.defaultClassFeatLevels;
+  return (Array.isArray(levels) ? levels : []).map((level) => Number(level)).filter(Number.isFinite);
+}
+
+function rankFeatOptions(feats = [], { config, prompt = "", classId = "", level = 1, abilityScores = null, strictEligibility = false } = {}) {
+  const promptText = normalizeSearchText(prompt);
+  const promptTokens = new Set(promptText.split(" ").filter((token) => token.length >= 4));
+  const classPriorities = new Set([
+    ...(CLASS_FEAT_PRIORITIES[classId] || []),
+    ...((findById(config?.classes || [], classId)?.escolhas?.talentosSugestao) || []),
+  ]);
+
+  return (feats || [])
+    .map((item, index) => {
+      if (strictEligibility && !isFeatProbablyEligible(item, { config, cls: findById(config?.classes || [], classId), level, abilityScores })) {
+        return null;
+      }
+
+      let score = 0;
+      const reasons = [];
+      const addReason = (reason) => {
+        if (!reason || reasons.includes(reason) || reasons.length >= 4) return;
+        reasons.push(reason);
+      };
+      const searchTerms = [
+        item.id,
+        item.name_pt,
+        item.nome,
+        item.name,
+        item.categoria,
+        ...(item.tags || []),
+        item.description_pt,
+        item.description_en,
+      ].filter(Boolean);
+      const normalizedTerms = searchTerms.map(normalizeSearchText).filter(Boolean);
+
+      if (classPriorities.has(item.id)) {
+        score += 120;
+        addReason("sugestao cadastrada para a classe");
+      }
+      normalizedTerms.forEach((term) => {
+        if (term.length >= 3 && containsNormalizedPhrase(promptText, term)) {
+          score += term === normalizeSearchText(item.id) ? 160 : 80;
+          addReason("citado ou sugerido pelo prompt");
+        }
+      });
+
+      const searchableTokens = new Set(normalizedTerms.join(" ").split(" ").filter((token) => token.length >= 4));
+      const overlap = Array.from(promptTokens).filter((token) => searchableTokens.has(token));
+      if (overlap.length) {
+        score += overlap.length * 18;
+        addReason(`combina com ${overlap.slice(0, 3).join(", ")}`);
+      }
+
+      if (String(item.categoria || "") === "origem" && Number(level || 1) <= 3) {
+        score += 20;
+      }
+      if (String(item.categoria || "") === "dadiva-epica" && Number(level || 1) < 19) {
+        score -= 200;
+      }
+
+      return { item, index, score, reasons };
+    })
+    .filter(Boolean)
+    .sort((a, b) => b.score - a.score || a.index - b.index);
+}
+
+function isFeatProbablyEligible(feat, { config, cls, level = 1, abilityScores = null } = {}) {
+  if (!feat?.id) return false;
+  const category = String(feat.categoria || "");
+  if (config?.editionKey === "5.5e-2024") {
+    if (category === "dadiva-epica" && Number(level || 1) < 19) return false;
+    if (category === "geral" && Number(level || 1) < 4) return false;
+  }
+
+  const prerequisites = Array.isArray(feat.prerequisites) ? feat.prerequisites : [];
+  const isCaster = Boolean(getSpellcastingRule(config, cls?.id, "", level));
+  return prerequisites.every((prerequisite) => {
+    const text = normalizeSearchText(prerequisite);
+    const levelMatch = text.match(/nivel\s+(\d+)/);
+    if (levelMatch && Number(level || 1) < Number(levelMatch[1])) return false;
+    if (/conjuracao|magia de pacto|conjurar/.test(text) && !isCaster) return false;
+    if (!abilityScores) return true;
+    return ABILITIES.every((ability) => {
+      const label = normalizeSearchText(abilityLabelPt(ability));
+      const match = text.match(new RegExp(`${label}\\s+(\\d+)`));
+      return !match || Number(abilityScores?.[ability] || 0) >= Number(match[1]);
+    });
+  });
+}
+
+function buildFeatChoiceSlots({ config, cls, race, level, featIds = [] } = {}) {
+  const ids = [...featIds];
+  const slots = [];
+  const takeByCategory = (categories = []) => {
+    const index = ids.findIndex((featId) => categories.includes(String(findById(config.feats, featId)?.categoria || "")));
+    if (index >= 0) return ids.splice(index, 1)[0];
+    return ids.shift() || "";
+  };
+
+  if (config?.editionKey === "5.5e-2024" && race?.id === "humano") {
+    const originFeatId = takeByCategory(["origem"]);
+    if (originFeatId) {
+      slots.push({ editionKey: config.editionKey, slotKey: "human-origin", featId: originFeatId });
+    }
+  }
+
+  getClassFeatLevels(config, cls?.id)
+    .filter((requiredLevel) => Number(level || 1) >= requiredLevel)
+    .forEach((requiredLevel) => {
+      const featId = takeByCategory(config?.editionKey === "5.5e-2024" && requiredLevel >= 19 ? ["dadiva-epica", "geral"] : ["geral", ""]);
+      if (!featId) return;
+
+      if (config?.editionKey === "5.5e-2024") {
+        slots.push({ editionKey: config.editionKey, slotKey: `class-feat-${PRIMARY_SOURCE_KEY}-${requiredLevel}`, featId });
+      } else {
+        slots.push({
+          editionKey: config.editionKey,
+          slotKey: `classe:${cls?.id || "classe"}:asi-${requiredLevel}:slot-0`,
+          featId,
+          requiresModeField: true,
+        });
+      }
+    });
+
+  return slots;
+}
+
+function normalizeSelectedSpellsBySource(value, { config, cls, subclass, level, abilityScores, input } = {}) {
+  const spellRule = getSpellRuleForChoice({
+    config,
+    classId: cls?.id || "",
+    subclassId: subclass?.id || "",
+    level,
+    abilityScores,
+  });
+  if (!spellRule || (!spellRule.cantripLimit && !spellRule.spellLimit)) return {};
+
+  const validSpellIds = new Set((config?.spells || []).map((spell) => spell.id));
+  const requested = normalizeIdList(value, validSpellIds);
+  const ranked = rankSpellOptions(config.spells, {
+    prompt: input?.prompt || "",
+    sourceClassId: spellRule.sourceClassId,
+    maxSpellLevel: spellRule.maxSpellLevel,
+    strictClass: true,
+  }).map(({ item }) => item.id);
+  const cantrips = [];
+  const spells = [];
+  const addSpell = (spellId) => {
+    const spell = findById(config.spells, spellId);
+    if (!isSpellEligibleForRule(spell, spellRule)) return;
+    if (Number(spell.nivel || 0) === 0) {
+      if (cantrips.length < spellRule.cantripLimit && !cantrips.includes(spellId)) cantrips.push(spellId);
+      return;
+    }
+    if (spells.length < spellRule.spellLimit && !spells.includes(spellId)) spells.push(spellId);
+  };
+
+  requested.forEach(addSpell);
+  ranked.forEach(addSpell);
+
+  return cantrips.length || spells.length
+    ? { [PRIMARY_SOURCE_KEY]: { cantrips, spells } }
+    : {};
+}
+
+function getSpellRuleForChoice({ config, classId = "", subclassId = "", level = 1, abilityScores = {} } = {}) {
+  const classRule = getSpellcastingRule(config, classId, "", level);
+  const subclassRule = getSpellcastingRule(config, classId, subclassId, level);
+  const rule = classRule || subclassRule;
+  if (!rule) return null;
+
+  const safeLevel = clampInt(level, 1, 20);
+  const abilityMod = abilityModifier(abilityScores?.[rule.ability] || 10);
+  const cantripLimit = clampInt(rule.cantripsByLevel?.[safeLevel] || 0, 0, 12);
+  const spellLimit = getSpellChoiceLimit(rule, safeLevel, abilityMod);
+  const maxSpellLevel = getMaxSpellLevelForRule(rule, safeLevel);
+
+  return {
+    ...rule,
+    cantripLimit,
+    spellLimit,
+    maxSpellLevel,
+  };
+}
+
+function getSpellcastingRule(config, classId = "", subclassId = "", level = 1) {
+  const subclassRule = subclassId ? config?.subclassSpellcastingRules?.[subclassId] : null;
+  if (subclassRule && Number(level || 1) >= Number(subclassRule.minLevel || 1)) return subclassRule;
+  const classRule = classId ? config?.spellcastingRules?.[classId] : null;
+  if (classRule && Number(level || 1) >= Number(classRule.minLevel || 1)) return classRule;
+  return null;
+}
+
+function getSpellChoiceLimit(rule = {}, level = 1, abilityMod = 0) {
+  if (Array.isArray(rule.spellsKnownByLevel)) return clampInt(rule.spellsKnownByLevel[level] || 0, 0, 50);
+  if (Array.isArray(rule.preparedByLevel)) return clampInt(rule.preparedByLevel[level] || 0, 0, 50);
+  if (typeof rule.preparedCount === "function") {
+    return clampInt(rule.preparedCount({ level, mod: abilityMod }), 0, 50);
+  }
+  return 0;
+}
+
+function getMaxSpellLevelForRule(rule = {}, level = 1) {
+  if (Array.isArray(rule.pactSlotLevelByLevel)) return clampInt(rule.pactSlotLevelByLevel[level] || 0, 0, 9);
+  const slots = Array.isArray(rule.slotTable?.[level]) ? rule.slotTable[level] : [];
+  let maxLevel = 0;
+  slots.forEach((count, index) => {
+    if (Number(count || 0) > 0) maxLevel = index + 1;
+  });
+  return maxLevel;
+}
+
+function rankSpellOptions(spells = [], { prompt = "", sourceClassId = "", maxSpellLevel = 1, strictClass = false } = {}) {
+  const promptText = normalizeSearchText(prompt);
+  const promptTokens = new Set(promptText.split(" ").filter((token) => token.length >= 4));
+  const classPriorities = CLASS_SPELL_TAG_PRIORITIES[sourceClassId] || [];
+
+  return (spells || [])
+    .map((item, index) => {
+      if (strictClass && !spellBelongsToClass(item, sourceClassId)) return null;
+      if (Number(item.nivel || 0) > Number(maxSpellLevel || 0) && Number(item.nivel || 0) !== 0) return null;
+
+      let score = 0;
+      const reasons = [];
+      const addReason = (reason) => {
+        if (!reason || reasons.includes(reason) || reasons.length >= 4) return;
+        reasons.push(reason);
+      };
+      const terms = [
+        item.id,
+        item.nome,
+        item.nomeEN,
+        item.escola,
+        item.resumo,
+        item.descricao,
+        ...(item.tags || []),
+      ].filter(Boolean).map(normalizeSearchText);
+
+      terms.forEach((term) => {
+        if (term.length >= 3 && containsNormalizedPhrase(promptText, term)) {
+          score += term === normalizeSearchText(item.id) ? 180 : 90;
+          addReason("citado ou sugerido pelo prompt");
+        }
+      });
+
+      const searchableTokens = new Set(terms.join(" ").split(" ").filter((token) => token.length >= 4));
+      const overlap = Array.from(promptTokens).filter((token) => searchableTokens.has(token));
+      if (overlap.length) {
+        score += overlap.length * 16;
+        addReason(`combina com ${overlap.slice(0, 3).join(", ")}`);
+      }
+
+      const tags = (item.tags || []).map(normalizeSearchText);
+      classPriorities.forEach((tag, priorityIndex) => {
+        if (tags.includes(normalizeSearchText(tag))) {
+          score += 50 - priorityIndex * 4;
+          addReason(`boa magia de ${sourceClassId}`);
+        }
+      });
+
+      if (Number(item.nivel || 0) === 0) score += 12;
+      if (item.ritual) score += 8;
+
+      return { item, index, score, reasons };
+    })
+    .filter(Boolean)
+    .sort((a, b) => b.score - a.score || Number(a.item.nivel || 0) - Number(b.item.nivel || 0) || a.index - b.index);
+}
+
+function isSpellEligibleForRule(spell, spellRule) {
+  if (!spell?.id || !spellRule) return false;
+  const level = Number(spell.nivel || 0);
+  if (!spellBelongsToClass(spell, spellRule.sourceClassId)) return false;
+  if (level > 0 && level > Number(spellRule.maxSpellLevel || 0)) return false;
+  return true;
+}
+
+function spellBelongsToClass(spell, classId = "") {
+  if (!classId) return true;
+  const aliases = classId === "guardiao" ? ["guardiao", "patrulheiro", "ranger"] : [classId];
+  const normalizedClasses = (spell?.classes || []).map(normalizeSearchText);
+  return aliases.map(normalizeSearchText).some((alias) => normalizedClasses.includes(alias));
+}
+
+function buildEquipmentChoiceFields(value, { config, cls, background, input } = {}) {
+  const hints = isPlainObject(value) ? value : {};
+  return [
+    ...buildEquipmentFieldsForSource({
+      config,
+      sourceType: "class",
+      sourceId: cls?.id || "",
+      ruleSource: config?.classEquipmentRules?.[cls?.id],
+      requestedPackageId: hints.classPackageId,
+      prompt: input?.prompt || "",
+    }),
+    ...buildEquipmentFieldsForSource({
+      config,
+      sourceType: "background",
+      sourceId: background?.id || "",
+      ruleSource: config?.backgroundEquipmentRules?.[background?.id],
+      requestedPackageId: hints.backgroundPackageId,
+      prompt: input?.prompt || "",
+    }),
+  ];
+}
+
+function buildEquipmentFieldsForSource({ config, sourceType, sourceId, ruleSource, requestedPackageId = "", prompt = "" } = {}) {
+  if (!sourceId || !ruleSource?.groups?.length) return [];
+
+  if (config?.editionKey === "5.5e-2024") {
+    const firstGroup = ruleSource.groups.find((group) => Array.isArray(group?.options) && group.options.length);
+    const selectedId = chooseEquipmentOptionId(firstGroup, requestedPackageId, prompt);
+    if (!firstGroup || !selectedId) return [];
+    return [{
+      editionKey: config.editionKey,
+      inputType: "radio",
+      name: `${sourceType}-${firstGroup.id}`,
+      optionValue: selectedId,
+      label: getEquipmentOptionLabel(firstGroup, selectedId),
+    }];
+  }
+
+  const fields = [];
+  const scopeKey = `${sourceType}:${sourceId}`;
+  ruleSource.groups.forEach((group) => {
+    if (!Array.isArray(group?.options) || !group.options.length) return;
+    const selectedId = chooseEquipmentOptionId(group, requestedPackageId, prompt);
+    if (!selectedId) return;
+    fields.push({
+      editionKey: config.editionKey,
+      inputType: "select",
+      data: { "data-equipment-selection-key": [scopeKey, group.id, "option"].join("|") },
+      value: selectedId,
+      label: getEquipmentOptionLabel(group, selectedId),
+    });
+  });
+  return fields;
+}
+
+function chooseEquipmentOptionId(group, requestedPackageId = "", prompt = "") {
+  if (!Array.isArray(group?.options) || !group.options.length) return "";
+  const requested = String(requestedPackageId || "").trim().toLowerCase();
+  if (requested) {
+    const match = group.options.find((option) => String(option.id || "").toLowerCase() === requested);
+    if (match) return match.id;
+  }
+
+  const promptText = normalizeSearchText(prompt);
+  const ranked = group.options
+    .map((option, index) => {
+      const text = normalizeSearchText([
+        option.id,
+        option.label,
+        summarizeEquipmentOption(option),
+      ].filter(Boolean).join(" "));
+      let score = 0;
+      if (promptText && text && promptText.split(" ").some((token) => token.length >= 4 && text.includes(token))) {
+        score += 30;
+      }
+      if (/(\b|-)b$/.test(String(option.id || "")) && /ouro|po|moeda|comprar|compra/.test(promptText)) {
+        score += 20;
+      }
+      if (!/ouro|po|moeda|comprar|compra/.test(promptText) && index === 0) {
+        score += 10;
+      }
+      return { option, index, score };
+    })
+    .sort((a, b) => b.score - a.score || a.index - b.index);
+
+  return ranked[0]?.option?.id || "";
+}
+
+function getEquipmentOptionLabel(group, optionId = "") {
+  const option = (group?.options || []).find((entry) => entry?.id === optionId);
+  return option?.label || optionId;
+}
+
+function buildEquipmentNotes(value, { config, featIds = [], spellIds = [], equipmentChoiceFields = [] } = {}) {
+  const base = sanitizeConcreteText(value, 700);
+  const extras = [];
+  const featLabels = featIds.map((featId) => getFeatLabel(config, featId)).filter(Boolean);
+  const spellLabels = spellIds.map((spellId) => getSpellLabel(config, spellId)).filter(Boolean);
+  const equipmentLabels = equipmentChoiceFields.map((field) => field.label).filter(Boolean);
+
+  if (featLabels.length) extras.push(`Talentos sugeridos: ${featLabels.join(", ")}.`);
+  if (spellLabels.length) extras.push(`Magias sugeridas: ${spellLabels.join(", ")}.`);
+  if (equipmentLabels.length) extras.push(`Pacotes/equipamento inicial: ${equipmentLabels.join(", ")}.`);
+
+  return sanitizeConcreteText([base, ...extras].filter(Boolean).join("\n"), 900);
+}
+
+function collectSpellIdsFromSelection(selection = {}) {
+  return Array.from(new Set(
+    Object.values(selection || {}).flatMap((entry) => [
+      ...(Array.isArray(entry?.cantrips) ? entry.cantrips : []),
+      ...(Array.isArray(entry?.spells) ? entry.spells : []),
+    ]).filter(Boolean)
+  ));
+}
+
+function getFeatLabel(config, featId = "") {
+  const feat = findById(config?.feats || [], featId);
+  return feat?.name_pt || feat?.nome || feat?.name || feat?.id || "";
+}
+
+function getSpellLabel(config, spellId = "") {
+  const spell = findById(config?.spells || [], spellId);
+  return spell?.nome || spell?.id || "";
+}
+
+function normalizeIdList(value, validIds) {
+  return Array.from(new Set(
+    (Array.isArray(value) ? value : [])
+      .map((item) => String(item || "").trim())
+      .filter((item) => validIds.has(item))
+  ));
 }
 
 function normalizeSkillIdList(value, validSkillIds) {
@@ -1110,6 +1820,65 @@ function collectFeatureTexts(features = {}) {
   ));
 }
 
+function flattenSpellCatalog(catalog = {}) {
+  const spells = [];
+  const seenIds = new Set();
+
+  const visit = (value, path = []) => {
+    if (!value || typeof value !== "object") return;
+    if (Array.isArray(value)) {
+      value.forEach((entry, index) => visit(entry, [...path, String(index)]));
+      return;
+    }
+
+    const id = String(value.id || "").trim();
+    if (id && (value.nome || value.name || value.nomeEN)) {
+      if (!seenIds.has(id)) {
+        seenIds.add(id);
+        spells.push({
+          ...value,
+          id,
+          nome: String(value.nome || value.name_pt || value.name || id),
+          nomeEN: String(value.nomeEN || value.nameEN || value.name || ""),
+          nivel: inferSpellLevel(value, path),
+          escola: String(value.escola || value.school || ""),
+          classes: normalizeSpellClassList(value.classes || value.classe || value.class),
+          tags: Array.isArray(value.tags) ? value.tags : [],
+          ritual: Boolean(value.ritual),
+          concentracao: Boolean(value.concentracao),
+          resumo: sanitizeText(value.resumo || value.summary || "", 260),
+          descricao: sanitizeText(value.descricao || value.description || "", 500),
+        });
+      }
+      return;
+    }
+
+    Object.entries(value).forEach(([key, child]) => visit(child, [...path, key]));
+  };
+
+  visit(catalog);
+  return spells;
+}
+
+function inferSpellLevel(spell = {}, path = []) {
+  const directLevel = Number(spell.nivel ?? spell.level);
+  if (Number.isFinite(directLevel)) return clampInt(directLevel, 0, 9);
+
+  const levelText = normalizeSearchText([spell.nivel, spell.level, ...path].filter(Boolean).join(" "));
+  if (/truque|cantrip/.test(levelText)) return 0;
+  const match = levelText.match(/\b([0-9])\b/);
+  return match ? clampInt(match[1], 0, 9) : 0;
+}
+
+function normalizeSpellClassList(value) {
+  const entries = Array.isArray(value) ? value : String(value || "").split(/[,;/|]+/);
+  return Array.from(new Set(
+    entries
+      .map((item) => String(item || "").trim())
+      .filter(Boolean)
+  ));
+}
+
 function normalizeSearchText(text = "") {
   return String(text || "")
     .normalize("NFD")
@@ -1167,6 +1936,34 @@ function normalizeAbilityScores(value = {}) {
     ability,
     clampInt(value?.[ability] ?? fallback[ability], 8, 15),
   ]));
+}
+
+function abilityModifier(score) {
+  return Math.floor((clampInt(score, 1, 30) - 10) / 2);
+}
+
+function abilityLabelPt(ability) {
+  return {
+    for: "forca",
+    des: "destreza",
+    con: "constituicao",
+    int: "inteligencia",
+    sab: "sabedoria",
+    car: "carisma",
+  }[ability] || ability;
+}
+
+function extractRequestedLevel(prompt = "") {
+  const text = normalizeSearchText(prompt);
+  const patterns = [
+    /\b(?:nivel|level|lvl)\s*(?:de\s*)?([1-9]|1[0-9]|20)\b/,
+    /\b([1-9]|1[0-9]|20)\s*(?:o|º)?\s*(?:nivel|level)\b/,
+  ];
+  for (const pattern of patterns) {
+    const match = text.match(pattern);
+    if (match) return clampInt(match[1], 1, 20);
+  }
+  return 0;
 }
 
 function pickFirst(list) {

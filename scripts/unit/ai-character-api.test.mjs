@@ -30,6 +30,9 @@ const baseRecommendation = {
   },
   selectedSkillIds: ["furtividade"],
   expertiseSkillIds: ["furtividade"],
+  featIds: [],
+  spellIds: [],
+  equipmentPackageHints: { classPackageId: "", backgroundPackageId: "" },
   appearance: "Uma ladina velha de cabelo castanho ou ruivo ou loiro e olhar atento.",
   personalityTraits: "Paciente ou impulsiva quando pressionada.",
   ideals: "Liberdade para quem foi esquecido.",
@@ -81,6 +84,46 @@ describe("AI character API normalization", () => {
       ["prestidigitacao", "investigacao", "percepcao", "acrobacia"]
     );
     assert.equal(character.expertiseSkillIds[0], "prestidigitacao");
+  });
+
+  it("normalizes feats, spells and equipment into editor-ready recommendations", () => {
+    const character = normalizeRecommendation(
+      {
+        ...baseRecommendation,
+        classId: "mago",
+        subclassId: "mago-evocacao",
+        backgroundId: "sabio",
+        level: 4,
+        abilityScores: { for: 8, des: 14, con: 13, int: 15, sab: 12, car: 10 },
+        featIds: ["conjurador-de-guerra"],
+        spellIds: ["disparo-de-fogo", "misseis-magicos"],
+        equipmentPackageHints: { classPackageId: "foco-arcano", backgroundPackageId: "" },
+      },
+      {
+        edition: "5e",
+        prompt: "Mago humano nivel 4 evocador com Conjurador de Guerra, Disparo de Fogo, Mísseis Mágicos e foco arcano.",
+        tone: "fantasia heroica",
+        complexity: "otimizada",
+      },
+      EDITION_CONFIGS["5e"]
+    );
+
+    assert.deepEqual(character.featIds, ["conjurador-de-guerra"]);
+    assert.deepEqual(character.featChoiceSlots, [{
+      editionKey: "5e",
+      slotKey: "classe:mago:asi-4:slot-0",
+      featId: "conjurador-de-guerra",
+      requiresModeField: true,
+    }]);
+    assert.ok(character.selectedSpellsBySource.primary.cantrips.includes("disparo-de-fogo"));
+    assert.ok(character.selectedSpellsBySource.primary.spells.includes("misseis-magicos"));
+    assert.ok(character.equipmentChoiceFields.some((field) => (
+      field.data?.["data-equipment-selection-key"] === "class:mago|foco|option"
+      && field.value === "foco-arcano"
+    )));
+    assert.match(character.equipmentNotes, /Talentos sugeridos: Conjurador de Guerra/);
+    assert.match(character.equipmentNotes, /Magias sugeridas: .*Disparo de Fogo/);
+    assert.match(character.equipmentNotes, /Pacotes\/equipamento inicial: .*Foco arcano/);
   });
 
   it("preserves an explicitly requested subrace and its parent race", () => {
@@ -188,9 +231,15 @@ describe("AI character API normalization", () => {
     assert.match(promptText, /Nao deixe decisoes internas/);
     assert.match(promptText, /physicalDescription/);
     assert.match(promptText, /contextHints/);
+    assert.match(promptText, /featIds/);
+    assert.match(promptText, /spellIds/);
+    assert.match(promptText, /equipmentPackageHints/);
     assert.ok(schema.required.includes("physicalDescription"));
     assert.ok(schema.required.includes("selectedSkillIds"));
     assert.ok(schema.required.includes("expertiseSkillIds"));
+    assert.ok(schema.required.includes("featIds"));
+    assert.ok(schema.required.includes("spellIds"));
+    assert.ok(schema.required.includes("equipmentPackageHints"));
   });
 
   it("sends contextual catalog hints to the model before generation", () => {
