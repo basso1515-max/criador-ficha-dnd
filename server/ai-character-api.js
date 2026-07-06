@@ -23,18 +23,61 @@ import {
 import {
   CLASS_FEATS_2024,
   FEAT_LEVELS_2024,
+  STYLE_LEVELS_2024,
+  SUBCLASS_STYLE_LEVELS_2024,
   ALIGNMENTS_2024,
   SKILL_OPTIONS as SKILL_OPTIONS_2024,
   SPELLCASTING_RULES_2024,
   SUBCLASS_SPELLCASTING_RULES_2024,
 } from "../src/editors/2024/rules-config.js";
+import {
+  FEATURE_CHOICE_DEFINITIONS_2024,
+  SUBCLASS_DETAIL_DEFINITIONS_2024,
+  COMPANION_CHOICE_DEFINITIONS_2024,
+  FEATURE_CHOICE_SKILL_OPTION_IDS_2024,
+} from "../src/editors/2024/feature-config.js";
+import {
+  buildFeatureChoiceSourceKey2024,
+  buildFeatureChoiceSlotKey2024,
+  isExplicitWeaponMasteryClass2024,
+} from "../src/editors/2024/feature-choice-rules.js";
+import { calculateWeaponMasteryLimit2024 } from "../src/editors/2024/rules-calculations.js";
+import {
+  BARBARIAN_PROGRESSION_2024,
+  FIGHTER_PROGRESSION_2024,
+} from "../src/editors/2024/class-progressions.js";
+import { ARMAS as ARMAS_2024 } from "../src/data/5.5e/armas.js";
 import { SKILLS as SKILLS_5E, alinhamento as ALIGNMENTS_5E } from "../src/editors/5e/static-options.js";
 import {
   CLASS_FEAT_OPTION_LEVELS,
   DEFAULT_CLASS_FEAT_OPTION_LEVELS,
+  FIGHTING_STYLE_DEFINITIONS,
   SPELLCASTING_RULES as SPELLCASTING_RULES_5E,
   SUBCLASS_SPELLCASTING_RULES as SUBCLASS_SPELLCASTING_RULES_5E,
 } from "../src/editors/5e/rules-config.js";
+import {
+  ARTIFICER_INFUSION_CATALOG,
+  ARTIFICER_INFUSION_LIMITS_BY_LEVEL,
+  ARTIFICER_INFUSION_TARGET_OPTIONS,
+  COMPANION_CHOICE_DEFINITIONS_5E,
+  FEATURE_CHOICE_DEFINITIONS_5E,
+  SUBCLASS_DETAIL_DEFINITIONS,
+} from "../src/editors/5e/feature-config.js";
+import {
+  buildFeatureChoiceSourceKey,
+  buildFeatureChoiceSlotKey,
+} from "../src/editors/5e/feature-choice-rules.js";
+import {
+  WARLOCK_INVOCATIONS_5E,
+  WARLOCK_INVOCATIONS_2024,
+  WARLOCK_INVOCATIONS_BY_LEVEL_5E,
+  WARLOCK_INVOCATIONS_BY_LEVEL_2024,
+  WARLOCK_PACT_BOONS_5E,
+  getWarlockInvocationById,
+  getWarlockInvocationCountByLevel,
+  getWarlockInvocationOptions,
+  getWarlockPactBoonById,
+} from "../src/data/warlock-invocations.js";
 import {
   findAuthenticatedAccountForRequest,
   getAccountApiStore,
@@ -530,6 +573,7 @@ export function buildOpenAiInput(input, config) {
             "A ficha deve vir completa em todas as preferencias: escolha atributos, pericias, expertise quando existir, equipamento textual e descricoes concretas.",
             "Quando a combinacao escolhida permitir talentos, selecione featIds com IDs presentes no catalogo e coerentes com nivel, classe e prompt.",
             "Quando a classe, subclasse, origem ou talento permitir magia, selecione spellIds com IDs presentes no catalogo e dentro dos limites indicados; prefira magias que combinem com a historia do usuario.",
+            "Quando houver escolhas guiadas de classe ou subclasse, preencha fightingStyleIds, warlockPactBoonId, warlockInvocationIds, featureChoiceIds, subclassDetailChoiceIds, companionChoiceIds e weaponMasteryIds com IDs concretos dos catalogos enviados.",
             "Quando houver pacotes oficiais de equipamento, preencha equipmentPackageHints com uma opcao disponivel; complemente equipmentNotes com itens tematicos, sem substituir escolhas oficiais.",
             "A preferencia muda o criterio, nao a completude: simples prioriza coerencia narrativa e escolhas faceis de jogar; equilibrada mistura historia com escolhas mecanicamente uteis; otimizada prioriza sinergia mecanica, atributos fortes e poderio, sem contradizer restricoes centrais do usuario.",
             "Use generationBrief para decidir a ordem das escolhas e para escrever uma justificativa curta no campo reasoning. O campo reasoning deve explicar a proposta final, nao revelar cadeia de pensamento.",
@@ -554,7 +598,7 @@ export function buildOpenAiInput(input, config) {
               completeness: "Preencha a ficha como rascunho jogavel. Escolha pericias, expertise, talentos, magias e equipamento quando as regras e catalogos enviados permitirem.",
               concreteText: "Descricoes devem ser finais e especificas, sem pedir novas escolhas ao usuario.",
               physicalConsistency: "physicalDescription.age deve bater com qualquer sinal de idade no userIdea e a appearance deve repetir essa idade de forma natural.",
-              catalogIntegrity: "featIds, spellIds e equipmentPackageHints devem usar apenas IDs enviados em availableOptions.",
+              catalogIntegrity: "featIds, spellIds, equipmentPackageHints e escolhas guiadas devem usar apenas IDs enviados em availableOptions.",
             },
             contextHints,
             generationBrief,
@@ -612,6 +656,7 @@ function buildCatalogPrompt(config, input = {}) {
     feats: buildFeatCatalogPrompt(config, input),
     spells: buildSpellCatalogPrompt(config, input),
     equipment: buildEquipmentCatalogPrompt(config, input),
+    classChoices: buildClassChoiceCatalogPrompt(config, input),
     skills: config.skills,
     skillGuidance: {
       selectedSkillIds: "IDs das pericias escolhidas pela classe, origem, especie ou recursos opcionais. Evite duplicar pericias fixas do antecedente quando possivel.",
@@ -708,6 +753,146 @@ function buildEquipmentCatalogPrompt(config, input = {}) {
     classPackageOptions: classOptions.slice(0, CATALOG_PROMPT_LIMITS.equipmentOptions),
     backgroundPackageOptions: backgroundOptions.slice(0, CATALOG_PROMPT_LIMITS.equipmentOptions),
   };
+}
+
+function buildClassChoiceCatalogPrompt(config, input = {}) {
+  const prompt = input?.prompt || "";
+  const analysis = analyzePromptCatalogIntent(prompt, config);
+  const cls = findById(config.classes, analysis.resolved.classId);
+  const subclass = findById(config.subclasses, analysis.resolved.subclassId);
+  const level = extractRequestedLevel(prompt) || Number(subclass?.nivel || 3) || 3;
+  const entry = buildPrimaryChoiceEntry({ cls, subclass, level });
+  if (!cls?.id) {
+    return {
+      instruction: "Depois de escolher classId/subclassId, use os campos guiados para resolver escolhas obrigatorias de classe/subclasse quando aplicavel.",
+      featured: [],
+    };
+  }
+
+  const fields = [
+    ...collectFeatureChoiceSourcesForEntry(entry, { config }).flatMap((source) => {
+      const options = getFeatureChoiceOptionsForSource(source, { config, prompt }).slice(0, 12);
+      return options.length ? [{
+        field: source.grantsSelectedWeaponMastery ? "weaponMasteryIds" : "featureChoiceIds",
+        sourceId: source.id || source.key,
+        label: source.title || source.featureLabel || source.id,
+        picks: source.picks,
+        options: options.map(formatGuidedChoicePromptOption),
+      }] : [];
+    }),
+    ...buildPromptFightingStyleChoiceEntries(config, entry),
+    ...buildPromptWarlockChoiceEntries(config, entry),
+    ...buildPromptSubclassDetailChoiceEntries(config, entry),
+    ...buildPromptCompanionChoiceEntries(config, entry),
+  ];
+
+  return {
+    instruction: "Use estes IDs para preencher campos guiados quando a classe/subclasse escolhida liberar seletores no editor. Se faltar certeza, ainda escolha uma opcao coerente; o servidor validara e completara fallbacks.",
+    classId: cls.id,
+    subclassId: subclass?.id || "",
+    level,
+    featured: fields,
+  };
+}
+
+function formatGuidedChoicePromptOption(option = {}) {
+  return {
+    id: option.value || option.id || "",
+    label: option.label || option.nome || option.name_pt || "",
+    summary: sanitizeText(option.summary || option.resumo || option.description_pt || option.description || "", 140),
+  };
+}
+
+function buildPromptFightingStyleChoiceEntries(config, entry) {
+  if (config?.editionKey === "5.5e-2024") {
+    const slots = collectFightingStyleFeatSlots2024(entry);
+    if (!slots.length) return [];
+    const styleIds = Array.from(new Set(slots.flatMap((slot) => slot.styleIds || [])));
+    return [{
+      field: "fightingStyleIds",
+      sourceId: "fighting-style",
+      label: "Estilo de luta",
+      picks: slots.length,
+      options: getFightingStyleFeatOptions2024(config, styleIds).map(formatGuidedChoicePromptOption),
+    }];
+  }
+
+  const styleIds = entry.classData?.escolhas?.estilosLuta || [];
+  if (!styleIds.length) return [];
+  return [{
+    field: "fightingStyleIds",
+    sourceId: "fighting-style",
+    label: "Estilo de Luta",
+    picks: 1,
+    options: styleIds
+      .map((styleId) => FIGHTING_STYLE_DEFINITIONS[styleId])
+      .filter(Boolean)
+      .map((style) => ({ id: style.id, label: style.label, summary: style.summary || style.description || "" })),
+  }];
+}
+
+function buildPromptWarlockChoiceEntries(config, entry) {
+  if (entry.classId !== "bruxo") return [];
+  const table = config?.editionKey === "5.5e-2024" ? WARLOCK_INVOCATIONS_BY_LEVEL_2024 : WARLOCK_INVOCATIONS_BY_LEVEL_5E;
+  const invocations = config?.editionKey === "5.5e-2024" ? WARLOCK_INVOCATIONS_2024 : WARLOCK_INVOCATIONS_5E;
+  const count = getWarlockInvocationCountByLevel(entry.level, table);
+  const entries = [];
+  if (config?.editionKey === "5e" && entry.level >= 3) {
+    entries.push({
+      field: "warlockPactBoonId",
+      sourceId: "warlock-pact",
+      label: "Dádiva do Pacto",
+      picks: 1,
+      options: WARLOCK_PACT_BOONS_5E.map((boon) => ({ id: boon.id, label: boon.label, summary: boon.summary || "" })),
+    });
+  }
+  if (count) {
+    entries.push({
+      field: "warlockInvocationIds",
+      sourceId: "warlock-invocation",
+      label: "Invocações Místicas",
+      picks: count,
+      options: getWarlockInvocationOptions(invocations, entry.level)
+        .slice(0, 18)
+        .map((invocation) => ({ id: invocation.id, label: invocation.label, summary: invocation.summary || "" })),
+    });
+  }
+  return entries;
+}
+
+function buildPromptSubclassDetailChoiceEntries(config, entry) {
+  if (!entry.subclassId) return [];
+  const definition = config?.editionKey === "5.5e-2024"
+    ? SUBCLASS_DETAIL_DEFINITIONS_2024[entry.subclassId]
+    : SUBCLASS_DETAIL_DEFINITIONS[entry.subclassId];
+  if (!definition || entry.level < Number(definition.minClassLevel || 1)) return [];
+  return [{
+    field: "subclassDetailChoiceIds",
+    sourceId: definition.detailType || "subclass-detail",
+    label: definition.label || "Detalhe de subclasse",
+    picks: 1,
+    options: (definition.options || []).map(formatGuidedChoicePromptOption),
+  }];
+}
+
+function buildPromptCompanionChoiceEntries(config, entry) {
+  const definitions = config?.editionKey === "5.5e-2024"
+    ? COMPANION_CHOICE_DEFINITIONS_2024
+    : COMPANION_CHOICE_DEFINITIONS_5E;
+  return (definitions || [])
+    .filter((definition) => entry.level >= Number(definition.minClassLevel || 1))
+    .filter((definition) => {
+      if (definition.kind === "class") return entry.classId === definition.classId;
+      if (definition.kind === "subclass") return entry.classId === definition.classId && entry.subclassId === definition.subclassId;
+      return false;
+    })
+    .map((definition) => ({
+      field: "companionChoiceIds",
+      sourceId: definition.id || "companion",
+      label: definition.featureLabel || "Companheiro",
+      picks: 1,
+      options: (definition.options || []).map(formatGuidedChoicePromptOption),
+    }));
 }
 
 function compactEquipmentRuleOptions(ruleSource, sourceType) {
@@ -887,6 +1072,13 @@ export function buildCharacterJsonSchema() {
       "expertiseSkillIds",
       "featIds",
       "spellIds",
+      "fightingStyleIds",
+      "warlockPactBoonId",
+      "warlockInvocationIds",
+      "featureChoiceIds",
+      "subclassDetailChoiceIds",
+      "companionChoiceIds",
+      "weaponMasteryIds",
       "equipmentPackageHints",
       "appearance",
       "personalityTraits",
@@ -947,6 +1139,37 @@ export function buildCharacterJsonSchema() {
       spellIds: {
         type: "array",
         maxItems: 32,
+        items: { type: "string", maxLength: 120 },
+      },
+      fightingStyleIds: {
+        type: "array",
+        maxItems: 8,
+        items: { type: "string", maxLength: 120 },
+      },
+      warlockPactBoonId: { type: "string", maxLength: 120 },
+      warlockInvocationIds: {
+        type: "array",
+        maxItems: 12,
+        items: { type: "string", maxLength: 120 },
+      },
+      featureChoiceIds: {
+        type: "array",
+        maxItems: 24,
+        items: { type: "string", maxLength: 120 },
+      },
+      subclassDetailChoiceIds: {
+        type: "array",
+        maxItems: 8,
+        items: { type: "string", maxLength: 120 },
+      },
+      companionChoiceIds: {
+        type: "array",
+        maxItems: 8,
+        items: { type: "string", maxLength: 120 },
+      },
+      weaponMasteryIds: {
+        type: "array",
+        maxItems: 12,
         items: { type: "string", maxLength: 120 },
       },
       equipmentPackageHints: {
@@ -1017,9 +1240,21 @@ export function normalizeRecommendation(recommendation, input, config) {
   const selectedSkillIds = normalizeSelectedSkillIds(recommendation.selectedSkillIds, { config, cls, background, abilityScores, input });
   const expertiseSkillIds = normalizeExpertiseSkillIds(recommendation.expertiseSkillIds, selectedSkillIds, { config });
   const featIds = normalizeFeatIds(recommendation.featIds, { config, cls, race, background, level, abilityScores, input });
-  const featChoiceSlots = buildFeatChoiceSlots({ config, cls, race, level, featIds });
   const selectedSpellsBySource = normalizeSelectedSpellsBySource(recommendation.spellIds, { config, cls, subclass, level, abilityScores, input });
   const spellIds = collectSpellIdsFromSelection(selectedSpellsBySource);
+  const classChoiceContext = { config, cls, subclass, race, background, level, abilityScores, input, spellIds };
+  const featChoiceSlots = buildFeatChoiceSlots({
+    ...classChoiceContext,
+    featIds,
+    fightingStyleIds: recommendation.fightingStyleIds,
+  });
+  const guidedChoiceFields = buildGuidedChoiceFields(recommendation, {
+    ...classChoiceContext,
+    featIds,
+    selectedSkillIds,
+    selectedSpellsBySource,
+  });
+  const guidedChoiceLabels = guidedChoiceFields.map((choice) => choice.label).filter(Boolean);
   const equipmentChoiceFields = buildEquipmentChoiceFields(recommendation.equipmentPackageHints, { config, cls, background, input });
   const appearance = normalizeAppearanceText(recommendation.appearance, physicalDescription);
   const equipmentNotes = buildEquipmentNotes(recommendation.equipmentNotes, {
@@ -1027,6 +1262,7 @@ export function normalizeRecommendation(recommendation, input, config) {
     featIds,
     spellIds,
     equipmentChoiceFields,
+    guidedChoiceLabels,
   });
 
   return {
@@ -1058,6 +1294,8 @@ export function normalizeRecommendation(recommendation, input, config) {
     featIds,
     featLabels: featIds.map((featId) => getFeatLabel(config, featId)).filter(Boolean),
     featChoiceSlots,
+    guidedChoiceFields,
+    guidedChoiceLabels,
     selectedSpellsBySource,
     spellIds,
     spellLabels: spellIds.map((spellId) => getSpellLabel(config, spellId)).filter(Boolean),
@@ -1262,6 +1500,7 @@ function isFeatProbablyEligible(feat, { config, cls, level = 1, abilityScores = 
   if (!feat?.id) return false;
   const category = String(feat.categoria || "");
   if (config?.editionKey === "5.5e-2024") {
+    if (category === "estilo-de-luta") return false;
     if (category === "dadiva-epica" && Number(level || 1) < 19) return false;
     if (category === "geral" && Number(level || 1) < 4) return false;
   }
@@ -1282,13 +1521,23 @@ function isFeatProbablyEligible(feat, { config, cls, level = 1, abilityScores = 
   });
 }
 
-function buildFeatChoiceSlots({ config, cls, race, level, featIds = [] } = {}) {
+function buildFeatChoiceSlots({
+  config,
+  cls,
+  subclass,
+  race,
+  level,
+  featIds = [],
+  fightingStyleIds = [],
+  input,
+  abilityScores,
+} = {}) {
   const ids = [...featIds];
   const slots = [];
   const takeByCategory = (categories = []) => {
     const index = ids.findIndex((featId) => categories.includes(String(findById(config.feats, featId)?.categoria || "")));
     if (index >= 0) return ids.splice(index, 1)[0];
-    return ids.shift() || "";
+    return "";
   };
 
   if (config?.editionKey === "5.5e-2024" && race?.id === "humano") {
@@ -1316,7 +1565,867 @@ function buildFeatChoiceSlots({ config, cls, race, level, featIds = [] } = {}) {
       }
     });
 
+  slots.push(...buildFightingStyleFeatChoiceSlots2024({
+    config,
+    cls,
+    subclass,
+    level,
+    requestedStyleIds: fightingStyleIds,
+    input,
+    abilityScores,
+  }));
+
   return slots;
+}
+
+function buildFightingStyleFeatChoiceSlots2024({
+  config,
+  cls,
+  subclass,
+  level,
+  requestedStyleIds = [],
+  input,
+  abilityScores,
+} = {}) {
+  if (config?.editionKey !== "5.5e-2024" || !cls?.id) return [];
+
+  const entry = buildPrimaryChoiceEntry({ cls, subclass, level });
+  const usedStyleIds = new Set();
+  return collectFightingStyleFeatSlots2024(entry).map((slot) => {
+    const options = getFightingStyleFeatOptions2024(config, slot.styleIds);
+    const featId = chooseRankedOptionValue(options, {
+      requestedValues: requestedStyleIds,
+      prompt: input?.prompt || "",
+      classId: cls.id,
+      sourceId: "fighting-style",
+      abilityScores,
+      usedValues: usedStyleIds,
+    });
+    if (featId) usedStyleIds.add(featId);
+    return featId ? {
+      editionKey: config.editionKey,
+      slotKey: slot.id,
+      featId,
+      label: getFeatLabel(config, featId),
+    } : null;
+  }).filter(Boolean);
+}
+
+function collectFightingStyleFeatSlots2024(entry) {
+  if (!entry?.classId || !entry?.level) return [];
+
+  const slots = [];
+  (STYLE_LEVELS_2024[entry.classId] || [])
+    .filter((requiredLevel) => entry.level >= Number(requiredLevel || 0))
+    .forEach((requiredLevel, index) => {
+      slots.push({
+        id: `style-${entry.uid}-${requiredLevel}-${index}`,
+        styleIds: entry.classData?.escolhas?.estilosLuta || [],
+      });
+    });
+
+  if (entry.subclassId) {
+    (SUBCLASS_STYLE_LEVELS_2024[entry.subclassId] || [])
+      .filter((requiredLevel) => entry.level >= Number(requiredLevel || 0))
+      .forEach((requiredLevel, index) => {
+        slots.push({
+          id: `style-${entry.uid}-${entry.subclassId}-${requiredLevel}-${index}`,
+          styleIds: entry.classData?.escolhas?.estilosLuta || [],
+        });
+      });
+  }
+
+  return slots;
+}
+
+function getFightingStyleFeatOptions2024(config, styleIds = []) {
+  const allowed = new Set((styleIds || []).filter(Boolean));
+  return (config?.feats || [])
+    .filter((feat) => feat?.categoria === "estilo-de-luta")
+    .filter((feat) => !allowed.size || allowed.has(feat.id))
+    .map((feat) => ({
+      value: feat.id,
+      label: getFeatLabel(config, feat.id),
+      summary: feat.description_pt || feat.description_en || "",
+      tags: feat.tags || [],
+    }));
+}
+
+function buildGuidedChoiceFields(recommendation = {}, context = {}) {
+  const builders = [
+    buildFightingStyleChoiceFields5e,
+    buildWarlockChoiceFields,
+    buildFeatureChoiceFields,
+    buildSubclassDetailChoiceFields,
+    buildCompanionChoiceFields,
+    buildArtificerInfusionChoiceFields5e,
+  ];
+  return builders.flatMap((builder) => builder(recommendation, context));
+}
+
+function buildFightingStyleChoiceFields5e(recommendation = {}, context = {}) {
+  const { config, cls, subclass, level, input, abilityScores, featIds = [] } = context;
+  if (config?.editionKey !== "5e" || !cls?.id) return [];
+
+  const entry = buildPrimaryChoiceEntry({ cls, subclass, level });
+  const grants = [];
+  const pushGrant = (key, sourceLabel, styleIds) => {
+    const options = (styleIds || [])
+      .map((styleId) => FIGHTING_STYLE_DEFINITIONS[styleId])
+      .filter(Boolean)
+      .map((style) => ({
+        value: style.id,
+        label: style.label,
+        summary: style.summary || style.description || "",
+        group: style.group || "",
+      }));
+    if (options.length) grants.push({ key, sourceLabel, options, picks: 1 });
+  };
+
+  if (entry.classId === "guerreiro" && entry.level >= 1) {
+    pushGrant(`${entry.uid}:fighter-style:1`, `${entry.classLabel}: Estilo de Luta`, cls.escolhas?.estilosLuta || []);
+  }
+  if (entry.classId === "paladino" && entry.level >= 2) {
+    pushGrant(`${entry.uid}:paladin-style:2`, `${entry.classLabel}: Estilo de Luta`, cls.escolhas?.estilosLuta || []);
+  }
+  if (entry.classId === "patrulheiro" && entry.level >= 2) {
+    pushGrant(`${entry.uid}:ranger-style:2`, `${entry.classLabel}: Estilo de Luta`, cls.escolhas?.estilosLuta || []);
+  }
+  if (entry.subclassId === "bardo-espadas" && entry.level >= 3) {
+    pushGrant(`${entry.uid}:swords-bard-style:3`, `${entry.subclassData?.nome || "Bardo das Espadas"}: Estilo de Luta`, ["duelismo", "duas-armas"]);
+  }
+  if (entry.subclassId === "guerreiro-campeao" && entry.level >= 10) {
+    pushGrant(`${entry.uid}:champion-style:10`, `${entry.subclassData?.nome || "Campeão"}: Estilo de Combate Adicional`, cls.escolhas?.estilosLuta || []);
+  }
+  if ((featIds || []).includes("iniciado-de-combate")) {
+    const fighter = findById(config.classes, "guerreiro");
+    pushGrant("talento:iniciado-de-combate", "Talento Iniciado de Combate", fighter?.escolhas?.estilosLuta || []);
+  }
+
+  const usedValues = new Set();
+  return grants.flatMap((grant) => (
+    Array.from({ length: grant.picks }, (_, slotIndex) => {
+      const value = chooseRankedOptionValue(grant.options, {
+        requestedValues: recommendation.fightingStyleIds,
+        prompt: input?.prompt || "",
+        classId: cls.id,
+        sourceId: "fighting-style",
+        abilityScores,
+        usedValues,
+      });
+      if (!value) return null;
+      usedValues.add(value);
+      const option = grant.options.find((item) => item.value === value);
+      return buildGuidedSelectField(config.editionKey, {
+        data: { "data-style-slot-key": `${grant.key}:slot-${slotIndex}` },
+        value,
+        label: `Estilo de Luta: ${option?.label || labelFromChoiceValue(value)}`,
+      });
+    })
+  )).filter(Boolean);
+}
+
+function buildWarlockChoiceFields(recommendation = {}, context = {}) {
+  const { config, cls, level, input, selectedSpellsBySource } = context;
+  if (cls?.id !== "bruxo") return [];
+
+  return config?.editionKey === "5.5e-2024"
+    ? buildWarlockChoiceFields2024(recommendation, { config, cls, level, input, selectedSpellsBySource })
+    : buildWarlockChoiceFields5e(recommendation, { config, cls, level, input, selectedSpellsBySource });
+}
+
+function buildWarlockChoiceFields5e(recommendation = {}, { config, cls, level, input, selectedSpellsBySource } = {}) {
+  const safeLevel = clampInt(level, 1, 20);
+  const invocationCount = getWarlockInvocationCountByLevel(safeLevel, WARLOCK_INVOCATIONS_BY_LEVEL_5E);
+  if (!invocationCount && safeLevel < 3) return [];
+
+  const fields = [];
+  const entry = buildPrimaryChoiceEntry({ cls, level: safeLevel });
+  const sourceKey = `${entry.uid}:invocations`;
+  const cantripIds = collectSpellIdsFromSelection(selectedSpellsBySource).filter((spellId) => {
+    const spell = findById(config?.spells || [], spellId);
+    return Number(spell?.nivel || 0) === 0;
+  });
+  const pactBoonId = safeLevel >= 3
+    ? chooseRankedOptionValue(WARLOCK_PACT_BOONS_5E.map((boon) => ({
+      value: boon.id,
+      label: boon.label,
+      summary: boon.summary || boon.description || "",
+    })), {
+      requestedValues: [recommendation.warlockPactBoonId],
+      prompt: input?.prompt || "",
+      classId: "bruxo",
+      sourceId: "warlock-pact",
+    })
+    : "";
+
+  if (pactBoonId) {
+    const boon = getWarlockPactBoonById(pactBoonId);
+    fields.push(buildGuidedSelectField(config.editionKey, {
+      data: { "data-warlock-pact-boon-key": `${entry.uid}:pact-boon` },
+      value: pactBoonId,
+      label: formatWarlockPactBoonChoiceLabel(boon, pactBoonId),
+    }));
+  }
+
+  const usedValues = new Set();
+  const requestedValues = normalizeRequestedChoiceValues(recommendation.warlockInvocationIds, recommendation.featureChoiceIds);
+  for (let slotIndex = 0; slotIndex < invocationCount; slotIndex += 1) {
+    const options = getWarlockInvocationOptions(WARLOCK_INVOCATIONS_5E, safeLevel, {
+      pactBoonIds: pactBoonId ? [pactBoonId] : [],
+      cantripIds,
+    }).map((invocation) => ({
+      value: invocation.value || invocation.id,
+      label: invocation.label,
+      summary: invocation.summary || invocation.description || "",
+      group: invocation.group || "",
+    }));
+    const value = chooseRankedOptionValue(options, {
+      requestedValues,
+      prompt: input?.prompt || "",
+      classId: "bruxo",
+      sourceId: "warlock-invocation",
+      usedValues,
+    });
+    if (!value) continue;
+    usedValues.add(value);
+    const invocation = getWarlockInvocationById(WARLOCK_INVOCATIONS_5E, value);
+    fields.push(buildGuidedSelectField(config.editionKey, {
+      data: { "data-warlock-invocation-slot-key": `${sourceKey}:${slotIndex}` },
+      value,
+      label: `Invocação Mística: ${invocation?.label || labelFromChoiceValue(value)}`,
+    }));
+  }
+
+  return fields;
+}
+
+function buildWarlockChoiceFields2024(recommendation = {}, { config, cls, level, input, selectedSpellsBySource } = {}) {
+  const safeLevel = clampInt(level, 1, 20);
+  const invocationCount = getWarlockInvocationCountByLevel(safeLevel, WARLOCK_INVOCATIONS_BY_LEVEL_2024);
+  if (!invocationCount) return [];
+
+  const entry = buildPrimaryChoiceEntry({ cls, level: safeLevel });
+  const sourceKey = `${entry.uid}:invocations`;
+  const fields = [];
+  const usedValues = new Set();
+  const selectedValues = [];
+  const requestedValues = normalizeRequestedChoiceValues(recommendation.warlockInvocationIds, recommendation.featureChoiceIds);
+
+  for (let slotIndex = 0; slotIndex < invocationCount; slotIndex += 1) {
+    const selectedPactIds = selectedValues.filter((value) => value.startsWith("pact-of-the-"));
+    const options = getWarlockInvocationOptions(WARLOCK_INVOCATIONS_2024, safeLevel, {
+      pactBoonIds: selectedPactIds,
+      invocationIds: selectedValues,
+    }).map((invocation) => ({
+      value: invocation.value || invocation.id,
+      label: invocation.label,
+      summary: invocation.summary || invocation.description || "",
+      group: invocation.group || "",
+      configuration: invocation.configuration || null,
+    }));
+    const value = chooseRankedOptionValue(options, {
+      requestedValues,
+      prompt: input?.prompt || "",
+      classId: "bruxo",
+      sourceId: "warlock-invocation-2024",
+      usedValues,
+    });
+    if (!value) continue;
+
+    usedValues.add(value);
+    selectedValues.push(value);
+    const slotKey = `${sourceKey}:${slotIndex}`;
+    const invocation = getWarlockInvocationById(WARLOCK_INVOCATIONS_2024, value);
+    fields.push(buildGuidedSelectField(config.editionKey, {
+      data: { "data-warlock-invocation-slot-key": slotKey },
+      value,
+      label: `Invocação Mística: ${invocation?.label || labelFromChoiceValue(value)}`,
+    }));
+
+    const detailField = buildWarlockInvocationDetailField2024(invocation, slotKey, {
+      config,
+      selectedSpellsBySource,
+      prompt: input?.prompt || "",
+    });
+    if (detailField) fields.push(detailField);
+  }
+
+  return fields;
+}
+
+function buildWarlockInvocationDetailField2024(invocation, slotKey, { config, selectedSpellsBySource, prompt = "" } = {}) {
+  const configuration = invocation?.configuration;
+  if (!configuration?.required) return null;
+
+  let value = "";
+  if (configuration.optionSet === "warlock-damaging-cantrip-2024") {
+    const knownCantripIds = collectSpellIdsFromSelection(selectedSpellsBySource).filter((spellId) => {
+      const spell = findById(config?.spells || [], spellId);
+      return Number(spell?.nivel || 0) === 0 && spellBelongsToClass(spell, "bruxo");
+    });
+    const options = knownCantripIds.map((spellId) => {
+      const spell = findById(config?.spells || [], spellId);
+      return {
+        value: spellId,
+        label: spell?.nome || labelFromChoiceValue(spellId),
+        summary: spell?.resumo || spell?.descricao || "",
+      };
+    });
+    value = chooseRankedOptionValue(options, {
+      requestedValues: knownCantripIds,
+      prompt,
+      classId: "bruxo",
+      sourceId: "warlock-invocation-detail",
+    });
+  }
+
+  if (!value) return null;
+  const fieldName = `warlock-invocation-detail-2024:${slotKey}:${configuration.id || "detail"}`;
+  return buildGuidedSelectField(config.editionKey, {
+    name: fieldName,
+    data: { "data-warlock-invocation-detail-name": fieldName },
+    value,
+    label: `${invocation.label || "Invocação Mística"} - ${configuration.summaryLabel || configuration.label || "Detalhe"}: ${getSpellLabel(config, value) || labelFromChoiceValue(value)}`,
+  });
+}
+
+function formatWarlockPactBoonChoiceLabel(boon, pactBoonId = "") {
+  const label = boon?.label || labelFromChoiceValue(pactBoonId);
+  return normalizeSearchText(label).startsWith("dadiva do pacto")
+    ? label
+    : `Dádiva do Pacto: ${label}`;
+}
+
+function buildFeatureChoiceFields(recommendation = {}, context = {}) {
+  const { config, cls, subclass, level, input, abilityScores, selectedSkillIds, spellIds } = context;
+  if (!cls?.id) return [];
+
+  const entry = buildPrimaryChoiceEntry({ cls, subclass, level });
+  const sources = collectFeatureChoiceSourcesForEntry(entry, { config });
+  const requestedValues = normalizeRequestedChoiceValues(
+    recommendation.featureChoiceIds,
+    recommendation.weaponMasteryIds,
+    spellIds
+  );
+  const allUsedValues = new Set();
+
+  return sources.flatMap((source) => {
+    const options = getFeatureChoiceOptionsForSource(source, {
+      config,
+      selectedSkillIds,
+      abilityScores,
+      prompt: input?.prompt || "",
+    });
+    if (!options.length) return [];
+
+    const usedValues = new Set();
+    return Array.from({ length: source.picks }, (_, slotIndex) => {
+      const value = chooseRankedOptionValue(options, {
+        requestedValues,
+        prompt: input?.prompt || "",
+        classId: cls.id,
+        sourceId: source.id || "",
+        abilityScores,
+        usedValues: source.disallowDuplicates || source.grantsSelectedWeaponMastery ? new Set([...usedValues, ...allUsedValues]) : usedValues,
+      });
+      if (!value) return null;
+      usedValues.add(value);
+      if (source.grantsSelectedWeaponMastery) allUsedValues.add(value);
+      const option = options.find((item) => item.value === value);
+      return buildGuidedSelectField(config.editionKey, {
+        data: { "data-feature-choice-slot-key": buildFeatureSlotKeyForEdition(config, source, slotIndex) },
+        value,
+        label: `${source.title || source.featureLabel || "Escolha de recurso"}: ${option?.label || getSpellLabel(config, value) || labelFromChoiceValue(value)}`,
+      });
+    }).filter(Boolean);
+  });
+}
+
+function collectFeatureChoiceSourcesForEntry(entry, { config } = {}) {
+  const definitions = config?.editionKey === "5.5e-2024"
+    ? FEATURE_CHOICE_DEFINITIONS_2024
+    : FEATURE_CHOICE_DEFINITIONS_5E;
+  const sourceBuilder = config?.editionKey === "5.5e-2024"
+    ? buildFeatureChoiceSourceKey2024
+    : buildFeatureChoiceSourceKey;
+  const structural = [
+    ...((definitions.classes?.[entry.classId] || []).map((definition) => ({ ...definition, kind: "class" }))),
+    ...((entry.subclassId ? definitions.subclasses?.[entry.subclassId] || [] : []).map((definition) => ({ ...definition, kind: "subclass" }))),
+  ]
+    .filter((definition) => entry.level >= Number(definition.minLevel || 1))
+    .map((definition) => {
+      const picks = getGuidedChoicePickCount(definition, entry);
+      if (!picks) return null;
+      return {
+        ...definition,
+        key: sourceBuilder(entry, definition),
+        entry,
+        picks,
+        ownerLabel: definition.kind === "subclass"
+          ? (entry.subclassData?.nome || entry.subclassId || entry.classLabel)
+          : (entry.classData?.nome || entry.classLabel),
+        title: definition.featureLabel || definition.label || "Escolha de recurso",
+      };
+    })
+    .filter(Boolean);
+
+  if (config?.editionKey !== "5.5e-2024") return structural;
+
+  const weaponMastery = buildWeaponMasteryFeatureChoiceSource2024(entry);
+  return weaponMastery ? [...structural, weaponMastery] : structural;
+}
+
+function buildWeaponMasteryFeatureChoiceSource2024(entry) {
+  if (!entry?.classId || !isExplicitWeaponMasteryClass2024(entry.classId)) return null;
+  const hasWeaponMastery = collectUnlockedFeatureNames(entry.classData?.features, entry.level).includes("Maestria em Arma");
+  const picks = calculateWeaponMasteryLimit2024(entry, {
+    hasWeaponMastery,
+    barbarianWeaponMasteryByLevel: BARBARIAN_PROGRESSION_2024.weaponMastery,
+    fighterWeaponMasteryByLevel: FIGHTER_PROGRESSION_2024.weaponMastery,
+  });
+  if (!picks || !Number.isFinite(picks)) return null;
+
+  const definition = {
+    id: "weapon-mastery",
+    kind: "class",
+    minLevel: 1,
+    featureLabel: "Maestria em Arma",
+    selectionLabel: "Arma dominada",
+    required: true,
+    disallowDuplicates: true,
+    optionSet: "weapon-mastery",
+    grantsSelectedWeaponMastery: true,
+    weaponMasteryScope: "class",
+    picks,
+  };
+
+  return {
+    ...definition,
+    key: buildFeatureChoiceSourceKey2024(entry, definition),
+    entry,
+    ownerLabel: entry.classData?.nome || entry.classLabel,
+    title: definition.featureLabel,
+  };
+}
+
+function getFeatureChoiceOptionsForSource(source, { config, selectedSkillIds = [], abilityScores = {}, prompt = "" } = {}) {
+  const directOptions = Array.isArray(source?.options)
+    ? source.options.map(normalizeGuidedOption)
+    : [];
+  if (directOptions.length) return directOptions.filter((option) => !option.minClassLevel || Number(source.entry?.level || 0) >= Number(option.minClassLevel));
+
+  if (source?.optionSet === "wizard-spells") {
+    return getWizardFeatureSpellOptions(config, source);
+  }
+  if (source?.optionSet === "wizard-scholar-skills") {
+    const selected = new Set(selectedSkillIds || []);
+    return (config?.skills || [])
+      .filter((skill) => FEATURE_CHOICE_SKILL_OPTION_IDS_2024.includes(skill.id))
+      .filter((skill) => selected.has(skill.id))
+      .map((skill) => ({
+        value: skill.id,
+        label: skill.label || skill.nome || skill.id,
+        summary: "Recebe Expertise nesta perícia enquanto permanecer proficiente nela.",
+      }));
+  }
+  if (source?.optionSet === "weapon-mastery") {
+    return getWeaponMasteryChoiceOptions2024(source, { abilityScores, prompt });
+  }
+  return [];
+}
+
+function getWizardFeatureSpellOptions(config, source) {
+  const fixedLevel = Number(source?.spellLevel || 0);
+  const classIds = (source?.spellClassIds || ["mago"]).map(normalizeSearchText);
+  const sourceClassId = source?.maxSpellLevelFromClass || source?.entry?.classId || "mago";
+  const spellRule = getSpellcastingRule(config, sourceClassId, "", source?.entry?.level || 1);
+  const maxLevel = fixedLevel || getMaxSpellLevelForRule(spellRule, source?.entry?.level || 1);
+
+  return (config?.spells || [])
+    .filter((spell) => fixedLevel ? Number(spell.nivel || 0) === fixedLevel : Number(spell.nivel || 0) <= maxLevel)
+    .filter((spell) => (spell.classes || []).some((classId) => classIds.includes(normalizeSearchText(classId))))
+    .sort((a, b) => String(a.nome || "").localeCompare(String(b.nome || ""), "pt-BR"))
+    .map((spell) => ({
+      value: spell.id,
+      label: spell.nome || labelFromChoiceValue(spell.id),
+      summary: spell.resumo || spell.escola || "",
+      tags: spell.tags || [],
+    }));
+}
+
+function getWeaponMasteryChoiceOptions2024(source, { abilityScores = {}, prompt = "" } = {}) {
+  const weapons = Object.values(ARMAS_2024 || {})
+    .filter((weapon) => isWeaponEligibleForMasteryChoice2024(weapon, source))
+    .map((weapon) => ({
+      value: weapon.id,
+      label: weapon.nome || labelFromChoiceValue(weapon.id),
+      summary: [
+        weapon.maestria ? `Maestria ${labelFromChoiceValue(weapon.maestria)}` : "",
+        weapon.dano?.dado ? `${weapon.dano.dado} ${weapon.dano.tipo || ""}`.trim() : "",
+        ...(weapon.propriedades || []),
+      ].filter(Boolean).join(" "),
+      tags: [weapon.tipo, weapon.categoria, ...(weapon.propriedades || []), weapon.maestria].filter(Boolean),
+      weapon,
+    }));
+
+  return weapons
+    .map((option, index) => ({
+      ...option,
+      masteryScore: scoreWeaponMasteryOption(option.weapon, source, { abilityScores, prompt }),
+      index,
+    }))
+    .sort((a, b) => b.masteryScore - a.masteryScore || String(a.label).localeCompare(String(b.label), "pt-BR"));
+}
+
+function isWeaponEligibleForMasteryChoice2024(weapon, source) {
+  if (!weapon?.id || !weapon.maestria || !["simples", "marcial", "marcial-leve"].includes(String(weapon.categoria || ""))) return false;
+  if (source?.weaponMasteryScope === "feat") return true;
+
+  const classId = String(source?.entry?.classId || "").trim();
+  if (classId === "barbaro" && weapon.tipo !== "corpo-a-corpo") return false;
+
+  const tags = new Set(source?.entry?.classData?.proficiencias?.armas || []);
+  return isCharacterProficientWithWeapon2024(weapon, tags);
+}
+
+function isCharacterProficientWithWeapon2024(weapon, weaponTrainingTags) {
+  if (!weapon) return false;
+  if (weapon.categoria === "simples" && weaponTrainingTags.has("simples")) return true;
+  if (weapon.categoria === "marcial" && weaponTrainingTags.has("marcial")) return true;
+  if ((weapon.propriedades || []).includes("light") && weapon.categoria === "marcial" && weaponTrainingTags.has("marcial-leve")) return true;
+  if (weapon.categoria === "marcial-leve" && (weaponTrainingTags.has("marcial") || weaponTrainingTags.has("marcial-leve"))) return true;
+  if (weaponTrainingTags.has("marcial-leve-ou-acuidade")) {
+    return weapon.categoria === "marcial-leve"
+      || (weapon.categoria === "marcial" && (weapon.propriedades || []).includes("light"))
+      || (weapon.propriedades || []).includes("finesse");
+  }
+  return false;
+}
+
+function scoreWeaponMasteryOption(weapon, source, { abilityScores = {}, prompt = "" } = {}) {
+  if (!weapon?.id) return 0;
+  const promptText = normalizeSearchText(prompt);
+  const properties = new Set(weapon.propriedades || []);
+  const isRanged = weapon.tipo === "distancia" || properties.has("ammunition") || properties.has("thrown");
+  const isFinesse = properties.has("finesse");
+  const strScore = Number(abilityScores?.for || 0);
+  const dexScore = Number(abilityScores?.des || 0);
+  const primaryAbilities = Array.isArray(source?.entry?.classData?.atributoPrincipal) ? source.entry.classData.atributoPrincipal : [];
+  let score = String(weapon.categoria || "").startsWith("marcial") ? 8 : 4;
+  if (isRanged || isFinesse) score += dexScore >= strScore ? 8 : 2;
+  if (!isRanged && !isFinesse) score += strScore >= dexScore ? 8 : 2;
+  if (primaryAbilities.includes("des") && (isRanged || isFinesse)) score += 6;
+  if (primaryAbilities.includes("for") && !isRanged && !isFinesse) score += 6;
+  if (promptText && normalizeSearchText([weapon.id, weapon.nome, weapon.maestria, ...(weapon.propriedades || [])].join(" ")).split(" ").some((token) => token.length >= 4 && promptText.includes(token))) {
+    score += 20;
+  }
+  return score;
+}
+
+function buildFeatureSlotKeyForEdition(config, source, slotIndex) {
+  return config?.editionKey === "5.5e-2024"
+    ? buildFeatureChoiceSlotKey2024(source, slotIndex)
+    : buildFeatureChoiceSlotKey(source, slotIndex);
+}
+
+function buildSubclassDetailChoiceFields(recommendation = {}, context = {}) {
+  const { config, cls, subclass, level, input } = context;
+  if (!cls?.id || !subclass?.id) return [];
+
+  const definition = config?.editionKey === "5.5e-2024"
+    ? SUBCLASS_DETAIL_DEFINITIONS_2024[subclass.id]
+    : SUBCLASS_DETAIL_DEFINITIONS[subclass.id];
+  if (!definition || Number(level || 1) < Number(definition.minClassLevel || 1)) return [];
+
+  const key = config?.editionKey === "5.5e-2024"
+    ? `${PRIMARY_SOURCE_KEY}:subclass-detail:${subclass.id}:${definition.detailType}`
+    : `${PRIMARY_SOURCE_KEY}:subclass:${subclass.id}:${definition.detailType}`;
+  const options = (definition.options || []).map(normalizeGuidedOption);
+  const value = chooseRankedOptionValue(options, {
+    requestedValues: recommendation.subclassDetailChoiceIds,
+    prompt: input?.prompt || "",
+    classId: cls.id,
+    sourceId: definition.detailType || "subclass-detail",
+  });
+  if (!value) return [];
+  const option = options.find((item) => item.value === value);
+  return [buildGuidedSelectField(config.editionKey, {
+    data: { "data-subclass-detail-slot-key": `${key}:slot-0` },
+    value,
+    label: `${definition.label || subclass.nome || "Detalhe de subclasse"}: ${option?.label || labelFromChoiceValue(value)}`,
+  })];
+}
+
+function buildCompanionChoiceFields(recommendation = {}, context = {}) {
+  const { config, cls, subclass, level, input } = context;
+  if (!cls?.id) return [];
+
+  const definitions = config?.editionKey === "5.5e-2024"
+    ? COMPANION_CHOICE_DEFINITIONS_2024
+    : COMPANION_CHOICE_DEFINITIONS_5E;
+  const entry = buildPrimaryChoiceEntry({ cls, subclass, level });
+  return (definitions || [])
+    .filter((definition) => entry.level >= Number(definition.minClassLevel || 1))
+    .filter((definition) => {
+      if (definition.kind === "class") return entry.classId === definition.classId;
+      if (definition.kind === "subclass") return entry.classId === definition.classId && entry.subclassId === definition.subclassId;
+      return false;
+    })
+    .map((definition) => {
+      const options = (definition.options || []).map(normalizeGuidedOption);
+      const value = chooseRankedOptionValue(options, {
+        requestedValues: recommendation.companionChoiceIds,
+        prompt: input?.prompt || "",
+        classId: cls.id,
+        sourceId: definition.id || "companion",
+      });
+      if (!value) return null;
+      const option = options.find((item) => item.value === value);
+      return buildGuidedSelectField(config.editionKey, {
+        data: { "data-companion-choice-slot-key": `${PRIMARY_SOURCE_KEY}:companion:${definition.kind}:${definition.id}:slot-0` },
+        value,
+        label: `${definition.featureLabel || "Companheiro"}: ${option?.label || labelFromChoiceValue(value)}`,
+      });
+    })
+    .filter(Boolean);
+}
+
+function buildArtificerInfusionChoiceFields5e(recommendation = {}, context = {}) {
+  const { config, cls, level, input } = context;
+  if (config?.editionKey !== "5e" || cls?.id !== "artifice" || Number(level || 1) < 2) return [];
+
+  const safeLevel = clampInt(level, 1, 20);
+  const limits = ARTIFICER_INFUSION_LIMITS_BY_LEVEL[safeLevel] || ARTIFICER_INFUSION_LIMITS_BY_LEVEL[0] || { known: 0, active: 0 };
+  const available = ARTIFICER_INFUSION_CATALOG
+    .filter((infusion) => safeLevel >= Number(infusion.minLevel || 2))
+    .map((infusion) => ({
+      value: infusion.id,
+      label: infusion.label,
+      summary: infusion.summary || infusion.description || "",
+      infusion,
+    }));
+  const requestedValues = normalizeRequestedChoiceValues(recommendation.featureChoiceIds);
+  const fields = [];
+  const knownValues = [];
+  const usedKnown = new Set();
+
+  for (let slotIndex = 0; slotIndex < Number(limits.known || 0); slotIndex += 1) {
+    const value = chooseRankedOptionValue(available, {
+      requestedValues,
+      prompt: input?.prompt || "",
+      classId: "artifice",
+      sourceId: "artificer-infusion",
+      usedValues: usedKnown,
+    });
+    if (!value) continue;
+    usedKnown.add(value);
+    knownValues.push(value);
+    const option = available.find((item) => item.value === value);
+    fields.push(buildGuidedSelectField(config.editionKey, {
+      data: { "data-artificer-infusion-known-slot-key": `${PRIMARY_SOURCE_KEY}:artificer-infusion:known:${slotIndex}` },
+      value,
+      label: `Infusão conhecida: ${option?.label || labelFromChoiceValue(value)}`,
+    }));
+  }
+
+  const activeValues = knownValues.slice(0, Number(limits.active || 0));
+  activeValues.forEach((value, slotIndex) => {
+    const option = available.find((item) => item.value === value);
+    const infusion = option?.infusion;
+    fields.push(buildGuidedSelectField(config.editionKey, {
+      data: { "data-artificer-infusion-active-slot-key": `${PRIMARY_SOURCE_KEY}:artificer-infusion:active:${slotIndex}` },
+      value,
+      label: `Infusão ativa: ${option?.label || labelFromChoiceValue(value)}`,
+    }));
+
+    const target = getArtificerInfusionTargetOptions(infusion)[0];
+    if (target?.value) {
+      fields.push(buildGuidedSelectField(config.editionKey, {
+        data: { "data-artificer-infusion-target-slot-key": `${PRIMARY_SOURCE_KEY}:artificer-infusion:target:${slotIndex}` },
+        value: target.value,
+        label: `${option?.label || "Infusão"} - alvo: ${target.label || labelFromChoiceValue(target.value)}`,
+      }));
+    }
+
+    const configuration = infusion?.configuration;
+    const configurationOption = Array.isArray(configuration?.options) ? configuration.options[0] : null;
+    if (configuration?.required && configurationOption?.value) {
+      fields.push(buildGuidedSelectField(config.editionKey, {
+        data: {
+          "data-artificer-infusion-configuration-slot-key": `${PRIMARY_SOURCE_KEY}:artificer-infusion:configuration:${slotIndex}:${configuration.id || "detail"}`,
+        },
+        value: configurationOption.value,
+        label: `${option?.label || "Infusão"} - ${configuration.label || "configuração"}: ${configurationOption.label || labelFromChoiceValue(configurationOption.value)}`,
+      }));
+    }
+  });
+
+  return fields;
+}
+
+function getArtificerInfusionTargetOptions(infusion) {
+  const groups = Array.isArray(infusion?.targetGroups) ? infusion.targetGroups : [];
+  return groups
+    .flatMap((group) => ARTIFICER_INFUSION_TARGET_OPTIONS[group] || [])
+    .filter((option, index, list) => list.findIndex((item) => item.value === option.value) === index);
+}
+
+function buildGuidedSelectField(editionKey, { data, value, label, name = "" } = {}) {
+  return {
+    editionKey,
+    inputType: "select",
+    data: normalizeDataAttributes(data),
+    value: String(value || ""),
+    label: String(label || ""),
+    name: String(name || ""),
+  };
+}
+
+function normalizeDataAttributes(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  return Object.fromEntries(
+    Object.entries(value)
+      .map(([key, entryValue]) => [String(key), String(entryValue ?? "")])
+      .filter(([key, entryValue]) => key.startsWith("data-") && entryValue)
+  );
+}
+
+function normalizeGuidedOption(option = {}) {
+  const value = String(option.value || option.id || "").trim();
+  return {
+    ...option,
+    value,
+    label: option.label || option.nome || option.name_pt || option.name || labelFromChoiceValue(value),
+    summary: option.summary || option.resumo || option.description_pt || option.description || "",
+  };
+}
+
+function chooseRankedOptionValue(options = [], {
+  requestedValues = [],
+  prompt = "",
+  classId = "",
+  sourceId = "",
+  abilityScores = {},
+  usedValues = new Set(),
+} = {}) {
+  const normalizedOptions = (options || [])
+    .map(normalizeGuidedOption)
+    .filter((option) => option.value && !usedValues.has(option.value));
+  if (!normalizedOptions.length) return "";
+
+  const requested = normalizeRequestedChoiceValues(requestedValues);
+  const requestedMatch = requested.find((value) => normalizedOptions.some((option) => option.value === value));
+  if (requestedMatch) return requestedMatch;
+
+  const promptText = normalizeSearchText(prompt);
+  const promptTokens = new Set(promptText.split(" ").filter((token) => token.length >= 4));
+  const priorities = getGuidedChoicePriorities({ classId, sourceId, abilityScores, promptText });
+
+  return normalizedOptions
+    .map((option, index) => {
+      const terms = [
+        option.value,
+        option.label,
+        option.summary,
+        option.group,
+        ...(option.tags || []),
+      ].filter(Boolean).map(normalizeSearchText);
+      let score = 0;
+
+      const priorityIndex = priorities.indexOf(option.value);
+      if (priorityIndex >= 0) score += 160 - priorityIndex * 8;
+      terms.forEach((term) => {
+        if (term.length >= 3 && containsNormalizedPhrase(promptText, term)) score += 120;
+      });
+      const optionTokens = new Set(terms.join(" ").split(" ").filter((token) => token.length >= 4));
+      const overlap = Array.from(promptTokens).filter((token) => optionTokens.has(token));
+      score += overlap.length * 18;
+
+      if (sourceId === "weapon-mastery" && Number.isFinite(option.masteryScore)) score += option.masteryScore;
+      return { option, index, score };
+    })
+    .sort((a, b) => b.score - a.score || a.index - b.index)[0]?.option?.value || "";
+}
+
+function getGuidedChoicePriorities({ classId = "", sourceId = "", abilityScores = {}, promptText = "" } = {}) {
+  if (sourceId === "fighting-style") {
+    const strScore = Number(abilityScores?.for || 0);
+    const dexScore = Number(abilityScores?.des || 0);
+    if (/arco|flecha|distancia|atirador|besta/.test(promptText) || dexScore > strScore) {
+      return ["arquearia", "defesa", "duelismo", "duas-armas", "armas-grandes", "protecao"];
+    }
+    if (/escudo|proteger|defensor|guarda/.test(promptText)) {
+      return ["defesa", "protecao", "interceptacao", "protetivo", "duelismo", "arquearia"];
+    }
+    return ["defesa", "duelismo", "armas-grandes", "arquearia", "duas-armas", "protecao"];
+  }
+
+  if (sourceId === "metamagic") {
+    return ["magia-acelerada", "magia-sutil", "magia-gemea", "magia-potencializada", "magia-cuidadosa", "magia-transmutada", "magia-distante"];
+  }
+  if (sourceId === "warlock-pact") {
+    if (/lamina|arma|espada|pacto da lamina/.test(promptText)) return ["pact-of-the-blade", "pact-of-the-tome", "pact-of-the-chain", "pact-of-the-talisman"];
+    if (/familiar|corrente|servo/.test(promptText)) return ["pact-of-the-chain", "pact-of-the-tome", "pact-of-the-blade", "pact-of-the-talisman"];
+    return ["pact-of-the-tome", "pact-of-the-blade", "pact-of-the-chain", "pact-of-the-talisman"];
+  }
+  if (sourceId.startsWith("warlock-invocation")) {
+    return ["pact-of-the-tome", "pact-of-the-blade", "pact-of-the-chain", "eldritch-mind", "agonizing-blast", "armor-of-shadows", "devils-sight", "mask-of-many-faces", "fiendish-vigor", "repelling-blast"];
+  }
+  if (sourceId === "weapon-mastery") {
+    if (classId === "barbaro") return ["machado-grande", "malho", "alabarda", "machadinha", "azagaia"];
+    if (classId === "ladino") return ["rapieira", "espada-curta", "arco-curto", "adaga"];
+    if (classId === "guardiao") return ["arco-longo", "cimitarra", "espada-curta", "rapieira"];
+    if (classId === "paladino") return ["espada-longa", "lança", "martelo-de-guerra", "espada-grande"];
+    return ["espada-longa", "arco-longo", "espada-grande", "rapieira", "machado-grande", "escudo"];
+  }
+  if (sourceId === "divine-order") return ["protetor", "taumaturgo"];
+  if (sourceId === "primal-order") return ["magico", "guardiao"];
+  if (sourceId === "scholar") return ["arcanismo", "investigacao", "historia", "religiao", "natureza"];
+  return [];
+}
+
+function getGuidedChoicePickCount(definition, entry) {
+  if (Array.isArray(definition?.picksByLevel)) {
+    return clampInt(definition.picksByLevel[clampInt(entry?.level, 0, 20)] || 0, 0, 20);
+  }
+  return clampInt(definition?.picks || 1, 0, 20);
+}
+
+function normalizeRequestedChoiceValues(...values) {
+  return Array.from(new Set(
+    values.flatMap((value) => Array.isArray(value) ? value : [value])
+      .map((value) => String(value || "").trim())
+      .filter(Boolean)
+  ));
+}
+
+function buildPrimaryChoiceEntry({ cls, subclass = null, level = 1 } = {}) {
+  return {
+    uid: PRIMARY_SOURCE_KEY,
+    classId: cls?.id || "",
+    subclassId: subclass?.id || "",
+    classData: cls || null,
+    subclassData: subclass || null,
+    classLabel: cls?.nome || "",
+    sourceLabel: cls?.nome || "",
+    level: clampInt(level, 1, 20),
+    isPrimary: true,
+  };
+}
+
+function collectUnlockedFeatureNames(featureGroups, level) {
+  return Object.entries(featureGroups || {})
+    .filter(([requiredLevel]) => Number(requiredLevel) <= Number(level || 0))
+    .sort((a, b) => Number(a[0]) - Number(b[0]))
+    .flatMap(([, features]) => (features || []).map((feature) => feature?.nome).filter(Boolean));
+}
+
+function labelFromChoiceValue(value) {
+  return String(value || "")
+    .replaceAll("-", " ")
+    .replaceAll("_", " ")
+    .replace(/\b\w/g, (char) => char.toLocaleUpperCase("pt-BR"));
 }
 
 function normalizeSelectedSpellsBySource(value, { config, cls, subclass, level, abilityScores, input } = {}) {
@@ -1569,15 +2678,21 @@ function getEquipmentOptionLabel(group, optionId = "") {
   return option?.label || optionId;
 }
 
-function buildEquipmentNotes(value, { config, featIds = [], spellIds = [], equipmentChoiceFields = [] } = {}) {
+function buildEquipmentNotes(value, { config, featIds = [], spellIds = [], equipmentChoiceFields = [], guidedChoiceLabels = [] } = {}) {
   const base = sanitizeConcreteText(value, 700);
   const extras = [];
   const featLabels = featIds.map((featId) => getFeatLabel(config, featId)).filter(Boolean);
   const spellLabels = spellIds.map((spellId) => getSpellLabel(config, spellId)).filter(Boolean);
   const equipmentLabels = equipmentChoiceFields.map((field) => field.label).filter(Boolean);
+  const choiceLabels = Array.from(new Set(
+    (Array.isArray(guidedChoiceLabels) ? guidedChoiceLabels : [])
+      .map((label) => String(label || "").trim())
+      .filter(Boolean)
+  )).slice(0, 12);
 
   if (featLabels.length) extras.push(`Talentos sugeridos: ${featLabels.join(", ")}.`);
   if (spellLabels.length) extras.push(`Magias sugeridas: ${spellLabels.join(", ")}.`);
+  if (choiceLabels.length) extras.push(`Escolhas guiadas resolvidas: ${choiceLabels.join(", ")}.`);
   if (equipmentLabels.length) extras.push(`Pacotes/equipamento inicial: ${equipmentLabels.join(", ")}.`);
 
   return sanitizeConcreteText([base, ...extras].filter(Boolean).join("\n"), 900);

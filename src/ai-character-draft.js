@@ -86,6 +86,7 @@ function buildPreset5e(character) {
   appendExpertiseChoiceFields(fields, character, "5e");
   appendFeatChoiceFields(fields, character, "5e");
   appendEquipmentChoiceFields(fields, character, "5e");
+  appendGuidedChoiceFields(fields, character, "5e");
 
   return {
     version: 1,
@@ -142,6 +143,7 @@ function buildPreset2024(character) {
   appendExpertiseChoiceFields(fields, character, "5.5e-2024");
   appendFeatChoiceFields(fields, character, "5.5e-2024");
   appendEquipmentChoiceFields(fields, character, "5.5e-2024");
+  appendGuidedChoiceFields(fields, character, "5.5e-2024");
 
   return {
     version: 1,
@@ -239,6 +241,21 @@ function appendEquipmentChoiceFields(fields, character, editionKey) {
           data: normalizeDataAttributes(choice.data),
         }));
       }
+    });
+}
+
+function appendGuidedChoiceFields(fields, character, editionKey) {
+  normalizeChoiceEntries(character.guidedChoiceFields)
+    .filter((choice) => choice.editionKey === editionKey && choice.inputType === "select" && choice.value)
+    .forEach((choice) => {
+      const data = normalizeDataAttributes(choice.data);
+      if (!Object.keys(data).length && !choice.name) return;
+
+      fields.push(field("", choice.value, {
+        tag: "select",
+        name: choice.name || "",
+        data,
+      }));
     });
 }
 

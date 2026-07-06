@@ -454,6 +454,7 @@ function renderPreview(preview, character, editorUrl) {
   [
     ["Atributos", formatAbilityLine(character.abilityScores)],
     ["Talentos", formatList(character.featLabels)],
+    ["Escolhas", formatList(character.guidedChoiceLabels)],
     ["Magias", formatList(character.spellLabels)],
     ["Equipamento", character.equipmentNotes],
   ]

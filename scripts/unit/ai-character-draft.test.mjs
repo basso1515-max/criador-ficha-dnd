@@ -55,6 +55,13 @@ const sampleCharacter = {
     data: { "data-equipment-selection-key": "class:patrulheiro|armadura-inicial|option" },
     value: "couro-e-arco-longo",
   }],
+  guidedChoiceFields: [{
+    editionKey: "5e",
+    inputType: "select",
+    data: { "data-style-slot-key": "primary:ranger-style:2:slot-0" },
+    value: "arquearia",
+    label: "Estilo de Luta: Arquearia",
+  }],
   reasoning: "A história favorece uma guardiã rastreadora.",
 };
 
@@ -74,6 +81,7 @@ describe("AI character draft preset", () => {
     assert.equal(findDataField(draft.payload.snapshot, "data-feat-asi-slot-key", "classe:patrulheiro:asi-4:slot-0").value, "feat");
     assert.equal(findDataField(draft.payload.snapshot, "data-feat-slot-key", "classe:patrulheiro:asi-4:slot-0").value, "atirador-de-elite");
     assert.equal(findDataField(draft.payload.snapshot, "data-equipment-selection-key", "class:patrulheiro|armadura-inicial|option").value, "couro-e-arco-longo");
+    assert.equal(findDataField(draft.payload.snapshot, "data-style-slot-key", "primary:ranger-style:2:slot-0").value, "arquearia");
     assert.deepEqual(draft.payload.snapshot.extra.selectedSpellsBySource.primary.spells, ["marca-do-cacador"]);
     assert.match(findField(draft.payload.snapshot, "historiaPersonagem").value, /Sugestão da IA/);
   });
@@ -108,6 +116,22 @@ describe("AI character draft preset", () => {
         name: "class-pacote",
         optionValue: "a",
       }],
+      guidedChoiceFields: [
+        {
+          editionKey: "5.5e-2024",
+          inputType: "select",
+          data: { "data-feature-choice-slot-key": "primary:feature-choice:class:weapon-mastery:slot-0" },
+          value: "arco-longo",
+          label: "Maestria em Arma: Arco Longo",
+        },
+        {
+          editionKey: "5.5e-2024",
+          inputType: "select",
+          data: { "data-feature-choice-slot-key": "primary:feature-choice:class:metamagic:slot-0" },
+          value: "magia-acelerada",
+          label: "Metamagia: Magia Acelerada",
+        },
+      ],
     };
     const preset = buildPreset(character2024, "5.5e-2024");
 
@@ -120,6 +144,8 @@ describe("AI character draft preset", () => {
     assert.equal(findDataField(preset, "data-expertise-slot-key", "primary:expertise-2:slot-0").value, "percepcao");
     assert.equal(findDataField(preset, "data-feat-choice-id", "class-feat-primary-4").value, "mestre-atirador");
     assert.equal(findNamedOptionField(preset, "class-pacote", "a").checked, true);
+    assert.equal(findDataField(preset, "data-feature-choice-slot-key", "primary:feature-choice:class:weapon-mastery:slot-0").value, "arco-longo");
+    assert.equal(findDataField(preset, "data-feature-choice-slot-key", "primary:feature-choice:class:metamagic:slot-0").value, "magia-acelerada");
     assert.deepEqual(preset.extra.selectedSpellsBySource.primary.spells, ["marca-do-cacador"]);
     assert.match(findField(preset, "notes2024").value, /Perdeu o mentor/);
   });

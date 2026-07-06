@@ -132,6 +132,116 @@ describe("AI character API normalization", () => {
     assert.match(character.equipmentNotes, /Pacotes\/equipamento inicial: .*Foco arcano/);
   });
 
+  it("fills 5e guided class selectors for fighting styles, invocations and Metamagic", () => {
+    const fighter = normalizeRecommendation(
+      {
+        ...baseRecommendation,
+        classId: "guerreiro",
+        subclassId: "guerreiro-campeao",
+        level: 1,
+        fightingStyleIds: ["defesa"],
+      },
+      {
+        edition: "5e",
+        prompt: "Guerreiro humano nível 1 defensivo com escudo e postura de guarda.",
+        tone: "fantasia heroica",
+        complexity: "equilibrada",
+      },
+      EDITION_CONFIGS["5e"]
+    );
+    assert.equal(findGuidedChoice(fighter, "data-style-slot-key", "primary:fighter-style:1:slot-0").value, "defesa");
+
+    const sorcerer = normalizeRecommendation(
+      {
+        ...baseRecommendation,
+        classId: "feiticeiro",
+        subclassId: "feiticeiro-magia-selvagem",
+        level: 3,
+        abilityScores: { for: 8, des: 14, con: 13, int: 10, sab: 12, car: 15 },
+        featureChoiceIds: ["magia-acelerada", "magia-sutil"],
+      },
+      {
+        edition: "5e",
+        prompt: "Feiticeiro humano nível 3 que usa magia acelerada e magia sutil.",
+        tone: "arcano",
+        complexity: "otimizada",
+      },
+      EDITION_CONFIGS["5e"]
+    );
+    assert.equal(findGuidedChoice(sorcerer, "data-feature-choice-slot-key", "primary:feature-choice:class:metamagic:slot-0").value, "magia-acelerada");
+    assert.equal(findGuidedChoice(sorcerer, "data-feature-choice-slot-key", "primary:feature-choice:class:metamagic:slot-1").value, "magia-sutil");
+
+    const warlock = normalizeRecommendation(
+      {
+        ...baseRecommendation,
+        classId: "bruxo",
+        subclassId: "bruxo-arquifada",
+        level: 3,
+        spellIds: ["rajada-mistica"],
+        warlockPactBoonId: "pact-of-the-tome",
+        warlockInvocationIds: ["eldritch-mind", "armor-of-shadows"],
+      },
+      {
+        edition: "5e",
+        prompt: "Bruxo humano nível 3 do tomo com invocações de foco mental e sombras.",
+        tone: "sobrenatural",
+        complexity: "equilibrada",
+      },
+      EDITION_CONFIGS["5e"]
+    );
+    assert.equal(findGuidedChoice(warlock, "data-warlock-pact-boon-key", "primary:pact-boon").value, "pact-of-the-tome");
+    assert.equal(findGuidedChoice(warlock, "data-warlock-invocation-slot-key", "primary:invocations:0").value, "eldritch-mind");
+    assert.equal(findGuidedChoice(warlock, "data-warlock-invocation-slot-key", "primary:invocations:1").value, "armor-of-shadows");
+  });
+
+  it("fills 2024 fighting style, weapon mastery and Metamagic selectors", () => {
+    const fighter = normalizeRecommendation(
+      {
+        ...baseRecommendation,
+        classId: "guerreiro",
+        subclassId: "guerreiro-campeao",
+        raceId: "anao",
+        level: 1,
+        abilityScores: { for: 15, des: 14, con: 13, int: 10, sab: 12, car: 8 },
+        fightingStyleIds: ["defesa"],
+        weaponMasteryIds: ["espada-longa", "arco-longo"],
+      },
+      {
+        edition: "5.5e-2024",
+        prompt: "Guerreiro anão nível 1 defensivo com espada longa e arco longo.",
+        tone: "fantasia heroica",
+        complexity: "equilibrada",
+      },
+      EDITION_CONFIGS["5.5e-2024"]
+    );
+
+    assert.ok(fighter.featChoiceSlots.some((slot) => slot.slotKey === "style-primary-1-0" && slot.featId === "defesa"));
+    assert.equal(findGuidedChoice(fighter, "data-feature-choice-slot-key", "primary:feature-choice:class:weapon-mastery:slot-0").value, "espada-longa");
+    assert.equal(findGuidedChoice(fighter, "data-feature-choice-slot-key", "primary:feature-choice:class:weapon-mastery:slot-1").value, "arco-longo");
+
+    const sorcerer = normalizeRecommendation(
+      {
+        ...baseRecommendation,
+        classId: "feiticeiro",
+        subclassId: "feiticeiro-draconico",
+        raceId: "anao",
+        level: 2,
+        abilityScores: { for: 8, des: 14, con: 13, int: 10, sab: 12, car: 15 },
+        featureChoiceIds: ["magia-acelerada", "magia-sutil"],
+      },
+      {
+        edition: "5.5e-2024",
+        prompt: "Feiticeiro dracônico nível 2 com magia acelerada e sutil.",
+        tone: "arcano",
+        complexity: "otimizada",
+      },
+      EDITION_CONFIGS["5.5e-2024"]
+    );
+
+    assert.equal(findGuidedChoice(sorcerer, "data-feature-choice-slot-key", "primary:feature-choice:class:metamagic:slot-0").value, "magia-acelerada");
+    assert.equal(findGuidedChoice(sorcerer, "data-feature-choice-slot-key", "primary:feature-choice:class:metamagic:slot-1").value, "magia-sutil");
+  });
+
   it("preserves an explicitly requested subrace and its parent race", () => {
     const character = normalizeRecommendation(
       {
@@ -242,11 +352,18 @@ describe("AI character API normalization", () => {
     assert.match(promptText, /featIds/);
     assert.match(promptText, /spellIds/);
     assert.match(promptText, /equipmentPackageHints/);
+    assert.match(promptText, /classChoices/);
+    assert.match(promptText, /featureChoiceIds/);
+    assert.match(promptText, /weaponMasteryIds/);
     assert.ok(schema.required.includes("physicalDescription"));
     assert.ok(schema.required.includes("selectedSkillIds"));
     assert.ok(schema.required.includes("expertiseSkillIds"));
     assert.ok(schema.required.includes("featIds"));
     assert.ok(schema.required.includes("spellIds"));
+    assert.ok(schema.required.includes("fightingStyleIds"));
+    assert.ok(schema.required.includes("warlockInvocationIds"));
+    assert.ok(schema.required.includes("featureChoiceIds"));
+    assert.ok(schema.required.includes("weaponMasteryIds"));
     assert.ok(schema.required.includes("equipmentPackageHints"));
   });
 
@@ -481,6 +598,12 @@ function readAvailableDivinities(input) {
 
 function readFeaturedDivinityIds(divinities) {
   return divinities.featured.map((item) => item.id);
+}
+
+function findGuidedChoice(character, dataName, value) {
+  const field = (character.guidedChoiceFields || []).find((item) => item.data?.[dataName] === value);
+  assert.ok(field, `Expected guided choice ${dataName}=${value}`);
+  return field;
 }
 
 function setupAiApiIntegrationTest(t) {
