@@ -1,6 +1,12 @@
 // @ts-check
 
-import { getCurrentUser, hydrateAccountStorage } from "./account-storage.js";
+import {
+  getCharacterLimitPerEdition,
+  getCurrentUser,
+  hydrateAccountStorage,
+  listCharactersForCurrentUser,
+  saveCharacterForCurrentUser,
+} from "./account-storage.js";
 import { PENDING_EDITOR_DRAFT_KEY, buildAiCharacterDraft, buildSummary } from "./ai-character-draft.js";
 
 const EDITIONS = {
@@ -128,6 +134,8 @@ const COMPLEXITY_LABELS = {
   equilibrada: "Equilibrada",
   otimizada: "Mais otimizada",
 };
+const AI_CHARACTER_DRAFT_SOURCE = "ai-character";
+const AI_CHARACTER_DRAFT_VERSION = 1;
 
 const page = document.body?.dataset.aiFlowPage || "";
 const editionKey = readEditionKey();
@@ -193,10 +201,14 @@ function bindAssistantForm(availabilityReady) {
   const submitButton = /** @type {HTMLButtonElement | null} */ (document.getElementById("aiCharacterSubmit"));
   const status = document.getElementById("aiCharacterStatus");
   const preview = document.getElementById("aiCharacterPreview");
+  const savedDraftPanel = document.getElementById("aiSavedDraftPanel");
   const insight = document.getElementById("aiPromptInsight");
 
   bindPromptExamples(prompt, status);
   bindPromptInsight(prompt, tone, complexity, insight);
+  availabilityReady.then(() => {
+    renderSavedDraftPanel(savedDraftPanel, findLatestSavedAiCharacterDraft(editionKey, listCharactersForCurrentUser(editionKey)));
+  }).catch(() => {});
 
   form?.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -206,10 +218,19 @@ function bindAssistantForm(availabilityReady) {
       return;
     }
 
+    const capacity = getCurrentAiDraftSaveCapacity();
+    if (!capacity.canSave) {
+      setStatus(status, capacity.message, "warning");
+      renderSavedDraftPanel(savedDraftPanel, findLatestSavedAiCharacterDraft(editionKey, listCharactersForCurrentUser(editionKey)));
+      return;
+    }
+
     setStatus(status, "Consultando a IA e montando a ficha inicial...", "info");
     setLoading(submitButton, true);
     if (preview) preview.hidden = true;
 
+    let generatedCharacter = null;
+    let generationQuota = null;
     try {
       const result = await requestCharacter({
         edition: editionKey,
@@ -218,10 +239,26 @@ function bindAssistantForm(availabilityReady) {
         complexity: complexity?.value || "equilibrada",
       });
       const character = result.character;
-      savePendingDraft(editionKey, character);
-      renderPreview(preview, character, edition.editorUrl);
-      setStatus(status, `Rascunho pronto. Revise a proposta e abra no editor quando quiser.${formatQuotaStatus(result.quota)}`, "success");
+      generatedCharacter = character;
+      generationQuota = result.quota || null;
+      const savedCharacter = await saveCharacterForCurrentUser(editionKey, buildAiCharacterSavePayload(editionKey, character, {
+        complexity: complexity?.value || "equilibrada",
+        generatedAt: new Date().toISOString(),
+        promptLength: String(prompt?.value || "").trim().length,
+      }));
+      clearPendingDraft();
+      renderPreview(preview, character, buildEditorResumeUrl(edition.editorUrl, savedCharacter.id), { savedCharacter });
+      renderSavedDraftPanel(savedDraftPanel, savedCharacter);
+      setStatus(status, `Rascunho salvo na sua conta. Revise a proposta e abra no editor quando quiser.${formatQuotaStatus(result.quota)}`, "success");
     } catch (error) {
+      if (generatedCharacter) {
+        try {
+          savePendingDraft(editionKey, generatedCharacter);
+          renderPreview(preview, generatedCharacter, edition.editorUrl);
+        } catch {}
+        setStatus(status, `${getErrorMessage(error, "A ficha foi gerada, mas não foi possível salvar na sua conta.")} A geração ficou apenas como rascunho temporário neste navegador.${formatQuotaStatus(generationQuota)}`, "warning");
+        return;
+      }
       if (isAiAvailabilityError(error)) {
         aiAvailability = {
           available: false,
@@ -244,6 +281,62 @@ function bindAssistantForm(availabilityReady) {
       }
     }
   });
+}
+
+export function buildAiCharacterSavePayload(editionKey, character, metadata = {}) {
+  const selectedEdition = EDITIONS[editionKey] || EDITIONS["5e"];
+  const draft = buildAiCharacterDraft(editionKey, character, { returnTo: selectedEdition.returnTo });
+  const snapshot = clonePlainObject(draft.payload.snapshot);
+  const extra = isPlainObject(snapshot.extra) ? { ...snapshot.extra } : {};
+  extra.aiCharacterDraft = {
+    version: AI_CHARACTER_DRAFT_VERSION,
+    source: AI_CHARACTER_DRAFT_SOURCE,
+    edition: editionKey,
+    generatedAt: String(metadata.generatedAt || new Date().toISOString()),
+    promptLength: Math.max(0, Number.parseInt(String(metadata.promptLength ?? 0), 10) || 0),
+    complexity: String(metadata.complexity || "equilibrada"),
+  };
+
+  return {
+    ...draft.payload,
+    snapshot: {
+      ...snapshot,
+      extra,
+    },
+  };
+}
+
+export function findLatestSavedAiCharacterDraft(editionKey, characters = []) {
+  return (Array.isArray(characters) ? characters : [])
+    .filter((character) => (
+      character?.edition === editionKey
+      && readAiCharacterDraftMeta(character.snapshot)?.edition === editionKey
+    ))
+    .sort((a, b) => String(b.updatedAt || "").localeCompare(String(a.updatedAt || "")))[0] || null;
+}
+
+export function buildEditorResumeUrl(editorUrl, characterId) {
+  const id = String(characterId || "").trim();
+  if (!id) return editorUrl;
+
+  const [beforeHash, hash = ""] = String(editorUrl || "").split("#", 2);
+  const separator = beforeHash.includes("?") ? "&" : "?";
+  const suffix = `${separator}characterId=${encodeURIComponent(id)}`;
+  return `${beforeHash}${suffix}${hash ? `#${hash}` : ""}`;
+}
+
+export function getAiDraftSaveCapacity(characterCount, characterLimit, editionLabel = "esta edição") {
+  const count = Math.max(0, Number.parseInt(String(characterCount ?? 0), 10) || 0);
+  const limit = Math.max(0, Number.parseInt(String(characterLimit ?? 0), 10) || 0);
+  const canSave = count < limit;
+  return {
+    canSave,
+    count,
+    limit,
+    message: canSave
+      ? ""
+      : `Sua conta já tem ${limit} personagens salvos em ${editionLabel}. Abra ou exclua um personagem salvo antes de gastar outra geração de IA.`,
+  };
 }
 
 function bindAiAvailability() {
@@ -426,7 +519,15 @@ function savePendingDraft(editionKey, character) {
   ));
 }
 
-function renderPreview(preview, character, editorUrl) {
+function clearPendingDraft() {
+  getStorageCandidates().forEach((storage) => {
+    try {
+      storage.removeItem(PENDING_EDITOR_DRAFT_KEY);
+    } catch {}
+  });
+}
+
+function renderPreview(preview, character, editorUrl, { savedCharacter = null } = {}) {
   if (!preview) return;
   preview.hidden = false;
   preview.replaceChildren();
@@ -472,6 +573,12 @@ function renderPreview(preview, character, editorUrl) {
   reasoning.className = "ai-result-reasoning";
   reasoning.textContent = character.reasoning || "A proposta foi salva como rascunho para revisão no editor.";
 
+  const persistence = document.createElement("p");
+  persistence.className = "ai-result-persistence";
+  persistence.textContent = savedCharacter
+    ? `Salvo na sua conta como "${savedCharacter.name}".`
+    : "Rascunho temporário salvo neste navegador.";
+
   const reviseButton = document.createElement("button");
   reviseButton.type = "button";
   reviseButton.className = "secondary-button ai-adjust-prompt-button";
@@ -486,7 +593,38 @@ function renderPreview(preview, character, editorUrl) {
   actions.className = "ai-result-actions";
   actions.append(reviseButton);
 
-  preview.append(header, details, reasoning, actions);
+  preview.append(header, details, reasoning, persistence, actions);
+}
+
+function renderSavedDraftPanel(panel, savedCharacter) {
+  if (!panel) return;
+  panel.replaceChildren();
+
+  if (!savedCharacter) {
+    panel.hidden = true;
+    return;
+  }
+
+  panel.hidden = false;
+
+  const content = document.createElement("div");
+  content.className = "ai-saved-draft-copy";
+
+  const eyebrow = document.createElement("span");
+  eyebrow.textContent = "Rascunho salvo na conta";
+  const title = document.createElement("strong");
+  title.textContent = savedCharacter.name || "Personagem sem nome";
+  const summary = document.createElement("p");
+  summary.textContent = savedCharacter.summary || `Atualizado em ${formatSavedAt(savedCharacter.updatedAt)}`;
+  content.append(eyebrow, title, summary);
+
+  const openLink = document.createElement("a");
+  openLink.href = buildEditorResumeUrl(edition.editorUrl, savedCharacter.id);
+  openLink.className = "primary ai-open-editor-button";
+  openLink.setAttribute("data-ai-open-editor", "true");
+  openLink.textContent = "Continuar no editor";
+
+  panel.append(content, openLink);
 }
 
 function bindPromptInsight(prompt, tone, complexity, panel) {
@@ -671,7 +809,7 @@ function capitalizeSentence(value) {
 }
 
 function getWritableStorage() {
-  return [window.sessionStorage, window.localStorage].find((storage) => {
+  return getStorageCandidates().find((storage) => {
     try {
       const key = `${PENDING_EDITOR_DRAFT_KEY}:test`;
       storage.setItem(key, "1");
@@ -683,8 +821,69 @@ function getWritableStorage() {
   }) || null;
 }
 
-function getErrorMessage(error) {
-  return error instanceof Error ? error.message : "Não foi possível gerar a ficha agora.";
+function getStorageCandidates() {
+  if (typeof window === "undefined") return [];
+  return ["localStorage", "sessionStorage"]
+    .map((name) => {
+      try {
+        return window[name];
+      } catch {
+        return null;
+      }
+    })
+    .filter(Boolean);
+}
+
+function getCurrentAiDraftSaveCapacity() {
+  return getAiDraftSaveCapacity(
+    listCharactersForCurrentUser(editionKey).length,
+    getCharacterLimitPerEdition(getCurrentUser(), editionKey),
+    edition.label
+  );
+}
+
+function readAiCharacterDraftMeta(snapshot) {
+  const data = unwrapSnapshotData(snapshot);
+  const marker = isPlainObject(data.extra) && isPlainObject(data.extra.aiCharacterDraft)
+    ? data.extra.aiCharacterDraft
+    : null;
+  if (!marker || marker.source !== AI_CHARACTER_DRAFT_SOURCE) return null;
+  return marker;
+}
+
+function unwrapSnapshotData(snapshot) {
+  if (!isPlainObject(snapshot)) return {};
+  if (isPlainObject(snapshot.dados)) return snapshot.dados;
+  if (isPlainObject(snapshot.data)) return snapshot.data;
+  return snapshot;
+}
+
+function clonePlainObject(value) {
+  if (!isPlainObject(value)) return {};
+  try {
+    const cloned = JSON.parse(JSON.stringify(value));
+    return isPlainObject(cloned) ? cloned : {};
+  } catch {
+    return {};
+  }
+}
+
+function isPlainObject(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const prototype = Object.getPrototypeOf(value);
+  return prototype === Object.prototype || prototype === null;
+}
+
+function formatSavedAt(value) {
+  const date = new Date(String(value || ""));
+  return Number.isNaN(date.getTime()) ? "há pouco" : date.toLocaleString("pt-BR", {
+    dateStyle: "short",
+    timeStyle: "short",
+  });
+}
+
+function getErrorMessage(error, fallback = "Não foi possível gerar a ficha agora.") {
+  return error instanceof Error ? error.message : fallback;
 }
 
 function formatQuotaStatus(quota) {

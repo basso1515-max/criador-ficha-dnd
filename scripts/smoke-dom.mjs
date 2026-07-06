@@ -132,6 +132,32 @@ function buildAiAvailableInitScript(character, expectedRequest = {}) {
       const payload = ${payload};
       const expectedRequest = ${requestContract};
       const accountPayload = ${accountPayload};
+      const saveAiDraftCharacter = (body) => {
+        const edition = String(body?.edition || "");
+        const payload = body?.payload || {};
+        if (!accountPayload.account.characters[edition]) {
+          throw new Error("Assistente tentou salvar rascunho em edicao invalida: " + edition);
+        }
+        if (!payload.snapshot?.extra?.aiCharacterDraft || payload.snapshot.extra.aiCharacterDraft.source !== "ai-character") {
+          throw new Error("Assistente nao marcou o personagem salvo como rascunho de IA.");
+        }
+        const now = new Date().toISOString();
+        const character = {
+          id: "character_ai_smoke_" + edition.replace(/[^a-z0-9]+/gi, "_"),
+          edition,
+          name: String(payload.name || "Personagem sem nome"),
+          summary: String(payload.summary || ""),
+          snapshot: payload.snapshot || {},
+          createdAt: now,
+          updatedAt: now,
+        };
+        accountPayload.account.characters[edition] = [
+          character,
+          ...accountPayload.account.characters[edition].filter((item) => item.id !== character.id),
+        ];
+        window.__DND_AI_SMOKE_LAST_SAVED_CHARACTER__ = character;
+        return character;
+      };
       const assertRequestContract = (body) => {
         if (expectedRequest.edition && body.edition !== expectedRequest.edition) {
           throw new Error("Assistente enviou edicao inesperada: " + body.edition);
@@ -182,6 +208,22 @@ function buildAiAvailableInitScript(character, expectedRequest = {}) {
               headers: { "Content-Type": "application/json" },
             }));
           }
+        }
+        if (requestUrl.pathname === "/api/characters" && method === "POST") {
+          let requestBody = {};
+          try {
+            requestBody = JSON.parse(String(init?.body || "{}"));
+          } catch {
+            throw new Error("Assistente enviou corpo JSON invalido para salvar personagem.");
+          }
+          const character = saveAiDraftCharacter(requestBody);
+          return Promise.resolve(new Response(JSON.stringify({
+            account: accountPayload.account,
+            character,
+          }), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          }));
         }
         return originalFetch(input, init);
       };
