@@ -10,6 +10,7 @@ export function renderFeatureChoicePanels2024(renderers = {}) {
 }
 
 export function bindFeatureChoiceEvents2024(el, handlers = {}) {
+  el.abilityChoices?.addEventListener("input", handlers.onAbilityBonusChoicesChanged);
   el.abilityChoices?.addEventListener("change", handlers.onAbilityBonusChoicesChanged);
   el.speciesChoices?.addEventListener("change", handlers.onSpeciesChoiceChanged);
   el.warlockInvocationsContainer?.addEventListener("change", handlers.onWarlockInvocationChoiceChanged);

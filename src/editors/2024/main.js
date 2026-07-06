@@ -247,6 +247,7 @@ import {
     [...FEAT_SKILL_PROFICIENCY_OPTIONS_2024, ...FEAT_TOOL_PROFICIENCY_OPTIONS_2024],
     "label"
   );
+  const ABILITY_BONUS_BACKGROUND_WARNING_2024 = "Escolha um antecedente antes de distribuir os bônus: em 2024, as opções de +2/+1 ou +1/+1/+1 usam os atributos do antecedente selecionado.";
   let DIVINITY_BY_NAME_2024 = new Map();
   let divinityCatalogLoadPromise2024 = null;
 
@@ -1149,6 +1150,7 @@ import {
       hideDivinityHoverCard: hideDivinityHoverCard2024,
       attachDropdownSuggestionContainerTouchBlur: attachDropdownSuggestionContainerTouchBlur2024,
       onAbilityScoresChanged,
+      onAbilityModeChanged: onAbilityModeChanged2024,
       onAddMulticlassRow: onAddMulticlassRow2024,
       onMulticlassRowsChanged: onMulticlassRowsChanged2024,
       onMulticlassRowClicked: onMulticlassRowClicked2024,
@@ -1225,9 +1227,9 @@ import {
     syncMulticlassUi2024();
     updateInfoBoxes();
     updateNameRandomizerButtonsState2024();
+    renderAbilityChoices();
     renderAbilityScoreInputs();
     const standardPresetChanged = syncRecommendedStandardSetForClass2024();
-    renderAbilityChoices();
     renderSpeciesChoices();
     renderFeatureChoicePanels2024({
       renderWarlockInvocationChoices: renderWarlockInvocationChoices2024,
@@ -1273,8 +1275,22 @@ import {
   }
 
   function onAbilityBonusChoicesChanged2024() {
+    clearAbilityBonusBackgroundWarning2024();
     refreshAbilityDrivenCascades2024();
     announceAbilityScores2024("Atributos recalculados pelos bônus da origem");
+  }
+
+  function onAbilityModeChanged2024() {
+    renderAbilityChoices();
+    refreshAbilityDrivenCascades2024();
+
+    if (!getSelectedBackground()) {
+      setStatus2024(ABILITY_BONUS_BACKGROUND_WARNING_2024, "warning");
+      return;
+    }
+
+    clearAbilityBonusBackgroundWarning2024();
+    announceAbilityScores2024("Distribuição dos bônus de origem alterada");
   }
 
   function onLevelChanged2024() {
@@ -5040,12 +5056,22 @@ import {
   function renderAbilityChoices() {
     const background = getSelectedBackground();
     const savedValues = readSelectValues(el.abilityChoices, "data-ability-slot");
+    const savedSelections = Array.from(el.abilityChoices.querySelectorAll("select[data-ability-slot]"))
+      .map((select) => select.value)
+      .filter(Boolean);
     el.abilityChoices.innerHTML = "";
 
     if (!background) {
-      el.abilityChoices.innerHTML = '<p class="note subtle">Selecione um antecedente para definir os bônus de atributo da origem.</p>';
+      const note = document.createElement("p");
+      note.className = "note warning-note";
+      note.setAttribute("role", "status");
+      note.setAttribute("aria-live", "polite");
+      note.textContent = ABILITY_BONUS_BACKGROUND_WARNING_2024;
+      el.abilityChoices.appendChild(note);
       return;
     }
+
+    clearAbilityBonusBackgroundWarning2024();
 
     const available = background.aumentosAtributo2024 || [];
     const slots = el.abilityMode.value === "plus1plus1plus1"
@@ -5059,7 +5085,16 @@ import {
         { id: "secondary", label: "Atributo +1" },
       ];
 
-    slots.forEach((slot) => {
+    const getSavedValueForSlot = (slotId, index) => {
+      if (savedValues.has(slotId)) return savedValues.get(slotId);
+      if (slotId === "primary") return savedValues.get("a") || savedSelections[0] || "";
+      if (slotId === "secondary") return savedValues.get("b") || savedSelections[1] || "";
+      if (slotId === "a") return savedValues.get("primary") || savedSelections[0] || "";
+      if (slotId === "b") return savedValues.get("secondary") || savedSelections[1] || "";
+      return savedSelections[index] || "";
+    };
+
+    slots.forEach((slot, index) => {
       const label = document.createElement("label");
       label.className = "row";
 
@@ -5074,13 +5109,20 @@ import {
         available.map((ability) => ({ value: ability, label: formatAbilityLabel(ability) })),
         "Selecione..."
       );
-      if (savedValues.has(slot.id)) {
-        select.value = savedValues.get(slot.id);
+      const savedValue = getSavedValueForSlot(slot.id, index);
+      if (savedValue && available.includes(savedValue)) {
+        select.value = savedValue;
       }
 
       label.appendChild(select);
       el.abilityChoices.appendChild(label);
     });
+  }
+
+  function clearAbilityBonusBackgroundWarning2024() {
+    if (el.status?.textContent === ABILITY_BONUS_BACKGROUND_WARNING_2024) {
+      setStatus2024("");
+    }
   }
 
   function updateAttributeMethodUi2024() {

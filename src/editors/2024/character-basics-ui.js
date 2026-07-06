@@ -40,8 +40,10 @@ export function bindCharacterBasicsEvents2024(el, handlers = {}) {
     el.raca,
     el.subraca,
     el.subclasse,
-    el.abilityMode,
   ].forEach((field) => on(field, "change", handlers.onCoreSelectionChanged));
+
+  on(el.abilityMode, "input", handlers.onAbilityModeChanged);
+  on(el.abilityMode, "change", handlers.onAbilityModeChanged);
 
   on(el.nivel, "input", handlers.onLevelChanged);
   on(el.nivel, "change", handlers.onLevelChanged);
