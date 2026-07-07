@@ -916,6 +916,642 @@ html[data-theme="dark"] .ai-status.status-warning {
   border-color: rgba(255, 180, 169, 0.34);
 }
 
+/* Forja Arcana: public creation and AI flow visual direction. */
+body[data-active-screen="creation-choice"],
+body[data-active-screen="ai-assistant"] {
+  --bg: #070b11;
+  --card: #101622;
+  --text: #fff0d7;
+  --muted: #d7c7ac;
+  --border: rgba(231, 185, 92, 0.3);
+  --accent: #f0643f;
+  --input-bg: #0d121b;
+  --focus-ring: rgba(103, 213, 199, 0.24);
+  --primary-bg: linear-gradient(180deg, #f0643f, #8f2c1f);
+  --primary-border: #ffb49d;
+  --primary-text: #fff7e7;
+  background:
+    linear-gradient(118deg, rgba(240, 100, 63, 0.18) 0 13%, transparent 13% 58%, rgba(217, 158, 69, 0.12) 58% 72%, transparent 72%),
+    conic-gradient(from 28deg at 78% 32%, rgba(231, 185, 92, 0.16), transparent 24%, rgba(103, 213, 199, 0.1), transparent 48%, rgba(150, 86, 201, 0.13), transparent 74%),
+    linear-gradient(180deg, #071018 0%, #100d16 58%, #060504 100%);
+  color: var(--text);
+  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+body[data-active-screen="creation-choice"]::before,
+body[data-active-screen="ai-assistant"]::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 0 1px, transparent 1px 36px),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 42px);
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.72), transparent 72%);
+}
+
+body[data-active-screen="creation-choice"] .ai-flow-screen,
+body[data-active-screen="ai-assistant"] .ai-flow-screen {
+  --ai-edition-accent: #f0643f;
+  --ai-edition-accent-strong: #ffd681;
+  --ai-edition-contrast: #67d5c7;
+  --ai-edition-paper: rgba(16, 22, 34, 0.88);
+  --ai-edition-panel: rgba(10, 14, 21, 0.9);
+  --ai-help-card-bg: #111827;
+  --ai-edition-shadow: rgba(0, 0, 0, 0.42);
+  overflow: hidden;
+  background:
+    linear-gradient(118deg, rgba(240, 100, 63, 0.14) 0 14%, transparent 14% 58%, rgba(217, 158, 69, 0.09) 58% 72%, transparent 72%),
+    radial-gradient(ellipse at 16% 18%, rgba(240, 100, 63, 0.16), transparent 30%),
+    radial-gradient(ellipse at 76% 28%, rgba(103, 213, 199, 0.12), transparent 24%);
+}
+
+body.ai-edition-2024 .ai-flow-screen {
+  --ai-edition-accent: #67d5c7;
+  --ai-edition-accent-strong: #ffd681;
+  --ai-edition-contrast: #e7b95c;
+  --ai-edition-paper: rgba(13, 21, 32, 0.9);
+  --ai-edition-panel: rgba(7, 13, 23, 0.92);
+  --ai-help-card-bg: #101927;
+  background:
+    linear-gradient(118deg, rgba(103, 213, 199, 0.11) 0 14%, transparent 14% 58%, rgba(231, 185, 92, 0.1) 58% 72%, transparent 72%),
+    radial-gradient(ellipse at 16% 18%, rgba(103, 213, 199, 0.13), transparent 30%),
+    radial-gradient(ellipse at 76% 28%, rgba(231, 185, 92, 0.12), transparent 24%);
+}
+
+html[data-theme="dark"] body.ai-edition-2024 .ai-flow-screen {
+  --ai-edition-accent: #67d5c7;
+  --ai-edition-accent-strong: #ffd681;
+  --ai-edition-contrast: #e7b95c;
+  --ai-edition-paper: rgba(13, 21, 32, 0.9);
+  --ai-edition-panel: rgba(7, 13, 23, 0.92);
+  --ai-help-card-bg: #101927;
+  background:
+    linear-gradient(118deg, rgba(103, 213, 199, 0.11) 0 14%, transparent 14% 58%, rgba(231, 185, 92, 0.1) 58% 72%, transparent 72%),
+    radial-gradient(ellipse at 16% 18%, rgba(103, 213, 199, 0.13), transparent 30%),
+    radial-gradient(ellipse at 76% 28%, rgba(231, 185, 92, 0.12), transparent 24%);
+}
+
+body[data-active-screen="creation-choice"] .ai-flow-screen::before,
+body[data-active-screen="ai-assistant"] .ai-flow-screen::before {
+  z-index: -1;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 0 1px, transparent 1px 36px),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 42px);
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.68), transparent 74%);
+}
+
+body[data-active-screen="creation-choice"] .ai-flow-screen::after,
+body[data-active-screen="ai-assistant"] .ai-flow-screen::after {
+  content: "";
+  position: fixed;
+  top: 12vh;
+  right: max(-190px, -10vw);
+  z-index: -1;
+  width: min(760px, 58vw);
+  height: min(720px, 78vh);
+  pointer-events: none;
+  background: url("../../assets/brand/dnd-ampersand-watermark.png") center / contain no-repeat;
+  filter:
+    drop-shadow(0 0 42px rgba(231, 185, 92, 0.16))
+    drop-shadow(0 0 34px rgba(103, 213, 199, 0.11));
+  opacity: 0.14;
+}
+
+body.ai-edition-2024 .ai-flow-screen::after {
+  filter:
+    drop-shadow(0 0 46px rgba(103, 213, 199, 0.18))
+    drop-shadow(0 0 36px rgba(231, 185, 92, 0.12));
+  opacity: 0.16;
+}
+
+body[data-active-screen="creation-choice"] .ai-flow-header,
+body[data-active-screen="ai-assistant"] .ai-flow-header {
+  position: relative;
+  z-index: 1;
+}
+
+body[data-active-screen="creation-choice"] .ai-flow-header .version-toolbar,
+body[data-active-screen="ai-assistant"] .ai-flow-header .version-toolbar {
+  min-height: 62px;
+  border-color: rgba(231, 185, 92, 0.24);
+  background:
+    linear-gradient(90deg, rgba(240, 100, 63, 0.1), transparent 36%),
+    linear-gradient(180deg, rgba(20, 22, 28, 0.86), rgba(8, 11, 17, 0.84));
+  box-shadow:
+    0 18px 40px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(14px);
+}
+
+body.ai-edition-2024 .ai-flow-header .version-toolbar {
+  border-color: rgba(103, 213, 199, 0.22);
+  background:
+    linear-gradient(90deg, rgba(103, 213, 199, 0.08), transparent 36%),
+    linear-gradient(180deg, rgba(18, 24, 34, 0.9), rgba(6, 10, 18, 0.86));
+}
+
+body[data-active-screen="creation-choice"] .ai-flow-brand,
+body[data-active-screen="ai-assistant"] .ai-flow-brand {
+  color: var(--ai-edition-accent-strong);
+  font-family: "Cinzel", "Libre Baskerville", Georgia, serif;
+  text-shadow: 0 10px 24px rgba(0, 0, 0, 0.34);
+}
+
+body[data-active-screen="creation-choice"] .ai-flow-brand::before,
+body[data-active-screen="ai-assistant"] .ai-flow-brand::before {
+  border-color: color-mix(in srgb, var(--ai-edition-contrast), transparent 18%);
+  background: color-mix(in srgb, var(--ai-edition-accent), transparent 66%);
+  box-shadow:
+    inset 0 0 0 3px rgba(255, 240, 200, 0.12),
+    0 0 18px color-mix(in srgb, var(--ai-edition-contrast), transparent 64%);
+}
+
+body[data-active-screen="creation-choice"] .ai-flow-header .secondary-button,
+body[data-active-screen="creation-choice"] .ai-flow-header .ghost-button,
+body[data-active-screen="ai-assistant"] .ai-flow-header .secondary-button,
+body[data-active-screen="ai-assistant"] .ai-flow-header .ghost-button {
+  min-height: 42px;
+  border-color: rgba(231, 185, 92, 0.22);
+  background: rgba(12, 14, 20, 0.58);
+  color: #ffe7b5;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+body[data-active-screen="creation-choice"] .ai-flow-header .secondary-button:hover,
+body[data-active-screen="creation-choice"] .ai-flow-header .secondary-button:focus-visible,
+body[data-active-screen="creation-choice"] .ai-flow-header .ghost-button:hover,
+body[data-active-screen="creation-choice"] .ai-flow-header .ghost-button:focus-visible,
+body[data-active-screen="ai-assistant"] .ai-flow-header .secondary-button:hover,
+body[data-active-screen="ai-assistant"] .ai-flow-header .secondary-button:focus-visible,
+body[data-active-screen="ai-assistant"] .ai-flow-header .ghost-button:hover,
+body[data-active-screen="ai-assistant"] .ai-flow-header .ghost-button:focus-visible {
+  border-color: color-mix(in srgb, var(--ai-edition-accent), transparent 48%);
+  background: rgba(20, 24, 32, 0.76);
+}
+
+body[data-active-screen="creation-choice"] .ai-flow-shell,
+body[data-active-screen="ai-assistant"] .ai-flow-shell {
+  position: relative;
+  z-index: 1;
+}
+
+body[data-active-screen="creation-choice"] .ai-flow-hero h1,
+body[data-active-screen="ai-assistant"] .ai-flow-hero h1 {
+  color: #fff4da;
+  font-family: "Libre Baskerville", "Cinzel", Georgia, serif;
+  font-weight: 700;
+  text-shadow:
+    0 2px 0 rgba(0, 0, 0, 0.34),
+    0 20px 42px rgba(0, 0, 0, 0.34);
+}
+
+body.ai-edition-2024 .ai-flow-hero h1 {
+  color: var(--ai-edition-accent-strong);
+}
+
+body[data-active-screen="creation-choice"] .ai-flow-hero-copy > p:last-child,
+body[data-active-screen="ai-assistant"] .ai-flow-hero-copy > p:last-child {
+  max-width: 68ch;
+  padding-left: 18px;
+  border-left: 4px solid var(--ai-edition-accent);
+  color: #d7c7ac;
+  text-shadow: 0 12px 26px rgba(0, 0, 0, 0.32);
+}
+
+body.ai-edition-2024 .ai-flow-hero-copy > p:last-child {
+  border-left-color: var(--ai-edition-contrast);
+}
+
+body[data-active-screen="creation-choice"] .ai-flow-hero .version-option-tag,
+body[data-active-screen="ai-assistant"] .ai-flow-hero .version-option-tag {
+  width: fit-content;
+  border-color: color-mix(in srgb, var(--ai-edition-contrast), transparent 64%);
+  background: color-mix(in srgb, var(--ai-edition-contrast), transparent 90%);
+  color: #8df0df;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+body.ai-edition-5e .ai-flow-hero .version-option-tag {
+  border-color: rgba(240, 100, 63, 0.32);
+  background: rgba(240, 100, 63, 0.12);
+  color: #ffb29e;
+}
+
+body[data-active-screen="creation-choice"] .ai-flow-compass,
+body[data-active-screen="ai-assistant"] .ai-flow-compass {
+  border-color: rgba(231, 185, 92, 0.24);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.02)),
+    linear-gradient(135deg, rgba(240, 100, 63, 0.1), rgba(103, 213, 199, 0.07)),
+    var(--ai-edition-panel);
+  box-shadow:
+    inset 5px 0 0 var(--ai-edition-accent),
+    0 18px 36px rgba(0, 0, 0, 0.24);
+}
+
+body[data-active-screen="creation-choice"] .ai-flow-compass span,
+body[data-active-screen="ai-assistant"] .ai-flow-compass span {
+  color: #ffe7b5;
+}
+
+body[data-active-screen="creation-choice"] .ai-flow-compass span::before,
+body[data-active-screen="ai-assistant"] .ai-flow-compass span::before {
+  background: var(--ai-edition-contrast);
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, var(--ai-edition-contrast), transparent 84%),
+    0 0 18px color-mix(in srgb, var(--ai-edition-contrast), transparent 52%);
+}
+
+body[data-active-screen="creation-choice"] .ai-choice-card,
+body[data-active-screen="ai-assistant"] .ai-choice-card,
+body[data-active-screen="ai-assistant"] .ai-assistant-form,
+body[data-active-screen="ai-assistant"] .ai-saved-draft-panel,
+body[data-active-screen="ai-assistant"] .ai-result-panel,
+body[data-active-screen="ai-assistant"] .ai-prompt-insight,
+body[data-active-screen="ai-assistant"] .ai-insight-pill,
+body[data-active-screen="ai-assistant"] .ai-result-details dd,
+body[data-active-screen="creation-choice"] .ai-status:not(:empty),
+body[data-active-screen="ai-assistant"] .ai-status:not(:empty) {
+  border-color: rgba(231, 185, 92, 0.22);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02)),
+    var(--ai-edition-panel);
+  color: var(--text);
+  box-shadow:
+    0 22px 44px var(--ai-edition-shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+body[data-active-screen="creation-choice"] .ai-choice-card {
+  min-height: 265px;
+  padding: 28px;
+}
+
+body[data-active-screen="creation-choice"] .ai-choice-card::before,
+body[data-active-screen="ai-assistant"] .ai-choice-card::before {
+  z-index: 1;
+  width: 9px;
+  background: linear-gradient(180deg, var(--ai-edition-accent), var(--ai-edition-contrast));
+}
+
+body[data-active-screen="creation-choice"] .ai-choice-card::after,
+body[data-active-screen="ai-assistant"] .ai-choice-card::after {
+  content: "";
+  position: absolute;
+  inset: -42% -28% auto auto;
+  z-index: 0;
+  width: 360px;
+  height: 360px;
+  pointer-events: none;
+  background: radial-gradient(circle, color-mix(in srgb, var(--ai-edition-contrast), transparent 80%), transparent 62%);
+  opacity: 0.86;
+}
+
+body[data-active-screen="creation-choice"] .ai-choice-card > *,
+body[data-active-screen="ai-assistant"] .ai-choice-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+body.ai-edition-5e .ai-choice-card--manual {
+  border-left: 10px solid #f0643f;
+  background:
+    radial-gradient(circle at top left, rgba(255, 170, 92, 0.13), transparent 32%),
+    linear-gradient(112deg, rgba(240, 100, 63, 0.14), transparent 31%),
+    linear-gradient(180deg, rgba(26, 16, 14, 0.9), rgba(7, 8, 11, 0.88));
+}
+
+body.ai-edition-5e .ai-choice-card--assisted {
+  border-left: 10px solid #67d5c7;
+  background:
+    radial-gradient(ellipse at 88% 18%, rgba(103, 213, 199, 0.14), transparent 30%),
+    linear-gradient(112deg, rgba(103, 213, 199, 0.08), transparent 30%),
+    linear-gradient(180deg, rgba(13, 21, 32, 0.9), rgba(5, 8, 14, 0.88));
+}
+
+body.ai-edition-2024 .ai-choice-card {
+  border-color: rgba(103, 213, 199, 0.26);
+  border-left: 10px solid #e7b95c;
+  background:
+    radial-gradient(ellipse at 88% 18%, rgba(103, 213, 199, 0.13), transparent 30%),
+    linear-gradient(112deg, rgba(103, 213, 199, 0.08), transparent 30%),
+    linear-gradient(180deg, rgba(13, 21, 32, 0.9), rgba(5, 8, 14, 0.88));
+}
+
+body.ai-edition-2024 .ai-choice-card--assisted {
+  border-left-color: #67d5c7;
+}
+
+body[data-active-screen="creation-choice"] .ai-choice-card:hover,
+body[data-active-screen="creation-choice"] .ai-choice-card:focus-visible,
+body[data-active-screen="ai-assistant"] .ai-choice-card:hover,
+body[data-active-screen="ai-assistant"] .ai-choice-card:focus-visible {
+  border-color: color-mix(in srgb, var(--ai-edition-accent), transparent 42%);
+  box-shadow:
+    0 30px 58px rgba(0, 0, 0, 0.36),
+    0 0 0 1px color-mix(in srgb, var(--ai-edition-contrast), transparent 78%);
+}
+
+body[data-active-screen="creation-choice"] .ai-choice-icon,
+body[data-active-screen="ai-assistant"] .ai-choice-icon {
+  border-color: color-mix(in srgb, var(--ai-edition-contrast), transparent 58%);
+  color: var(--ai-edition-accent-strong);
+  background:
+    radial-gradient(circle at 34% 22%, rgba(255, 255, 255, 0.13), transparent 34%),
+    rgba(255, 255, 255, 0.055);
+  box-shadow:
+    0 0 22px color-mix(in srgb, var(--ai-edition-contrast), transparent 76%),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+body[data-active-screen="creation-choice"] .ai-choice-card strong,
+body[data-active-screen="ai-assistant"] .ai-choice-card strong,
+body[data-active-screen="ai-assistant"] .ai-result-title strong,
+body[data-active-screen="ai-assistant"] .ai-insight-heading strong {
+  color: var(--ai-edition-accent-strong);
+  font-family: "Libre Baskerville", "Cinzel", Georgia, serif;
+}
+
+body[data-active-screen="creation-choice"] .ai-choice-kicker,
+body[data-active-screen="ai-assistant"] .ai-choice-kicker,
+body[data-active-screen="ai-assistant"] .ai-assistant-form label.row > span,
+body[data-active-screen="ai-assistant"] .ai-assistant-form .ai-label-row > label,
+body[data-active-screen="ai-assistant"] .ai-examples-heading span,
+body[data-active-screen="ai-assistant"] .ai-insight-heading span,
+body[data-active-screen="ai-assistant"] .ai-result-details dt,
+body[data-active-screen="ai-assistant"] .ai-saved-draft-copy span {
+  color: var(--ai-edition-accent);
+}
+
+body[data-active-screen="creation-choice"] .ai-choice-card span:last-child,
+body[data-active-screen="ai-assistant"] .ai-choice-card span:last-child,
+body[data-active-screen="ai-assistant"] .ai-result-title span,
+body[data-active-screen="ai-assistant"] .ai-saved-draft-copy p,
+body[data-active-screen="ai-assistant"] .ai-insight-pill small {
+  color: #d7c7ac;
+}
+
+body[data-active-screen="ai-assistant"] .ai-assistant-form {
+  position: relative;
+  overflow: hidden;
+  border-left: 10px solid var(--ai-edition-accent);
+  background:
+    radial-gradient(ellipse at 84% 8%, color-mix(in srgb, var(--ai-edition-contrast), transparent 86%), transparent 32%),
+    linear-gradient(112deg, color-mix(in srgb, var(--ai-edition-accent), transparent 90%), transparent 34%),
+    linear-gradient(180deg, rgba(14, 18, 26, 0.94), rgba(7, 9, 14, 0.92));
+}
+
+body[data-active-screen="ai-assistant"] .ai-assistant-form::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 0 1px, transparent 1px 34px),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 40px);
+  mask-image: linear-gradient(135deg, rgba(0, 0, 0, 0.58), transparent 68%);
+}
+
+body[data-active-screen="ai-assistant"] .ai-assistant-form > * {
+  position: relative;
+  z-index: 1;
+}
+
+body[data-active-screen="ai-assistant"] .ai-assistant-form textarea,
+body[data-active-screen="ai-assistant"] .ai-assistant-form input,
+body[data-active-screen="ai-assistant"] .ai-assistant-form select {
+  border-color: rgba(231, 185, 92, 0.24);
+  background: rgba(6, 9, 14, 0.74);
+  color: var(--text);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+
+body[data-active-screen="ai-assistant"] .ai-assistant-form textarea::placeholder,
+body[data-active-screen="ai-assistant"] .ai-assistant-form input::placeholder {
+  color: rgba(215, 199, 172, 0.7);
+}
+
+body[data-active-screen="ai-assistant"] .ai-prompt-insight,
+body[data-active-screen="ai-assistant"] .ai-result-panel {
+  border-color: color-mix(in srgb, var(--ai-edition-contrast), transparent 70%);
+}
+
+body[data-active-screen="ai-assistant"] .ai-insight-pill,
+body[data-active-screen="ai-assistant"] .ai-result-details dd,
+body[data-active-screen="ai-assistant"] .ai-example-button {
+  background: rgba(255, 255, 255, 0.055);
+  color: var(--text);
+}
+
+body[data-active-screen="ai-assistant"] .ai-example-button {
+  border-color: rgba(231, 185, 92, 0.18);
+  border-left-color: var(--ai-edition-accent);
+}
+
+body[data-active-screen="ai-assistant"] .ai-example-button:hover,
+body[data-active-screen="ai-assistant"] .ai-example-button:focus-visible {
+  background: color-mix(in srgb, var(--ai-edition-accent), transparent 86%);
+  color: var(--ai-edition-accent-strong);
+}
+
+body[data-active-screen="ai-assistant"] .ai-reroll-button,
+body[data-active-screen="ai-assistant"] .ai-help-trigger {
+  border-color: color-mix(in srgb, var(--ai-edition-contrast), transparent 62%);
+  background: color-mix(in srgb, var(--ai-edition-contrast), transparent 90%);
+  color: var(--ai-edition-contrast);
+}
+
+body[data-active-screen="ai-assistant"] .ai-help-card {
+  border-color: color-mix(in srgb, var(--ai-edition-accent), transparent 56%);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0)),
+    var(--ai-help-card-bg);
+  color: var(--text);
+}
+
+body[data-active-screen="ai-assistant"] .ai-help-card::after {
+  border-color: var(--ai-help-card-bg) transparent transparent;
+}
+
+body[data-active-screen="ai-assistant"] .ai-form-actions .primary {
+  border-color: var(--primary-border);
+  background: var(--primary-bg);
+  color: var(--primary-text);
+  box-shadow:
+    0 18px 32px color-mix(in srgb, var(--ai-edition-accent), transparent 74%),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+body.ai-edition-2024[data-active-screen="ai-assistant"] .ai-form-actions .primary {
+  --primary-bg: linear-gradient(180deg, #67d5c7, #24756b);
+  --primary-border: #8df0df;
+  --primary-text: #061015;
+}
+
+body[data-active-screen="ai-assistant"] .ai-form-actions .secondary-button {
+  border-color: rgba(231, 185, 92, 0.22);
+  background: rgba(12, 14, 20, 0.58);
+  color: #ffe7b5;
+}
+
+html[data-theme="light"] body[data-active-screen="creation-choice"],
+html[data-theme="light"] body[data-active-screen="ai-assistant"] {
+  --bg: #f4efe4;
+  --card: #fff8ea;
+  --text: #2f2419;
+  --muted: #675846;
+  --border: rgba(142, 93, 46, 0.3);
+  --accent: #bd4b32;
+  --input-bg: #fffaf1;
+  --focus-ring: rgba(35, 111, 103, 0.24);
+  --primary-bg: linear-gradient(180deg, #d65f40, #973521);
+  --primary-border: #e79a73;
+  --primary-text: #fffaf0;
+  background:
+    linear-gradient(118deg, rgba(200, 74, 50, 0.12) 0 13%, transparent 13% 58%, rgba(185, 130, 46, 0.13) 58% 72%, transparent 72%),
+    conic-gradient(from 28deg at 78% 32%, rgba(143, 95, 30, 0.12), transparent 24%, rgba(36, 117, 107, 0.1), transparent 48%, rgba(107, 80, 116, 0.1), transparent 74%),
+    linear-gradient(180deg, #f8f2e6 0%, #e9f1ed 56%, #f5e8d6 100%);
+  color: var(--text);
+}
+
+html[data-theme="light"] body[data-active-screen="creation-choice"]::before,
+html[data-theme="light"] body[data-active-screen="ai-assistant"]::before {
+  background:
+    linear-gradient(90deg, rgba(80, 57, 35, 0.065) 0 1px, transparent 1px 36px),
+    linear-gradient(180deg, rgba(80, 57, 35, 0.05) 0 1px, transparent 1px 42px);
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.48), transparent 76%);
+}
+
+html[data-theme="light"] body[data-active-screen="creation-choice"] .ai-flow-screen,
+html[data-theme="light"] body[data-active-screen="ai-assistant"] .ai-flow-screen {
+  --ai-edition-accent: #c84a32;
+  --ai-edition-accent-strong: #8f5f1e;
+  --ai-edition-contrast: #24756b;
+  --ai-edition-paper: rgba(255, 248, 234, 0.88);
+  --ai-edition-panel: rgba(255, 250, 240, 0.9);
+  --ai-help-card-bg: #fffaf0;
+  --ai-edition-shadow: rgba(80, 52, 26, 0.16);
+  background:
+    linear-gradient(118deg, rgba(200, 74, 50, 0.08) 0 14%, transparent 14% 58%, rgba(185, 130, 46, 0.08) 58% 72%, transparent 72%),
+    radial-gradient(ellipse at 16% 18%, rgba(200, 74, 50, 0.12), transparent 30%),
+    radial-gradient(ellipse at 76% 28%, rgba(36, 117, 107, 0.12), transparent 24%);
+}
+
+html[data-theme="light"] body.ai-edition-2024 .ai-flow-screen {
+  --ai-edition-accent: #24756b;
+  --ai-edition-accent-strong: #8f5f1e;
+  --ai-edition-contrast: #b9822e;
+  background:
+    linear-gradient(118deg, rgba(36, 117, 107, 0.08) 0 14%, transparent 14% 58%, rgba(185, 130, 46, 0.1) 58% 72%, transparent 72%),
+    radial-gradient(ellipse at 16% 18%, rgba(36, 117, 107, 0.1), transparent 30%),
+    radial-gradient(ellipse at 76% 28%, rgba(143, 95, 30, 0.11), transparent 24%);
+}
+
+html[data-theme="light"] body[data-active-screen="creation-choice"] .ai-flow-screen::after,
+html[data-theme="light"] body[data-active-screen="ai-assistant"] .ai-flow-screen::after {
+  filter:
+    drop-shadow(0 0 22px rgba(143, 95, 30, 0.14))
+    drop-shadow(0 0 24px rgba(36, 117, 107, 0.08));
+  opacity: 0.18;
+}
+
+html[data-theme="light"] body[data-active-screen="creation-choice"] .ai-flow-header .version-toolbar,
+html[data-theme="light"] body[data-active-screen="ai-assistant"] .ai-flow-header .version-toolbar,
+html[data-theme="light"] body[data-active-screen="creation-choice"] .ai-choice-card,
+html[data-theme="light"] body[data-active-screen="ai-assistant"] .ai-assistant-form,
+html[data-theme="light"] body[data-active-screen="ai-assistant"] .ai-saved-draft-panel,
+html[data-theme="light"] body[data-active-screen="ai-assistant"] .ai-result-panel,
+html[data-theme="light"] body[data-active-screen="ai-assistant"] .ai-prompt-insight,
+html[data-theme="light"] body[data-active-screen="ai-assistant"] .ai-insight-pill,
+html[data-theme="light"] body[data-active-screen="ai-assistant"] .ai-result-details dd,
+html[data-theme="light"] body[data-active-screen="creation-choice"] .ai-status:not(:empty),
+html[data-theme="light"] body[data-active-screen="ai-assistant"] .ai-status:not(:empty) {
+  border-color: rgba(143, 95, 30, 0.24);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.54), rgba(255, 255, 255, 0.18)),
+    var(--ai-edition-panel);
+  color: var(--text);
+  box-shadow:
+    0 18px 34px var(--ai-edition-shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72);
+}
+
+html[data-theme="light"] body[data-active-screen="creation-choice"] .ai-flow-hero h1,
+html[data-theme="light"] body[data-active-screen="ai-assistant"] .ai-flow-hero h1 {
+  color: var(--text);
+  text-shadow:
+    0 2px 0 rgba(255, 255, 255, 0.54),
+    0 12px 26px rgba(87, 56, 28, 0.16);
+}
+
+html[data-theme="light"] body[data-active-screen="creation-choice"] .ai-flow-hero-copy > p:last-child,
+html[data-theme="light"] body[data-active-screen="ai-assistant"] .ai-flow-hero-copy > p:last-child,
+html[data-theme="light"] body[data-active-screen="creation-choice"] .ai-choice-card span:last-child,
+html[data-theme="light"] body[data-active-screen="ai-assistant"] .ai-choice-card span:last-child,
+html[data-theme="light"] body[data-active-screen="ai-assistant"] .ai-result-title span,
+html[data-theme="light"] body[data-active-screen="ai-assistant"] .ai-saved-draft-copy p,
+html[data-theme="light"] body[data-active-screen="ai-assistant"] .ai-insight-pill small {
+  color: var(--muted);
+  text-shadow: none;
+}
+
+html[data-theme="light"] body[data-active-screen="creation-choice"] .ai-flow-brand,
+html[data-theme="light"] body[data-active-screen="ai-assistant"] .ai-flow-brand,
+html[data-theme="light"] body[data-active-screen="creation-choice"] .ai-flow-compass span,
+html[data-theme="light"] body[data-active-screen="ai-assistant"] .ai-flow-compass span,
+html[data-theme="light"] body[data-active-screen="creation-choice"] .ai-choice-card strong,
+html[data-theme="light"] body[data-active-screen="ai-assistant"] .ai-choice-card strong,
+html[data-theme="light"] body[data-active-screen="ai-assistant"] .ai-result-title strong,
+html[data-theme="light"] body[data-active-screen="ai-assistant"] .ai-insight-heading strong {
+  color: var(--ai-edition-accent-strong);
+  text-shadow: none;
+}
+
+html[data-theme="light"] body[data-active-screen="creation-choice"] .ai-flow-header .secondary-button,
+html[data-theme="light"] body[data-active-screen="creation-choice"] .ai-flow-header .ghost-button,
+html[data-theme="light"] body[data-active-screen="ai-assistant"] .ai-flow-header .secondary-button,
+html[data-theme="light"] body[data-active-screen="ai-assistant"] .ai-flow-header .ghost-button,
+html[data-theme="light"] body[data-active-screen="ai-assistant"] .ai-form-actions .secondary-button {
+  border-color: rgba(143, 95, 30, 0.28);
+  background: rgba(255, 248, 234, 0.82);
+  color: #5b3c1d;
+}
+
+html[data-theme="light"] body.ai-edition-5e .ai-choice-card--manual {
+  background:
+    radial-gradient(circle at top left, rgba(200, 74, 50, 0.13), transparent 32%),
+    linear-gradient(112deg, rgba(200, 74, 50, 0.12), transparent 31%),
+    linear-gradient(180deg, rgba(255, 248, 234, 0.88), rgba(246, 225, 203, 0.88));
+}
+
+html[data-theme="light"] body.ai-edition-5e .ai-choice-card--assisted,
+html[data-theme="light"] body.ai-edition-2024 .ai-choice-card {
+  background:
+    radial-gradient(ellipse at 88% 18%, rgba(36, 117, 107, 0.13), transparent 30%),
+    linear-gradient(112deg, rgba(36, 117, 107, 0.1), transparent 30%),
+    linear-gradient(180deg, rgba(238, 248, 243, 0.88), rgba(247, 238, 220, 0.88));
+}
+
+html[data-theme="light"] body[data-active-screen="ai-assistant"] .ai-assistant-form {
+  background:
+    radial-gradient(ellipse at 84% 8%, color-mix(in srgb, var(--ai-edition-contrast), transparent 86%), transparent 32%),
+    linear-gradient(112deg, color-mix(in srgb, var(--ai-edition-accent), transparent 90%), transparent 34%),
+    linear-gradient(180deg, rgba(255, 248, 234, 0.94), rgba(247, 238, 220, 0.92));
+}
+
+html[data-theme="light"] body[data-active-screen="ai-assistant"] .ai-assistant-form textarea,
+html[data-theme="light"] body[data-active-screen="ai-assistant"] .ai-assistant-form input,
+html[data-theme="light"] body[data-active-screen="ai-assistant"] .ai-assistant-form select {
+  border-color: rgba(143, 95, 30, 0.24);
+  background: rgba(255, 252, 245, 0.96);
+  color: var(--text);
+}
+
 @media (max-width: 820px) {
   .ai-flow-header .version-toolbar,
   .ai-flow-header .version-toolbar-actions {
@@ -1050,5 +1686,87 @@ html[data-theme="dark"] .ai-status.status-warning {
   .ai-form-actions .primary,
   .ai-form-actions .secondary-button {
     width: 100%;
+  }
+}
+
+@media (max-width: 820px) {
+  body[data-active-screen="creation-choice"] .ai-flow-screen::after,
+  body[data-active-screen="ai-assistant"] .ai-flow-screen::after {
+    top: 22vh;
+    right: -170px;
+    width: 520px;
+    height: 520px;
+    opacity: 0.1;
+  }
+
+  body[data-active-screen="creation-choice"] .ai-flow-hero,
+  body[data-active-screen="ai-assistant"] .ai-flow-hero {
+    align-items: start;
+  }
+}
+
+@media (max-width: 620px) {
+  body[data-active-screen="creation-choice"] .ai-flow-header .version-toolbar,
+  body[data-active-screen="ai-assistant"] .ai-flow-header .version-toolbar {
+    gap: 10px;
+    padding: 10px;
+  }
+
+  body[data-active-screen="creation-choice"] .ai-flow-header .version-toolbar-actions,
+  body[data-active-screen="ai-assistant"] .ai-flow-header .version-toolbar-actions {
+    gap: 8px;
+  }
+
+  body[data-active-screen="creation-choice"] .ai-flow-header .version-toolbar-actions > a,
+  body[data-active-screen="ai-assistant"] .ai-flow-header .version-toolbar-actions > a {
+    min-height: 40px;
+    padding: 9px 10px;
+    font-size: 15px;
+  }
+
+  body[data-active-screen="creation-choice"] .ai-flow-shell,
+  body[data-active-screen="ai-assistant"] .ai-flow-shell {
+    min-height: auto;
+    gap: 22px;
+    padding-top: 22px;
+  }
+
+  body[data-active-screen="creation-choice"] .ai-flow-hero h1,
+  body[data-active-screen="ai-assistant"] .ai-flow-hero h1 {
+    font-size: 36px;
+    line-height: 1.06;
+  }
+
+  body[data-active-screen="creation-choice"] .ai-flow-hero-copy > p:last-child,
+  body[data-active-screen="ai-assistant"] .ai-flow-hero-copy > p:last-child {
+    padding-left: 14px;
+    font-size: 18px;
+  }
+
+  body[data-active-screen="creation-choice"] .ai-flow-compass,
+  body[data-active-screen="ai-assistant"] .ai-flow-compass {
+    padding: 12px;
+  }
+
+  body[data-active-screen="creation-choice"] .ai-choice-card,
+  body[data-active-screen="ai-assistant"] .ai-choice-card {
+    min-height: 0;
+    padding: 18px 18px 18px 20px;
+    border-left-width: 8px;
+  }
+
+  body[data-active-screen="ai-assistant"] .ai-assistant-form {
+    border-left-width: 8px;
+  }
+
+  body[data-active-screen="creation-choice"] .ai-choice-card::before,
+  body[data-active-screen="ai-assistant"] .ai-choice-card::before {
+    width: 6px;
+  }
+
+  body[data-active-screen="creation-choice"] .ai-choice-card::after,
+  body[data-active-screen="ai-assistant"] .ai-choice-card::after {
+    width: 260px;
+    height: 260px;
   }
 }
