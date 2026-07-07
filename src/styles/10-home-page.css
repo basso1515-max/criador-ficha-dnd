@@ -415,15 +415,7 @@ body[data-active-screen="home"]::before {
 }
 
 body[data-active-screen="home"]::after {
-  inset: 44px 56px auto auto;
-  width: min(520px, 42vw);
-  aspect-ratio: 1;
-  border: 1px solid rgba(226, 177, 86, 0.22);
-  border-radius: 50%;
-  background:
-    radial-gradient(circle, transparent 48%, rgba(226, 177, 86, 0.13) 49% 50%, transparent 51%),
-    conic-gradient(from 0deg, transparent, rgba(103, 213, 199, 0.16), transparent, rgba(240, 100, 63, 0.18), transparent);
-  opacity: 0.82;
+  display: none;
 }
 
 body[data-active-screen="home"] .version-home-screen {
@@ -567,11 +559,31 @@ body[data-active-screen="home"] .version-home-legal-links a {
 }
 
 body[data-active-screen="home"] .version-option-grid {
+  position: relative;
+  isolation: isolate;
   grid-template-columns: 1fr;
   gap: 16px;
 }
 
+body[data-active-screen="home"] .version-option-grid::before {
+  content: "";
+  position: absolute;
+  top: -72px;
+  right: -148px;
+  z-index: 0;
+  width: min(720px, 96%);
+  height: calc(100% + 164px);
+  background: url("../../assets/brand/dnd-ampersand-watermark.png") center right / contain no-repeat;
+  filter:
+    drop-shadow(0 0 40px rgba(231, 185, 92, 0.16))
+    drop-shadow(0 0 30px rgba(103, 213, 199, 0.11));
+  opacity: 0.26;
+  transform: rotate(-7deg);
+  pointer-events: none;
+}
+
 body[data-active-screen="home"] .version-option {
+  z-index: 1;
   min-height: 252px;
   gap: 13px;
   padding: 28px 32px 28px 34px;
@@ -719,8 +731,8 @@ body[data-active-screen="home"] .site-theme-toggle {
 body[data-active-screen="home"] .home-account-popup {
   border: 1px solid rgba(231, 185, 92, 0.28);
   background:
-    linear-gradient(112deg, rgba(240, 100, 63, 0.18), transparent 32%),
-    linear-gradient(180deg, rgba(31, 24, 29, 0.98), rgba(10, 13, 20, 0.98));
+    linear-gradient(112deg, rgba(240, 100, 63, 0.16), transparent 32%),
+    linear-gradient(180deg, #1f181d, #0a0d14);
   box-shadow: 0 22px 44px rgba(0, 0, 0, 0.44);
 }
 
@@ -728,7 +740,7 @@ body[data-active-screen="home"] .home-popup-card,
 body[data-active-screen="home"] .home-user-session,
 body[data-active-screen="home"] .home-save-counts .secondary-button {
   border-color: rgba(231, 185, 92, 0.22);
-  background: rgba(255, 246, 224, 0.08);
+  background: #121722;
   color: var(--text);
 }
 
@@ -743,11 +755,6 @@ body[data-active-screen="home"] .home-save-counts strong {
 }
 
 @media (max-width: 980px) {
-  body[data-active-screen="home"]::after {
-    width: 54vw;
-    opacity: 0.5;
-  }
-
   body[data-active-screen="home"] .version-home-shell {
     width: min(760px, calc(100vw - 32px));
     grid-template-columns: 1fr;
@@ -763,14 +770,17 @@ body[data-active-screen="home"] .home-save-counts strong {
   body[data-active-screen="home"] .version-home-lead {
     max-width: 62ch;
   }
+
+  body[data-active-screen="home"] .version-option-grid::before {
+    top: -50px;
+    right: -150px;
+    width: 520px;
+    height: 580px;
+    opacity: 0.2;
+  }
 }
 
 @media (max-width: 720px) {
-  body[data-active-screen="home"]::after {
-    right: -120px;
-    width: 360px;
-  }
-
   body[data-active-screen="home"] .version-home-shell {
     width: min(100% - 28px, 680px);
     padding-top: 76px;
@@ -808,6 +818,14 @@ body[data-active-screen="home"] .home-save-counts strong {
 
   body[data-active-screen="home"] .home-contact-strip {
     grid-template-columns: 1fr;
+  }
+
+  body[data-active-screen="home"] .version-option-grid::before {
+    top: -26px;
+    right: -178px;
+    width: 440px;
+    height: 560px;
+    opacity: 0.18;
   }
 
   body[data-active-screen="home"] .home-account-widget {
