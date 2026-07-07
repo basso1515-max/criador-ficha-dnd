@@ -612,7 +612,7 @@ body[data-active-screen="home"] .version-option--5e {
   border-left: 10px solid var(--home-arcane-ember);
   background:
     linear-gradient(112deg, rgba(240, 100, 63, 0.2), transparent 31%),
-    linear-gradient(180deg, rgba(34, 21, 18, 0.98), rgba(13, 11, 12, 0.98));
+    linear-gradient(180deg, rgba(34, 21, 18, 0.84), rgba(13, 11, 12, 0.84));
 }
 
 body[data-active-screen="home"] .version-option--2024 {
@@ -620,7 +620,7 @@ body[data-active-screen="home"] .version-option--2024 {
   background:
     radial-gradient(ellipse at 88% 18%, rgba(103, 213, 199, 0.13), transparent 30%),
     linear-gradient(112deg, rgba(103, 213, 199, 0.09), transparent 30%),
-    linear-gradient(180deg, rgba(24, 32, 46, 0.98), rgba(10, 13, 22, 0.98));
+    linear-gradient(180deg, rgba(24, 32, 46, 0.84), rgba(10, 13, 22, 0.84));
 }
 
 body[data-active-screen="home"] .version-option .version-option-tag {
