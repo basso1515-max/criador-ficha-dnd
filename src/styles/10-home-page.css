@@ -427,6 +427,20 @@ body[data-active-screen="home"] .version-home-screen {
     radial-gradient(ellipse at 76% 28%, rgba(103, 213, 199, 0.13), transparent 24%);
 }
 
+html[data-theme="dark"] body[data-active-screen="home"] {
+  background:
+    linear-gradient(118deg, rgba(240, 100, 63, 0.13) 0 13%, transparent 13% 58%, rgba(217, 158, 69, 0.09) 58% 72%, transparent 72%),
+    conic-gradient(from 28deg at 78% 32%, rgba(231, 185, 92, 0.12), transparent 24%, rgba(103, 213, 199, 0.08), transparent 48%, rgba(150, 86, 201, 0.1), transparent 74%),
+    linear-gradient(180deg, #04080d 0%, #08070f 58%, #030302 100%);
+}
+
+html[data-theme="dark"] body[data-active-screen="home"] .version-home-screen {
+  background:
+    linear-gradient(118deg, rgba(240, 100, 63, 0.1) 0 14%, transparent 14% 58%, rgba(217, 158, 69, 0.07) 58% 72%, transparent 72%),
+    radial-gradient(ellipse at 16% 18%, rgba(240, 100, 63, 0.12), transparent 30%),
+    radial-gradient(ellipse at 76% 28%, rgba(103, 213, 199, 0.09), transparent 24%);
+}
+
 body[data-active-screen="home"] .version-home-shell {
   position: relative;
   z-index: 1;
@@ -621,6 +635,44 @@ body[data-active-screen="home"] .version-option--2024 {
     radial-gradient(ellipse at 88% 18%, rgba(103, 213, 199, 0.13), transparent 30%),
     linear-gradient(112deg, rgba(103, 213, 199, 0.09), transparent 30%),
     linear-gradient(180deg, rgba(24, 32, 46, 0.84), rgba(10, 13, 22, 0.84));
+}
+
+html[data-theme="dark"] body[data-active-screen="home"] .version-option.version-option--5e {
+  border-color: rgba(255, 188, 112, 0.34);
+  border-left-color: var(--home-arcane-ember);
+  background:
+    radial-gradient(circle at top left, rgba(255, 170, 92, 0.13), transparent 32%),
+    linear-gradient(112deg, rgba(240, 100, 63, 0.12), transparent 31%),
+    linear-gradient(180deg, rgba(26, 16, 14, 0.84), rgba(7, 8, 11, 0.84));
+}
+
+html[data-theme="dark"] body[data-active-screen="home"] .version-option.version-option--2024 {
+  border-color: rgba(103, 213, 199, 0.3);
+  border-left-color: var(--home-arcane-gold-soft);
+  background:
+    radial-gradient(ellipse at 88% 18%, rgba(103, 213, 199, 0.11), transparent 30%),
+    linear-gradient(112deg, rgba(103, 213, 199, 0.07), transparent 30%),
+    linear-gradient(180deg, rgba(13, 21, 32, 0.84), rgba(5, 8, 14, 0.84));
+  color: var(--text);
+}
+
+html[data-theme="dark"] body[data-active-screen="home"] .version-option.version-option--2024 h2 {
+  color: var(--home-arcane-gold);
+}
+
+html[data-theme="dark"] body[data-active-screen="home"] .version-option.version-option--2024 p,
+html[data-theme="dark"] body[data-active-screen="home"] .version-option.version-option--2024 .version-feature-list {
+  color: #d8cdb8;
+}
+
+html[data-theme="dark"] body[data-active-screen="home"] .version-option.version-option--2024 .version-option-tag {
+  border-color: rgba(103, 213, 199, 0.28);
+  background: rgba(103, 213, 199, 0.1);
+  color: #8df0df;
+}
+
+html[data-theme="dark"] body[data-active-screen="home"] .version-option.version-option--2024 .version-feature-list li::before {
+  color: var(--home-arcane-teal);
 }
 
 body[data-active-screen="home"] .version-option .version-option-tag {
