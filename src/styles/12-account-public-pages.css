@@ -1,0 +1,683 @@
+/* Forja Arcana aplicada aos fluxos de conta, usuario e admin. */
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) {
+  --bg: #070b11;
+  --card: #101622;
+  --text: #fff0d7;
+  --muted: #d7c7ac;
+  --border: rgba(231, 185, 92, 0.3);
+  --accent: #f4bf73;
+  --input-bg: #0d121b;
+  --focus-ring: rgba(103, 213, 199, 0.24);
+  --primary-bg: linear-gradient(180deg, #f0643f, #8f2c1f);
+  --primary-border: #ffb49d;
+  --primary-text: #fff7e7;
+  --ui-font: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --heading-font: "Cinzel", "Libre Baskerville", Georgia, serif;
+  --account-arcane-gold: #ffd681;
+  --account-arcane-gold-soft: #e7b95c;
+  --account-arcane-teal: #67d5c7;
+  --account-arcane-ember: #f0643f;
+  --account-arcane-ember-soft: #ffb29e;
+  --account-arcane-panel: rgba(12, 17, 26, 0.88);
+  --account-arcane-panel-raised: rgba(17, 23, 34, 0.94);
+  --account-arcane-panel-soft: rgba(255, 255, 255, 0.055);
+  --account-arcane-border: rgba(231, 185, 92, 0.26);
+  --account-arcane-border-strong: rgba(255, 214, 129, 0.44);
+  --account-arcane-shadow: 0 24px 58px rgba(0, 0, 0, 0.38);
+  --account-arcane-small-shadow: 0 16px 34px rgba(0, 0, 0, 0.28);
+  min-height: 100vh;
+  padding-bottom: 36px;
+  background:
+    linear-gradient(118deg, rgba(240, 100, 63, 0.16) 0 13%, transparent 13% 58%, rgba(217, 158, 69, 0.1) 58% 72%, transparent 72%),
+    conic-gradient(from 28deg at 78% 28%, rgba(231, 185, 92, 0.13), transparent 24%, rgba(103, 213, 199, 0.09), transparent 48%, rgba(150, 86, 201, 0.1), transparent 74%),
+    linear-gradient(180deg, #071018 0%, #100d16 58%, #060504 100%);
+  color: var(--text);
+  font-family: var(--ui-font);
+}
+
+html[data-theme="light"] body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) {
+  --bg: #f4efe4;
+  --card: #fff8ea;
+  --text: #2f2419;
+  --muted: #675846;
+  --border: rgba(142, 93, 46, 0.3);
+  --accent: #8f5f1e;
+  --input-bg: #fffaf1;
+  --focus-ring: rgba(35, 111, 103, 0.24);
+  --primary-bg: linear-gradient(180deg, #d65f40, #973521);
+  --primary-border: #e79a73;
+  --primary-text: #fffaf0;
+  --account-arcane-gold: #8f5f1e;
+  --account-arcane-gold-soft: #b9822e;
+  --account-arcane-teal: #24756b;
+  --account-arcane-ember: #c84a32;
+  --account-arcane-ember-soft: #8f3122;
+  --account-arcane-panel: rgba(255, 248, 234, 0.88);
+  --account-arcane-panel-raised: rgba(255, 250, 240, 0.94);
+  --account-arcane-panel-soft: rgba(255, 255, 255, 0.5);
+  --account-arcane-border: rgba(143, 95, 30, 0.26);
+  --account-arcane-border-strong: rgba(189, 75, 50, 0.36);
+  --account-arcane-shadow: 0 22px 42px rgba(80, 52, 26, 0.16);
+  --account-arcane-small-shadow: 0 16px 30px rgba(80, 52, 26, 0.12);
+  background:
+    linear-gradient(118deg, rgba(200, 74, 50, 0.12) 0 13%, transparent 13% 58%, rgba(185, 130, 46, 0.13) 58% 72%, transparent 72%),
+    conic-gradient(from 28deg at 78% 32%, rgba(143, 95, 30, 0.12), transparent 24%, rgba(36, 117, 107, 0.1), transparent 48%, rgba(107, 80, 116, 0.1), transparent 74%),
+    linear-gradient(180deg, #f8f2e6 0%, #e9f1ed 56%, #f5e8d6 100%);
+}
+
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .account-page-shell {
+  position: relative;
+  isolation: isolate;
+  gap: 10px;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 16% 12%, rgba(240, 100, 63, 0.13), transparent 30%),
+    radial-gradient(ellipse at 78% 20%, rgba(103, 213, 199, 0.1), transparent 24%);
+}
+
+html[data-theme="light"] body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .account-page-shell {
+  background:
+    radial-gradient(ellipse at 16% 12%, rgba(200, 74, 50, 0.1), transparent 30%),
+    radial-gradient(ellipse at 78% 20%, rgba(36, 117, 107, 0.1), transparent 24%);
+}
+
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .account-page-shell::before,
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .account-page-shell::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .account-page-shell::before {
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 0 1px, transparent 1px 36px),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 42px);
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.7), transparent 74%);
+}
+
+html[data-theme="light"] body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .account-page-shell::before {
+  background:
+    linear-gradient(90deg, rgba(80, 57, 35, 0.06) 0 1px, transparent 1px 36px),
+    linear-gradient(180deg, rgba(80, 57, 35, 0.045) 0 1px, transparent 1px 42px);
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.5), transparent 76%);
+}
+
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .account-page-shell::after {
+  inset: 12vh -18vw auto auto;
+  width: min(720px, 78vw);
+  height: min(720px, 78vw);
+  background: url("../../assets/brand/dnd-ampersand-watermark.png") center / contain no-repeat;
+  filter:
+    drop-shadow(0 0 40px rgba(231, 185, 92, 0.14))
+    drop-shadow(0 0 30px rgba(103, 213, 199, 0.09));
+  opacity: 0.13;
+  transform: rotate(-9deg);
+}
+
+html[data-theme="light"] body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .account-page-shell::after {
+  filter:
+    drop-shadow(0 0 22px rgba(143, 95, 30, 0.12))
+    drop-shadow(0 0 24px rgba(36, 117, 107, 0.08));
+  opacity: 0.12;
+}
+
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .account-page-shell > .container,
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .account-page-shell > .account-modal-backdrop {
+  position: relative;
+  z-index: 1;
+}
+
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .container {
+  width: min(1240px, calc(100vw - 48px));
+  padding: 16px 0;
+}
+
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .account-page-header {
+  padding-top: 20px;
+}
+
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .version-toolbar {
+  align-items: center;
+  min-height: 58px;
+  margin-bottom: 16px;
+  padding: 10px;
+  border: 1px solid var(--account-arcane-border);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.026)),
+    var(--account-arcane-panel);
+  box-shadow: var(--account-arcane-small-shadow);
+  backdrop-filter: blur(10px);
+}
+
+html[data-theme="light"] body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .version-toolbar {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.54), rgba(255, 255, 255, 0.18)),
+    var(--account-arcane-panel);
+}
+
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .version-toolbar-actions {
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .account-page-intro {
+  max-width: 880px;
+  gap: 14px;
+  padding-top: 18px;
+  padding-bottom: 16px;
+}
+
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .account-page-intro h1 {
+  color: var(--text);
+  font-family: var(--heading-font);
+  font-size: clamp(42px, 5.4vw, 64px);
+  line-height: 1;
+  letter-spacing: 0;
+  text-shadow:
+    0 8px 28px rgba(0, 0, 0, 0.42),
+    0 0 22px rgba(231, 185, 92, 0.08);
+}
+
+html[data-theme="light"] body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .account-page-intro h1 {
+  color: var(--text);
+  text-shadow:
+    0 2px 0 rgba(255, 255, 255, 0.54),
+    0 12px 26px rgba(87, 56, 28, 0.16);
+}
+
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .account-page-intro p {
+  max-width: 74ch;
+  padding-left: 18px;
+  border-left: 3px solid var(--account-arcane-ember);
+  color: var(--muted);
+  font-family: var(--ui-font);
+  font-size: 19px;
+  line-height: 1.55;
+}
+
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .account-page-intro a {
+  color: var(--account-arcane-teal);
+  font-weight: 800;
+  text-underline-offset: 3px;
+}
+
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) :is(.version-kicker, .version-option-tag, .version-badge, .account-section-heading span, .account-form-heading span, .edition-pill) {
+  border-radius: 4px;
+  border-color: color-mix(in srgb, var(--account-arcane-teal), transparent 72%);
+  background: color-mix(in srgb, var(--account-arcane-teal), transparent 90%);
+  color: var(--account-arcane-teal);
+  font-family: var(--ui-font);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) :is(.primary, .secondary-button, .ghost-button, .danger-button, .account-social-button, .account-inline-link, .user-settings-tabs button, .admin-limit-presets button) {
+  font-family: var(--ui-font);
+}
+
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .primary {
+  border: 1px solid var(--primary-border);
+  border-radius: 6px;
+  background: var(--primary-bg);
+  color: var(--primary-text);
+  font-weight: 900;
+  box-shadow:
+    0 18px 32px color-mix(in srgb, var(--account-arcane-ember), transparent 74%),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) :is(.secondary-button, .ghost-button) {
+  border-radius: 6px;
+  border-color: var(--account-arcane-border);
+  background: rgba(9, 14, 22, 0.72);
+  color: #ffe3b7;
+  font-weight: 800;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .ghost-button {
+  color: var(--account-arcane-gold-soft);
+}
+
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) :is(.secondary-button, .ghost-button):is(:hover, :focus-visible) {
+  border-color: var(--account-arcane-border-strong);
+  background: rgba(19, 25, 36, 0.9);
+}
+
+html[data-theme="light"] body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) :is(.secondary-button, .ghost-button) {
+  border-color: rgba(143, 95, 30, 0.28);
+  background: rgba(255, 248, 234, 0.82);
+  color: #5b3c1d;
+  box-shadow:
+    0 12px 24px rgba(89, 58, 26, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72);
+}
+
+html[data-theme="light"] body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) :is(.secondary-button, .ghost-button):is(:hover, :focus-visible) {
+  border-color: rgba(189, 75, 50, 0.34);
+  background: rgba(255, 252, 245, 0.96);
+}
+
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .theme-toggle {
+  --theme-toggle-surface: #0b111a;
+  border-color: var(--account-arcane-border);
+  background: rgba(9, 12, 18, 0.72);
+  color: var(--account-arcane-gold-soft);
+  box-shadow: none;
+}
+
+html[data-theme="light"] body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .theme-toggle {
+  --theme-toggle-surface: #fff8ea;
+  background:
+    radial-gradient(circle at 36% 22%, rgba(255, 231, 174, 0.58), transparent 34%),
+    linear-gradient(180deg, rgba(255, 250, 239, 0.96), rgba(232, 217, 188, 0.96));
+  color: var(--account-arcane-gold);
+}
+
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) :is(input, select, textarea) {
+  min-width: 0;
+  border-color: rgba(231, 185, 92, 0.24);
+  border-radius: 8px;
+  background: rgba(6, 9, 14, 0.74);
+  color: var(--text);
+  font-family: var(--ui-font);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+
+html[data-theme="light"] body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) :is(input, select, textarea) {
+  border-color: rgba(143, 95, 30, 0.24);
+  background: rgba(255, 252, 245, 0.96);
+  color: var(--text);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
+
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) :is(input, textarea)::placeholder {
+  color: rgba(215, 199, 172, 0.7);
+}
+
+html[data-theme="light"] body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) :is(input, textarea)::placeholder {
+  color: rgba(103, 88, 70, 0.7);
+}
+
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) :is(.account-current-panel, .account-section-panel, .account-form-panel, .account-modal, .account-empty-note, .user-page-focus-card, .user-page-health-card, .user-page-account-card, .user-page-stats span, .user-page-edition-section, .user-page-character-item, .user-page-deleted-empty, .user-social-provider-item, .user-social-provider-empty, .admin-character-section, .admin-account-form, .admin-add-character-form, .admin-overview-grid span, .admin-detail-summary span, .admin-account-facts div, .admin-edition-usage-item, .admin-account-item, .admin-character-item) {
+  border-color: var(--account-arcane-border);
+  border-radius: 8px;
+  background:
+    radial-gradient(ellipse at 88% 8%, color-mix(in srgb, var(--account-arcane-teal), transparent 88%), transparent 32%),
+    linear-gradient(112deg, color-mix(in srgb, var(--account-arcane-ember), transparent 92%), transparent 34%),
+    linear-gradient(180deg, var(--account-arcane-panel-raised), var(--account-arcane-panel));
+  color: var(--text);
+  box-shadow: var(--account-arcane-small-shadow);
+}
+
+html[data-theme="light"] body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) :is(.account-current-panel, .account-section-panel, .account-form-panel, .account-modal, .account-empty-note, .user-page-focus-card, .user-page-health-card, .user-page-account-card, .user-page-stats span, .user-page-edition-section, .user-page-character-item, .user-page-deleted-empty, .user-social-provider-item, .user-social-provider-empty, .admin-character-section, .admin-account-form, .admin-add-character-form, .admin-overview-grid span, .admin-detail-summary span, .admin-account-facts div, .admin-edition-usage-item, .admin-account-item, .admin-character-item) {
+  background:
+    radial-gradient(ellipse at 88% 8%, color-mix(in srgb, var(--account-arcane-teal), transparent 88%), transparent 32%),
+    linear-gradient(112deg, color-mix(in srgb, var(--account-arcane-ember), transparent 92%), transparent 34%),
+    linear-gradient(180deg, var(--account-arcane-panel-raised), var(--account-arcane-panel));
+  box-shadow: var(--account-arcane-small-shadow);
+}
+
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) :is(.account-section-panel, .account-form-panel, .account-current-panel, .admin-character-section, .admin-account-form, .admin-add-character-form) {
+  position: relative;
+  overflow: hidden;
+}
+
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) :is(.account-section-panel, .account-form-panel, .account-current-panel, .admin-character-section, .admin-account-form, .admin-add-character-form)::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 7px;
+  background: linear-gradient(180deg, var(--account-arcane-ember), var(--account-arcane-teal));
+  pointer-events: none;
+}
+
+body[data-active-screen="account"] .account-register-panel::before,
+body[data-active-screen="user-page"] :is(.saved-library-panel, .user-page-overview)::before,
+body[data-active-screen="admin-page"] .admin-detail-panel::before {
+  background: linear-gradient(180deg, var(--account-arcane-gold-soft), var(--account-arcane-teal));
+}
+
+body[data-active-screen="user-page"] :is(.user-trash-panel, .danger-panel)::before,
+body[data-active-screen="admin-page"] :is(.admin-account-list-panel, .admin-character-section)::before {
+  background: linear-gradient(180deg, var(--account-arcane-teal), var(--account-arcane-ember));
+}
+
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .account-split {
+  gap: 16px;
+  align-items: start;
+}
+
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) :is(.account-login-panel, .account-register-panel, .account-recovery-panel, .user-management-panel, .danger-panel) {
+  min-height: auto;
+  border-width: 1px;
+  border-radius: 8px;
+}
+
+body[data-active-screen="account"] .account-register-panel {
+  margin-top: 0;
+}
+
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) :is(.account-form-heading h2, .account-section-heading h2, .account-edition-heading h3, .user-page-title-row h2, .user-page-focus-card strong, .user-page-health-card > div > strong, .user-page-character-heading strong, .admin-edition-usage .account-section-heading h3, .admin-add-character-form .account-form-heading h3, .admin-character-section h3) {
+  color: var(--account-arcane-gold);
+  font-family: var(--heading-font);
+  letter-spacing: 0;
+}
+
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .account-form-heading h2 {
+  font-size: clamp(28px, 3vw, 36px);
+}
+
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) :is(.account-form-heading p, .account-current-panel span, .saved-library-result-status, .saved-library-filter span, .user-page-account-card p, .user-page-account-card span, .user-page-health-card li span, .user-page-focus-card p, .user-social-provider-item span, .user-social-provider-empty span, .admin-overview-grid small, .admin-detail-summary small, .admin-account-facts dt, .admin-selected-email, .admin-account-item small, .admin-character-item span, .admin-character-item p, .admin-edition-usage-item span, .admin-account-form label span, .admin-add-character-form label span, .note) {
+  color: var(--muted);
+}
+
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) :is(.account-current-counts span, .user-page-health-card li, .saved-library-total, .user-page-section-nav a, .user-page-edition-heading strong, .edition-pill, .account-password-meter, .migration-rule-note, .admin-character-section .account-section-heading > strong, .admin-limit-presets button) {
+  border-color: color-mix(in srgb, var(--account-arcane-gold-soft), transparent 74%);
+  border-radius: 8px;
+  background: var(--account-arcane-panel-soft);
+  color: var(--account-arcane-gold);
+  box-shadow: none;
+}
+
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) :is(.account-current-counts strong, .user-page-stats strong, .user-page-account-card strong, .user-page-health-card li strong, .admin-overview-grid strong, .admin-detail-summary strong, .admin-edition-usage-item strong) {
+  color: var(--account-arcane-gold);
+}
+
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .account-page-status:not(:empty) {
+  border: 1px solid var(--account-arcane-border);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.026)),
+    var(--account-arcane-panel-raised);
+  color: var(--muted);
+  box-shadow: var(--account-arcane-small-shadow);
+}
+
+html[data-theme="light"] body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .account-page-status:not(:empty) {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.54), rgba(255, 255, 255, 0.18)),
+    var(--account-arcane-panel-raised);
+}
+
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .account-page-status.status-success,
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .user-page-health-card li.is-ready strong {
+  color: #9ff1bd;
+}
+
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .account-page-status.status-warning,
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .user-page-health-card li.is-warning strong,
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .admin-attention-panel strong,
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .admin-attention-chip,
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .user-page-deleted-empty strong {
+  color: #ffb4a9 !important;
+}
+
+html[data-theme="light"] body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .account-page-status.status-success,
+html[data-theme="light"] body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .user-page-health-card li.is-ready strong {
+  color: #205a38;
+}
+
+html[data-theme="light"] body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .account-page-status.status-warning,
+html[data-theme="light"] body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .user-page-health-card li.is-warning strong,
+html[data-theme="light"] body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .admin-attention-panel strong,
+html[data-theme="light"] body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .admin-attention-chip,
+html[data-theme="light"] body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .user-page-deleted-empty strong {
+  color: #8b2f20 !important;
+}
+
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) :is(.danger-panel, .danger-confirm-row, .account-modal, .admin-attention-panel, .admin-edition-usage-item.is-over-limit, .admin-character-item--deleted, .user-page-character-item--deleted, .user-page-deleted-empty) {
+  border-color: color-mix(in srgb, var(--account-arcane-ember), transparent 62%);
+  background:
+    radial-gradient(circle at top left, color-mix(in srgb, var(--account-arcane-ember), transparent 86%), transparent 32%),
+    linear-gradient(180deg, var(--account-arcane-panel-raised), var(--account-arcane-panel));
+}
+
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .danger-button {
+  border-color: rgba(255, 154, 118, 0.5);
+  border-radius: 6px;
+  background: linear-gradient(180deg, #b43a2c, #7d2119);
+  color: #fffaf0;
+  font-weight: 900;
+}
+
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .account-social-button {
+  border-radius: 6px;
+  box-shadow: none;
+}
+
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .account-social-button.is-google {
+  border-color: #8e918f;
+  background: #ffffff;
+  color: #1f1f1f;
+}
+
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .account-social-button.is-facebook {
+  border-color: #1877f2;
+  background: #1877f2;
+  color: #ffffff;
+}
+
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .account-login-divider {
+  color: var(--muted);
+  font-family: var(--ui-font);
+}
+
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .account-login-divider::before,
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .account-login-divider::after {
+  background: var(--account-arcane-border);
+}
+
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .account-inline-link {
+  color: var(--account-arcane-teal);
+  font-weight: 900;
+}
+
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .account-password-meter-fill.is-empty {
+  background: rgba(231, 185, 92, 0.2);
+}
+
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .account-password-meter-fill.is-weak {
+  background: #d75b48;
+}
+
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .account-password-meter-fill.is-medium {
+  background: #d99e45;
+}
+
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .account-password-meter-fill.is-strong,
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .account-password-meter-fill.is-very-strong {
+  background: #67d5c7;
+}
+
+body[data-active-screen="user-page"] .user-page-avatar {
+  border-color: color-mix(in srgb, var(--account-arcane-gold-soft), transparent 54%);
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 34% 22%, rgba(255, 255, 255, 0.13), transparent 34%),
+    linear-gradient(160deg, var(--account-arcane-ember), #1d2b40);
+  color: #fff0d7;
+  box-shadow:
+    0 0 22px color-mix(in srgb, var(--account-arcane-teal), transparent 76%),
+    var(--account-arcane-small-shadow);
+}
+
+html[data-theme="light"] body[data-active-screen="user-page"] .user-page-avatar {
+  background:
+    radial-gradient(circle at 34% 22%, rgba(255, 255, 255, 0.38), transparent 34%),
+    linear-gradient(160deg, #d65f40, #24756b);
+  color: #fffaf0;
+}
+
+body[data-active-screen="user-page"] .user-page-section-nav a {
+  border-radius: 6px;
+  text-decoration: none;
+}
+
+body[data-active-screen="user-page"] .user-settings-tabs {
+  border-color: var(--account-arcane-border);
+  border-radius: 8px;
+  background: rgba(9, 14, 22, 0.58);
+}
+
+html[data-theme="light"] body[data-active-screen="user-page"] .user-settings-tabs {
+  background: rgba(255, 248, 234, 0.58);
+}
+
+body[data-active-screen="user-page"] .user-settings-tabs button {
+  border-radius: 6px;
+  color: var(--muted);
+}
+
+body[data-active-screen="user-page"] .user-settings-tabs button:is(:hover, :focus-visible, .is-active) {
+  border-color: color-mix(in srgb, var(--account-arcane-gold-soft), transparent 68%);
+  background: color-mix(in srgb, var(--account-arcane-gold-soft), transparent 88%);
+  color: var(--account-arcane-gold);
+}
+
+body[data-active-screen="user-page"] .user-page-edition-section--2024 {
+  --edition-accent: var(--account-arcane-teal);
+  border-color: color-mix(in srgb, var(--account-arcane-teal), transparent 62%);
+  background:
+    radial-gradient(ellipse at 88% 18%, color-mix(in srgb, var(--account-arcane-teal), transparent 84%), transparent 30%),
+    linear-gradient(180deg, var(--account-arcane-panel-raised), var(--account-arcane-panel));
+}
+
+body[data-active-screen="admin-page"] .admin-page-layout {
+  gap: 18px;
+}
+
+body[data-active-screen="admin-page"] :is(.admin-account-list-panel, .admin-detail-panel) {
+  border-left-width: 1px;
+}
+
+body[data-active-screen="admin-page"] .admin-account-item {
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    background 160ms ease,
+    box-shadow 160ms ease;
+}
+
+body[data-active-screen="admin-page"] .admin-account-item:is(:hover, .is-selected) {
+  transform: translateY(-1px);
+  border-color: var(--account-arcane-border-strong);
+  background:
+    radial-gradient(circle at top left, color-mix(in srgb, var(--account-arcane-gold-soft), transparent 86%), transparent 34%),
+    linear-gradient(180deg, var(--account-arcane-panel-raised), var(--account-arcane-panel));
+  box-shadow:
+    inset 4px 0 0 var(--account-arcane-gold-soft),
+    var(--account-arcane-small-shadow);
+}
+
+body[data-active-screen="admin-page"] .admin-account-list {
+  scrollbar-color: var(--account-arcane-gold-soft) transparent;
+}
+
+body[data-active-screen="admin-page"] .admin-usage-bar {
+  background: color-mix(in srgb, var(--account-arcane-gold-soft), transparent 84%);
+}
+
+body[data-active-screen="admin-page"] .admin-usage-bar span {
+  background: linear-gradient(90deg, var(--account-arcane-teal), var(--account-arcane-gold-soft), var(--account-arcane-ember));
+}
+
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .account-modal-backdrop {
+  background: rgba(3, 5, 8, 0.68);
+  backdrop-filter: blur(5px);
+}
+
+html[data-theme="light"] body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .account-modal-backdrop {
+  background: rgba(47, 36, 25, 0.36);
+}
+
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .migration-choice-button {
+  border-color: var(--account-arcane-border);
+  border-radius: 8px;
+  background: var(--account-arcane-panel-soft);
+  color: var(--text);
+}
+
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .migration-choice-button--primary {
+  border-color: var(--primary-border);
+  background: var(--primary-bg);
+  color: var(--primary-text);
+}
+
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .migration-choice-button strong {
+  color: var(--account-arcane-gold);
+}
+
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .migration-choice-button--primary strong,
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .migration-choice-button--primary span {
+  color: var(--primary-text);
+}
+
+@media (max-width: 980px) {
+  body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .container {
+    width: min(760px, calc(100vw - 32px));
+  }
+
+  body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .account-page-shell::after {
+    top: 18vh;
+    right: -180px;
+    width: 520px;
+    height: 520px;
+    opacity: 0.1;
+  }
+}
+
+@media (max-width: 620px) {
+  body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) {
+    padding-bottom: 28px;
+  }
+
+  body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .container {
+    width: min(100% - 24px, 680px);
+    padding-block: 12px;
+  }
+
+  body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .version-toolbar {
+    gap: 10px;
+    padding: 10px;
+  }
+
+  body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .version-toolbar-actions {
+    gap: 8px;
+  }
+
+  body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .version-toolbar-actions > a {
+    min-height: 40px;
+    padding: 9px 10px;
+    font-size: 15px;
+  }
+
+  body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .account-page-intro {
+    padding-top: 8px;
+  }
+
+  body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .account-page-intro h1 {
+    font-size: clamp(34px, 10vw, 42px);
+    line-height: 1.06;
+  }
+
+  body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .account-page-intro p {
+    padding-left: 14px;
+    font-size: 17px;
+  }
+
+  body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) :is(.account-current-panel, .account-section-panel, .account-form-panel, .account-modal, .admin-character-section, .admin-account-form, .admin-add-character-form) {
+    padding: 16px;
+  }
+
+  body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) :is(.account-section-panel, .account-form-panel, .account-current-panel, .admin-character-section, .admin-account-form, .admin-add-character-form)::before {
+    width: 6px;
+  }
+}
