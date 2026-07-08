@@ -433,6 +433,44 @@ const smokePages = [
     selectors: ["#accountLoginForm", "#accountRegisterForm", "#accountCurrentPanel"],
   },
   {
+    name: "conta-assistente-return",
+    path: "/conta.html?returnTo=assistente-ia.html%3Fedition%3D5.5e-2024",
+    selectors: ["#accountLoginForm", "#accountRegisterForm", "#accountReturnPanel", "[data-account-return-action]"],
+    setup: `
+      (async () => {
+        const assert = (condition, message) => {
+          if (!condition) throw new Error(message);
+        };
+        const waitForCondition = async (predicate, message, timeoutMs = 8000) => {
+          const start = Date.now();
+          while (Date.now() - start < timeoutMs) {
+            if (predicate()) return;
+            await new Promise((resolve) => setTimeout(resolve, 40));
+          }
+          throw new Error(message);
+        };
+        await waitForCondition(() => {
+          const panel = document.querySelector("#accountReturnPanel");
+          const returnAction = document.querySelector("[data-account-return-action]");
+          const backLink = document.querySelector("[data-account-back-link]");
+          const googleLink = document.querySelector('[data-oauth-provider="google"]');
+          const oauthUrl = new URL(googleLink?.href || "", location.href);
+          return document.body.classList.contains("account-return-assistant")
+            && document.body.classList.contains("account-edition-2024")
+            && document.querySelector("[data-account-title]")?.textContent.includes("conjurar")
+            && document.querySelector("[data-account-login-submit]")?.textContent.includes("continuar")
+            && document.querySelector("[data-account-register-submit]")?.textContent.includes("continuar")
+            && !panel?.hidden
+            && returnAction?.getAttribute("href") === "./assistente-ia.html?edition=5.5e-2024"
+            && backLink?.getAttribute("href") === "./assistente-ia.html?edition=5.5e-2024"
+            && oauthUrl.searchParams.get("returnTo") === "assistente-ia.html?edition=5.5e-2024";
+        }, "Conta nao aplicou contexto visual/CTA do retorno do assistente.");
+        const compassStyle = getComputedStyle(document.querySelector(".account-flow-compass"));
+        assert(compassStyle.display === "grid", "Trilha visual da conta deveria renderizar como grid.");
+      })();
+    `,
+  },
+  {
     name: "minha-conta",
     path: "/minha-conta.html",
     selectors: ["#userPageGuest", "#userPageContent", "#userPageAuthLink"],
@@ -494,7 +532,8 @@ const smokePages = [
             && status.textContent.includes("Entre em uma conta")
             && loginLink
             && !loginLink.hidden
-            && loginLink.getAttribute("href").includes("conta.html");
+            && loginLink.getAttribute("href").includes("conta.html")
+            && new URL(loginLink.href).searchParams.get("returnTo") === "assistente-ia.html?edition=5e";
         }, "Assistente nao bloqueou IA para usuario anonimo com CTA de login.");
         assert(document.body.classList.contains("ai-login-required"), "Classe de estado login_required ausente.");
       })();

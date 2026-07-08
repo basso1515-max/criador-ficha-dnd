@@ -8,7 +8,7 @@ import path from "node:path";
 
 import { configureAccountApiStore, handleAccountApi } from "../../server/account-api.js";
 import { createLocalJsonAccountStore } from "../../server/local-json-account-store.js";
-import { OAUTH_STATE_COOKIE_NAME } from "../../server/oauth.js";
+import { OAUTH_STATE_COOKIE_NAME, decodeOAuthStatePayload } from "../../server/oauth.js";
 
 const LOCAL_HOST = "127.0.0.1:8000";
 const SESSION_COOKIE_NAME = "dnd_sheet_session";
@@ -150,6 +150,26 @@ test("OAuth callback does not auto-link an unbound provider account by e-mail", 
       });
       assert.equal(login.statusCode, 200);
       assert.deepEqual(login.data.account.authProviders, []);
+    });
+  });
+});
+
+test("OAuth start preserves assistant return target", async () => {
+  await withAccountStore(async () => {
+    await withEnv({
+      ACCOUNT_PUBLIC_BASE_URL: undefined,
+      GOOGLE_OAUTH_CLIENT_ID: "google-client-id.example.test",
+      GOOGLE_OAUTH_CLIENT_SECRET: "google-client-secret.example.test",
+    }, async () => {
+      const start = await callAccountApi("/api/accounts/oauth/start", {
+        route: "/api/accounts/oauth/start?provider=google&returnTo=assistente-ia.html%3Fedition%3D5.5e-2024",
+      });
+
+      assert.equal(start.statusCode, 302);
+      const oauthStateCookie = getCookieHeader(start, OAUTH_STATE_COOKIE_NAME);
+      const encodedState = oauthStateCookie.split("=")[1] || "";
+      const statePayload = decodeOAuthStatePayload(encodedState);
+      assert.equal(statePayload?.returnTo, "assistente-ia.html?edition=5.5e-2024");
     });
   });
 });

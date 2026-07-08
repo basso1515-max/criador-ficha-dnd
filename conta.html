@@ -17,22 +17,41 @@
   <main class="account-page-shell">
     <header class="container account-page-header">
       <div class="version-toolbar">
+        <a href="./index.html" class="account-flow-brand" aria-label="Voltar para a página inicial do Sheetfy">
+          <span>Sheetfy</span>
+        </a>
         <div class="version-toolbar-actions">
-          <a href="./index.html" class="ghost-button">Voltar para a seleção</a>
-          <a href="./5e.html" class="secondary-button">Editor 5e</a>
-          <a href="./5.5e-2024.html" class="secondary-button">Editor 5.5e</a>
+          <a data-account-back-link href="./index.html" class="ghost-button">Voltar para a seleção</a>
+          <a data-account-editor-link="5e" href="./5e.html" class="secondary-button">Editor 5e</a>
+          <a data-account-editor-link="5.5e-2024" href="./5.5e-2024.html" class="secondary-button">Editor 5.5e</a>
           <button type="button" class="theme-toggle toolbar-theme-toggle" data-theme-toggle aria-label="Alternar tema"></button>
         </div>
       </div>
 
-      <div class="account-page-intro">
-        <p class="version-kicker">Acesso</p>
-        <h1>Entrar ou criar conta</h1>
-        <p>Use uma conta para salvar personagens e continuar suas fichas quando quiser. A gestão completa fica em uma página própria do usuário. Leia a <a href="./privacidade.html">Política de privacidade</a> e os <a href="./termos.html">Termos de uso</a>.</p>
+      <div class="account-page-hero">
+        <div class="account-page-intro">
+          <p class="version-kicker" data-account-kicker>Acesso</p>
+          <h1 data-account-title>Entrar ou criar conta</h1>
+          <p data-account-description>Use uma conta para salvar personagens e continuar suas fichas quando quiser. A gestão completa fica em uma página própria do usuário. Leia a <a href="./privacidade.html">Política de privacidade</a> e os <a href="./termos.html">Termos de uso</a>.</p>
+        </div>
+        <div class="account-flow-compass" aria-hidden="true">
+          <span data-account-flow-step="1">Conta</span>
+          <span data-account-flow-step="2">Personagens</span>
+          <span data-account-flow-step="3">Editor</span>
+        </div>
       </div>
     </header>
 
     <section class="container">
+      <div id="accountReturnPanel" class="account-return-panel" aria-live="polite" hidden>
+        <div class="account-return-copy">
+          <span data-account-return-kicker>Continuação</span>
+          <strong data-account-return-title>Volte ao seu fluxo quando terminar</strong>
+          <p data-account-return-description>Depois do acesso, você continua de onde estava.</p>
+        </div>
+        <a data-account-return-action href="./minha-conta.html" class="secondary-button">Continuar</a>
+      </div>
+
       <div id="accountCurrentPanel" class="account-current-panel" hidden>
         <div>
           <strong id="accountCurrentName"></strong>
@@ -54,9 +73,9 @@
     <section id="accountAuthSection" class="container account-split" aria-label="Login e registro">
       <form id="accountLoginForm" class="account-form-panel account-login-panel" method="post">
         <div class="account-form-heading">
-          <span>Já tenho conta</span>
-          <h2>Login</h2>
-          <p>Acesse seus personagens salvos.</p>
+          <span data-account-login-kicker>Já tenho conta</span>
+          <h2 data-account-login-title>Login</h2>
+          <p data-account-login-description>Acesse seus personagens salvos.</p>
         </div>
 
         <div class="account-social-login" aria-label="Login social">
@@ -94,7 +113,7 @@
         </label>
 
         <button id="accountForgotPasswordToggle" type="button" class="account-inline-link" aria-controls="accountForgotPasswordForm" aria-expanded="false">Esqueci minha senha</button>
-        <button type="submit" class="primary account-submit-button">Entrar</button>
+        <button type="submit" class="primary account-submit-button" data-account-login-submit>Entrar</button>
       </form>
 
       <form id="accountForgotPasswordForm" class="account-form-panel account-recovery-panel" method="post" hidden>
@@ -136,9 +155,9 @@
 
       <form id="accountRegisterForm" class="account-form-panel account-register-panel" method="post">
         <div class="account-form-heading">
-          <span>Primeiro acesso</span>
-          <h2>Cadastro</h2>
-          <p>Crie uma conta para guardar até 10 personagens por edição.</p>
+          <span data-account-register-kicker>Primeiro acesso</span>
+          <h2 data-account-register-title>Cadastro</h2>
+          <p data-account-register-description>Crie uma conta para guardar até 10 personagens por edição.</p>
         </div>
 
         <label class="row">
@@ -168,7 +187,7 @@
           <input name="confirmPassword" type="password" autocomplete="new-password" minlength="6" maxlength="256" required />
         </label>
 
-        <button type="submit" class="primary account-submit-button">Criar conta</button>
+        <button type="submit" class="primary account-submit-button" data-account-register-submit>Criar conta</button>
       </form>
     </section>
   </main>

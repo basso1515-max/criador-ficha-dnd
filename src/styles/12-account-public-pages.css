@@ -65,6 +65,24 @@ html[data-theme="light"] body:is([data-active-screen="account"], [data-active-sc
     linear-gradient(180deg, #f8f2e6 0%, #e9f1ed 56%, #f5e8d6 100%);
 }
 
+body[data-active-screen="account"].account-edition-2024 {
+  --account-arcane-ember: #67d5c7;
+  --account-arcane-ember-soft: #8df0df;
+  --account-arcane-teal: #e7b95c;
+  --primary-bg: linear-gradient(180deg, #67d5c7, #24756b);
+  --primary-border: #8df0df;
+  --primary-text: #061015;
+}
+
+html[data-theme="light"] body[data-active-screen="account"].account-edition-2024 {
+  --account-arcane-ember: #24756b;
+  --account-arcane-ember-soft: #165f57;
+  --account-arcane-teal: #b9822e;
+  --primary-bg: linear-gradient(180deg, #2f8a7f, #165f57);
+  --primary-border: #5eb8aa;
+  --primary-text: #fffaf0;
+}
+
 body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .account-page-shell {
   position: relative;
   isolation: isolate;
@@ -164,11 +182,91 @@ body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-
   gap: 10px;
 }
 
+body[data-active-screen="account"] .version-toolbar {
+  min-height: 62px;
+  background:
+    linear-gradient(90deg, rgba(240, 100, 63, 0.1), transparent 36%),
+    linear-gradient(180deg, rgba(20, 22, 28, 0.86), rgba(8, 11, 17, 0.84));
+  box-shadow:
+    0 18px 40px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(14px);
+}
+
+html[data-theme="light"] body[data-active-screen="account"] .version-toolbar {
+  background:
+    linear-gradient(90deg, rgba(200, 74, 50, 0.08), transparent 36%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.54), rgba(255, 255, 255, 0.18)),
+    var(--account-arcane-panel);
+}
+
+body[data-active-screen="account"].account-edition-2024 .version-toolbar {
+  border-color: rgba(103, 213, 199, 0.22);
+  background:
+    linear-gradient(90deg, rgba(103, 213, 199, 0.08), transparent 36%),
+    linear-gradient(180deg, rgba(18, 24, 34, 0.9), rgba(6, 10, 18, 0.86));
+}
+
+html[data-theme="light"] body[data-active-screen="account"].account-edition-2024 .version-toolbar {
+  background:
+    linear-gradient(90deg, rgba(36, 117, 107, 0.08), transparent 36%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.54), rgba(255, 255, 255, 0.18)),
+    var(--account-arcane-panel);
+}
+
+body[data-active-screen="account"] .version-toolbar-actions {
+  width: auto;
+  margin-left: auto;
+}
+
+body[data-active-screen="account"] .account-flow-brand {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 10px;
+  color: var(--account-arcane-gold);
+  font-family: "Cinzel", "Libre Baskerville", Georgia, serif;
+  font-size: 25px;
+  font-weight: 700;
+  line-height: 1;
+  text-decoration: none;
+  text-shadow: 0 10px 24px rgba(0, 0, 0, 0.34);
+}
+
+body[data-active-screen="account"] .account-flow-brand::before {
+  content: "";
+  width: 12px;
+  height: 12px;
+  margin-right: 9px;
+  border: 2px solid color-mix(in srgb, var(--account-arcane-teal), transparent 18%);
+  transform: rotate(45deg);
+  background: color-mix(in srgb, var(--account-arcane-ember), transparent 66%);
+  box-shadow:
+    inset 0 0 0 3px rgba(255, 240, 200, 0.12),
+    0 0 18px color-mix(in srgb, var(--account-arcane-teal), transparent 64%);
+}
+
+html[data-theme="light"] body[data-active-screen="account"] .account-flow-brand {
+  color: var(--account-arcane-gold);
+  text-shadow: none;
+}
+
 body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .account-page-intro {
   max-width: 880px;
   gap: 14px;
   padding-top: 18px;
   padding-bottom: 16px;
+}
+
+body[data-active-screen="account"] .account-page-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 320px);
+  gap: 24px;
+  align-items: end;
+}
+
+body[data-active-screen="account"] .account-page-intro {
+  max-width: 860px;
 }
 
 body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .account-page-intro h1 {
@@ -205,6 +303,70 @@ body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-
   text-underline-offset: 3px;
 }
 
+body[data-active-screen="account"] .account-flow-compass {
+  display: grid;
+  gap: 8px;
+  padding: 16px;
+  border: 1px solid rgba(231, 185, 92, 0.24);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.02)),
+    linear-gradient(135deg, rgba(240, 100, 63, 0.1), rgba(103, 213, 199, 0.07)),
+    var(--account-arcane-panel);
+  box-shadow:
+    inset 5px 0 0 var(--account-arcane-ember),
+    0 18px 36px rgba(0, 0, 0, 0.24);
+}
+
+body[data-active-screen="account"].account-edition-2024 .account-flow-compass {
+  box-shadow:
+    inset 5px 0 0 var(--account-arcane-teal),
+    0 18px 36px rgba(0, 0, 0, 0.24);
+}
+
+html[data-theme="light"] body[data-active-screen="account"] .account-flow-compass {
+  border-color: rgba(143, 95, 30, 0.24);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.54), rgba(255, 255, 255, 0.18)),
+    var(--account-arcane-panel);
+  box-shadow:
+    inset 5px 0 0 var(--account-arcane-ember),
+    0 18px 34px var(--account-arcane-shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72);
+}
+
+html[data-theme="light"] body[data-active-screen="account"].account-edition-2024 .account-flow-compass {
+  box-shadow:
+    inset 5px 0 0 var(--account-arcane-teal),
+    0 18px 34px var(--account-arcane-shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72);
+}
+
+body[data-active-screen="account"] .account-flow-compass span {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #ffe7b5;
+  font-family: var(--ui-font);
+  font-size: 15px;
+  font-weight: 800;
+}
+
+html[data-theme="light"] body[data-active-screen="account"] .account-flow-compass span {
+  color: var(--account-arcane-gold);
+}
+
+body[data-active-screen="account"] .account-flow-compass span::before {
+  content: "";
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  background: var(--account-arcane-teal);
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, var(--account-arcane-teal), transparent 84%),
+    0 0 18px color-mix(in srgb, var(--account-arcane-teal), transparent 52%);
+}
+
 body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) :is(.version-kicker, .version-option-tag, .version-badge, .account-section-heading span, .account-form-heading span, .edition-pill) {
   border-radius: 4px;
   border-color: color-mix(in srgb, var(--account-arcane-teal), transparent 72%);
@@ -214,6 +376,10 @@ body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-
   font-size: 12px;
   font-weight: 900;
   letter-spacing: 0.08em;
+}
+
+body[data-active-screen="account"] :is(.version-kicker, .version-option-tag, .version-badge, .account-form-heading span, .account-return-copy span) {
+  letter-spacing: 0;
 }
 
 body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) :is(.primary, .secondary-button, .ghost-button, .danger-button, .account-social-button, .account-inline-link, .user-settings-tabs button, .admin-limit-presets button) {
@@ -323,6 +489,68 @@ html[data-theme="light"] body:is([data-active-screen="account"], [data-active-sc
     linear-gradient(112deg, color-mix(in srgb, var(--account-arcane-ember), transparent 92%), transparent 34%),
     linear-gradient(180deg, var(--account-arcane-panel-raised), var(--account-arcane-panel));
   box-shadow: var(--account-arcane-small-shadow);
+}
+
+body[data-active-screen="account"] .account-return-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 4px;
+  padding: 16px;
+  border: 1px solid var(--account-arcane-border);
+  border-radius: 8px;
+  background:
+    radial-gradient(ellipse at 88% 8%, color-mix(in srgb, var(--account-arcane-teal), transparent 86%), transparent 32%),
+    linear-gradient(112deg, color-mix(in srgb, var(--account-arcane-ember), transparent 90%), transparent 34%),
+    linear-gradient(180deg, var(--account-arcane-panel-raised), var(--account-arcane-panel));
+  color: var(--text);
+  box-shadow: var(--account-arcane-small-shadow);
+}
+
+body[data-active-screen="account"].account-edition-2024 .account-return-panel {
+  background:
+    radial-gradient(ellipse at 88% 8%, color-mix(in srgb, var(--account-arcane-gold-soft), transparent 86%), transparent 32%),
+    linear-gradient(112deg, color-mix(in srgb, var(--account-arcane-teal), transparent 90%), transparent 34%),
+    linear-gradient(180deg, var(--account-arcane-panel-raised), var(--account-arcane-panel));
+}
+
+body[data-active-screen="account"] .account-return-copy {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+body[data-active-screen="account"] .account-return-copy span {
+  width: fit-content;
+  padding: 5px 10px;
+  border: 1px solid color-mix(in srgb, var(--account-arcane-teal), transparent 72%);
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--account-arcane-teal), transparent 90%);
+  color: var(--account-arcane-teal);
+  font-family: var(--ui-font);
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+body[data-active-screen="account"] .account-return-copy strong {
+  color: var(--account-arcane-gold);
+  font-family: var(--heading-font);
+  font-size: 22px;
+  line-height: 1.2;
+}
+
+body[data-active-screen="account"] .account-return-copy p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+body[data-active-screen="account"] .account-return-panel .secondary-button {
+  flex: 0 0 auto;
+  min-height: 44px;
 }
 
 body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) :is(.account-section-panel, .account-form-panel, .account-current-panel, .admin-character-section, .admin-account-form, .admin-add-character-form) {
@@ -625,6 +853,21 @@ body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-
     width: min(760px, calc(100vw - 32px));
   }
 
+  body[data-active-screen="account"] .account-page-hero {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+
+  body[data-active-screen="account"] .account-flow-compass {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  body[data-active-screen="account"] .account-flow-compass span {
+    justify-content: center;
+    font-size: 14px;
+  }
+
   body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .account-page-shell::after {
     top: 18vh;
     right: -180px;
@@ -649,14 +892,33 @@ body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-
     padding: 10px;
   }
 
+  body[data-active-screen="account"] .version-toolbar {
+    align-items: stretch;
+    flex-wrap: wrap;
+  }
+
+  body[data-active-screen="account"] .account-flow-brand {
+    font-size: 22px;
+  }
+
   body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .version-toolbar-actions {
     gap: 8px;
   }
 
+  body[data-active-screen="account"] .version-toolbar-actions {
+    width: 100%;
+    margin-left: 0;
+  }
+
   body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .version-toolbar-actions > a {
+    flex: 1 1 150px;
     min-height: 40px;
     padding: 9px 10px;
     font-size: 15px;
+  }
+
+  body[data-active-screen="account"] .toolbar-theme-toggle {
+    margin-left: auto;
   }
 
   body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .account-page-intro {
@@ -671,6 +933,24 @@ body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-
   body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .account-page-intro p {
     padding-left: 14px;
     font-size: 17px;
+  }
+
+  body[data-active-screen="account"] .account-flow-compass,
+  body[data-active-screen="account"] .account-return-panel {
+    padding: 12px;
+  }
+
+  body[data-active-screen="account"] .account-flow-compass {
+    grid-template-columns: 1fr;
+  }
+
+  body[data-active-screen="account"] .account-return-panel {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  body[data-active-screen="account"] .account-return-panel .secondary-button {
+    width: 100%;
   }
 
   body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) :is(.account-current-panel, .account-section-panel, .account-form-panel, .account-modal, .admin-character-section, .admin-account-form, .admin-add-character-form) {

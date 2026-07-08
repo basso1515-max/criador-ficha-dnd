@@ -1898,7 +1898,7 @@ function getSafeReturnToFromValue(value) {
 
   try {
     const url = new URL(candidate, getRequestOrigin({ headers: { host: "local.invalid" } }));
-    const allowedPages = new Set(["index.html", "5e.html", "5.5e-2024.html", "conta.html", "minha-conta.html", "usuario.html", "admin.html"]);
+    const allowedPages = new Set(["index.html", "criacao.html", "assistente-ia.html", "5e.html", "5.5e-2024.html", "conta.html", "minha-conta.html", "usuario.html", "admin.html"]);
     const page = url.pathname.split("/").pop();
     if (url.origin !== "http://local.invalid" || !allowedPages.has(page)) return "";
     return `${page}${url.search || ""}${url.hash || ""}`;

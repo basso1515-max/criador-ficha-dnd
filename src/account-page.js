@@ -32,12 +32,47 @@ const el = {
   registerPasswordStrengthText: document.getElementById("accountRegisterPasswordStrengthText"),
   oauthLinks: Array.from(document.querySelectorAll("[data-oauth-provider]")),
   status: document.getElementById("accountPageStatus"),
+  kicker: document.querySelector("[data-account-kicker]"),
+  title: document.querySelector("[data-account-title]"),
+  description: document.querySelector("[data-account-description]"),
+  flowSteps: Array.from(document.querySelectorAll("[data-account-flow-step]")),
+  backLinks: Array.from(document.querySelectorAll("[data-account-back-link]")),
+  editorLinks: Array.from(document.querySelectorAll("[data-account-editor-link]")),
+  returnPanel: document.getElementById("accountReturnPanel"),
+  returnKicker: document.querySelector("[data-account-return-kicker]"),
+  returnTitle: document.querySelector("[data-account-return-title]"),
+  returnDescription: document.querySelector("[data-account-return-description]"),
+  returnAction: document.querySelector("[data-account-return-action]"),
+  loginKicker: document.querySelector("[data-account-login-kicker]"),
+  loginTitle: document.querySelector("[data-account-login-title]"),
+  loginDescription: document.querySelector("[data-account-login-description]"),
+  loginSubmit: document.querySelector("[data-account-login-submit]"),
+  registerKicker: document.querySelector("[data-account-register-kicker]"),
+  registerTitle: document.querySelector("[data-account-register-title]"),
+  registerDescription: document.querySelector("[data-account-register-description]"),
+  registerSubmit: document.querySelector("[data-account-register-submit]"),
 };
 
 const returnTo = getSafeReturnTo();
 const LOGIN_SUCCESS_PAGE = "./minha-conta.html";
 const REGISTER_SUCCESS_PAGE = "./index.html";
 const PASSWORD_STRENGTH_CLASSES = ["is-empty", "is-weak", "is-medium", "is-strong", "is-very-strong"];
+const EDITION_CONTEXTS = {
+  "5e": {
+    label: "D&D 5e",
+    bodyClass: "account-edition-5e",
+    editorUrl: "./5e.html",
+    choiceUrl: "./criacao.html?edition=5e",
+    assistantUrl: "./assistente-ia.html?edition=5e",
+  },
+  "5.5e-2024": {
+    label: "D&D 5.5e (2024)",
+    bodyClass: "account-edition-2024",
+    editorUrl: "./5.5e-2024.html",
+    choiceUrl: "./criacao.html?edition=5.5e-2024",
+    assistantUrl: "./assistente-ia.html?edition=5.5e-2024",
+  },
+};
 const OAUTH_ERROR_MESSAGES = {
   "provider-invalid": "Escolha um provedor de login válido.",
   "provider-unconfigured": "Este login social ainda não está disponível.",
@@ -51,6 +86,7 @@ const OAUTH_ERROR_MESSAGES = {
   "token-expired": "A resposta de login social expirou. Tente novamente.",
   "callback-failed": "Não foi possível concluir o login social.",
 };
+const returnContext = getReturnContext(returnTo);
 
 function setStatus(message, tone = "info") {
   if (!el.status) return;
@@ -76,7 +112,7 @@ function renderAccountPage() {
   if (el.count2024) el.count2024.textContent = `${used2024}/${characterLimit}`;
   if (el.continueLink) {
     el.continueLink.href = returnTo || "./minha-conta.html";
-    el.continueLink.textContent = returnTo ? "Continuar" : "Minha conta";
+    el.continueLink.textContent = returnContext?.continueLabel || (returnTo ? "Continuar" : "Minha conta");
   }
   updateOAuthLinks();
 }
@@ -88,7 +124,7 @@ function getSafeReturnTo() {
 
   try {
     const url = new URL(candidate, window.location.href);
-    const allowedPages = new Set(["index.html", "5e.html", "5.5e-2024.html", "conta.html", "minha-conta.html", "usuario.html", "admin.html"]);
+    const allowedPages = new Set(["index.html", "criacao.html", "assistente-ia.html", "5e.html", "5.5e-2024.html", "conta.html", "minha-conta.html", "usuario.html", "admin.html"]);
     const page = url.pathname.split("/").pop();
 
     if (url.origin !== window.location.origin || !allowedPages.has(page)) return "";
@@ -96,6 +132,114 @@ function getSafeReturnTo() {
   } catch {
     return "";
   }
+}
+
+function getReturnContext(value) {
+  if (!value) return null;
+
+  try {
+    const url = new URL(value, window.location.href);
+    const page = url.pathname.split("/").pop();
+    const editionKey = getEditionKey(url.searchParams.get("edition"));
+    const edition = EDITION_CONTEXTS[editionKey] || EDITION_CONTEXTS["5e"];
+
+    if (page === "assistente-ia.html") {
+      return {
+        type: "assistant",
+        editionKey,
+        ...edition,
+        returnHref: toLocalHref(value),
+        backLabel: "Voltar ao assistente",
+        continueLabel: "Continuar no assistente",
+        successSuffix: "Voltando ao assistente.",
+      };
+    }
+
+    if (page === "criacao.html") {
+      return {
+        type: "choice",
+        editionKey,
+        ...edition,
+        returnHref: toLocalHref(value),
+        backLabel: "Voltar à criação",
+        continueLabel: "Continuar criação",
+        successSuffix: "Voltando à criação.",
+      };
+    }
+
+    return {
+      type: "generic",
+      returnHref: toLocalHref(value),
+      backLabel: "Voltar",
+      continueLabel: "Continuar",
+      successSuffix: "Continuando de onde você estava.",
+    };
+  } catch {
+    return null;
+  }
+}
+
+function getEditionKey(value) {
+  const key = String(value || "5e");
+  return Object.hasOwn(EDITION_CONTEXTS, key) ? key : "5e";
+}
+
+function toLocalHref(value) {
+  const target = String(value || "").replace(/^\.\//, "");
+  return target ? `./${target}` : "./minha-conta.html";
+}
+
+function setText(element, value) {
+  if (element) element.textContent = value;
+}
+
+function setHrefAndText(link, href, text) {
+  if (!link) return;
+  link.setAttribute("href", href);
+  link.textContent = text;
+}
+
+function applyReturnContext() {
+  if (!returnContext) return;
+
+  document.body?.classList.add("account-has-return", `account-return-${returnContext.type}`);
+
+  if (returnContext.type !== "assistant") {
+    el.backLinks.forEach((link) => setHrefAndText(link, returnContext.returnHref, returnContext.backLabel));
+    return;
+  }
+
+  document.body?.classList.add(returnContext.bodyClass);
+  setText(el.kicker, "CONTA PARA IA");
+  setText(el.title, "Entre para conjurar sua ficha");
+  if (el.description) {
+    el.description.innerHTML = `Use sua conta para gerar e salvar o rascunho de ${returnContext.label} pelo assistente. Depois do acesso, você volta para revisar a ideia antes de abrir o editor. Leia a <a href="./privacidade.html">Política de privacidade</a> e os <a href="./termos.html">Termos de uso</a>.`;
+  }
+
+  ["Ideia", "Conta", "IA"].forEach((label, index) => setText(el.flowSteps[index], label));
+  el.backLinks.forEach((link) => setHrefAndText(link, returnContext.returnHref, returnContext.backLabel));
+  el.editorLinks.forEach((link) => {
+    if (link.getAttribute("data-account-editor-link") === returnContext.editionKey) {
+      setHrefAndText(link, returnContext.editorUrl, "Criar manualmente");
+      return;
+    }
+    link.hidden = true;
+  });
+
+  if (el.returnPanel) el.returnPanel.hidden = false;
+  setText(el.returnKicker, returnContext.label);
+  setText(el.returnTitle, "Seu caminho pelo assistente está pronto");
+  setText(el.returnDescription, "Entre ou crie a conta para liberar a IA, salvar o rascunho e continuar no mesmo ponto do funil.");
+  setHrefAndText(el.returnAction, returnContext.returnHref, "Voltar ao assistente");
+
+  setText(el.loginKicker, "Continuar");
+  setText(el.loginTitle, "Entrar na conta");
+  setText(el.loginDescription, "Acesse e volte direto ao assistente para gerar sua ficha inicial.");
+  setText(el.loginSubmit, "Entrar e continuar");
+  setText(el.registerKicker, "Primeiro acesso");
+  setText(el.registerTitle, "Criar conta");
+  setText(el.registerDescription, `Guarde seus personagens e use o assistente de ${returnContext.label} com o rascunho salvo na conta.`);
+  setText(el.registerSubmit, "Criar conta e continuar");
 }
 
 function completeAuth(message, redirectTo) {
@@ -147,7 +291,7 @@ function getAuthRedirect(fallbackPage) {
 
 function getAuthRedirectMessage(actionLabel, fallbackMessage) {
   return returnTo
-    ? `${actionLabel}. Voltando ao editor.`
+    ? `${actionLabel}. ${returnContext?.successSuffix || "Continuando de onde você estava."}`
     : fallbackMessage;
 }
 
@@ -357,6 +501,7 @@ el.logoutButton?.addEventListener("click", async () => {
   setStatus("Você saiu da conta.", "info");
 });
 
+applyReturnContext();
 await hydrateAccountStorage();
 renderAccountPage();
 renderOAuthStatusFromUrl();
