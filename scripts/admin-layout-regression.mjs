@@ -361,6 +361,8 @@ function adminLayoutAudit(viewport) {
   const widthTolerance = 1;
   const overlapTolerance = 2;
   const requiredSelectors = [
+    ["marca Sheetfy", ".account-flow-brand"],
+    ["trilha do funil", ".account-flow-compass"],
     ["conteudo admin", "#adminPageContent:not([hidden])"],
     ["lista de contas", ".admin-account-list-panel"],
     ["painel de detalhe", ".admin-detail-panel"],
@@ -371,6 +373,8 @@ function adminLayoutAudit(viewport) {
     ["formulario de personagem", "#adminAddCharacterForm"],
     ["personagens ativos", "#adminActiveCharacters"],
     ["lixeira", "#adminDeletedCharacters"],
+    ["vazio ativo com CTA", '#adminActiveCharacters .account-flow-empty a[href="./criacao.html?edition=5e"]'],
+    ["vazio lixeira com CTA", '#adminDeletedCharacters .account-flow-empty a[href="./criacao.html?edition=5e"]'],
   ];
   const containers = [
     ["pagina", "body"],

@@ -280,6 +280,71 @@ function normalizeRelativePath(file) {
 
 validatePublicSurfaceStyles();
 
+function validateAccountFlowSurface() {
+  const errors = [];
+  const htmlContracts = [
+    {
+      file: "minha-conta.html",
+      markers: [
+        "account-flow-brand",
+        "account-page-hero",
+        "account-flow-compass",
+        'href="./criacao.html?edition=5e"',
+        'href="./criacao.html?edition=5.5e-2024"',
+        'href="./assistente-ia.html?edition=5e"',
+      ],
+    },
+    {
+      file: "admin.html",
+      markers: [
+        "account-flow-brand",
+        "account-page-hero",
+        "account-flow-compass",
+        "account-flow-empty",
+        'href="./criacao.html?edition=5e"',
+        'href="./assistente-ia.html?edition=5e"',
+      ],
+    },
+  ];
+
+  htmlContracts.forEach(({ file, markers }) => {
+    const source = readFileSync(path.join(root, file), "utf8");
+    markers.forEach((marker) => {
+      if (!source.includes(marker)) {
+        errors.push(`${file}: superficie conta/admin sem marcador do funil ${marker}.`);
+      }
+    });
+  });
+
+  [
+    ["src/user-page.js", "creation: \"./criacao.html?edition=5e\""],
+    ["src/user-page.js", "assistant: \"./assistente-ia.html?edition=5e\""],
+    ["src/user-page.js", "data-user-clear-library-filters"],
+    ["src/admin-page.js", "FLOW_LINKS"],
+    ["src/admin-page.js", "renderAdminEmptyState"],
+    ["src/admin-page.js", "data-admin-clear-account-filters"],
+    ["src/admin-page.js", "data-admin-clear-character-filters"],
+    ["src/styles/01-account-user.css", ".account-flow-empty"],
+    ["src/styles/12-account-public-pages.css", ".account-flow-brand"],
+    ["src/styles/12-account-public-pages.css", ".account-flow-compass"],
+  ].forEach(([file, marker]) => {
+    const source = readFileSync(path.join(root, file), "utf8");
+    if (!source.includes(marker)) {
+      errors.push(`${file}: contrato visual/regressao sem marcador ${marker}.`);
+    }
+  });
+
+  if (errors.length) {
+    console.error("\nValidacao do funil visual de conta/admin falhou:");
+    errors.forEach((error) => console.error(`- ${error}`));
+    process.exit(1);
+  }
+
+  console.log("OK: funil visual de conta/admin protegido");
+}
+
+validateAccountFlowSurface();
+
 function validateAiCharacterRolloutGuardrails() {
   const errors = [];
   const criacaoHtml = readFileSync(path.join(root, "criacao.html"), "utf8");

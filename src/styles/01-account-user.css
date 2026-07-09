@@ -245,6 +245,37 @@ body[data-active-screen="user-page"] .account-page-status:not(:empty) {
   border: 1px dashed rgba(90, 62, 36, 0.2);
   border-radius: 8px;
   background: rgba(255, 250, 238, 0.48);
+  line-height: 1.4;
+}
+
+.account-flow-empty {
+  display: grid;
+  gap: 9px;
+}
+
+.account-flow-empty strong {
+  color: var(--accent);
+  font-size: 17px;
+  line-height: 1.2;
+}
+
+.account-flow-empty p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.account-flow-empty-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.account-flow-empty-actions .primary,
+.account-flow-empty-actions .secondary-button,
+.account-flow-empty-actions .ghost-button,
+.account-flow-empty-actions .danger-button {
+  width: fit-content;
 }
 
 .account-management-form {
@@ -804,6 +835,7 @@ body[data-active-screen="user-page"] .account-page-status:not(:empty) {
 .saved-library-heading p,
 .user-trash-heading h2,
 .user-trash-heading p,
+.account-flow-empty p,
 .user-page-character-item p,
 .user-page-account-card p,
 .user-page-edition-heading h3,
@@ -1151,6 +1183,7 @@ body[data-active-screen="user-page"] .account-page-status:not(:empty) {
   border-bottom: 1px solid rgba(90, 62, 36, 0.12);
 }
 
+.user-page-edition-actions .primary,
 .user-page-edition-actions .secondary-button {
   flex: 0 0 auto;
 }
@@ -1618,7 +1651,8 @@ body[data-active-screen="user-page"] .account-page-status:not(:empty) {
   .user-page-session-actions,
   .user-settings-links,
   .user-page-section-nav,
-  .user-page-focus-actions {
+  .user-page-focus-actions,
+  .account-flow-empty-actions {
     display: grid;
     grid-template-columns: 1fr;
   }
@@ -1632,6 +1666,10 @@ body[data-active-screen="user-page"] .account-page-status:not(:empty) {
   .user-page-focus-actions .primary,
   .user-page-focus-actions .secondary-button,
   .user-page-focus-actions .ghost-button,
+  .account-flow-empty-actions .primary,
+  .account-flow-empty-actions .secondary-button,
+  .account-flow-empty-actions .ghost-button,
+  .account-flow-empty-actions .danger-button,
   .user-social-provider-item .ghost-button {
     width: 100%;
   }

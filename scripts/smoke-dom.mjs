@@ -301,6 +301,37 @@ const AI_LOGIN_REQUIRED_INIT_SCRIPT = `
   })();
 `;
 
+const USER_EMPTY_ACCOUNT_INIT_SCRIPT = `
+  (() => {
+    const originalFetch = window.fetch.bind(window);
+    const account = {
+      id: "account_user_empty_smoke",
+      displayName: "Smoke Usuario",
+      email: "smoke-user@example.com",
+      role: "user",
+      characterLimitPerEdition: 10,
+      characterLimitsByEdition: { "5e": 10, "5.5e-2024": 10 },
+      passwordSet: true,
+      emailVerified: true,
+      emailVerifiedAt: "2026-01-01T00:00:00.000Z",
+      authProviders: [],
+      createdAt: "2026-01-01T00:00:00.000Z",
+      characters: { "5e": [], "5.5e-2024": [] },
+      deletedCharacters: { "5e": [], "5.5e-2024": [] },
+    };
+    window.fetch = (input, init = {}) => {
+      const requestUrl = new URL(typeof input === "string" ? input : input?.url || "", window.location.href);
+      if (requestUrl.pathname === "/api/account/current") {
+        return Promise.resolve(new Response(JSON.stringify({ account }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }));
+      }
+      return originalFetch(input, init);
+    };
+  })();
+`;
+
 function buildAiChoiceNavigationSetup(expectedAssistantHref) {
   return `
     (async () => {
@@ -473,7 +504,33 @@ const smokePages = [
   {
     name: "minha-conta",
     path: "/minha-conta.html",
-    selectors: ["#userPageGuest", "#userPageContent", "#userPageAuthLink"],
+    selectors: ["#userPageGuest", "#userPageContent", "#userPageAuthLink", ".account-flow-brand", ".account-flow-compass"],
+    initScript: USER_EMPTY_ACCOUNT_INIT_SCRIPT,
+    setup: `
+      (async () => {
+        const assert = (condition, message) => {
+          if (!condition) throw new Error(message);
+        };
+        const waitForCondition = async (predicate, message, timeoutMs = 8000) => {
+          const start = Date.now();
+          while (Date.now() - start < timeoutMs) {
+            if (predicate()) return;
+            await new Promise((resolve) => setTimeout(resolve, 40));
+          }
+          throw new Error(message);
+        };
+        await waitForCondition(() => !document.querySelector("#userPageContent")?.hidden, "Minha conta nao abriu estado logado.");
+        assert(document.querySelector('.version-toolbar-actions a[href="./criacao.html?edition=5e"]'), "CTA de criacao ausente na toolbar da conta.");
+        assert(document.querySelector('.version-toolbar-actions a[href="./assistente-ia.html?edition=5e"]'), "CTA de IA ausente na toolbar da conta.");
+        assert(document.querySelector('.user-page-quick-actions a[href="./criacao.html?edition=5e"]'), "Atalho de criacao 5e ausente na conta.");
+        assert(document.querySelector('.user-page-quick-actions a[href="./criacao.html?edition=5.5e-2024"]'), "Atalho de criacao 5.5e ausente na conta.");
+        assert(document.querySelector('.user-page-quick-actions a[href="./assistente-ia.html?edition=5e"]'), "Atalho de IA ausente na conta.");
+        assert(document.querySelector('.user-page-focus-actions a[href="./criacao.html?edition=5e"]'), "Foco vazio nao aponta para escolha de criacao.");
+        assert(document.querySelector('.user-page-edition-empty a[href="./criacao.html?edition=5e"]'), "Vazio 5e nao aponta para criacao.");
+        assert(document.querySelector('.user-page-edition-empty a[href="./assistente-ia.html?edition=5e"]'), "Vazio 5e nao aponta para IA.");
+        assert(document.querySelector("#userPageEmpty")?.textContent.includes("funil de criação"), "Texto vazio da biblioteca nao orienta o funil.");
+      })();
+    `,
   },
   {
     name: "admin",
@@ -481,6 +538,10 @@ const smokePages = [
     selectors: [
       "#adminPageGuest",
       "#adminPageContent",
+      ".account-flow-brand",
+      ".account-flow-compass",
+      '.version-toolbar-actions a[href="./criacao.html?edition=5e"]',
+      '.version-toolbar-actions a[href="./assistente-ia.html?edition=5e"]',
       "#adminAccountList",
       "#adminAccountForm",
       "#adminDeletedCharacters",

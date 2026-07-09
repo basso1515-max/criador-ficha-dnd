@@ -17,17 +17,29 @@
   <main class="account-page-shell admin-page-shell">
     <header class="container account-page-header">
       <div class="version-toolbar">
+        <a href="./index.html" class="account-flow-brand" aria-label="Voltar para a página inicial do Sheetfy">
+          <span>Sheetfy</span>
+        </a>
         <div class="version-toolbar-actions">
           <a href="./minha-conta.html" class="ghost-button">Minha conta</a>
           <a href="./index.html" class="secondary-button">Início</a>
+          <a href="./criacao.html?edition=5e" class="primary account-flow-toolbar-cta">Criar ficha</a>
+          <a href="./assistente-ia.html?edition=5e" class="secondary-button">Assistente IA</a>
           <button type="button" class="theme-toggle toolbar-theme-toggle" data-theme-toggle aria-label="Alternar tema"></button>
         </div>
       </div>
 
-      <div class="account-page-intro admin-page-intro">
-        <p class="version-kicker">Administração</p>
-        <h1>Painel admin</h1>
-        <p>Gerencie contas, permissões, capacidade de personagens e recuperação de fichas apagadas.</p>
+      <div class="account-page-hero">
+        <div class="account-page-intro admin-page-intro">
+          <p class="version-kicker">Administração</p>
+          <h1>Painel admin</h1>
+          <p>Gerencie contas, permissões, capacidade e recuperação sem perder o contexto do funil público de criação de personagens.</p>
+        </div>
+        <div class="account-flow-compass" aria-hidden="true">
+          <span>Início</span>
+          <span>Criação</span>
+          <span>Assistente IA</span>
+        </div>
       </div>
     </header>
 
@@ -39,6 +51,7 @@
         </div>
         <div class="account-current-actions">
           <a href="./conta.html?returnTo=admin.html" class="primary">Entrar como admin</a>
+          <a href="./minha-conta.html" class="secondary-button">Minha conta</a>
         </div>
       </div>
 
@@ -125,8 +138,13 @@
             <button id="adminExportAccount" type="button" class="ghost-button">Exportar conta</button>
           </div>
 
-          <div id="adminEmptyDetail" class="account-empty-note">
-            Escolha uma conta na lista para editar permissões, limite e personagens.
+          <div id="adminEmptyDetail" class="account-empty-note account-flow-empty">
+            <strong>Selecione uma conta</strong>
+            <p>Escolha uma conta na lista para editar permissões, limite e personagens. Para testar o caminho público, use o funil de criação.</p>
+            <div class="account-flow-empty-actions admin-flow-empty-actions">
+              <a href="./criacao.html?edition=5e" class="secondary-button">Abrir criação</a>
+              <a href="./assistente-ia.html?edition=5e" class="ghost-button">Assistente IA</a>
+            </div>
           </div>
 
           <div id="adminDetailContent" class="admin-detail-content" hidden>

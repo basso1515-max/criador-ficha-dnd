@@ -17,20 +17,30 @@
   <main class="account-page-shell user-page-shell">
     <header class="container account-page-header">
       <div class="version-toolbar">
+        <a href="./index.html" class="account-flow-brand" aria-label="Voltar para a página inicial do Sheetfy">
+          <span>Sheetfy</span>
+        </a>
         <div class="version-toolbar-actions">
-          <a href="./index.html" class="ghost-button">Voltar para a seleção</a>
-          <a href="./5e.html" class="secondary-button">Editor 5e</a>
-          <a href="./5.5e-2024.html" class="secondary-button">Editor 5.5e</a>
+          <a href="./index.html" class="ghost-button">Início</a>
+          <a href="./criacao.html?edition=5e" class="primary account-flow-toolbar-cta">Criar ficha</a>
+          <a href="./assistente-ia.html?edition=5e" class="secondary-button">Assistente IA</a>
           <a id="userPageAdminLink" href="./admin.html" class="secondary-button" hidden>Admin</a>
           <a id="userPageAuthLink" href="./conta.html" class="secondary-button">Entrar ou criar conta</a>
           <button type="button" class="theme-toggle toolbar-theme-toggle" data-theme-toggle aria-label="Alternar tema"></button>
         </div>
       </div>
 
-      <div class="account-page-intro">
-        <p class="version-kicker">Área do usuário</p>
-        <h1>Minha conta</h1>
-        <p>Centralize personagens salvos, segurança, acesso social e atalhos de criação em um só painel.</p>
+      <div class="account-page-hero">
+        <div class="account-page-intro">
+          <p class="version-kicker">Área do usuário</p>
+          <h1>Minha conta</h1>
+          <p>Continue personagens salvos ou volte ao funil principal: escolha a edição, decida entre criação manual ou IA e finalize a ficha no editor.</p>
+        </div>
+        <div class="account-flow-compass" aria-hidden="true">
+          <span>Início</span>
+          <span>Criação</span>
+          <span>Assistente IA</span>
+        </div>
       </div>
     </header>
 
@@ -42,6 +52,7 @@
         </div>
         <div class="account-current-actions">
           <a href="./conta.html?returnTo=minha-conta.html" class="primary">Entrar ou criar conta</a>
+          <a href="./criacao.html?edition=5e" class="secondary-button">Explorar criação</a>
         </div>
       </div>
 
@@ -116,13 +127,16 @@
           </div>
 
           <div class="user-page-quick-actions" aria-label="Atalhos">
-            <a href="./5e.html" class="primary">Criar personagem 5e</a>
-            <a href="./5.5e-2024.html" class="secondary-button">Criar personagem 5.5e</a>
+            <a href="./criacao.html?edition=5e" class="primary">Criar ficha 5e</a>
+            <a href="./criacao.html?edition=5.5e-2024" class="secondary-button">Criar ficha 5.5e</a>
+            <a href="./assistente-ia.html?edition=5e" class="secondary-button">Gerar com IA</a>
             <a href="./estatisticas.html" class="ghost-button">Ver estatísticas</a>
           </div>
 
           <nav class="user-page-section-nav" aria-label="Navegação da conta">
             <a href="#userLibrary">Biblioteca</a>
+            <a href="./criacao.html?edition=5e">Criar ficha</a>
+            <a href="./assistente-ia.html?edition=5e">Assistente IA</a>
             <a href="#userTrash">Lixeira</a>
             <a href="#userSettings">Configurações</a>
             <a href="./privacidade.html">Privacidade</a>

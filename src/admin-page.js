@@ -19,6 +19,11 @@ const ROLE_LABELS = {
   user: "Usuário",
   admin: "Administrador",
 };
+const FLOW_LINKS = {
+  creation5e: "./criacao.html?edition=5e",
+  assistant5e: "./assistente-ia.html?edition=5e",
+  account: "./conta.html",
+};
 
 const el = {
   guest: document.getElementById("adminPageGuest"),
@@ -168,7 +173,18 @@ function renderAccountList() {
   if (!el.accountList) return;
   el.accountList.innerHTML = visibleAccounts.length
     ? visibleAccounts.map(renderAccountButton).join("")
-    : `<p class="account-empty-note">Nenhuma conta encontrada.</p>`;
+    : renderAdminEmptyState({
+      title: accounts.length ? "Nenhuma conta encontrada" : "Nenhuma conta cadastrada",
+      text: accounts.length
+        ? "Ajuste a busca, permissão ou situação para voltar a ver as contas."
+        : "As contas aparecem aqui depois que usuários entram ou criam cadastro pelo fluxo público.",
+      actions: accounts.length
+        ? [{ type: "button", className: "ghost-button", label: "Limpar filtros", attributes: "data-admin-clear-account-filters" }]
+        : [
+          { href: FLOW_LINKS.account, className: "secondary-button", label: "Abrir tela de conta" },
+          { href: FLOW_LINKS.creation5e, className: "ghost-button", label: "Ver criação" },
+        ],
+    });
 }
 
 function renderAccountButton(account) {
@@ -253,16 +269,58 @@ function renderDetail() {
     el.activeCharacters.innerHTML = filteredActiveCharacters.length
       ? filteredActiveCharacters.map(renderActiveCharacter).join("")
       : activeCharacters.length
-        ? `<p class="account-empty-note">Nenhum personagem ativo encontrado com esses filtros.</p>`
-        : `<p class="account-empty-note">Nenhum personagem ativo nesta conta.</p>`;
+        ? renderAdminEmptyState({
+          title: "Nenhum personagem ativo encontrado",
+          text: "Ajuste busca, edição ou ordenação para voltar a ver os personagens ativos.",
+          actions: [{ type: "button", className: "ghost-button", label: "Limpar filtros", attributes: "data-admin-clear-character-filters" }],
+        })
+        : renderAdminEmptyState({
+          title: "Nenhum personagem ativo",
+          text: "Use o formulário acima para manutenção administrativa ou oriente o usuário pelo funil de criação.",
+          actions: [
+            { href: FLOW_LINKS.creation5e, className: "secondary-button", label: "Abrir criação" },
+            { href: FLOW_LINKS.assistant5e, className: "ghost-button", label: "Assistente IA" },
+          ],
+        });
   }
   if (el.deletedCharacters) {
     el.deletedCharacters.innerHTML = filteredDeletedCharacters.length
       ? filteredDeletedCharacters.map(renderDeletedCharacter).join("")
       : deletedCharacters.length
-        ? `<p class="account-empty-note">Nenhum personagem apagado encontrado com esses filtros.</p>`
-        : `<p class="account-empty-note">Nenhum personagem na lixeira.</p>`;
+        ? renderAdminEmptyState({
+          title: "Nenhum apagado encontrado",
+          text: "Ajuste a busca ou ordenação para revisar a lixeira desta conta.",
+          actions: [{ type: "button", className: "ghost-button", label: "Limpar filtros", attributes: "data-admin-clear-deleted-filters" }],
+        })
+        : renderAdminEmptyState({
+          title: "Lixeira vazia",
+          text: "Personagens removidos aparecem aqui durante o período de retenção antes da exclusão automática.",
+          actions: [{ href: FLOW_LINKS.creation5e, className: "ghost-button", label: "Abrir criação" }],
+        });
   }
+}
+
+function renderAdminEmptyState({ title, text, actions = [] }) {
+  const actionMarkup = actions.length
+    ? `<div class="account-flow-empty-actions admin-flow-empty-actions">${actions.map(renderAdminEmptyAction).join("")}</div>`
+    : "";
+
+  return `
+    <div class="account-empty-note account-flow-empty">
+      <strong>${escapeHtml(title)}</strong>
+      <p>${escapeHtml(text)}</p>
+      ${actionMarkup}
+    </div>
+  `;
+}
+
+function renderAdminEmptyAction(action) {
+  const className = escapeHtml(action.className || "ghost-button");
+  const label = escapeHtml(action.label || "Abrir");
+  if (action.type === "button") {
+    return `<button type="button" class="${className}" ${action.attributes || ""}>${label}</button>`;
+  }
+  return `<a class="${className}" href="${escapeHtml(action.href || FLOW_LINKS.creation5e)}">${label}</a>`;
 }
 
 function renderEditionUsage(account, edition) {
@@ -425,6 +483,19 @@ el.deletedCharacterSort?.addEventListener("change", () => {
 });
 
 el.accountList?.addEventListener("click", async (event) => {
+  const clearFiltersButton = event.target.closest("[data-admin-clear-account-filters]");
+  if (clearFiltersButton) {
+    accountFilters.query = "";
+    accountFilters.role = "all";
+    accountFilters.status = "all";
+    if (el.search) el.search.value = "";
+    if (el.roleFilter) el.roleFilter.value = "all";
+    if (el.statusFilter) el.statusFilter.value = "all";
+    renderAccountList();
+    el.search?.focus();
+    return;
+  }
+
   const button = event.target.closest("[data-admin-account-id]");
   if (!button) return;
   try {
@@ -479,6 +550,17 @@ el.addCharacterForm?.addEventListener("submit", async (event) => {
 });
 
 el.activeCharacters?.addEventListener("click", async (event) => {
+  const clearFiltersButton = event.target.closest("[data-admin-clear-character-filters]");
+  if (clearFiltersButton) {
+    characterFilters.query = "";
+    characterFilters.edition = "all";
+    if (el.characterSearch) el.characterSearch.value = "";
+    if (el.characterEditionFilter) el.characterEditionFilter.value = "all";
+    renderDetail();
+    el.characterSearch?.focus();
+    return;
+  }
+
   const button = event.target.closest("[data-admin-delete-character]");
   if (!button || !selectedAccount) return;
   if (!window.confirm("Remover este personagem e manter na lixeira por 15 dias?")) return;
@@ -496,6 +578,15 @@ el.activeCharacters?.addEventListener("click", async (event) => {
 });
 
 el.deletedCharacters?.addEventListener("click", async (event) => {
+  const clearFiltersButton = event.target.closest("[data-admin-clear-deleted-filters]");
+  if (clearFiltersButton) {
+    deletedCharacterFilters.query = "";
+    if (el.deletedCharacterSearch) el.deletedCharacterSearch.value = "";
+    renderDetail();
+    el.deletedCharacterSearch?.focus();
+    return;
+  }
+
   const restoreButton = event.target.closest("[data-admin-restore-character]");
   const purgeButton = event.target.closest("[data-admin-purge-character]");
   const button = restoreButton || purgeButton;

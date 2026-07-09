@@ -27,7 +27,10 @@ const EDITION_META = {
     shortLabel: "5e",
     description: "Personagens criados para as regras clássicas da quinta edição.",
     empty: "Nenhum personagem 5e salvo ainda.",
-    newLabel: "Novo personagem 5e",
+    newLabel: "Criar ficha 5e",
+    assistantLabel: "Gerar 5e com IA",
+    creation: "./criacao.html?edition=5e",
+    assistant: "./assistente-ia.html?edition=5e",
     editor: "./5e.html",
     hash: "userArea5e",
     slug: "5e",
@@ -37,7 +40,10 @@ const EDITION_META = {
     shortLabel: "5.5e",
     description: "Fichas no conjunto de regras 2024, separadas das fichas 5e.",
     empty: "Nenhum personagem 5.5e salvo ainda.",
-    newLabel: "Novo personagem 5.5e",
+    newLabel: "Criar ficha 5.5e",
+    assistantLabel: "Gerar 5.5e com IA",
+    creation: "./criacao.html?edition=5.5e-2024",
+    assistant: "./assistente-ia.html?edition=5.5e-2024",
     editor: "./5.5e-2024.html",
     hash: "userArea2024",
     slug: "2024",
@@ -238,7 +244,7 @@ function renderUserPage() {
     el.empty.hidden = filteredCharacters.length > 0;
     el.empty.textContent = characters.length
       ? "Nenhum personagem encontrado com esses filtros."
-      : "Nenhum personagem salvo ainda.";
+      : "Nenhum personagem salvo ainda. Escolha uma edição abaixo para iniciar pelo funil de criação.";
   }
   if (el.list) {
     el.list.innerHTML = visibleEditions
@@ -331,7 +337,7 @@ function renderLibraryStatus(totalCount, visibleCount) {
 
   const hasFilters = Boolean(libraryFilters.query.trim()) || libraryFilters.edition !== "all";
   if (!totalCount) {
-    el.libraryStatus.textContent = "A biblioteca fica mais útil quando você salva personagens pelo editor.";
+    el.libraryStatus.textContent = "A biblioteca começa no funil de criação: escolha a edição, use IA ou modo manual e salve pelo editor.";
     return;
   }
 
@@ -347,7 +353,7 @@ function renderLastActivity(characters) {
   const latest = getLatestCharacter(characters);
   if (!latest) {
     if (el.lastActivity) el.lastActivity.textContent = "Sem personagens";
-    if (el.lastActivityText) el.lastActivityText.textContent = "Crie ou salve uma ficha para iniciar o histórico.";
+    if (el.lastActivityText) el.lastActivityText.textContent = "Comece pelo funil de criação para iniciar o histórico.";
     return;
   }
 
@@ -375,10 +381,11 @@ function renderAccountFocus(user, characters, counts) {
 
   if (!characters.length) {
     el.focusTitle.textContent = "Crie o primeiro personagem";
-    el.focusText.textContent = "Depois de salvar uma ficha, ela aparece aqui com edição, resumo e ações rápidas.";
+    el.focusText.textContent = "Passe por criação, escolha manual ou IA e salve no editor para montar sua biblioteca.";
     el.focusActions.innerHTML = `
-      <a href="./5e.html" class="primary">Criar 5e</a>
-      <a href="./5.5e-2024.html" class="secondary-button">Criar 5.5e</a>
+      <a href="./criacao.html?edition=5e" class="primary">Escolher modo 5e</a>
+      <a href="./assistente-ia.html?edition=5e" class="secondary-button">Gerar com IA</a>
+      <a href="./criacao.html?edition=5.5e-2024" class="ghost-button">Criar 5.5e</a>
     `;
     return;
   }
@@ -388,15 +395,16 @@ function renderAccountFocus(user, characters, counts) {
     el.focusText.textContent = "Personagens 5e podem ser duplicados ou transferidos para a edição 2024 pela biblioteca.";
     el.focusActions.innerHTML = `
       <a href="#userLibrary" class="primary">Abrir biblioteca</a>
-      <a href="./5.5e-2024.html" class="secondary-button">Criar 5.5e</a>
+      <a href="./criacao.html?edition=5.5e-2024" class="secondary-button">Criar 5.5e</a>
     `;
     return;
   }
 
   el.focusTitle.textContent = "Biblioteca em dia";
-  el.focusText.textContent = "Use busca, filtros e atalhos para continuar as fichas salvas ou começar novos personagens.";
+  el.focusText.textContent = "Use busca e filtros para continuar fichas salvas, ou volte ao funil para criar novos personagens.";
   el.focusActions.innerHTML = `
     <a href="#userLibrary" class="primary">Ver personagens</a>
+    <a href="./criacao.html?edition=5e" class="secondary-button">Criar nova ficha</a>
     <a href="./estatisticas.html" class="ghost-button">Ver estatísticas</a>
   `;
 }
@@ -566,7 +574,8 @@ function renderEditionSection(edition, characters, usage, characterLimit) {
         <strong>${escapeHtml(limitLabel)}</strong>
       </div>
       <div class="user-page-edition-actions">
-        <a class="secondary-button" href="${escapeHtml(meta.editor)}">${escapeHtml(meta.newLabel)}</a>
+        <a class="primary" href="${escapeHtml(meta.creation)}">${escapeHtml(meta.newLabel)}</a>
+        <a class="secondary-button" href="${escapeHtml(meta.assistant)}">${escapeHtml(meta.assistantLabel)}</a>
         <span>${escapeHtml(freeLabel)}${deletedCount ? ` · ${deletedCount} na lixeira` : ""}</span>
       </div>
       <div class="user-page-edition-list">
@@ -578,19 +587,26 @@ function renderEditionSection(edition, characters, usage, characterLimit) {
 
 function renderEditionEmptyState(meta) {
   return `
-    <div class="user-page-edition-empty">
+    <div class="user-page-edition-empty account-flow-empty">
       <strong>${escapeHtml(meta.empty)}</strong>
-      <p>Comece pelo editor correspondente para manter as regras e PDFs na edição certa.</p>
-      <a class="ghost-button" href="${escapeHtml(meta.editor)}">${escapeHtml(meta.newLabel)}</a>
+      <p>Comece pela escolha de criação para decidir entre preenchimento manual ou rascunho por IA.</p>
+      <div class="account-flow-empty-actions">
+        <a class="primary" href="${escapeHtml(meta.creation)}">${escapeHtml(meta.newLabel)}</a>
+        <a class="secondary-button" href="${escapeHtml(meta.assistant)}">${escapeHtml(meta.assistantLabel)}</a>
+      </div>
     </div>
   `;
 }
 
 function renderEditionFilteredEmptyState(meta) {
   return `
-    <div class="user-page-edition-empty">
+    <div class="user-page-edition-empty account-flow-empty">
       <strong>Nenhum resultado em ${escapeHtml(meta.label)}</strong>
       <p>Ajuste a busca ou a edição para voltar a ver os personagens salvos.</p>
+      <div class="account-flow-empty-actions">
+        <button type="button" class="ghost-button" data-user-clear-library-filters>Limpar filtros</button>
+        <a class="secondary-button" href="${escapeHtml(meta.creation)}">Criar nova ficha</a>
+      </div>
     </div>
   `;
 }
@@ -608,9 +624,12 @@ function renderDeletedCharacters(characters) {
   el.deletedList.innerHTML = total
     ? characters.map(renderDeletedCharacterCard).join("")
     : `
-      <div class="user-page-deleted-empty">
+      <div class="user-page-deleted-empty account-flow-empty">
         <strong>Lixeira vazia</strong>
-        <p>Personagens apagados aparecerão aqui por até ${DELETED_CHARACTER_RETENTION_DAYS} dias.</p>
+        <p>Personagens apagados aparecerão aqui por até ${DELETED_CHARACTER_RETENTION_DAYS} dias. Novas fichas começam no funil de criação.</p>
+        <div class="account-flow-empty-actions">
+          <a class="ghost-button" href="./criacao.html?edition=5e">Criar ficha</a>
+        </div>
       </div>
     `;
 }
@@ -729,6 +748,15 @@ el.socialProviderList?.addEventListener("click", async (event) => {
 });
 
 el.list?.addEventListener("click", async (event) => {
+  const clearFiltersButton = event.target.closest("[data-user-clear-library-filters]");
+  if (clearFiltersButton) {
+    libraryFilters.query = "";
+    libraryFilters.edition = "all";
+    renderUserPage();
+    el.search?.focus();
+    return;
+  }
+
   const migrateButton = event.target.closest("[data-user-character-migrate]");
   if (migrateButton) {
     const characterId = migrateButton.getAttribute("data-user-character-migrate");

@@ -182,7 +182,7 @@ body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-
   gap: 10px;
 }
 
-body[data-active-screen="account"] .version-toolbar {
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .version-toolbar {
   min-height: 62px;
   background:
     linear-gradient(90deg, rgba(240, 100, 63, 0.1), transparent 36%),
@@ -193,7 +193,7 @@ body[data-active-screen="account"] .version-toolbar {
   backdrop-filter: blur(14px);
 }
 
-html[data-theme="light"] body[data-active-screen="account"] .version-toolbar {
+html[data-theme="light"] body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .version-toolbar {
   background:
     linear-gradient(90deg, rgba(200, 74, 50, 0.08), transparent 36%),
     linear-gradient(180deg, rgba(255, 255, 255, 0.54), rgba(255, 255, 255, 0.18)),
@@ -214,12 +214,12 @@ html[data-theme="light"] body[data-active-screen="account"].account-edition-2024
     var(--account-arcane-panel);
 }
 
-body[data-active-screen="account"] .version-toolbar-actions {
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .version-toolbar-actions {
   width: auto;
   margin-left: auto;
 }
 
-body[data-active-screen="account"] .account-flow-brand {
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .account-flow-brand {
   display: inline-flex;
   align-items: center;
   min-height: 44px;
@@ -233,7 +233,7 @@ body[data-active-screen="account"] .account-flow-brand {
   text-shadow: 0 10px 24px rgba(0, 0, 0, 0.34);
 }
 
-body[data-active-screen="account"] .account-flow-brand::before {
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .account-flow-brand::before {
   content: "";
   width: 12px;
   height: 12px;
@@ -246,7 +246,7 @@ body[data-active-screen="account"] .account-flow-brand::before {
     0 0 18px color-mix(in srgb, var(--account-arcane-teal), transparent 64%);
 }
 
-html[data-theme="light"] body[data-active-screen="account"] .account-flow-brand {
+html[data-theme="light"] body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .account-flow-brand {
   color: var(--account-arcane-gold);
   text-shadow: none;
 }
@@ -258,7 +258,7 @@ body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-
   padding-bottom: 16px;
 }
 
-body[data-active-screen="account"] .account-page-hero {
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .account-page-hero {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(220px, 320px);
   gap: 24px;
@@ -303,7 +303,7 @@ body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-
   text-underline-offset: 3px;
 }
 
-body[data-active-screen="account"] .account-flow-compass {
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .account-flow-compass {
   display: grid;
   gap: 8px;
   padding: 16px;
@@ -324,7 +324,7 @@ body[data-active-screen="account"].account-edition-2024 .account-flow-compass {
     0 18px 36px rgba(0, 0, 0, 0.24);
 }
 
-html[data-theme="light"] body[data-active-screen="account"] .account-flow-compass {
+html[data-theme="light"] body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .account-flow-compass {
   border-color: rgba(143, 95, 30, 0.24);
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.54), rgba(255, 255, 255, 0.18)),
@@ -342,7 +342,7 @@ html[data-theme="light"] body[data-active-screen="account"].account-edition-2024
     inset 0 1px 0 rgba(255, 255, 255, 0.72);
 }
 
-body[data-active-screen="account"] .account-flow-compass span {
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .account-flow-compass span {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -352,11 +352,11 @@ body[data-active-screen="account"] .account-flow-compass span {
   font-weight: 800;
 }
 
-html[data-theme="light"] body[data-active-screen="account"] .account-flow-compass span {
+html[data-theme="light"] body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .account-flow-compass span {
   color: var(--account-arcane-gold);
 }
 
-body[data-active-screen="account"] .account-flow-compass span::before {
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .account-flow-compass span::before {
   content: "";
   width: 9px;
   height: 9px;
@@ -395,6 +395,12 @@ body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-
   box-shadow:
     0 18px 32px color-mix(in srgb, var(--account-arcane-ember), transparent 74%),
     inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .version-toolbar-actions > .primary {
+  min-height: 42px;
+  padding: 10px 12px;
+  text-decoration: none;
 }
 
 body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) :is(.secondary-button, .ghost-button) {
@@ -593,7 +599,7 @@ body[data-active-screen="account"] .account-register-panel {
   margin-top: 0;
 }
 
-body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) :is(.account-form-heading h2, .account-section-heading h2, .account-edition-heading h3, .user-page-title-row h2, .user-page-focus-card strong, .user-page-health-card > div > strong, .user-page-character-heading strong, .admin-edition-usage .account-section-heading h3, .admin-add-character-form .account-form-heading h3, .admin-character-section h3) {
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) :is(.account-form-heading h2, .account-section-heading h2, .account-edition-heading h3, .account-flow-empty strong, .user-page-title-row h2, .user-page-focus-card strong, .user-page-health-card > div > strong, .user-page-character-heading strong, .admin-edition-usage .account-section-heading h3, .admin-add-character-form .account-form-heading h3, .admin-character-section h3) {
   color: var(--account-arcane-gold);
   font-family: var(--heading-font);
   letter-spacing: 0;
@@ -603,7 +609,7 @@ body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-
   font-size: clamp(28px, 3vw, 36px);
 }
 
-body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) :is(.account-form-heading p, .account-current-panel span, .saved-library-result-status, .saved-library-filter span, .user-page-account-card p, .user-page-account-card span, .user-page-health-card li span, .user-page-focus-card p, .user-social-provider-item span, .user-social-provider-empty span, .admin-overview-grid small, .admin-detail-summary small, .admin-account-facts dt, .admin-selected-email, .admin-account-item small, .admin-character-item span, .admin-character-item p, .admin-edition-usage-item span, .admin-account-form label span, .admin-add-character-form label span, .note) {
+body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) :is(.account-form-heading p, .account-current-panel span, .account-flow-empty p, .saved-library-result-status, .saved-library-filter span, .user-page-account-card p, .user-page-account-card span, .user-page-health-card li span, .user-page-focus-card p, .user-social-provider-item span, .user-social-provider-empty span, .admin-overview-grid small, .admin-detail-summary small, .admin-account-facts dt, .admin-selected-email, .admin-account-item small, .admin-character-item span, .admin-character-item p, .admin-edition-usage-item span, .admin-account-form label span, .admin-add-character-form label span, .note) {
   color: var(--muted);
 }
 
@@ -853,17 +859,17 @@ body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-
     width: min(760px, calc(100vw - 32px));
   }
 
-  body[data-active-screen="account"] .account-page-hero {
+  body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .account-page-hero {
     grid-template-columns: 1fr;
     align-items: start;
   }
 
-  body[data-active-screen="account"] .account-flow-compass {
+  body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .account-flow-compass {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 10px;
   }
 
-  body[data-active-screen="account"] .account-flow-compass span {
+  body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .account-flow-compass span {
     justify-content: center;
     font-size: 14px;
   }
@@ -892,12 +898,12 @@ body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-
     padding: 10px;
   }
 
-  body[data-active-screen="account"] .version-toolbar {
+  body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .version-toolbar {
     align-items: stretch;
     flex-wrap: wrap;
   }
 
-  body[data-active-screen="account"] .account-flow-brand {
+  body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .account-flow-brand {
     font-size: 22px;
   }
 
@@ -905,7 +911,7 @@ body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-
     gap: 8px;
   }
 
-  body[data-active-screen="account"] .version-toolbar-actions {
+  body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .version-toolbar-actions {
     width: 100%;
     margin-left: 0;
   }
@@ -917,7 +923,7 @@ body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-
     font-size: 15px;
   }
 
-  body[data-active-screen="account"] .toolbar-theme-toggle {
+  body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .toolbar-theme-toggle {
     margin-left: auto;
   }
 
@@ -935,12 +941,12 @@ body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-
     font-size: 17px;
   }
 
-  body[data-active-screen="account"] .account-flow-compass,
+  body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .account-flow-compass,
   body[data-active-screen="account"] .account-return-panel {
     padding: 12px;
   }
 
-  body[data-active-screen="account"] .account-flow-compass {
+  body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .account-flow-compass {
     grid-template-columns: 1fr;
   }
 
