@@ -20,6 +20,7 @@ const PENDING_EDITOR_DRAFT_KEY = "dnd_sheet_pending_editor_draft_v1";
 const PENDING_EDITOR_DRAFT_TTL_MS = 1000 * 60 * 60 * 12;
 const AUTO_EDITOR_DRAFT_KEY_PREFIX = "dnd_sheet_auto_editor_draft_v1";
 const AUTO_EDITOR_DRAFT_TTL_MS = 1000 * 60 * 60 * 24;
+const SHARED_CHARACTER_URL_KEY = "share";
 const SAVE_BUTTON_CONTENT = new WeakMap();
 
 /** @typedef {"5e" | "5.5e-2024"} Edition */
@@ -376,28 +377,40 @@ export function initializeUserArea({
 
   async function restoreSharedCharacter() {
     let sharedCharacter = null;
+    let hasSharedCharacter = false;
     try {
       const { hasSharedCharacterInLocation, readSharedCharacterFromLocation } = await import("./character-share.js");
-      if (!hasSharedCharacterInLocation()) return false;
-      sharedCharacter = await readSharedCharacterFromLocation({ expectedEdition: edition });
+      hasSharedCharacter = hasSharedCharacterInLocation();
+      if (!hasSharedCharacter) return false;
+      sharedCharacter = await readSharedCharacterFromLocation({
+        expectedEdition: edition,
+        replaceHistory: false,
+      });
     } catch (error) {
       notify(getErrorMessage(error, "Link compartilhado invalido."), "warning");
-      return false;
+      return hasSharedCharacter;
     }
 
-    if (!sharedCharacter) return false;
+    if (!sharedCharacter) return hasSharedCharacter;
     const snapshot = sharedCharacter.snapshot;
-    if (!snapshot || typeof snapshot !== "object") return false;
+    if (!snapshot || typeof snapshot !== "object") return true;
     const sharedName = String(sharedCharacter.name || "").trim();
+    const migratedSnapshot = migrateCharacterSnapshot(snapshot, { edition });
 
-    restore?.(migrateCharacterSnapshot(snapshot, { edition }));
-    clearPendingEditorDraft();
-    clearAutoEditorDraft(edition);
+    clearLocalEditorDraftsForSharedRestore();
+    restore?.(migratedSnapshot);
+    clearSharedCharacterFromHistory();
     state.selectedCharacterId = "";
     state.showSavedPanel = false;
     render();
     notify(`Personagem compartilhado carregado${sharedName ? `: ${sharedName}` : ""}.`, "success");
     return true;
+  }
+
+  function clearLocalEditorDraftsForSharedRestore() {
+    clearPendingEditorDraft();
+    autoDraft.clear();
+    clearAutoEditorDraft(edition);
   }
 
   async function handleShareCharacter() {
@@ -575,6 +588,26 @@ function buildLoginReturnUrl() {
 function getCurrentReturnTarget() {
   const page = window.location.pathname.split("/").pop() || "index.html";
   return `${page}${window.location.search || ""}${window.location.hash || ""}`;
+}
+
+function clearSharedCharacterFromHistory() {
+  if (typeof window === "undefined" || !window.history?.replaceState) return;
+
+  try {
+    const url = new URL(window.location.href);
+    url.searchParams.delete(SHARED_CHARACTER_URL_KEY);
+
+    const hash = String(url.hash || "").replace(/^#/, "");
+    if (hash) {
+      const hashParams = new URLSearchParams(hash);
+      if (hashParams.has(SHARED_CHARACTER_URL_KEY)) {
+        hashParams.delete(SHARED_CHARACTER_URL_KEY);
+        url.hash = hashParams.toString();
+      }
+    }
+
+    window.history.replaceState(null, document.title, url.href);
+  } catch {}
 }
 
 function savePendingEditorDraft(edition, payload, returnTo) {
