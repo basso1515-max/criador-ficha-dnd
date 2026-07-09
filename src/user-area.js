@@ -391,6 +391,8 @@ export function initializeUserArea({
     const sharedName = String(sharedCharacter.name || "").trim();
 
     restore?.(migrateCharacterSnapshot(snapshot, { edition }));
+    clearPendingEditorDraft();
+    clearAutoEditorDraft(edition);
     state.selectedCharacterId = "";
     state.showSavedPanel = false;
     render();
