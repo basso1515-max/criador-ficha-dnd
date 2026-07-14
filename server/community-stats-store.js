@@ -1,14 +1,19 @@
-import {
-  COMMUNITY_STATS_MONTH_TTL_SECONDS,
-  buildCommunityAnalyticsPayload,
-  buildCommunityStatsResponse,
-  extractCommunityStatsEvent,
-  getCommunityStatsKeys,
-  getCommunityStatsMonth,
-  normalizeCounterMap,
-} from "../src/shared/community-stats.js";
+let communityStatsModulePromise = null;
+
+function loadCommunityStatsModule() {
+  if (!communityStatsModulePromise) {
+    communityStatsModulePromise = import("../src/shared/community-stats.js");
+  }
+  return communityStatsModulePromise;
+}
 
 export async function recordCommunityCharacterCreated(redis, character, date = new Date()) {
+  const {
+    COMMUNITY_STATS_MONTH_TTL_SECONDS,
+    buildCommunityAnalyticsPayload,
+    extractCommunityStatsEvent,
+    getCommunityStatsKeys,
+  } = await loadCommunityStatsModule();
   const event = extractCommunityStatsEvent(character, date);
   if (!event) return null;
 
@@ -57,6 +62,12 @@ export async function recordCommunityCharacterCreated(redis, character, date = n
 }
 
 export async function readCommunityStats(redis, date = new Date()) {
+  const {
+    buildCommunityStatsResponse,
+    getCommunityStatsKeys,
+    getCommunityStatsMonth,
+    normalizeCounterMap,
+  } = await loadCommunityStatsModule();
   const month = getCommunityStatsMonth(date);
   const keys = getCommunityStatsKeys(month);
   const [
