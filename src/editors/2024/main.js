@@ -7719,6 +7719,9 @@ import {
 
   function buildContextualCrestMarkup2024(previewState) {
     const divinity = getCurrentDivinityValue2024();
+    const selectedDivinity = divinity
+      ? DIVINITY_BY_NAME_2024.get(normalizePt(divinity))
+      : null;
     const sourceLabel = divinity || previewState.subclass?.nome || previewState.cls?.nome || "Build sem símbolo";
     const sourceType = divinity
       ? "Divindade selecionada"
@@ -7727,6 +7730,10 @@ import {
         : previewState.cls
           ? "Símbolo da classe"
           : "Símbolo pendente";
+    const sourceDescription = selectedDivinity?.descricaoCurta
+      || (selectedDivinity ? `Símbolo: ${selectedDivinity.símbolo} • Domínio: ${selectedDivinity.domínio}` : "")
+      || (previewState.subclass ? "Representa as escolhas e os recursos da subclasse atual." : "")
+      || (previewState.cls ? "Representa a identidade mecânica da classe atual." : "Escolha uma classe, subclasse ou divindade para definir o brasão.");
     const monogram = sourceLabel
       .split(/\s+/)
       .filter(Boolean)
@@ -7735,11 +7742,12 @@ import {
       .join("") || "✦";
 
     return `
+      <p class="contextual-crest-type">${escapeHtml(sourceType)}</p>
       <div class="contextual-crest" aria-label="${escapeHtml(`${sourceType}: ${sourceLabel}`)}">
         <span class="contextual-crest-mark" aria-hidden="true">${escapeHtml(monogram)}</span>
       </div>
-      <p class="contextual-crest-type">${escapeHtml(sourceType)}</p>
       <strong class="contextual-crest-name">${escapeHtml(sourceLabel)}</strong>
+      <small class="contextual-crest-description">${escapeHtml(sourceDescription)}</small>
     `;
   }
 
@@ -7750,6 +7758,9 @@ import {
     const subclassUnlockLevel = cls ? getSubclassUnlockLevel2024(cls) : 0;
     const primaryEntry = getPrimaryClassEntry2024(previewState.classEntries || []);
     const needsSubclass = Boolean(subclassUnlockLevel && (primaryEntry?.level || previewState.level) >= subclassUnlockLevel);
+    const choiceDiagnostics = previewState.choiceDiagnostics || [];
+    const progressionDiagnostics = choiceDiagnostics.filter((item) => !["class", "subclass", "multiclass", "skills"].includes(item.category));
+    const firstProgressionDiagnostic = progressionDiagnostics[0];
     const entries = [
       {
         label: "Classe e subclasse",
@@ -7771,8 +7782,8 @@ import {
       },
       {
         label: "Perícias da classe",
-        status: previewState.skillSelectionState?.complete ? "complete" : cls ? "pending" : "blocked",
-        detail: previewState.skillSelectionState?.complete ? "Seleção válida" : cls ? "Finalize as escolhas permitidas" : "Depende da classe",
+        status: !cls ? "blocked" : previewState.skillSelectionState?.complete ? "complete" : "pending",
+        detail: !cls ? "Depende da classe" : previewState.skillSelectionState?.complete ? "Seleção válida" : "Finalize as escolhas permitidas",
         target: "skillsExtra2024",
       },
       {
@@ -7780,6 +7791,12 @@ import {
         status: previewState.equipmentSummary?.length ? "complete" : cls ? "pending" : "blocked",
         detail: previewState.equipmentSummary?.length ? "Pacotes calculados" : cls ? "Escolha os pacotes disponíveis" : "Depende da classe e origem",
         target: "equipmentChoices2024",
+      },
+      {
+        label: "Recursos da progressão",
+        status: !cls ? "blocked" : progressionDiagnostics.length ? "pending" : "complete",
+        detail: !cls ? "Depende da classe" : firstProgressionDiagnostic?.message || "Escolhas liberadas no nível atual resolvidas",
+        target: firstProgressionDiagnostic?.targetId || "featureChoicesPanel2024",
       },
     ];
     const statusLabel = { complete: "Completo", pending: "Pendente", blocked: "Bloqueado" };
@@ -7820,16 +7837,16 @@ import {
           <p>${escapeHtml(classLine)}</p>
           <small>${escapeHtml(originLine)}</small>
         </div>
+        <div class="attribute-star-panel">
+          <div><span>Pontos restantes e totais</span><h4>Estrela de atributos</h4></div>
+          ${buildAttributeStarMarkup2024(previewState)}
+        </div>
         <dl class="hero-monitor-metrics">
           <div><dt>Nível</dt><dd>${escapeHtml(String(previewState.level))}</dd></div>
           <div><dt>Classe de Armadura</dt><dd>${escapeHtml(String(previewState.quickSheetData?.ca || previewState.derivedCombat?.armorClass || "—"))}</dd></div>
           <div><dt>Iniciativa</dt><dd>${escapeHtml(formatSignedNumber(previewState.initiativeBonus))}</dd></div>
           <div><dt>Bônus de proficiência</dt><dd>${escapeHtml(formatSignedNumber(previewState.proficiencyBonus))}</dd></div>
         </dl>
-        <div class="attribute-star-panel">
-          <div><span>Pontos restantes e totais</span><h4>Estrela de atributos</h4></div>
-          ${buildAttributeStarMarkup2024(previewState)}
-        </div>
         ${renderBuildDependencies2024(previewState)}
       </section>
     `;

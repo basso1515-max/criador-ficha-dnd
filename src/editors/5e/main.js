@@ -17012,6 +17012,9 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
 
   function buildContextualCrestMarkup5e(state) {
     const sourceLabel = state.divindade || state.arquetipo || state.classe || "Herói sem símbolo";
+    const selectedDivinity = state.divindade
+      ? DIVINITY_BY_NAME.get(normalizePt(state.divindade))
+      : null;
     const sourceType = state.divindade
       ? "Divindade selecionada"
       : state.arquetipo
@@ -17019,6 +17022,10 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
         : state.classe
           ? "Símbolo da classe"
           : "Símbolo pendente";
+    const sourceDescription = selectedDivinity?.descricaoCurta
+      || (selectedDivinity ? `Símbolo: ${selectedDivinity.símbolo} • Domínio: ${selectedDivinity.domínio}` : "")
+      || (state.arquetipo ? "Representa as escolhas e os recursos do arquétipo atual." : "")
+      || (state.classe ? "Representa a identidade mecânica da classe atual." : "Escolha uma classe, subclasse ou divindade para definir o brasão.");
     const monogram = sourceLabel
       .split(/\s+/)
       .filter(Boolean)
@@ -17027,11 +17034,12 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
       .join("") || "✦";
 
     return `
+      <p class="contextual-crest-type">${escapeHtml(sourceType)}</p>
       <div class="contextual-crest" aria-label="${escapeHtml(`${sourceType}: ${sourceLabel}`)}">
         <span class="contextual-crest-mark" aria-hidden="true">${escapeHtml(monogram)}</span>
       </div>
-      <p class="contextual-crest-type">${escapeHtml(sourceType)}</p>
       <strong class="contextual-crest-name">${escapeHtml(sourceLabel)}</strong>
+      <small class="contextual-crest-description">${escapeHtml(sourceDescription)}</small>
     `;
   }
 
@@ -17042,6 +17050,12 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
     const subclassUnlockLevel = state.classData ? getSubclassUnlockLevel(state.classData) : 0;
     const needsSubclass = Boolean(subclassUnlockLevel && (state.nivelClassePrincipal || state.nivel) >= subclassUnlockLevel);
     const subclassStatus = !state.classData ? "blocked" : needsSubclass && !state.subclassData ? "pending" : "complete";
+    const skillDiagnostic = diagnostics.find((item) => item.category === "skills");
+    const equipmentControls = Array.from(el.equipmentChoicesPanel?.querySelectorAll("select:not(:disabled)") || []);
+    const equipmentAvailable = Boolean(state.classData || state.background);
+    const equipmentPending = equipmentAvailable && equipmentControls.some((control) => !String(control.value || "").trim());
+    const progressionDiagnostics = diagnostics.filter((item) => !["class", "subclass", "multiclass", "skills"].includes(item.category));
+    const firstProgressionDiagnostic = progressionDiagnostics[0];
     const entries = [
       {
         label: "Identidade",
@@ -17062,6 +17076,24 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
           ? (needsSubclass ? "Escolha resolvida para o nível atual" : "Ainda não é obrigatória neste nível")
           : subclassStatus === "blocked" ? "Defina uma classe para liberar" : "Escolha a subclasse liberada neste nível",
         target: "arquetipoInput",
+      },
+      {
+        label: "Perícias da classe",
+        status: !state.classData ? "blocked" : skillDiagnostic ? "pending" : "complete",
+        detail: !state.classData ? "Depende da classe" : skillDiagnostic ? "Finalize as escolhas permitidas" : "Seleção válida para a classe",
+        target: skillDiagnostic?.targetId || "skillsExtra",
+      },
+      {
+        label: "Equipamentos iniciais",
+        status: !equipmentAvailable ? "blocked" : equipmentPending ? "pending" : "complete",
+        detail: !equipmentAvailable ? "Depende da classe e do antecedente" : equipmentPending ? "Complete as opções dos pacotes" : "Pacotes e alternativas calculados",
+        target: "equipmentChoicesPanel",
+      },
+      {
+        label: "Recursos da progressão",
+        status: !state.classData ? "blocked" : progressionDiagnostics.length ? "pending" : "complete",
+        detail: !state.classData ? "Depende da classe" : firstProgressionDiagnostic?.message || "Escolhas liberadas no nível atual resolvidas",
+        target: firstProgressionDiagnostic?.targetId || "featureChoicesPanel",
       },
     ];
     const firstPending = diagnostics[0];
@@ -17115,16 +17147,16 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
           <p>${escapeHtml(ficha.texto.classeENivel || "Classe pendente")}</p>
           <small>${escapeHtml([ficha.texto.raca, ficha.texto.antecedente].filter(Boolean).join(" • ") || "Origem pendente")}</small>
         </div>
+        <div class="attribute-star-panel">
+          <div><span>Leitura rápida</span><h4>Estrela de atributos</h4></div>
+          ${buildAttributeStarMarkup5e(ficha)}
+        </div>
         <dl class="hero-monitor-metrics">
           <div><dt>PV máximo:</dt> <dd>${escapeHtml(ficha.texto.hpMax)}</dd></div>
           <div><dt>Classe de Armadura:</dt> <dd>${escapeHtml(ficha.texto.CA)}</dd></div>
           <div><dt>Iniciativa:</dt> <dd>${escapeHtml(ficha.texto.iniciativa)}</dd></div>
           <div><dt>Deslocamento:</dt> <dd>${escapeHtml(ficha.texto.deslocamento)}</dd></div>
         </dl>
-        <div class="attribute-star-panel">
-          <div><span>Leitura rápida</span><h4>Estrela de atributos</h4></div>
-          ${buildAttributeStarMarkup5e(ficha)}
-        </div>
         ${renderBuildDependencies5e(state)}
       </section>
       <details class="preview-details">
