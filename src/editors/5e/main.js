@@ -17024,37 +17024,31 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
 
   function buildContextualCrestMarkup5e(state) {
     const selectedClass = state.classData || CLASS_BY_NAME.get(state.classe) || null;
-    const classIconPath = state.divindade ? "" : getClassIconPath5e(selectedClass?.id);
-    const sourceLabel = state.divindade || selectedClass?.nome || state.classe || "Herói sem símbolo";
+    const classIconPath = getClassIconPath5e(selectedClass?.id);
     const selectedDivinity = state.divindade
       ? DIVINITY_BY_NAME.get(normalizePt(state.divindade))
       : null;
-    const sourceType = state.divindade
-      ? "Divindade selecionada"
-      : selectedClass
-          ? "Símbolo da classe"
-          : "Símbolo pendente";
-    const sourceDescription = selectedDivinity?.descricaoCurta
-      || (selectedDivinity ? `Símbolo: ${selectedDivinity.símbolo} • Domínio: ${selectedDivinity.domínio}` : "")
-      || (selectedClass && state.arquetipo ? `${selectedClass.nome} • ${state.arquetipo}` : "")
-      || (selectedClass ? "Representa a identidade mecânica da classe atual." : "Escolha uma classe ou divindade para definir o brasão.");
-    const monogram = sourceLabel
-      .split(/\s+/)
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((part) => part.charAt(0).toUpperCase())
-      .join("") || "✦";
+    const className = selectedClass?.nome || state.classe || "";
+    const divinityName = state.divindade || "Não selecionada";
     const crestMark = classIconPath
       ? `<span class="contextual-crest-mark is-class-icon" style="--class-icon:url('${classIconPath}')" aria-hidden="true"></span>`
-      : `<span class="contextual-crest-mark" aria-hidden="true">${escapeHtml(monogram)}</span>`;
+      : "";
 
     return `
-      <p class="contextual-crest-type">${escapeHtml(sourceType)}</p>
-      <div class="contextual-crest" aria-label="${escapeHtml(`${sourceType}: ${sourceLabel}`)}">
+      <div class="contextual-crest${classIconPath ? "" : " is-empty"}" aria-label="${escapeHtml(className ? `Símbolo da classe: ${className}` : "Símbolo da classe ainda não selecionado")}">
         ${crestMark}
       </div>
-      <strong class="contextual-crest-name">${escapeHtml(sourceLabel)}</strong>
-      <small class="contextual-crest-description">${escapeHtml(sourceDescription)}</small>
+      <div class="contextual-divinity${state.divindade ? "" : " is-empty"}">
+        <span class="contextual-divinity-label">Divindade</span>
+        <strong class="contextual-divinity-name">${escapeHtml(divinityName)}</strong>
+        <span
+          class="contextual-divinity-symbol-slot"
+          data-divinity-name="${escapeHtml(state.divindade || "")}"
+          data-divinity-symbol="${escapeHtml(selectedDivinity?.símbolo || "")}"
+          aria-label="${escapeHtml(state.divindade ? `Símbolo de ${state.divindade}` : "Símbolo da divindade ainda não selecionada")}"
+          hidden
+        ></span>
+      </div>
     `;
   }
 

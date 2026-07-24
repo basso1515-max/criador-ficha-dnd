@@ -1,16 +1,9 @@
-body[data-standalone-route="5e"] .contextual-crest-mark.is-class-icon {
-  width: 74px;
-  height: 78px;
-  border: 0;
-  border-radius: 0;
-  background: var(--crest-mark);
-  -webkit-mask: var(--class-icon) center / contain no-repeat;
-  mask: var(--class-icon) center / contain no-repeat;
-  filter: drop-shadow(0 2px 1px rgba(6, 24, 39, 0.22));
-}
-
-html[data-theme="dark"] body[data-standalone-route="5e"] .contextual-crest-mark.is-class-icon {
-  filter:
-    drop-shadow(0 0 7px rgba(238, 196, 98, 0.18))
-    drop-shadow(0 2px 1px rgba(0, 0, 0, 0.38));
-}
+body[data-standalone-route="5e"] .contextual-crest-mark.is-class-icon{width:74px;height:78px;border:0;border-radius:0;background:var(--crest-mark);-webkit-mask:var(--class-icon) center/contain no-repeat;mask:var(--class-icon) center/contain no-repeat;filter:drop-shadow(0 2px 1px rgba(6,24,39,.22))}
+body[data-standalone-route="5e"] .hero-monitor-identity .contextual-crest{margin-bottom:4px}
+body[data-standalone-route="5e"] .contextual-divinity{display:grid;justify-items:center;gap:2px;min-width:0;margin:0 0 4px;text-align:center}
+body[data-standalone-route="5e"] .hero-monitor .contextual-divinity-label{color:var(--muted);font-family:var(--ui-font);font-size:9px;font-weight:800;letter-spacing:.12em;line-height:1.3;text-transform:uppercase}
+body[data-standalone-route="5e"] .contextual-divinity-name{max-width:100%;color:var(--accent);font-family:var(--heading-font);font-size:14px;line-height:1.25;overflow-wrap:anywhere}
+body[data-standalone-route="5e"] .contextual-divinity.is-empty .contextual-divinity-name{color:var(--muted);font-family:var(--ui-font);font-size:11px;font-weight:600}
+body[data-standalone-route="5e"] .contextual-divinity-symbol-slot{width:44px;height:44px;margin-top:3px;background:var(--crest-mark);-webkit-mask:var(--divinity-icon) center/contain no-repeat;mask:var(--divinity-icon) center/contain no-repeat}
+body[data-standalone-route="5e"] .contextual-divinity-symbol-slot[hidden]{display:none}
+html[data-theme="dark"] body[data-standalone-route="5e"] .contextual-crest-mark.is-class-icon{filter:drop-shadow(0 0 7px rgba(238,196,98,.18)) drop-shadow(0 2px 1px rgba(0,0,0,.38))}
