@@ -149,6 +149,7 @@ import { bindPdfSubmit5e } from "./pdf-export.js";
 import { bindSpellsUiEvents5e, createSpellSelectionStore } from "./spells-ui.js";
 import { initializeUserArea5e } from "./user-area-ui.js";
 import { initializeVersionPicker5e } from "./version-picker-ui.js";
+import { getClassIconPath5e } from "./class-icons.js";
 import {
   buildPendingChoiceDiagnostics,
   focusChoiceDiagnosticTarget,
@@ -17022,32 +17023,35 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
   }
 
   function buildContextualCrestMarkup5e(state) {
-    const sourceLabel = state.divindade || state.arquetipo || state.classe || "Herói sem símbolo";
+    const selectedClass = state.classData || CLASS_BY_NAME.get(state.classe) || null;
+    const classIconPath = state.divindade ? "" : getClassIconPath5e(selectedClass?.id);
+    const sourceLabel = state.divindade || selectedClass?.nome || state.classe || "Herói sem símbolo";
     const selectedDivinity = state.divindade
       ? DIVINITY_BY_NAME.get(normalizePt(state.divindade))
       : null;
     const sourceType = state.divindade
       ? "Divindade selecionada"
-      : state.arquetipo
-        ? "Símbolo da subclasse"
-        : state.classe
+      : selectedClass
           ? "Símbolo da classe"
           : "Símbolo pendente";
     const sourceDescription = selectedDivinity?.descricaoCurta
       || (selectedDivinity ? `Símbolo: ${selectedDivinity.símbolo} • Domínio: ${selectedDivinity.domínio}` : "")
-      || (state.arquetipo ? "Representa as escolhas e os recursos do arquétipo atual." : "")
-      || (state.classe ? "Representa a identidade mecânica da classe atual." : "Escolha uma classe, subclasse ou divindade para definir o brasão.");
+      || (selectedClass && state.arquetipo ? `${selectedClass.nome} • ${state.arquetipo}` : "")
+      || (selectedClass ? "Representa a identidade mecânica da classe atual." : "Escolha uma classe ou divindade para definir o brasão.");
     const monogram = sourceLabel
       .split(/\s+/)
       .filter(Boolean)
       .slice(0, 2)
       .map((part) => part.charAt(0).toUpperCase())
       .join("") || "✦";
+    const crestMark = classIconPath
+      ? `<span class="contextual-crest-mark is-class-icon" style="--class-icon:url('${classIconPath}')" aria-hidden="true"></span>`
+      : `<span class="contextual-crest-mark" aria-hidden="true">${escapeHtml(monogram)}</span>`;
 
     return `
       <p class="contextual-crest-type">${escapeHtml(sourceType)}</p>
       <div class="contextual-crest" aria-label="${escapeHtml(`${sourceType}: ${sourceLabel}`)}">
-        <span class="contextual-crest-mark" aria-hidden="true">${escapeHtml(monogram)}</span>
+        ${crestMark}
       </div>
       <strong class="contextual-crest-name">${escapeHtml(sourceLabel)}</strong>
       <small class="contextual-crest-description">${escapeHtml(sourceDescription)}</small>
