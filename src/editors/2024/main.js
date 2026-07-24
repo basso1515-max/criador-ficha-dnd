@@ -7690,17 +7690,21 @@ import {
     const grid = (radius) => angles.map((angle) => point(angle, radius)).join(" ");
     const scores = previewState.effectiveAbilityScores?.scores || {};
     const values = abilities.map((ability) => Number.isFinite(scores[ability]) ? scores[ability] : 10);
-    const dataPoints = values.map((value, index) => {
+    const baseScores = previewState.effectiveAbilityScores?.baseScores || {};
+    const baseValues = abilities.map((ability, index) => Number.isFinite(baseScores[ability]) ? baseScores[ability] : values[index]);
+    const buildDataPoints = (abilityValues) => abilityValues.map((value, index) => {
       const normalized = Math.max(0, Math.min(1, (value - 8) / 12));
       return point(angles[index], 22 + normalized * 46);
     }).join(" ");
+    const dataPoints = buildDataPoints(values);
+    const baseDataPoints = buildDataPoints(baseValues);
     const labelPositions = [
       [90, 8, "middle"], [170, 50, "end"], [170, 138, "end"],
       [90, 179, "middle"], [10, 138, "start"], [10, 50, "start"],
     ];
 
     return `
-      <svg class="attribute-star" viewBox="0 0 180 188" role="img" aria-label="Estrela com os seis atributos finais da build">
+      <svg class="attribute-star" viewBox="0 0 180 188" role="img" aria-label="Estrela comparando atributos base e totais com bônus da build">
         <polygon class="attribute-star-grid" points="${grid(68)}"></polygon>
         <polygon class="attribute-star-grid is-inner" points="${grid(45)}"></polygon>
         ${angles.map((angle) => {
@@ -7708,12 +7712,17 @@ import {
           return `<line class="attribute-star-axis" x1="90" y1="90" x2="${x}" y2="${y}"></line>`;
         }).join("")}
         <polygon class="attribute-star-value" points="${dataPoints}"></polygon>
+        <polygon class="attribute-star-base" points="${baseDataPoints}"></polygon>
         ${labelPositions.map(([x, y, anchor], index) => `
           <text class="attribute-star-label" x="${x}" y="${y}" text-anchor="${anchor}">
             ${labels[index]} ${values[index]} ${formatSignedNumber(getAbilityModifier(values[index]), "")}
           </text>
         `).join("")}
       </svg>
+      <div class="attribute-star-legend" aria-hidden="true">
+        <span><i></i>Total com bônus</span>
+        <span><i class="is-base"></i>Valor base</span>
+      </div>
     `;
   }
 

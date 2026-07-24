@@ -16975,7 +16975,7 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
     return diagnostics;
   }
 
-  function buildAttributeStarMarkup5e(ficha) {
+  function buildAttributeStarMarkup5e(ficha, state) {
     const abilities = ["for", "des", "con", "int", "sab", "car"];
     const labels = ["FOR", "DES", "CON", "INT", "SAB", "CAR"];
     const angles = [-90, -30, 30, 90, 150, 210];
@@ -16986,27 +16986,38 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
     };
     const grid = (radius) => angles.map((angle) => point(angle, radius)).join(" ");
     const values = abilities.map((key) => Number(ficha.atributos?.[key]?.valor || 10));
-    const dataPoints = values.map((value, index) => {
+    const baseValues = abilities.map((key, index) => {
+      const value = Number(state?.attrs?.[key]);
+      return Number.isFinite(value) ? value : values[index];
+    });
+    const buildDataPoints = (scores) => scores.map((value, index) => {
       const normalized = Math.max(0, Math.min(1, (value - 8) / 12));
       return point(angles[index], 22 + normalized * 46);
     }).join(" ");
+    const dataPoints = buildDataPoints(values);
+    const baseDataPoints = buildDataPoints(baseValues);
     const labelPositions = [
       [90, 8, "middle"], [170, 50, "end"], [170, 138, "end"],
       [90, 179, "middle"], [10, 138, "start"], [10, 50, "start"],
     ];
 
     return `
-      <svg class="attribute-star" viewBox="0 0 180 188" role="img" aria-label="Estrela com os seis atributos do personagem">
+      <svg class="attribute-star" viewBox="0 0 180 188" role="img" aria-label="Estrela comparando atributos base e totais com bônus do personagem">
         <polygon class="attribute-star-grid" points="${grid(68)}"></polygon>
         <polygon class="attribute-star-grid is-inner" points="${grid(45)}"></polygon>
         ${angles.map((angle) => `<line class="attribute-star-axis" x1="90" y1="90" x2="${point(angle, 68).split(",")[0]}" y2="${point(angle, 68).split(",")[1]}"></line>`).join("")}
         <polygon class="attribute-star-value" points="${dataPoints}"></polygon>
+        <polygon class="attribute-star-base" points="${baseDataPoints}"></polygon>
         ${labelPositions.map(([x, y, anchor], index) => `
           <text class="attribute-star-label" x="${x}" y="${y}" text-anchor="${anchor}">
             ${labels[index]} ${values[index]} ${fmtSigned(ficha.atributos?.[abilities[index]]?.mod || 0)}
           </text>
         `).join("")}
       </svg>
+      <div class="attribute-star-legend" aria-hidden="true">
+        <span><i></i>Total com bônus</span>
+        <span><i class="is-base"></i>Valor base</span>
+      </div>
     `;
   }
 
@@ -17149,7 +17160,7 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
         </div>
         <div class="attribute-star-panel">
           <div><span>Leitura rápida</span><h4>Estrela de atributos</h4></div>
-          ${buildAttributeStarMarkup5e(ficha)}
+          ${buildAttributeStarMarkup5e(ficha, state)}
         </div>
         <dl class="hero-monitor-metrics">
           <div><dt>PV máximo:</dt> <dd>${escapeHtml(ficha.texto.hpMax)}</dd></div>
