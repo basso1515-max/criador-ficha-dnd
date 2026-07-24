@@ -107,8 +107,25 @@
       </div>
     </section>
 
-    <main class="container grid">
-    <section class="card">
+    <main class="container grid editor-workspace editor-workspace-5e">
+    <aside class="card editor-journey" aria-label="Etapas da criação da ficha 5e">
+      <div class="editor-journey-heading">
+        <span>Criação de personagem</span>
+        <strong>Jornada do herói</strong>
+      </div>
+      <ol class="editor-journey-list">
+        <li><button type="button" data-editor-step="identity" data-editor-target="nome"><span>1</span><strong>Identidade</strong><small>Quem é o personagem</small></button></li>
+        <li><button type="button" data-editor-step="characteristics" data-editor-target="attr-method-free"><span>2</span><strong>Características</strong><small>Atributos e proficiências</small></button></li>
+        <li><button type="button" data-editor-step="class" data-editor-target="classeInput"><span>3</span><strong>Classe e nível</strong><small>Progressão e escolhas</small></button></li>
+        <li><button type="button" data-editor-step="equipment" data-editor-target="equipmentChoicesPanel"><span>4</span><strong>Equipamentos</strong><small>Armas, armaduras e itens</small></button></li>
+        <li><button type="button" data-editor-step="skills" data-editor-target="skillsExtra"><span>5</span><strong>Perícias</strong><small>Escolhas e valores</small></button></li>
+        <li><button type="button" data-editor-step="magic" data-editor-target="magicSection"><span>6</span><strong>Magias</strong><small>Conhecidas e preparadas</small></button></li>
+        <li><button type="button" data-editor-step="resources" data-editor-target="featureChoicesPanel"><span>7</span><strong>Recursos e traços</strong><small>Talentos e características</small></button></li>
+        <li><button type="button" data-editor-step="review" data-editor-target="preview"><span>8</span><strong>Revisão</strong><small>Resumo e confirmações</small></button></li>
+      </ol>
+      <p class="editor-journey-hint">Use as etapas para navegar. Suas escolhas continuam salvas durante o preenchimento.</p>
+    </aside>
+    <section class="card editor-form-panel">
       <h2>Dados do personagem</h2>
 
       <form id="sheetForm">
@@ -741,7 +758,7 @@
       </form>
     </section>
 
-<section class="card preview-panel">
+<section class="card preview-panel editor-monitor-panel">
   <h2>Prévia da ficha</h2>
   <div id="preview" class="preview-box"></div>
 

@@ -106,8 +106,23 @@
       </div>
     </section>
 
-    <main class="container grid edition-beta-grid">
-      <section class="card">
+    <main class="container grid edition-beta-grid editor-workspace editor-workspace-2024">
+      <aside class="card editor-journey" aria-label="Etapas da criação da ficha 5.5e">
+        <div class="editor-journey-heading">
+          <span>Construção da ficha</span>
+          <strong>Jornada da build</strong>
+        </div>
+        <ol class="editor-journey-list">
+          <li><button type="button" data-editor-step="base" data-editor-target="nome2024"><span>1</span><strong>Base</strong><small>Dados principais</small></button></li>
+          <li><button type="button" data-editor-step="attributes" data-editor-target="abilityScoreInputs2024"><span>2</span><strong>Atributos</strong><small>Pontos e ajustes</small></button></li>
+          <li><button type="button" data-editor-step="origin" data-editor-target="antecedenteInput2024"><span>3</span><strong>Origem</strong><small>Espécie e antecedente</small></button></li>
+          <li><button type="button" data-editor-step="combat" data-editor-target="skillsExtra2024"><span>4</span><strong>Combate</strong><small>Perícias e recursos</small></button></li>
+          <li><button type="button" data-editor-step="equipment" data-editor-target="equipmentChoices2024"><span>5</span><strong>Equipamento</strong><small>Itens e cargas</small></button></li>
+          <li><button type="button" data-editor-step="review" data-editor-target="preview2024"><span>6</span><strong>Revisão</strong><small>Resumo e confirmação</small></button></li>
+        </ol>
+        <p class="editor-journey-hint">Acompanhe o que está resolvido e vá direto à próxima decisão da build.</p>
+      </aside>
+      <section class="card editor-form-panel">
         <h2>Base do personagem</h2>
 
         <form id="sheetForm2024">
@@ -544,7 +559,7 @@
         </form>
       </section>
 
-      <section class="card preview-panel preview-panel-2024">
+      <section class="card preview-panel preview-panel-2024 editor-monitor-panel">
         <h2>Resumo oficial 2024</h2>
 
         <div id="preview2024" class="preview-box preview-box-2024 edition-preview-stack"></div>

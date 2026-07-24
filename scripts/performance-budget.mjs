@@ -58,7 +58,7 @@ function validatePageBudget(budget) {
 
   if (jsBytes > budget.maxInitialJsBytes) {
     hasErrors = true;
-    console.error(`${budget.name}: JS inicial ${formatBytes(jsBytes)} excede ${formatBytes(budget.maxInitialJsBytes)}.`);
+    console.error(`${budget.name}: JS inicial ${formatBytes(jsBytes)} (${jsBytes} bytes) excede ${formatBytes(budget.maxInitialJsBytes)} (${budget.maxInitialJsBytes} bytes).`);
   }
   if (cssBytes > budget.maxInitialCssBytes) {
     hasErrors = true;

@@ -16975,6 +16975,118 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
     return diagnostics;
   }
 
+  function buildAttributeStarMarkup5e(ficha) {
+    const abilities = ["for", "des", "con", "int", "sab", "car"];
+    const labels = ["FOR", "DES", "CON", "INT", "SAB", "CAR"];
+    const angles = [-90, -30, 30, 90, 150, 210];
+    const center = 90;
+    const point = (angle, radius) => {
+      const radians = angle * (Math.PI / 180);
+      return `${(center + Math.cos(radians) * radius).toFixed(1)},${(center + Math.sin(radians) * radius).toFixed(1)}`;
+    };
+    const grid = (radius) => angles.map((angle) => point(angle, radius)).join(" ");
+    const values = abilities.map((key) => Number(ficha.atributos?.[key]?.valor || 10));
+    const dataPoints = values.map((value, index) => {
+      const normalized = Math.max(0, Math.min(1, (value - 8) / 12));
+      return point(angles[index], 22 + normalized * 46);
+    }).join(" ");
+    const labelPositions = [
+      [90, 8, "middle"], [170, 50, "end"], [170, 138, "end"],
+      [90, 179, "middle"], [10, 138, "start"], [10, 50, "start"],
+    ];
+
+    return `
+      <svg class="attribute-star" viewBox="0 0 180 188" role="img" aria-label="Estrela com os seis atributos do personagem">
+        <polygon class="attribute-star-grid" points="${grid(68)}"></polygon>
+        <polygon class="attribute-star-grid is-inner" points="${grid(45)}"></polygon>
+        ${angles.map((angle) => `<line class="attribute-star-axis" x1="90" y1="90" x2="${point(angle, 68).split(",")[0]}" y2="${point(angle, 68).split(",")[1]}"></line>`).join("")}
+        <polygon class="attribute-star-value" points="${dataPoints}"></polygon>
+        ${labelPositions.map(([x, y, anchor], index) => `
+          <text class="attribute-star-label" x="${x}" y="${y}" text-anchor="${anchor}">
+            ${labels[index]} ${values[index]} ${fmtSigned(ficha.atributos?.[abilities[index]]?.mod || 0)}
+          </text>
+        `).join("")}
+      </svg>
+    `;
+  }
+
+  function buildContextualCrestMarkup5e(state) {
+    const sourceLabel = state.divindade || state.arquetipo || state.classe || "Herói sem símbolo";
+    const sourceType = state.divindade
+      ? "Divindade selecionada"
+      : state.arquetipo
+        ? "Símbolo da subclasse"
+        : state.classe
+          ? "Símbolo da classe"
+          : "Símbolo pendente";
+    const monogram = sourceLabel
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part.charAt(0).toUpperCase())
+      .join("") || "✦";
+
+    return `
+      <div class="contextual-crest" aria-label="${escapeHtml(`${sourceType}: ${sourceLabel}`)}">
+        <span class="contextual-crest-mark" aria-hidden="true">${escapeHtml(monogram)}</span>
+      </div>
+      <p class="contextual-crest-type">${escapeHtml(sourceType)}</p>
+      <strong class="contextual-crest-name">${escapeHtml(sourceLabel)}</strong>
+    `;
+  }
+
+  function renderBuildDependencies5e(state) {
+    const diagnostics = getChoiceDiagnostics5e(state);
+    const identityComplete = Boolean(state.nome && state.classData && state.race && state.background);
+    const abilitiesComplete = ABILITIES.every((ability) => Number.isFinite(Number(state.attrs?.[ability.key])));
+    const subclassUnlockLevel = state.classData ? getSubclassUnlockLevel(state.classData) : 0;
+    const needsSubclass = Boolean(subclassUnlockLevel && (state.nivelClassePrincipal || state.nivel) >= subclassUnlockLevel);
+    const subclassStatus = !state.classData ? "blocked" : needsSubclass && !state.subclassData ? "pending" : "complete";
+    const entries = [
+      {
+        label: "Identidade",
+        status: identityComplete ? "complete" : "pending",
+        detail: identityComplete ? "Nome, classe, raça e antecedente definidos" : "Complete nome, classe, raça e antecedente",
+        target: "nome",
+      },
+      {
+        label: "Atributos",
+        status: abilitiesComplete ? "complete" : "pending",
+        detail: abilitiesComplete ? "Os seis valores estão disponíveis" : "Preencha os seis atributos",
+        target: "attr-method-free",
+      },
+      {
+        label: "Subclasse",
+        status: subclassStatus,
+        detail: subclassStatus === "complete"
+          ? (needsSubclass ? "Escolha resolvida para o nível atual" : "Ainda não é obrigatória neste nível")
+          : subclassStatus === "blocked" ? "Defina uma classe para liberar" : "Escolha a subclasse liberada neste nível",
+        target: "arquetipoInput",
+      },
+    ];
+    const firstPending = diagnostics[0];
+    const statusLabel = { complete: "Completo", pending: "Pendente", blocked: "Bloqueado" };
+
+    return `
+      <section class="build-dependencies" aria-labelledby="buildDependenciesTitle5e">
+        <div class="build-dependencies-heading">
+          <div><span>Próximas decisões</span><h4 id="buildDependenciesTitle5e">Dependências da build</h4></div>
+          <strong>${entries.filter((entry) => entry.status === "complete").length}/${entries.length}</strong>
+        </div>
+        <div class="build-dependency-list">
+          ${entries.map((entry) => `
+            <button type="button" class="build-dependency is-${entry.status}" data-choice-diagnostic-target="${escapeHtml(entry.target)}">
+              <span class="build-dependency-state" aria-hidden="true"></span>
+              <span><strong>${escapeHtml(entry.label)}</strong><small>${escapeHtml(entry.detail)}</small></span>
+              <em>${statusLabel[entry.status]}</em>
+            </button>
+          `).join("")}
+        </div>
+        <p class="build-next-action"><strong>O que falta agora:</strong> ${escapeHtml(firstPending?.message || (identityComplete ? "avance para revisar as escolhas restantes." : "complete os dados essenciais da identidade."))}</p>
+      </section>
+    `;
+  }
+
   function atualizarPreview() {
     if (isDeferringHeavyUi()) {
       deferHeavyUiRefresh("preview");
@@ -16996,40 +17108,40 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
       .join(", ");
 
     preview.innerHTML = `
-      <h3>${ficha.texto.nome || "Sem nome"}</h3>
-      <p><strong>${ficha.texto.classeENivel}</strong></p>
-      <p><strong>Raça:</strong> ${ficha.texto.raca}</p>
-      <p><strong>Antecedente:</strong> ${ficha.texto.antecedente || "-"}</p>
-      <p><strong>Alinhamento:</strong> ${ficha.texto.alinhamento}</p>
-      <p><strong>Características físicas:</strong> ${ficha.texto.aparenciaResumo ? escapeHtml(ficha.texto.aparenciaResumo) : "-"}</p>
-
-      <hr>
-
-      <p><strong>HP máximo:</strong> ${ficha.texto.hpMax}</p>
-      <p><strong>CA:</strong> ${ficha.texto.CA}</p>
-      <p><strong>Iniciativa:</strong> ${ficha.texto.iniciativa}</p>
-      <p><strong>Deslocamento:</strong> ${ficha.texto.deslocamento}</p>
-      <p><strong>Bônus de proficiência:</strong> ${ficha.texto.bonusProficiencia}</p>
-
-      <hr>
-
-      <p><strong>Atributos:</strong></p>
-      <ul>
-        <li>FOR: ${ficha.atributos.for.valor}</li>
-        <li>DES: ${ficha.atributos.des.valor}</li>
-        <li>CON: ${ficha.atributos.con.valor}</li>
-        <li>INT: ${ficha.atributos.int.valor}</li>
-        <li>SAB: ${ficha.atributos.sab.valor}</li>
-        <li>CAR: ${ficha.atributos.car.valor}</li>
-      </ul>
-
-      <p><strong>Perícias proficientes:</strong> ${proficientSkills.length ? proficientSkills.join(", ") : "Nenhuma"}</p>
-      ${renderChoiceDiagnosticsPanel5e(state)}
-      <p><strong>Ataques:</strong> ${escapeHtml(attackPreview || "Nenhum ataque automático").replaceAll("\n", "<br>")}</p>
-      <p><strong>Ataques & Conjuração:</strong> ${escapeHtml(ficha.ataques?.resumo || "-").replaceAll("\n", "<br>")}</p>
-      <p><strong>Características & Talentos:</strong><br>${escapeHtml(ficha.texto.caracteristicasETalentos || "-").replaceAll("\n", "<br>")}</p>
-      <p><strong>Características & Talentos adicionais:</strong><br>${escapeHtml(ficha.texto.caracteristicasETalentosAdicionais || "-").replaceAll("\n", "<br>")}</p>
-      <p><strong>Equipamento:</strong><br>${escapeHtml(ficha.texto.equipamento || "-").replaceAll("\n", "<br>")}</p>
+      <section class="hero-monitor" aria-label="Resumo funcional do personagem">
+        <div class="hero-monitor-identity">
+          ${buildContextualCrestMarkup5e(state)}
+          <h3>${escapeHtml(ficha.texto.nome || "Sem nome")}</h3>
+          <p>${escapeHtml(ficha.texto.classeENivel || "Classe pendente")}</p>
+          <small>${escapeHtml([ficha.texto.raca, ficha.texto.antecedente].filter(Boolean).join(" • ") || "Origem pendente")}</small>
+        </div>
+        <dl class="hero-monitor-metrics">
+          <div><dt>PV máximo:</dt> <dd>${escapeHtml(ficha.texto.hpMax)}</dd></div>
+          <div><dt>Classe de Armadura:</dt> <dd>${escapeHtml(ficha.texto.CA)}</dd></div>
+          <div><dt>Iniciativa:</dt> <dd>${escapeHtml(ficha.texto.iniciativa)}</dd></div>
+          <div><dt>Deslocamento:</dt> <dd>${escapeHtml(ficha.texto.deslocamento)}</dd></div>
+        </dl>
+        <div class="attribute-star-panel">
+          <div><span>Leitura rápida</span><h4>Estrela de atributos</h4></div>
+          ${buildAttributeStarMarkup5e(ficha)}
+        </div>
+        ${renderBuildDependencies5e(state)}
+      </section>
+      <details class="preview-details">
+        <summary>Ver detalhes completos da ficha</summary>
+        <div class="preview-details-body">
+          <p><strong>Alinhamento:</strong> ${escapeHtml(ficha.texto.alinhamento || "-")}</p>
+          <p><strong>Características físicas:</strong> ${ficha.texto.aparenciaResumo ? escapeHtml(ficha.texto.aparenciaResumo) : "-"}</p>
+          <p><strong>Bônus de proficiência:</strong> ${escapeHtml(ficha.texto.bonusProficiencia)}</p>
+          <p><strong>Perícias proficientes:</strong> ${proficientSkills.length ? proficientSkills.join(", ") : "Nenhuma"}</p>
+          ${renderChoiceDiagnosticsPanel5e(state)}
+          <p><strong>Ataques:</strong> ${escapeHtml(attackPreview || "Nenhum ataque automático").replaceAll("\n", "<br>")}</p>
+          <p><strong>Ataques & Conjuração:</strong> ${escapeHtml(ficha.ataques?.resumo || "-").replaceAll("\n", "<br>")}</p>
+          <p><strong>Características & Talentos:</strong><br>${escapeHtml(ficha.texto.caracteristicasETalentos || "-").replaceAll("\n", "<br>")}</p>
+          <p><strong>Características & Talentos adicionais:</strong><br>${escapeHtml(ficha.texto.caracteristicasETalentosAdicionais || "-").replaceAll("\n", "<br>")}</p>
+          <p><strong>Equipamento:</strong><br>${escapeHtml(ficha.texto.equipamento || "-").replaceAll("\n", "<br>")}</p>
+        </div>
+      </details>
     `;
 
     floatingSubmitButton.requestRecalc();

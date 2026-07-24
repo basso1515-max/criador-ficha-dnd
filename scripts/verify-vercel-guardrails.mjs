@@ -14,7 +14,7 @@ const PUBLIC_DEPLOY_IDENTITY = Object.freeze({
 });
 
 function readText(relativePath) {
-  return readFileSync(path.join(root, relativePath), "utf8");
+  return readFileSync(path.join(root, relativePath), "utf8").replaceAll("\r\n", "\n");
 }
 
 function readJson(relativePath) {

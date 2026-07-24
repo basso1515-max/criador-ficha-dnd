@@ -27,3 +27,7 @@ Thumbs.db
 # Local Git/Codex metadata and temporary authentication output
 .git-codex-*/
 .tmp-gh-auth-*.txt
+
+# Local browser QA artifacts
+.playwright-cli/
+output/playwright/

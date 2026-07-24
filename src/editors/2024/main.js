@@ -7678,21 +7678,184 @@ import {
     return diagnostics;
   }
 
+  function buildAttributeStarMarkup2024(previewState) {
+    const abilities = ["for", "des", "con", "int", "sab", "car"];
+    const labels = ["FOR", "DES", "CON", "INT", "SAB", "CAR"];
+    const angles = [-90, -30, 30, 90, 150, 210];
+    const center = 90;
+    const point = (angle, radius) => {
+      const radians = angle * (Math.PI / 180);
+      return `${(center + Math.cos(radians) * radius).toFixed(1)},${(center + Math.sin(radians) * radius).toFixed(1)}`;
+    };
+    const grid = (radius) => angles.map((angle) => point(angle, radius)).join(" ");
+    const scores = previewState.effectiveAbilityScores?.scores || {};
+    const values = abilities.map((ability) => Number.isFinite(scores[ability]) ? scores[ability] : 10);
+    const dataPoints = values.map((value, index) => {
+      const normalized = Math.max(0, Math.min(1, (value - 8) / 12));
+      return point(angles[index], 22 + normalized * 46);
+    }).join(" ");
+    const labelPositions = [
+      [90, 8, "middle"], [170, 50, "end"], [170, 138, "end"],
+      [90, 179, "middle"], [10, 138, "start"], [10, 50, "start"],
+    ];
+
+    return `
+      <svg class="attribute-star" viewBox="0 0 180 188" role="img" aria-label="Estrela com os seis atributos finais da build">
+        <polygon class="attribute-star-grid" points="${grid(68)}"></polygon>
+        <polygon class="attribute-star-grid is-inner" points="${grid(45)}"></polygon>
+        ${angles.map((angle) => {
+          const [x, y] = point(angle, 68).split(",");
+          return `<line class="attribute-star-axis" x1="90" y1="90" x2="${x}" y2="${y}"></line>`;
+        }).join("")}
+        <polygon class="attribute-star-value" points="${dataPoints}"></polygon>
+        ${labelPositions.map(([x, y, anchor], index) => `
+          <text class="attribute-star-label" x="${x}" y="${y}" text-anchor="${anchor}">
+            ${labels[index]} ${values[index]} ${formatSignedNumber(getAbilityModifier(values[index]), "")}
+          </text>
+        `).join("")}
+      </svg>
+    `;
+  }
+
+  function buildContextualCrestMarkup2024(previewState) {
+    const divinity = getCurrentDivinityValue2024();
+    const sourceLabel = divinity || previewState.subclass?.nome || previewState.cls?.nome || "Build sem símbolo";
+    const sourceType = divinity
+      ? "Divindade selecionada"
+      : previewState.subclass
+        ? "Símbolo da subclasse"
+        : previewState.cls
+          ? "Símbolo da classe"
+          : "Símbolo pendente";
+    const monogram = sourceLabel
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part.charAt(0).toUpperCase())
+      .join("") || "✦";
+
+    return `
+      <div class="contextual-crest" aria-label="${escapeHtml(`${sourceType}: ${sourceLabel}`)}">
+        <span class="contextual-crest-mark" aria-hidden="true">${escapeHtml(monogram)}</span>
+      </div>
+      <p class="contextual-crest-type">${escapeHtml(sourceType)}</p>
+      <strong class="contextual-crest-name">${escapeHtml(sourceLabel)}</strong>
+    `;
+  }
+
+  function renderBuildDependencies2024(previewState) {
+    const cls = previewState.cls;
+    const race = previewState.race;
+    const subraceRequired = Boolean(race?.subracas?.length);
+    const subclassUnlockLevel = cls ? getSubclassUnlockLevel2024(cls) : 0;
+    const primaryEntry = getPrimaryClassEntry2024(previewState.classEntries || []);
+    const needsSubclass = Boolean(subclassUnlockLevel && (primaryEntry?.level || previewState.level) >= subclassUnlockLevel);
+    const entries = [
+      {
+        label: "Classe e subclasse",
+        status: !cls ? "blocked" : needsSubclass && !previewState.subclass ? "pending" : "complete",
+        detail: !cls ? "Escolha uma classe para iniciar" : needsSubclass && !previewState.subclass ? "Escolha a subclasse liberada" : "Progressão disponível",
+        target: "classeInput2024",
+      },
+      {
+        label: "Espécie e linhagem",
+        status: !race ? "blocked" : subraceRequired && !previewState.subrace ? "pending" : "complete",
+        detail: !race ? "Defina a espécie" : subraceRequired && !previewState.subrace ? "Escolha a linhagem" : "Origem biológica resolvida",
+        target: "racaInput2024",
+      },
+      {
+        label: "Atributos distribuídos",
+        status: previewState.effectiveAbilityScores?.complete ? "complete" : "pending",
+        detail: previewState.effectiveAbilityScores?.complete ? "Totais finais calculados" : "Complete base e bônus da origem",
+        target: "abilityScoreInputs2024",
+      },
+      {
+        label: "Perícias da classe",
+        status: previewState.skillSelectionState?.complete ? "complete" : cls ? "pending" : "blocked",
+        detail: previewState.skillSelectionState?.complete ? "Seleção válida" : cls ? "Finalize as escolhas permitidas" : "Depende da classe",
+        target: "skillsExtra2024",
+      },
+      {
+        label: "Equipamentos iniciais",
+        status: previewState.equipmentSummary?.length ? "complete" : cls ? "pending" : "blocked",
+        detail: previewState.equipmentSummary?.length ? "Pacotes calculados" : cls ? "Escolha os pacotes disponíveis" : "Depende da classe e origem",
+        target: "equipmentChoices2024",
+      },
+    ];
+    const statusLabel = { complete: "Completo", pending: "Pendente", blocked: "Bloqueado" };
+    const nextPending = previewState.pending?.[0];
+
+    return `
+      <section class="build-dependencies" aria-labelledby="buildDependenciesTitle2024">
+        <div class="build-dependencies-heading">
+          <div><span>Validação em tempo real</span><h4 id="buildDependenciesTitle2024">Inspetor de dependências</h4></div>
+          <strong>${entries.filter((entry) => entry.status === "complete").length}/${entries.length}</strong>
+        </div>
+        <div class="build-dependency-list">
+          ${entries.map((entry) => `
+            <button type="button" class="build-dependency is-${entry.status}" data-choice-diagnostic-target="${escapeHtml(entry.target)}">
+              <span class="build-dependency-state" aria-hidden="true"></span>
+              <span><strong>${escapeHtml(entry.label)}</strong><small>${escapeHtml(entry.detail)}</small></span>
+              <em>${statusLabel[entry.status]}</em>
+            </button>
+          `).join("")}
+        </div>
+        <p class="build-next-action"><strong>O que falta agora:</strong> ${escapeHtml(nextPending || "as escolhas essenciais da build estão resolvidas.")}</p>
+      </section>
+    `;
+  }
+
+  function buildHeroMonitor2024(previewState) {
+    const name = el.nome.value.trim() || "Sem nome";
+    const classLine = previewState.classDistribution || previewState.cls?.nome || "Classe pendente";
+    const originLine = [getBackgroundDisplayName2024(previewState.background), previewState.race?.nome, previewState.subrace?.nome]
+      .filter(Boolean)
+      .join(" • ") || "Origem pendente";
+
+    return `
+      <section class="hero-monitor" aria-label="Monitor funcional da build">
+        <div class="hero-monitor-identity">
+          ${buildContextualCrestMarkup2024(previewState)}
+          <h3>${escapeHtml(name)}</h3>
+          <p>${escapeHtml(classLine)}</p>
+          <small>${escapeHtml(originLine)}</small>
+        </div>
+        <dl class="hero-monitor-metrics">
+          <div><dt>Nível</dt><dd>${escapeHtml(String(previewState.level))}</dd></div>
+          <div><dt>Classe de Armadura</dt><dd>${escapeHtml(String(previewState.quickSheetData?.ca || previewState.derivedCombat?.armorClass || "—"))}</dd></div>
+          <div><dt>Iniciativa</dt><dd>${escapeHtml(formatSignedNumber(previewState.initiativeBonus))}</dd></div>
+          <div><dt>Bônus de proficiência</dt><dd>${escapeHtml(formatSignedNumber(previewState.proficiencyBonus))}</dd></div>
+        </dl>
+        <div class="attribute-star-panel">
+          <div><span>Pontos restantes e totais</span><h4>Estrela de atributos</h4></div>
+          ${buildAttributeStarMarkup2024(previewState)}
+        </div>
+        ${renderBuildDependencies2024(previewState)}
+      </section>
+    `;
+  }
+
   function buildPreviewHtml2024(previewState) {
     const noteItems = buildNotePreviewItems2024();
     return [
-      renderPreviewCard("Resumo da build", buildSummaryPreviewItems2024(previewState)),
-      renderPreviewCard("Origem e talentos", buildOriginPreviewItems2024(previewState)),
-      renderPreviewCard("Combate e folha", buildCombatPreviewItems2024(previewState)),
-      renderPreviewCard("Classe e progressão", buildClassPreviewItems2024(previewState)),
-      renderPreviewCard("Espécie e linhagem", buildSpeciesPreviewItems2024(previewState)),
-      renderPreviewCard("Conjuração", buildSpellPreviewItems2024(previewState)),
-      renderPreviewCard("Pacotes iniciais", buildEquipmentPreviewItems2024(previewState)),
-      noteItems.length ? renderPreviewCard("Notas da personagem", noteItems) : "",
-      renderChoiceDiagnosticsPanel2024(previewState),
-      previewState.pending.length
-        ? renderPreviewCard("Pendências", previewState.pending.map((item) => previewBullet(item)))
-        : renderPreviewCard("Pendências", [previewBullet("Sem pendências nas escolhas principais desta prévia.")]),
+      buildHeroMonitor2024(previewState),
+      `<details class="preview-details">
+        <summary>Ver detalhes completos da build</summary>
+        <div class="preview-details-body edition-preview-stack">
+          ${renderPreviewCard("Resumo da build", buildSummaryPreviewItems2024(previewState))}
+          ${renderPreviewCard("Origem e talentos", buildOriginPreviewItems2024(previewState))}
+          ${renderPreviewCard("Combate e folha", buildCombatPreviewItems2024(previewState))}
+          ${renderPreviewCard("Classe e progressão", buildClassPreviewItems2024(previewState))}
+          ${renderPreviewCard("Espécie e linhagem", buildSpeciesPreviewItems2024(previewState))}
+          ${renderPreviewCard("Conjuração", buildSpellPreviewItems2024(previewState))}
+          ${renderPreviewCard("Pacotes iniciais", buildEquipmentPreviewItems2024(previewState))}
+          ${noteItems.length ? renderPreviewCard("Notas da personagem", noteItems) : ""}
+          ${renderChoiceDiagnosticsPanel2024(previewState)}
+          ${previewState.pending.length
+            ? renderPreviewCard("Pendências", previewState.pending.map((item) => previewBullet(item)))
+            : renderPreviewCard("Pendências", [previewBullet("Sem pendências nas escolhas principais desta prévia.")])}
+        </div>
+      </details>`,
     ].filter(Boolean).join("");
   }
 
