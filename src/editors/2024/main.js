@@ -7728,32 +7728,33 @@ import {
 
   function buildContextualCrestMarkup2024(previewState) {
     const divinity = getCurrentDivinityValue2024();
+    const iconPath = divinity || !previewState.cls ? "" : `/assets/icons/classes/2024/${previewState.cls.id}.svg`;
     const selectedDivinity = divinity
       ? DIVINITY_BY_NAME_2024.get(normalizePt(divinity))
       : null;
-    const sourceLabel = divinity || previewState.subclass?.nome || previewState.cls?.nome || "Build sem símbolo";
+    const sourceLabel = divinity || previewState.cls?.nome || "Build sem símbolo";
     const sourceType = divinity
       ? "Divindade selecionada"
-      : previewState.subclass
-        ? "Símbolo da subclasse"
-        : previewState.cls
-          ? "Símbolo da classe"
-          : "Símbolo pendente";
+      : previewState.cls
+        ? "Símbolo da classe"
+        : "Símbolo pendente";
     const sourceDescription = selectedDivinity?.descricaoCurta
       || (selectedDivinity ? `Símbolo: ${selectedDivinity.símbolo} • Domínio: ${selectedDivinity.domínio}` : "")
-      || (previewState.subclass ? "Representa as escolhas e os recursos da subclasse atual." : "")
-      || (previewState.cls ? "Representa a identidade mecânica da classe atual." : "Escolha uma classe, subclasse ou divindade para definir o brasão.");
+      || (previewState.cls ? "Representa a identidade mecânica da classe atual." : "Escolha uma classe ou divindade para definir o brasão.");
     const monogram = sourceLabel
       .split(/\s+/)
       .filter(Boolean)
       .slice(0, 2)
       .map((part) => part.charAt(0).toUpperCase())
       .join("") || "✦";
+    const crestMark = iconPath
+      ? `<img class="contextual-crest-mark is-class-icon" src="${iconPath}" alt="">`
+      : `<span class="contextual-crest-mark" aria-hidden="true">${escapeHtml(monogram)}</span>`;
 
     return `
       <p class="contextual-crest-type">${escapeHtml(sourceType)}</p>
       <div class="contextual-crest" aria-label="${escapeHtml(`${sourceType}: ${sourceLabel}`)}">
-        <span class="contextual-crest-mark" aria-hidden="true">${escapeHtml(monogram)}</span>
+        ${crestMark}
       </div>
       <strong class="contextual-crest-name">${escapeHtml(sourceLabel)}</strong>
       <small class="contextual-crest-description">${escapeHtml(sourceDescription)}</small>
