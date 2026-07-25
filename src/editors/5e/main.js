@@ -29,6 +29,11 @@ import { getResolvedThemeContext } from "../../shared/loading-theme.js";
 import { escapeHtml as escapeHtmlBase, normalizePt } from "../../shared/text-utils.js";
 import { createFloatingSubmitButtonController } from "../floating-submit-ui.js";
 import {
+  setRandomizationBusyState,
+  solveUniqueChoiceAssignment,
+  waitForBrowserPaint,
+} from "../unique-choice-assignment.js";
+import {
   attachDropdownSuggestionContainerTouchBlur,
   bindDropdownSuggestionInteraction,
   consumeDropdownInteractionBlur,
@@ -2140,33 +2145,10 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
   function canAllocateSkillSelection(selectedSkills, choiceSources) {
     const selected = Array.from(selectedSkills || []);
     if (!selected.length) return true;
-
-    const remaining = choiceSources.map((source) => ({
-      poolSet: source.poolSet,
-      picksLeft: source.picks,
+    return Boolean(solveUniqueChoiceAssignment(choiceSources, {
+      requiredItems: selected,
+      fillAll: false,
     }));
-
-    selected.sort((a, b) => {
-      const aOptions = remaining.filter((source) => source.picksLeft > 0 && source.poolSet.has(a)).length;
-      const bOptions = remaining.filter((source) => source.picksLeft > 0 && source.poolSet.has(b)).length;
-      return aOptions - bOptions;
-    });
-
-    function assign(index) {
-      if (index >= selected.length) return true;
-      const skillKey = selected[index];
-
-      for (const source of remaining) {
-        if (source.picksLeft <= 0 || !source.poolSet.has(skillKey)) continue;
-        source.picksLeft -= 1;
-        if (assign(index + 1)) return true;
-        source.picksLeft += 1;
-      }
-
-      return false;
-    }
-
-    return assign(0);
   }
 
   function syncSuggestedSkillSelections(force = false) {
@@ -9197,20 +9179,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
   }
 
   function setRandomizationBusy(isBusy) {
-    [el.btnRandomizeAll, el.btnRandomizeRemaining].forEach((button) => {
-      if (button) button.disabled = isBusy;
-    });
-    if (isBusy) {
-      el.form?.setAttribute("aria-busy", "true");
-    } else {
-      el.form?.removeAttribute("aria-busy");
-    }
-  }
-
-  function waitForBrowserPaint() {
-    return new Promise((resolve) => {
-      window.requestAnimationFrame(() => window.setTimeout(resolve, 0));
-    });
+    setRandomizationBusyState(el.form, [el.btnRandomizeAll, el.btnRandomizeRemaining], isBusy);
   }
 
   async function randomizeSheet({ mode = "all" } = {}) {
@@ -9862,59 +9831,6 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     });
   }
 
-  function assignExistingSkillsToSources(skills, remainingSources) {
-    const orderedSkills = [...skills].sort((a, b) => {
-      const countA = remainingSources.filter((source) => source.picksLeft > 0 && source.poolSet.has(a)).length;
-      const countB = remainingSources.filter((source) => source.picksLeft > 0 && source.poolSet.has(b)).length;
-      return countA - countB;
-    });
-
-    function assign(index) {
-      if (index >= orderedSkills.length) return true;
-      const skillKey = orderedSkills[index];
-      const options = shuffleArray(
-        remainingSources
-          .map((source) => ({ source }))
-          .filter(({ source }) => source.picksLeft > 0 && source.poolSet.has(skillKey))
-      );
-
-      for (const { source } of options) {
-        source.picksLeft -= 1;
-        if (assign(index + 1)) return true;
-        source.picksLeft += 1;
-      }
-
-      return false;
-    }
-
-    return assign(0);
-  }
-
-  function fillRemainingSkillSourcesRandomly(usedSkills, remainingSources) {
-    const activeSources = remainingSources.filter((source) => source.picksLeft > 0);
-    if (!activeSources.length) return true;
-
-    activeSources.sort((a, b) => {
-      const optionsA = a.pool.filter((skillKey) => !usedSkills.has(skillKey)).length;
-      const optionsB = b.pool.filter((skillKey) => !usedSkills.has(skillKey)).length;
-      return optionsA - optionsB;
-    });
-
-    const source = activeSources[0];
-    const choices = shuffleArray(source.pool.filter((skillKey) => !usedSkills.has(skillKey)));
-    if (!choices.length) return false;
-
-    for (const skillKey of choices) {
-      usedSkills.add(skillKey);
-      source.picksLeft -= 1;
-      if (fillRemainingSkillSourcesRandomly(usedSkills, remainingSources)) return true;
-      source.picksLeft += 1;
-      usedSkills.delete(skillKey);
-    }
-
-    return false;
-  }
-
   function fillRandomSkillChoices({ overwrite = false } = {}) {
     const context = collectSkillRuleContext();
     const currentSelected = getSelectedSkillKeys();
@@ -9931,23 +9847,20 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     }
 
     const preservedExtras = overwrite ? [] : currentExtras;
-    const remainingSources = context.choiceSources.map((source) => ({
-      pool: [...source.pool],
-      poolSet: source.poolSet,
-      picksLeft: source.picks,
+    const randomizedSources = shuffleArray(context.choiceSources).map((source) => ({
+      picks: source.picks,
+      pool: shuffleArray(source.pool),
     }));
-
-    if (!assignExistingSkillsToSources(preservedExtras, remainingSources)) {
+    const assignment = solveUniqueChoiceAssignment(randomizedSources, {
+      requiredItems: preservedExtras,
+      excludedItems: context.fixedSkills,
+    });
+    if (!assignment) {
       updateSkillSelectionFeedback(context);
       return;
     }
 
-    const randomizedExtras = new Set(preservedExtras);
-    if (!fillRemainingSkillSourcesRandomly(randomizedExtras, remainingSources)) {
-      updateSkillSelectionFeedback(context);
-      return;
-    }
-
+    const randomizedExtras = new Set(assignment.flat());
     setSelectedSkillKeys(new Set([...context.fixedSkills, ...randomizedExtras]));
     updateSkillSelectionFeedback(context);
     commitCharacterStateMutation("skills:random");

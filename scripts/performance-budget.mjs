@@ -21,7 +21,7 @@ const pageBudgets = [
   {
     name: "5.5e-2024",
     html: "5.5e-2024.html",
-    maxInitialJsBytes: 1_160_000,
+    maxInitialJsBytes: 1_161_200,
     maxInitialCssBytes: 240_000,
     forbiddenInitialFiles: [
       "assets/vendor/pdf-lib-1.17.1.min.js",

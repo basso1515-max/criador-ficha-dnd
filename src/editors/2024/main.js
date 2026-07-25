@@ -30,6 +30,11 @@ import { getResolvedThemeContext } from "../../shared/loading-theme.js";
 import { ensurePdfLibLoaded } from "../../shared/pdf-lib-loader.js";
 import { escapeHtml, normalizePt, slugify } from "../../shared/text-utils.js";
 import { createFloatingSubmitButtonController } from "../floating-submit-ui.js";
+import {
+  setRandomizationBusyState,
+  solveUniqueChoiceAssignment,
+  waitForBrowserPaint,
+} from "../unique-choice-assignment.js";
 import { installMobileDropdownKeyboardGate } from "../mobile-dropdown-keyboard.js";
 import {
   attachDropdownSuggestionContainerTouchBlur as attachDropdownSuggestionContainerTouchBlur2024,
@@ -584,6 +589,7 @@ import {
   let isInitialA11yReady2024 = false;
   let lastA11yAbilityAnnouncement2024 = "";
   let blankSheetPreset2024 = null;
+  let isRandomizingSheet2024 = false;
   const floatingSubmitButton2024 = createFloatingSubmitButtonController({
     barId: "floatingSubmitBar2024",
     previewPanelSelector: ".preview-panel-2024",
@@ -9255,9 +9261,23 @@ import {
     updatePreview();
   }
 
+  function setRandomizationBusy2024(isBusy) {
+    setRandomizationBusyState(el.form, [el.btnRandomizeAll, el.btnRandomizeRemaining], isBusy);
+  }
+
   async function randomizeSheet2024({ mode = "all" } = {}) {
+    if (isRandomizingSheet2024) return;
+
     const overwrite = mode === "all";
+    isRandomizingSheet2024 = true;
+    setRandomizationBusy2024(true);
+    setStatus2024(
+      overwrite ? "Aleatorizando toda a ficha 5.5e..." : "Aleatorizando o restante da ficha 5.5e...",
+      "info"
+    );
+
     try {
+      await waitForBrowserPaint();
       await ensureDivinityCatalogLoaded2024();
 
       withDeferredHeavyUi2024(() => {
@@ -9288,6 +9308,9 @@ import {
     } catch (error) {
       console.error("Erro ao aleatorizar a ficha 5.5e:", error);
       setStatus2024("Não foi possível aleatorizar a ficha 5.5e.", "warning");
+    } finally {
+      isRandomizingSheet2024 = false;
+      setRandomizationBusy2024(false);
     }
   }
 
@@ -9711,21 +9734,6 @@ import {
     });
   }
 
-  function buildCombinations2024(items = [], picks = 0, startIndex = 0, prefix = [], output = []) {
-    if (picks <= 0) {
-      output.push([...prefix]);
-      return output;
-    }
-
-    for (let index = startIndex; index <= items.length - picks; index += 1) {
-      prefix.push(items[index]);
-      buildCombinations2024(items, picks - 1, index + 1, prefix, output);
-      prefix.pop();
-    }
-
-    return output;
-  }
-
   function findExactSkillChoiceAssignment2024(sources = [], selectedSkillIds = []) {
     const normalizedSelected = Array.from(new Set((selectedSkillIds || []).filter(Boolean)));
     const orderedSources = [...(sources || [])]
@@ -9734,28 +9742,11 @@ import {
         options: Array.from(new Set(source.options || [])),
       }))
       .sort((a, b) => (a.options.length - b.options.length) || (a.picks - b.picks));
-    const assignment = new Map();
-
-    function backtrack(index, remaining) {
-      if (index >= orderedSources.length) return remaining.size === 0;
-
-      const source = orderedSources[index];
-      const available = source.options.filter((skillId) => remaining.has(skillId));
-      if (available.length < source.picks) return false;
-
-      const combinations = buildCombinations2024(available, source.picks);
-      for (const combination of combinations) {
-        combination.forEach((skillId) => remaining.delete(skillId));
-        assignment.set(source.id, combination);
-        if (backtrack(index + 1, remaining)) return assignment;
-        assignment.delete(source.id);
-        combination.forEach((skillId) => remaining.add(skillId));
-      }
-
-      return null;
-    }
-
-    return backtrack(0, new Set(normalizedSelected));
+    const assignment = solveUniqueChoiceAssignment(orderedSources, {
+      requiredItems: normalizedSelected,
+    });
+    if (!assignment) return null;
+    return new Map(orderedSources.map((source, index) => [source.id, assignment[index]]));
   }
 
   function pickRandomSkillAssignment2024(sources = [], fixedSkills = new Set()) {
@@ -9770,29 +9761,9 @@ import {
         .filter((source) => source.options.length >= source.picks)
     ).sort((a, b) => (a.options.length - b.options.length) || (a.picks - b.picks));
 
-    const assignment = new Map();
-
-    function backtrack(index, usedSkills) {
-      if (index >= normalizedSources.length) return new Map(assignment);
-
-      const source = normalizedSources[index];
-      const available = source.options.filter((skillId) => !usedSkills.has(skillId));
-      if (available.length < source.picks) return null;
-
-      const combinations = shuffleArray2024(buildCombinations2024(available, source.picks));
-      for (const combination of combinations) {
-        combination.forEach((skillId) => usedSkills.add(skillId));
-        assignment.set(source.id, combination);
-        const result = backtrack(index + 1, usedSkills);
-        if (result) return result;
-        assignment.delete(source.id);
-        combination.forEach((skillId) => usedSkills.delete(skillId));
-      }
-
-      return null;
-    }
-
-    return backtrack(0, new Set());
+    const assignment = solveUniqueChoiceAssignment(normalizedSources);
+    if (!assignment) return null;
+    return new Map(normalizedSources.map((source, index) => [source.id, assignment[index]]));
   }
 
   function getSkillChoiceSelectionState2024({
