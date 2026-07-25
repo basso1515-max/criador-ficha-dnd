@@ -5,6 +5,7 @@ import {
   buildSpellLevelCountSummary,
   formatSpellLevelRangeList,
   formatSpellSlotTotals,
+  isKnownSpellLevelDistributionReachable,
   normalizeSpellSelectionSnapshot,
   normalizeSpellSlotUsage,
 } from "../../src/editors/5e/spell-rules.js";
@@ -36,6 +37,33 @@ test("regras de magia 5e normalizam uso e formatam slots", () => {
 test("regras de magia 5e resumem faixas e contagem por circulo", () => {
   assert.equal(formatSpellLevelRangeList(3), "1º círculo, 2º círculo, 3º círculo");
   assert.equal(buildSpellLevelCountSummary([2, 0, 1]), "1º círculo: 2, 3º círculo: 1");
+});
+
+test("regras de magia 5e validam distribuicoes conhecidas sem enumerar todas as combinacoes", () => {
+  const bardKnownByLevel = [0, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 15, 16, 18, 19, 19, 20, 22, 22, 22];
+  const fullCasterMaxSpellLevelByLevel = [0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 9, 9];
+  const options = {
+    targetLevel: 14,
+    spellsKnownByLevel: bardKnownByLevel,
+    maxSpellLevelByLevel: fullCasterMaxSpellLevelByLevel,
+  };
+
+  assert.equal(isKnownSpellLevelDistributionReachable({
+    ...options,
+    counts: [3, 7, 2, 2, 2, 2, 0],
+  }), true);
+  assert.equal(isKnownSpellLevelDistributionReachable({
+    ...options,
+    counts: [13, 0, 0, 0, 0, 0, 5],
+  }), true);
+  assert.equal(isKnownSpellLevelDistributionReachable({
+    ...options,
+    counts: [12, 0, 0, 0, 0, 0, 6],
+  }), false);
+  assert.equal(isKnownSpellLevelDistributionReachable({
+    ...options,
+    counts: [17, 0, 0, 0, 0, 0, 0],
+  }), false);
 });
 
 test("regras de magia 2024 agregam magias concedidas por nivel", () => {

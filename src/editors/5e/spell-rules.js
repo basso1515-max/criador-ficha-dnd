@@ -98,6 +98,76 @@ export function buildSpellLevelCountSummary(counts = []) {
 }
 
 /**
+ * Checks whether a final distribution of known spells can be reached while
+ * learning new spells and replacing at most one known spell per class level.
+ *
+ * Spell levels form nested ranges: every resource that can produce a spell of
+ * a higher circle can also produce one from a lower circle. Because of that,
+ * reachability is fully described by the cumulative capacity at each circle
+ * threshold; enumerating every intermediate distribution is unnecessary.
+ *
+ * @param {object} options
+ * @param {number[]} [options.counts]
+ * @param {number} [options.targetLevel]
+ * @param {NumericLookup | number[]} [options.spellsKnownByLevel]
+ * @param {NumericLookup | number[]} [options.maxSpellLevelByLevel]
+ * @returns {boolean}
+ */
+export function isKnownSpellLevelDistributionReachable({
+  counts = [],
+  targetLevel = 0,
+  spellsKnownByLevel = [],
+  maxSpellLevelByLevel = [],
+} = {}) {
+  const safeTargetLevel = clampInt(targetLevel, 0, 20);
+  const knownAtLevel = (level) => clampInt(spellsKnownByLevel[level] || 0, 0, 99);
+  const maxSpellLevelAt = (level) => clampInt(maxSpellLevelByLevel[level] || 0, 0, 9);
+  const targetKnownTotal = knownAtLevel(safeTargetLevel);
+  const targetMaxSpellLevel = maxSpellLevelAt(safeTargetLevel);
+  const normalizedCounts = Array.from(
+    { length: targetMaxSpellLevel },
+    (_, index) => clampInt(counts[index] || 0, 0, 99)
+  );
+
+  if (counts.slice(targetMaxSpellLevel).some((count) => Number(count || 0) > 0)) return false;
+  if (normalizedCounts.reduce((total, count) => total + count, 0) !== targetKnownTotal) return false;
+
+  for (let spellLevel = 2; spellLevel <= targetMaxSpellLevel; spellLevel += 1) {
+    const requiredAtOrAbove = normalizedCounts
+      .slice(spellLevel - 1)
+      .reduce((total, count) => total + count, 0);
+    let unlockLevel = 0;
+
+    for (let classLevel = 1; classLevel <= safeTargetLevel; classLevel += 1) {
+      if (maxSpellLevelAt(classLevel) >= spellLevel) {
+        unlockLevel = classLevel;
+        break;
+      }
+    }
+
+    if (!unlockLevel) {
+      if (requiredAtOrAbove > 0) return false;
+      continue;
+    }
+
+    let directLearningCapacity = 0;
+    let replacementCapacity = 0;
+    for (let classLevel = unlockLevel; classLevel <= safeTargetLevel; classLevel += 1) {
+      directLearningCapacity += Math.max(0, knownAtLevel(classLevel) - knownAtLevel(classLevel - 1));
+      if (knownAtLevel(classLevel - 1) > 0) replacementCapacity += 1;
+    }
+
+    const cumulativeCapacity = Math.min(
+      targetKnownTotal,
+      directLearningCapacity + replacementCapacity
+    );
+    if (requiredAtOrAbove > cumulativeCapacity) return false;
+  }
+
+  return true;
+}
+
+/**
  * @param {unknown} selection
  * @returns {SpellSelection}
  */

@@ -102,6 +102,7 @@ import {
   buildSpellLevelCountSummary,
   formatSpellLevelRangeList,
   formatSpellSlotTotals,
+  isKnownSpellLevelDistributionReachable,
   normalizeSpellSelectionSnapshot,
   normalizeSpellSlotUsage,
 } from "./spell-rules.js";
@@ -653,7 +654,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
   let lastA11yAbilityAnnouncement = "";
   let blankSheetPreset = null;
   const magicChecklistScrollState = new Map();
-  const knownSpellDistributionCache = new Map();
+  let isRandomizingSheet = false;
   let skillSelectionState = {
     lastAutoFixed: new Set(),
   };
@@ -9195,15 +9196,36 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     updateAttributeMethodUi();
   }
 
+  function setRandomizationBusy(isBusy) {
+    [el.btnRandomizeAll, el.btnRandomizeRemaining].forEach((button) => {
+      if (button) button.disabled = isBusy;
+    });
+    if (isBusy) {
+      el.form?.setAttribute("aria-busy", "true");
+    } else {
+      el.form?.removeAttribute("aria-busy");
+    }
+  }
+
+  function waitForBrowserPaint() {
+    return new Promise((resolve) => {
+      window.requestAnimationFrame(() => window.setTimeout(resolve, 0));
+    });
+  }
+
   async function randomizeSheet({ mode = "all" } = {}) {
+    if (isRandomizingSheet) return;
+
     const overwrite = mode === "all";
+    isRandomizingSheet = true;
+    setRandomizationBusy(true);
+    setStatus(overwrite ? "Aleatorizando toda a ficha..." : "Aleatorizando o restante da ficha...");
 
     try {
+      await waitForBrowserPaint();
       await ensureDivinityCatalogLoaded();
 
       withDeferredHeavyUi(() => {
-        setStatus(overwrite ? "Aleatorizando toda a ficha..." : "Aleatorizando o restante da ficha...");
-
         if (overwrite) clearRandomizationState();
 
         applyRandomBaseSelections({ overwrite });
@@ -9225,6 +9247,9 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     } catch (error) {
       console.error("Erro ao aleatorizar a ficha:", error);
       setStatus("Não foi possível aleatorizar a ficha.");
+    } finally {
+      isRandomizingSheet = false;
+      setRandomizationBusy(false);
     }
   }
 
@@ -13746,101 +13771,6 @@ function listVisibleSpellPickerSourceKeys(sources = []) {
     return slots.reduce((highest, count, index) => (count > 0 ? index + 1 : highest), 0);
   }
 
-  function serializeSpellLevelCounts(counts = []) {
-    return counts.join("|");
-  }
-
-  function parseSpellLevelCounts(serialized = "") {
-    return String(serialized || "")
-      .split("|")
-      .map((value) => clampInt(value, 0, 99));
-  }
-
-  function createEmptySpellLevelCounts(maxSpellLevel = 0) {
-    return Array.from({ length: clampInt(maxSpellLevel, 0, 9) }, () => 0);
-  }
-
-  function distributeKnownSpellGains(baseCounts, addCount, maxSpellLevel, collector) {
-    if (addCount <= 0) {
-      collector.add(serializeSpellLevelCounts(baseCounts));
-      return;
-    }
-
-    for (let level = 1; level <= maxSpellLevel; level += 1) {
-      const nextCounts = baseCounts.slice();
-      nextCounts[level - 1] += 1;
-      distributeKnownSpellGains(nextCounts, addCount - 1, maxSpellLevel, collector);
-    }
-  }
-
-  function getReachableKnownSpellLevelDistributions(source) {
-    const config = source?.config;
-    const targetLevel = clampInt(source?.limits?.level || source?.entry?.level || 0, 0, 20);
-    const cacheKey = `${source?.sourceKey || source?.detailLabel || "source"}:${targetLevel}`;
-    if (knownSpellDistributionCache.has(cacheKey)) {
-      return knownSpellDistributionCache.get(cacheKey);
-    }
-
-    const knownByLevel = Array.isArray(config?.spellsKnownByLevel) ? config.spellsKnownByLevel : [];
-    const firstCastingLevel = knownByLevel.findIndex((count, index) => index > 0 && Number(count || 0) > 0);
-    const targetMaxSpellLevel = getSpellcastingMaxSpellLevelForConfig(config, targetLevel);
-    const emptyResult = {
-      reachable: new Set([serializeSpellLevelCounts(createEmptySpellLevelCounts(targetMaxSpellLevel))]),
-      maxSpellLevel: targetMaxSpellLevel,
-    };
-
-    if (!config || !knownByLevel.length || firstCastingLevel <= 0 || targetLevel < firstCastingLevel) {
-      knownSpellDistributionCache.set(cacheKey, emptyResult);
-      return emptyResult;
-    }
-
-    let previousKnownTotal = clampInt(knownByLevel[firstCastingLevel] || 0, 0, 99);
-    let states = new Set();
-    const initialCounts = createEmptySpellLevelCounts(targetMaxSpellLevel);
-    if (targetMaxSpellLevel > 0) {
-      initialCounts[0] = previousKnownTotal;
-    }
-    states.add(serializeSpellLevelCounts(initialCounts));
-
-    for (let level = firstCastingLevel + 1; level <= targetLevel; level += 1) {
-      const nextKnownTotal = clampInt(knownByLevel[level] || 0, 0, 99);
-      const nextMaxSpellLevel = getSpellcastingMaxSpellLevelForConfig(config, level);
-      const gainCount = Math.max(0, nextKnownTotal - previousKnownTotal);
-      const nextStates = new Set();
-
-      states.forEach((serializedState) => {
-        const currentCounts = parseSpellLevelCounts(serializedState);
-        while (currentCounts.length < targetMaxSpellLevel) currentCounts.push(0);
-
-        const replacementStates = [currentCounts];
-        for (let fromLevel = 1; fromLevel <= targetMaxSpellLevel; fromLevel += 1) {
-          if ((currentCounts[fromLevel - 1] || 0) <= 0) continue;
-          for (let toLevel = 1; toLevel <= nextMaxSpellLevel; toLevel += 1) {
-            if (toLevel === fromLevel) continue;
-            const replacedCounts = currentCounts.slice();
-            replacedCounts[fromLevel - 1] -= 1;
-            replacedCounts[toLevel - 1] += 1;
-            replacementStates.push(replacedCounts);
-          }
-        }
-
-        replacementStates.forEach((replacementCounts) => {
-          distributeKnownSpellGains(replacementCounts, gainCount, nextMaxSpellLevel, nextStates);
-        });
-      });
-
-      states = nextStates;
-      previousKnownTotal = nextKnownTotal;
-    }
-
-    const result = {
-      reachable: states,
-      maxSpellLevel: targetMaxSpellLevel,
-    };
-    knownSpellDistributionCache.set(cacheKey, result);
-    return result;
-  }
-
   function validateKnownSpellSelectionReachability(source, selection) {
     if (source?.limits?.kind !== "known") return { applicable: false, valid: true };
 
@@ -13849,8 +13779,10 @@ function listVisibleSpellPickerSourceKeys(sources = []) {
       return { applicable: true, valid: true, pending: true };
     }
 
-    const { reachable, maxSpellLevel } = getReachableKnownSpellLevelDistributions(source);
-    const counts = createEmptySpellLevelCounts(maxSpellLevel);
+    const config = source?.config;
+    const targetLevel = clampInt(source?.limits?.level || source?.entry?.level || 0, 0, 20);
+    const maxSpellLevel = getSpellcastingMaxSpellLevelForConfig(config, targetLevel);
+    const counts = Array.from({ length: maxSpellLevel }, () => 0);
     Array.from(selection?.spells || []).forEach((id) => {
       const level = clampInt(SPELL_BY_ID.get(id)?.nivel || 0, 0, 9);
       if (level > 0 && level <= maxSpellLevel) {
@@ -13858,10 +13790,18 @@ function listVisibleSpellPickerSourceKeys(sources = []) {
       }
     });
 
-    const serialized = serializeSpellLevelCounts(counts);
+    const maxSpellLevelByLevel = Array.from(
+      { length: targetLevel + 1 },
+      (_, level) => getSpellcastingMaxSpellLevelForConfig(config, level)
+    );
     return {
       applicable: true,
-      valid: reachable.has(serialized),
+      valid: isKnownSpellLevelDistributionReachable({
+        counts,
+        targetLevel,
+        spellsKnownByLevel: config?.spellsKnownByLevel || [],
+        maxSpellLevelByLevel,
+      }),
       pending: false,
       counts,
       summary: buildSpellLevelCountSummary(counts),
