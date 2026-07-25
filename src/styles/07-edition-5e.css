@@ -1113,6 +1113,7 @@ html:not([data-theme="dark"]) body[data-active-screen="5.5e-2024"] .level-up-hov
     display: block;
     position: relative;
     width: max-content;
+    margin-left: auto;
     z-index: 90;
   }
 
@@ -1167,7 +1168,8 @@ html:not([data-theme="dark"]) body[data-active-screen="5.5e-2024"] .level-up-hov
   .mobile-editor-menu {
     position: absolute;
     top: calc(100% + 8px);
-    left: 0;
+    right: 0;
+    left: auto;
     display: grid;
     gap: 8px;
     width: min(calc(100vw - 24px), 340px);
