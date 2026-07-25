@@ -18,7 +18,11 @@
     <header class="container account-page-header">
       <div class="version-toolbar">
         <a href="./index.html" class="account-flow-brand" aria-label="Voltar para a página inicial do Sheetfy">
-          <span>Sheetfy</span>
+          <img src="./favicon.png" alt="" />
+          <span class="account-flow-brand-copy">
+            <strong>Sheetfy</strong>
+            <small>Fichas prontas para rolar</small>
+          </span>
         </a>
         <div class="version-toolbar-actions">
           <a data-account-back-link href="./index.html" class="ghost-button">Voltar para a seleção</a>
@@ -35,6 +39,7 @@
           <p data-account-description>Use uma conta para salvar personagens e continuar suas fichas quando quiser. A gestão completa fica em uma página própria do usuário. Leia a <a href="./privacidade.html">Política de privacidade</a> e os <a href="./termos.html">Termos de uso</a>.</p>
         </div>
         <div class="account-flow-compass" aria-hidden="true">
+          <small class="account-compass-label">Sua jornada</small>
           <span data-account-flow-step="1">Conta</span>
           <span data-account-flow-step="2">Personagens</span>
           <span data-account-flow-step="3">Editor</span>
@@ -72,6 +77,7 @@
 
     <section id="accountAuthSection" class="container account-split" aria-label="Login e registro">
       <form id="accountLoginForm" class="account-form-panel account-login-panel" method="post">
+        <span class="account-form-index" aria-hidden="true">01</span>
         <div class="account-form-heading">
           <span data-account-login-kicker>Já tenho conta</span>
           <h2 data-account-login-title>Login</h2>
@@ -154,6 +160,7 @@
       </form>
 
       <form id="accountRegisterForm" class="account-form-panel account-register-panel" method="post">
+        <span class="account-form-index" aria-hidden="true">02</span>
         <div class="account-form-heading">
           <span data-account-register-kicker>Primeiro acesso</span>
           <h2 data-account-register-title>Cadastro</h2>

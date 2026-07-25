@@ -17,6 +17,13 @@
   <section class="stats-page-shell">
     <header class="container stats-page-header">
       <div class="version-toolbar stats-toolbar">
+        <a href="./index.html" class="stats-brand" aria-label="Voltar para a página inicial do Sheetfy">
+          <img src="./favicon.png" alt="" />
+          <span>
+            <strong>Sheetfy</strong>
+            <small>Fichas prontas para rolar</small>
+          </span>
+        </a>
         <div class="version-toolbar-actions">
           <a href="./index.html" class="ghost-button">Início</a>
           <a href="./5e.html" class="secondary-button">Editor 5e</a>
@@ -27,7 +34,9 @@
       </div>
 
       <div class="stats-heading-grid">
-        <img class="stats-emblem" src="./favicon.png" alt="" />
+        <div class="stats-emblem" aria-hidden="true">
+          <img src="./favicon.png" alt="" />
+        </div>
         <div class="stats-heading-copy">
           <p class="version-kicker">Estatísticas globais</p>
           <h1>Taverna de Estatísticas</h1>
@@ -35,30 +44,39 @@
             Um painel público com curiosidades anônimas dos personagens salvos pela comunidade.
           </p>
         </div>
+        <aside class="stats-heading-note" aria-label="Sobre o painel">
+          <span><i aria-hidden="true"></i> Dados da comunidade</span>
+          <strong>Um retrato coletivo das aventuras criadas no Sheetfy.</strong>
+          <small>Sem nomes, e-mails ou textos livres.</small>
+        </aside>
       </div>
     </header>
 
     <main class="container stats-dashboard">
       <section class="stats-quick-grid" aria-label="Destaques da comunidade">
         <article class="stats-tile stats-tile--class">
+          <span class="stats-tile-index" aria-hidden="true">01</span>
           <span class="stats-tile-label">Classe em destaque</span>
           <strong id="statsTopClass">Carregando...</strong>
           <small id="statsTopClassMeta">-</small>
         </article>
 
         <article class="stats-tile stats-tile--edition">
+          <span class="stats-tile-index" aria-hidden="true">02</span>
           <span class="stats-tile-label">Edição preferida do mês</span>
           <strong id="statsTopEdition">Carregando...</strong>
           <small id="statsTopEditionMeta">-</small>
         </article>
 
         <article class="stats-tile stats-tile--weapon">
+          <span class="stats-tile-index" aria-hidden="true">03</span>
           <span class="stats-tile-label">Arma inicial preferida</span>
           <strong id="statsTopWeapon">Carregando...</strong>
           <small id="statsTopWeaponMeta">-</small>
         </article>
 
         <article class="stats-tile stats-tile--total">
+          <span class="stats-tile-index" aria-hidden="true">04</span>
           <span class="stats-tile-label">Movimento do mês</span>
           <strong id="statsTotal">0</strong>
           <small id="statsTotalMeta">-</small>
