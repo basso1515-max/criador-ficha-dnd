@@ -7734,15 +7734,10 @@ import {
   }
 
   function buildContextualCrestMarkup2024(previewState) {
-    const divinity = getCurrentDivinityValue2024();
-    const selectedDivinity = divinity
-      ? DIVINITY_BY_NAME_2024.get(normalizePt(divinity))
-      : null;
     const className = previewState.cls?.nome || "";
     const iconPath = previewState.cls?.id
       ? `/assets/icons/classes/2024/${previewState.cls.id}.svg`
       : "";
-    const divinityName = divinity || "Não selecionada";
     const crestMark = iconPath
       ? `<img class="contextual-crest-mark is-class-icon" src="${iconPath}" alt="">`
       : "";
@@ -7750,17 +7745,6 @@ import {
     return `
       <div class="contextual-crest${iconPath ? "" : " is-empty"}" aria-label="${escapeHtml(className ? `Símbolo da classe: ${className}` : "Símbolo da classe ainda não selecionado")}">
         ${crestMark}
-      </div>
-      <div class="contextual-divinity${divinity ? "" : " is-empty"}">
-        <span class="contextual-divinity-label">Divindade</span>
-        <strong class="contextual-divinity-name">${escapeHtml(divinityName)}</strong>
-        <span
-          class="contextual-divinity-symbol-slot"
-          data-divinity-name="${escapeHtml(divinity)}"
-          data-divinity-id="${escapeHtml(selectedDivinity?.id || "")}"
-          aria-label="${escapeHtml(divinity ? `Símbolo de ${divinity}` : "Símbolo da divindade ainda não selecionada")}"
-          hidden
-        ></span>
       </div>
     `;
   }
@@ -7842,6 +7826,10 @@ import {
     const originLine = [getBackgroundDisplayName2024(previewState.background), previewState.race?.nome, previewState.subrace?.nome]
       .filter(Boolean)
       .join(" • ") || "Origem pendente";
+    const divinity = getCurrentDivinityValue2024();
+    const selectedDivinity = divinity
+      ? DIVINITY_BY_NAME_2024.get(normalizePt(divinity))
+      : null;
 
     return `
       <section class="hero-monitor" aria-label="Monitor funcional da build">
@@ -7850,6 +7838,17 @@ import {
           <h3>${escapeHtml(name)}</h3>
           <p>${escapeHtml(classLine)}</p>
           <small>${escapeHtml(originLine)}</small>
+          <div class="contextual-divinity${divinity ? "" : " is-empty"}">
+            <span class="contextual-divinity-label">Divindade</span>
+            <strong class="contextual-divinity-name">${escapeHtml(divinity || "Não selecionada")}</strong>
+            <span
+              class="contextual-divinity-symbol-slot"
+              data-divinity-name="${escapeHtml(divinity)}"
+              data-divinity-id="${escapeHtml(selectedDivinity?.id || "")}"
+              aria-label="${escapeHtml(divinity ? `Símbolo de ${divinity}` : "Símbolo da divindade ainda não selecionada")}"
+              hidden
+            ></span>
+          </div>
         </div>
         <div class="attribute-star-panel">
           <div><span>Pontos restantes e totais</span><h4>Estrela de atributos</h4></div>

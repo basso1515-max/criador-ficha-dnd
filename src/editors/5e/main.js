@@ -16879,11 +16879,7 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
   function buildContextualCrestMarkup5e(state) {
     const selectedClass = state.classData || CLASS_BY_NAME.get(state.classe) || null;
     const classIconPath = getClassIconPath5e(selectedClass?.id);
-    const selectedDivinity = state.divindade
-      ? DIVINITY_BY_NAME.get(normalizePt(state.divindade))
-      : null;
     const className = selectedClass?.nome || state.classe || "";
-    const divinityName = state.divindade || "Não selecionada";
     const crestMark = classIconPath
       ? `<span class="contextual-crest-mark is-class-icon" style="--class-icon:url('${classIconPath}')" aria-hidden="true"></span>`
       : "";
@@ -16891,17 +16887,6 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
     return `
       <div class="contextual-crest${classIconPath ? "" : " is-empty"}" aria-label="${escapeHtml(className ? `Símbolo da classe: ${className}` : "Símbolo da classe ainda não selecionado")}">
         ${crestMark}
-      </div>
-      <div class="contextual-divinity${state.divindade ? "" : " is-empty"}">
-        <span class="contextual-divinity-label">Divindade</span>
-        <strong class="contextual-divinity-name">${escapeHtml(divinityName)}</strong>
-        <span
-          class="contextual-divinity-symbol-slot"
-          data-divinity-name="${escapeHtml(state.divindade || "")}"
-          data-divinity-id="${escapeHtml(selectedDivinity?.id || "")}"
-          aria-label="${escapeHtml(state.divindade ? `Símbolo de ${state.divindade}` : "Símbolo da divindade ainda não selecionada")}"
-          hidden
-        ></span>
       </div>
     `;
   }
@@ -17001,6 +16986,9 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
     const attackPreview = (ficha.ataques?.linhas || [])
       .map((linha) => `${linha.nome} (${linha.bonusAtaque}; ${linha.danoTipo})`)
       .join(", ");
+    const selectedDivinity = state.divindade
+      ? DIVINITY_BY_NAME.get(normalizePt(state.divindade))
+      : null;
 
     preview.innerHTML = `
       <section class="hero-monitor" aria-label="Resumo funcional do personagem">
@@ -17009,6 +16997,17 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
           <h3>${escapeHtml(ficha.texto.nome || "Sem nome")}</h3>
           <p>${escapeHtml(ficha.texto.classeENivel || "Classe pendente")}</p>
           <small>${escapeHtml([ficha.texto.raca, ficha.texto.antecedente].filter(Boolean).join(" • ") || "Origem pendente")}</small>
+          <div class="contextual-divinity${state.divindade ? "" : " is-empty"}">
+            <span class="contextual-divinity-label">Divindade</span>
+            <strong class="contextual-divinity-name">${escapeHtml(state.divindade || "Não selecionada")}</strong>
+            <span
+              class="contextual-divinity-symbol-slot"
+              data-divinity-name="${escapeHtml(state.divindade || "")}"
+              data-divinity-id="${escapeHtml(selectedDivinity?.id || "")}"
+              aria-label="${escapeHtml(state.divindade ? `Símbolo de ${state.divindade}` : "Símbolo da divindade ainda não selecionada")}"
+              hidden
+            ></span>
+          </div>
         </div>
         <div class="attribute-star-panel">
           <div><span>Leitura rápida</span><h4>Estrela de atributos</h4></div>
