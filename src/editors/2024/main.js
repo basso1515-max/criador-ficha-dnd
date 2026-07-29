@@ -270,6 +270,7 @@ import {
     if (isDivinityCatalogLoaded2024()) return DIVINITIES_2024;
 
     if (!divinityCatalogLoadPromise2024) {
+      import("../divinity-icons.js");
       divinityCatalogLoadPromise2024 = import("../../data/5.5e/divindades.js")
         .then(({ DIVINDADES }) => {
           DIVINITIES_2024 = sortByLocale(Object.values(DIVINDADES || {}), "nome");
@@ -7756,7 +7757,7 @@ import {
         <span
           class="contextual-divinity-symbol-slot"
           data-divinity-name="${escapeHtml(divinity)}"
-          data-divinity-symbol="${escapeHtml(selectedDivinity?.símbolo || "")}"
+          data-divinity-id="${escapeHtml(selectedDivinity?.id || "")}"
           aria-label="${escapeHtml(divinity ? `Símbolo de ${divinity}` : "Símbolo da divindade ainda não selecionada")}"
           hidden
         ></span>

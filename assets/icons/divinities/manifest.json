@@ -1,0 +1,2950 @@
+{
+  "version": 1,
+  "generatedAt": "2026-07-29T21:16:14.114Z",
+  "sourceWorkbook": "modelo-referencias-divindades-sheetfy.xlsx",
+  "note": "Ativos fornecidos e marcados como Permitido pelo responsável do projeto. Os originais não foram alterados; as cópias web foram apenas recortadas, redimensionadas e codificadas em WebP lossless.",
+  "count": 77,
+  "entries": [
+    {
+      "id": "arvoreen",
+      "name": "Arvoreen",
+      "editions": "somente 5e",
+      "pantheon": "Filhos de Yondalla",
+      "alignment": "Leal e Bom",
+      "domains": {
+        "5e": "Guerra, Proteção",
+        "5.5e": null
+      },
+      "symbolDescription": "Duas espadas curtas cruzadas",
+      "canonicalSource": "Livro do Jogador e Guia do Aventureiro para a Costa da Espada",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Arvoreen symbol.png",
+        "format": "png",
+        "width": 1404,
+        "height": 1479,
+        "bytes": 1222849
+      },
+      "sourceUrl": "https://cdnb.artstation.com/p/assets/images/images/041/603/915/large/maria-seppala-arvoreen-halfling.jpg",
+      "referencePages": [
+        "https://frc.fandom.com/wiki/Arvoreen",
+        "https://www.artstation.com/artwork/YeA9JY"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/arvoreen.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 29688,
+        "sha256": "bcbb1d782db4eca21ef2389f18d5c836f4ed590850a3b9e4581573b89448da4e"
+      }
+    },
+    {
+      "id": "brandobaris",
+      "name": "Brandobaris",
+      "editions": "somente 5e",
+      "pantheon": "Filhos de Yondalla",
+      "alignment": "Neutro",
+      "domains": {
+        "5e": "Enganação",
+        "5.5e": null
+      },
+      "symbolDescription": "Pegada de halfling",
+      "canonicalSource": "Livro do Jogador e Guia do Aventureiro para a Costa da Espada",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Brandobaris symbol.png",
+        "format": "png",
+        "width": 1000,
+        "height": 1000,
+        "bytes": 1452442
+      },
+      "sourceUrl": "https://cdna.artstation.com/p/assets/images/images/041/603/090/large/maria-seppala-brandobaris.jpg",
+      "referencePages": [
+        "https://www.worldanvil.com/w/greyhawk-bandrewski/a/brandobaris-myth",
+        "https://www.thievesguild.cc/gods/god?godid=176",
+        "https://frc.fandom.com/wiki/Brandobaris",
+        "https://www.artstation.com/artwork/YeA9JY"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/brandobaris.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 50256,
+        "sha256": "3225a40aa94b8158cf51374970eff86f40e70ea08dbfc9b1338bf9cdd3053935"
+      }
+    },
+    {
+      "id": "cyrrollalee",
+      "name": "Cyrrollalee",
+      "editions": "somente 5e",
+      "pantheon": "Filhos de Yondalla",
+      "alignment": "Leal e Bom",
+      "domains": {
+        "5e": "Vida, Proteção",
+        "5.5e": null
+      },
+      "symbolDescription": "Porta aberta",
+      "canonicalSource": "Livro do Jogador e Guia do Aventureiro para a Costa da Espada",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Cyrrollalee symbol.png",
+        "format": "png",
+        "width": 1000,
+        "height": 1000,
+        "bytes": 1588859
+      },
+      "sourceUrl": "https://cdnb.artstation.com/p/assets/images/images/041/603/093/large/maria-seppala-cyrrollalee.jpg",
+      "referencePages": [
+        "https://www.artstation.com/artwork/YeA9JY",
+        "https://www.thievesguild.cc/gods/god?godid=177",
+        "https://frc.fandom.com/wiki/Cyrrollalee"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/cyrrollalee.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 61984,
+        "sha256": "6c02ea482f8d3a78a4b1f08ced47da98a778b126dd3c7efd6fd8eb15dcfbd1d8"
+      }
+    },
+    {
+      "id": "sheela_peryroyl",
+      "name": "Sheela Peryroyl",
+      "editions": "somente 5e",
+      "pantheon": "Filhos de Yondalla",
+      "alignment": "Neutro e Bom",
+      "domains": {
+        "5e": "Natureza, Vida",
+        "5.5e": null
+      },
+      "symbolDescription": "Flor",
+      "canonicalSource": "Livro do Jogador e Guia do Aventureiro para a Costa da Espada",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Sheela Peryroyl symbol.png",
+        "format": "png",
+        "width": 683,
+        "height": 1367,
+        "bytes": 739293
+      },
+      "sourceUrl": "https://cdnb.artstation.com/p/assets/images/images/041/603/919/large/maria-seppala-sheela-peryroyl.jpg",
+      "referencePages": [
+        "https://www.artstation.com/artwork/YeA9JY",
+        "https://www.thievesguild.cc/gods/god?godid=178",
+        "https://frc.fandom.com/wiki/Sheela_Peryroyl"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/sheela_peryroyl.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 21318,
+        "sha256": "75be86a5ef194a5f3d45a1d5c0a5bd56bc3049f3de43ca471001bb5f04d190d2"
+      }
+    },
+    {
+      "id": "urogalan",
+      "name": "Urogalan",
+      "editions": "somente 5e",
+      "pantheon": "Filhos de Yondalla",
+      "alignment": "Leal e Neutro",
+      "domains": {
+        "5e": "Morte",
+        "5.5e": null
+      },
+      "symbolDescription": "Silhueta de cachorro",
+      "canonicalSource": "Livro do Jogador e Guia do Aventureiro para a Costa da Espada",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Urogalan symbol.png",
+        "format": "png",
+        "width": 1024,
+        "height": 1024,
+        "bytes": 1412018
+      },
+      "sourceUrl": "https://cdna.artstation.com/p/assets/images/images/041/603/096/large/maria-seppala-urogalan.jpg",
+      "referencePages": [
+        "https://frc.fandom.com/wiki/Urogalan",
+        "https://www.thievesguild.cc/gods/god?godid=179",
+        "https://www.artstation.com/artwork/YeA9JY"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/urogalan.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 16860,
+        "sha256": "414a05d6414d6e9f6b0dfa53d2663c3a6746991d155c2faa125a28c28f8b1209"
+      }
+    },
+    {
+      "id": "yondalla",
+      "name": "Yondalla",
+      "editions": "somente 5e",
+      "pantheon": "Filhos de Yondalla",
+      "alignment": "Leal e Bom",
+      "domains": {
+        "5e": "Vida, Proteção",
+        "5.5e": null
+      },
+      "symbolDescription": "Escudo com uma cornucópia",
+      "canonicalSource": "Livro do Jogador e Guia do Aventureiro para a Costa da Espada",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Yondalla symbol.png",
+        "format": "png",
+        "width": 200,
+        "height": 291,
+        "bytes": 88609
+      },
+      "sourceUrl": "https://static.wikia.nocookie.net/frc/images/6/64/Yondalla_symbol.jpg",
+      "referencePages": [
+        "https://frc.fandom.com/wiki/Yondalla",
+        "https://www.thievesguild.cc/gods/god?godid=180"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/yondalla.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 41760,
+        "sha256": "1a607f4d83dea7698c55d945875007e63775916f5a9fde7709b9ed58aa40766c"
+      }
+    },
+    {
+      "id": "abbathor",
+      "name": "Abbathor",
+      "editions": "somente 5e",
+      "pantheon": "Morndinsamman",
+      "alignment": "Neutro e Maligno",
+      "domains": {
+        "5e": "Enganação",
+        "5.5e": null
+      },
+      "symbolDescription": "Adaga cravejada apontada para baixo",
+      "canonicalSource": "Livro do Jogador e Guia do Aventureiro para a Costa da Espada",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Abbathor symbol.png",
+        "format": "png",
+        "width": 1000,
+        "height": 1000,
+        "bytes": 373809
+      },
+      "sourceUrl": "https://cdnb.artstation.com/p/assets/images/images/041/602/505/large/maria-seppala-abbathor.jpg",
+      "referencePages": [
+        "https://frc.fandom.com/wiki/Abbathor",
+        "https://www.thievesguild.cc/gods/god?godid=144",
+        "https://www.artstation.com/artwork/3dKN1D"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/abbathor.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 19720,
+        "sha256": "c802369d4ce5fb5116d3869a7ec9e18277b0fac7ccbc5bdcf0fe9784394494af"
+      }
+    },
+    {
+      "id": "berronar_truesilver",
+      "name": "Berronar Truesilver",
+      "editions": "somente 5e",
+      "pantheon": "Morndinsamman",
+      "alignment": "Leal e Bom",
+      "domains": {
+        "5e": "Vida, Proteção",
+        "5.5e": null
+      },
+      "symbolDescription": "Dois anéis de prata entrelaçados",
+      "canonicalSource": "Livro do Jogador e Guia do Aventureiro para a Costa da Espada",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Berronar Truesilver symbol.png",
+        "format": "png",
+        "width": 1000,
+        "height": 1000,
+        "bytes": 464521
+      },
+      "sourceUrl": "https://cdna.artstation.com/p/assets/images/images/041/602/506/large/maria-seppala-berronar-truesilver.jpg",
+      "referencePages": [
+        "https://frc.fandom.com/wiki/Berronar_Truesilver",
+        "https://www.thievesguild.cc/gods/god?godid=145",
+        "https://www.artstation.com/artwork/3dKN1D"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/berronar_truesilver.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 19856,
+        "sha256": "6bb82e8fd7bd46af3f8e98092e4125f89f36285e914554689c397a648cd1e56f"
+      }
+    },
+    {
+      "id": "clangeddin_silverbeard",
+      "name": "Clangeddin Silverbeard",
+      "editions": "somente 5e",
+      "pantheon": "Morndinsamman",
+      "alignment": "Leal e Bom",
+      "domains": {
+        "5e": "Guerra",
+        "5.5e": null
+      },
+      "symbolDescription": "Machados de batalha prateados cruzados",
+      "canonicalSource": "Livro do Jogador e Guia do Aventureiro para a Costa da Espada",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Clangeddin Silverbeard symbol.png",
+        "format": "png",
+        "width": 1024,
+        "height": 1024,
+        "bytes": 1717442
+      },
+      "sourceUrl": "https://static.wikia.nocookie.net/frc/images/f/f2/Clangeddin_symbol.jpg",
+      "referencePages": [
+        "https://frc.fandom.com/wiki/Clangeddin_Silverbeard",
+        "https://www.thievesguild.cc/gods/god?godid=146",
+        "https://www.artstation.com/artwork/3dKN1D"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/clangeddin_silverbeard.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 37090,
+        "sha256": "1a38f367e33694b88953f494571c12e699a0177687720e4b9f8698fa43724464"
+      }
+    },
+    {
+      "id": "deep_duerra",
+      "name": "Deep Duerra",
+      "editions": "somente 5e",
+      "pantheon": "Morndinsamman",
+      "alignment": "Leal e Maligno",
+      "domains": {
+        "5e": "Conhecimento, Guerra",
+        "5.5e": null
+      },
+      "symbolDescription": "Crânio de devorador de mentes",
+      "canonicalSource": "Livro do Jogador e Guia do Aventureiro para a Costa da Espada",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Deep Duerra symbol.png",
+        "format": "png",
+        "width": 1140,
+        "height": 1140,
+        "bytes": 280178
+      },
+      "sourceUrl": "https://i.etsystatic.com/26554428/r/il/a3157b/3347432461/il_1140xN.3347432461_3nb6.jpg",
+      "referencePages": [
+        "https://frc.fandom.com/wiki/Deep_Duerra",
+        "https://www.thievesguild.cc/gods/god?godid=147",
+        "https://www.artstation.com/artwork/3dKN1D"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/deep_duerra.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 13750,
+        "sha256": "4ea2d9c8cac32ea9d379ac8ad8dc5055bc2be7295b761a351f94b22d8e7fda21"
+      }
+    },
+    {
+      "id": "dugmaren_brightmantle",
+      "name": "Dugmaren Brightmantle",
+      "editions": "somente 5e",
+      "pantheon": "Morndinsamman",
+      "alignment": "Caótico e Bom",
+      "domains": {
+        "5e": "Conhecimento",
+        "5.5e": null
+      },
+      "symbolDescription": "Livro aberto",
+      "canonicalSource": "Livro do Jogador e Guia do Aventureiro para a Costa da Espada",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Dugmaren Brightmantle symbol.png",
+        "format": "png",
+        "width": 1024,
+        "height": 1024,
+        "bytes": 1637349
+      },
+      "sourceUrl": "https://www.thievesguild.cc/images/gods/pics/dugmarenbrightmantle-05.jpg",
+      "referencePages": [
+        "https://frc.fandom.com/wiki/Dugmaren_Brightmantle",
+        "https://www.thievesguild.cc/gods/god?godid=148",
+        "https://www.artstation.com/artwork/3dKN1D"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/dugmaren_brightmantle.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 29276,
+        "sha256": "7a7f1f19426a1c1c25bace9e175cdaa3762d26d4488751b19f101fddb005a124"
+      }
+    },
+    {
+      "id": "dumathoin",
+      "name": "Dumathoin",
+      "editions": "somente 5e",
+      "pantheon": "Morndinsamman",
+      "alignment": "Neutro",
+      "domains": {
+        "5e": "Conhecimento, Natureza",
+        "5.5e": null
+      },
+      "symbolDescription": "Silhueta de montanha com uma gema central",
+      "canonicalSource": "Livro do Jogador e Guia do Aventureiro para a Costa da Espada",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Dumathoin symbol.png",
+        "format": "png",
+        "width": 1024,
+        "height": 1024,
+        "bytes": 1397573
+      },
+      "sourceUrl": "https://www.thievesguild.cc/images/gods/symbols/dumathoin.jpg",
+      "referencePages": [
+        "https://frc.fandom.com/wiki/Dumathoin",
+        "https://www.thievesguild.cc/gods/god?godid=149",
+        "https://www.artstation.com/artwork/3dKN1D"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/dumathoin.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 15858,
+        "sha256": "2db5f782352d981c9ac2c63ae92754b865c9d26fce19c5bcff2eaecf0326841c"
+      }
+    },
+    {
+      "id": "gorm_gulthyn",
+      "name": "Gorm Gulthyn",
+      "editions": "somente 5e",
+      "pantheon": "Morndinsamman",
+      "alignment": "Leal e Bom",
+      "domains": {
+        "5e": "Proteção, Guerra",
+        "5.5e": null
+      },
+      "symbolDescription": "Máscara de bronze brilhante",
+      "canonicalSource": "Livro do Jogador e Guia do Aventureiro para a Costa da Espada",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Gorm Gulthyn symbol.png",
+        "format": "png",
+        "width": 1536,
+        "height": 1024,
+        "bytes": 2658642
+      },
+      "sourceUrl": "https://cdna.artstation.com/p/assets/images/images/041/602/538/large/maria-seppala-gorm-gulthyn.jpg",
+      "referencePages": [
+        "https://frc.fandom.com/wiki/Gorm_Gulthyn",
+        "https://www.thievesguild.cc/gods/god?godid=150",
+        "https://www.artstation.com/artwork/3dKN1D"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/gorm_gulthyn.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 56964,
+        "sha256": "15833fa6a793517d3dca50613695b029ef535750926ca64486dfe241ba17794e"
+      }
+    },
+    {
+      "id": "haela_brightaxe",
+      "name": "Haela Brightaxe",
+      "editions": "somente 5e",
+      "pantheon": "Morndinsamman",
+      "alignment": "Caótico e Bom",
+      "domains": {
+        "5e": "Guerra",
+        "5.5e": null
+      },
+      "symbolDescription": "Machado flamejante erguido",
+      "canonicalSource": "Livro do Jogador e Guia do Aventureiro para a Costa da Espada",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Haela Brightaxe symbol.png",
+        "format": "png",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 2280831
+      },
+      "sourceUrl": "https://static.wikia.nocookie.net/frc/images/f/f1/Brightaxe_symbol.jpg/revision/latest?cb=20120719000158",
+      "referencePages": [
+        "https://frc.fandom.com/wiki/Haela_Brightaxe",
+        "https://www.thievesguild.cc/gods/god?godid=151"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/haela_brightaxe.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 18104,
+        "sha256": "581c6814b907f70c7582741aca9241e8d6e77f361e65e8d33136b650c1538f93"
+      }
+    },
+    {
+      "id": "laduguer",
+      "name": "Laduguer",
+      "editions": "somente 5e",
+      "pantheon": "Morndinsamman",
+      "alignment": "Leal e Maligno",
+      "domains": {
+        "5e": "Conhecimento, Guerra",
+        "5.5e": null
+      },
+      "symbolDescription": "Martelo e picareta cruzados",
+      "canonicalSource": "Livro do Jogador e Guia do Aventureiro para a Costa da Espada",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Laduguer symbol.png",
+        "format": "png",
+        "width": 1024,
+        "height": 1024,
+        "bytes": 2015641
+      },
+      "sourceUrl": "https://www.thievesguild.cc/images/gods/pics/laduguer-05.jpg",
+      "referencePages": [
+        "https://frc.fandom.com/wiki/Laduguer",
+        "https://www.thievesguild.cc/gods/god?godid=152",
+        "https://www.artstation.com/artwork/3dKN1D"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/laduguer.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 34952,
+        "sha256": "137e5909bef2af2352cc14ac5fcfc6ffa3abcac85cbecc22c0ecc85529705e10"
+      }
+    },
+    {
+      "id": "marthammor_duin",
+      "name": "Marthammor Duin",
+      "editions": "somente 5e",
+      "pantheon": "Morndinsamman",
+      "alignment": "Neutro e Bom",
+      "domains": {
+        "5e": "Natureza, Enganação",
+        "5.5e": null
+      },
+      "symbolDescription": "Maça vertical diante de uma bota alta",
+      "canonicalSource": "Livro do Jogador e Guia do Aventureiro para a Costa da Espada",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Marthammor Duin symbol.png",
+        "format": "png",
+        "width": 1024,
+        "height": 1024,
+        "bytes": 1638432
+      },
+      "sourceUrl": "https://static.wikia.nocookie.net/frc/images/1/1d/Marthammor_symbol.jpg",
+      "referencePages": [
+        "https://frc.fandom.com/wiki/Marthammor_Duin",
+        "https://www.thievesguild.cc/gods/god?godid=153",
+        "https://www.artstation.com/artwork/3dKN1D"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/marthammor_duin.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 26410,
+        "sha256": "7ac8982a19a51d326146fd70431280b6f835fc9de84f8ea584a6cfa8ec55f86b"
+      }
+    },
+    {
+      "id": "moradin",
+      "name": "Moradin",
+      "editions": "somente 5e",
+      "pantheon": "Morndinsamman",
+      "alignment": "Leal e Bom",
+      "domains": {
+        "5e": "Conhecimento, Proteção",
+        "5.5e": null
+      },
+      "symbolDescription": "Martelo de guerra e bigorna flamejante",
+      "canonicalSource": "Livro do Jogador e Guia do Aventureiro para a Costa da Espada",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Moradin symbol.png",
+        "format": "png",
+        "width": 1000,
+        "height": 1000,
+        "bytes": 605499
+      },
+      "sourceUrl": "https://cdna.artstation.com/p/assets/images/images/041/602/560/large/maria-seppala-moradin.jpg",
+      "referencePages": [
+        "https://frc.fandom.com/wiki/Moradin",
+        "https://www.thievesguild.cc/gods/god?godid=14",
+        "https://www.artstation.com/artwork/3dKN1D"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/moradin.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 24646,
+        "sha256": "07194c11aec37ca81aeb2db20150c0adbf94f56c3057db0f3c145daf87d07277"
+      }
+    },
+    {
+      "id": "sharindlar",
+      "name": "Sharindlar",
+      "editions": "somente 5e",
+      "pantheon": "Morndinsamman",
+      "alignment": "Caótico e Bom",
+      "domains": {
+        "5e": "Vida",
+        "5.5e": null
+      },
+      "symbolDescription": "Chama dançante",
+      "canonicalSource": "Livro do Jogador e Guia do Aventureiro para a Costa da Espada",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Sharindlar symbol.png",
+        "format": "png",
+        "width": 1024,
+        "height": 1024,
+        "bytes": 1571101
+      },
+      "sourceUrl": "https://www.thievesguild.cc/images/gods/symbols/sharindlar.jpg",
+      "referencePages": [
+        "https://frc.fandom.com/wiki/Sharindlar",
+        "https://www.thievesguild.cc/gods/god?godid=154"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/sharindlar.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 50904,
+        "sha256": "8491ef1da47a3db1c04fc330bec4be9be1edefedda6079ff3bbf92e973ccaa77"
+      }
+    },
+    {
+      "id": "vergadain",
+      "name": "Vergadain",
+      "editions": "somente 5e",
+      "pantheon": "Morndinsamman",
+      "alignment": "Neutro",
+      "domains": {
+        "5e": "Enganação",
+        "5.5e": null
+      },
+      "symbolDescription": "Moeda de ouro com rosto de anão",
+      "canonicalSource": "Livro do Jogador e Guia do Aventureiro para a Costa da Espada",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Vergadain symbol.png",
+        "format": "png",
+        "width": 1024,
+        "height": 1024,
+        "bytes": 2138202
+      },
+      "sourceUrl": "https://static.wikia.nocookie.net/forgottenrealms/images/3/3e/Dragon_coin-5e.jpg",
+      "referencePages": [
+        "https://frc.fandom.com/wiki/Vergadain",
+        "https://www.thievesguild.cc/gods/god?godid=156"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/vergadain.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 66788,
+        "sha256": "0afbc013a418ef61a08c816fa6b8d1a875c9d989957614dc77296ad03c65e70b"
+      }
+    },
+    {
+      "id": "bahamut",
+      "name": "Bahamut",
+      "editions": "somente 5e",
+      "pantheon": "Outros deuses de Faerûn",
+      "alignment": "Leal e Bom",
+      "domains": {
+        "5e": "Vida, Guerra",
+        "5.5e": null
+      },
+      "symbolDescription": "Cabeça de dragão de platina",
+      "canonicalSource": "Guia do Aventureiro para a Costa da Espada e Forgotten Realms: Heroes of Faerûn",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Bahamut symbol.png",
+        "format": "png",
+        "width": 1024,
+        "height": 1024,
+        "bytes": 1636523
+      },
+      "sourceUrl": "https://static.wikia.nocookie.net/forgottenrealms/images/7/7f/Bahamut_holy_symbol.jpg",
+      "referencePages": [
+        "https://forgottenrealms.fandom.com/wiki/Bahamut",
+        "https://www.thievesguild.cc/gods/god?godid=1"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/bahamut.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 36934,
+        "sha256": "572e492a7d86702734295e3d4969e33036c2e496cc56ad6a6e141aa1c285d127"
+      }
+    },
+    {
+      "id": "enlil",
+      "name": "Enlil",
+      "editions": "somente 5e",
+      "pantheon": "Outros deuses de Faerûn",
+      "alignment": "Neutro e Bom",
+      "domains": {
+        "5e": "Tempestade",
+        "5.5e": null
+      },
+      "symbolDescription": "Punho com garras sobre uma roda de relâmpago",
+      "canonicalSource": "Guia do Aventureiro para a Costa da Espada e Forgotten Realms: Heroes of Faerûn",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Enlil symbol.png",
+        "format": "png",
+        "width": 1024,
+        "height": 1024,
+        "bytes": 1339094
+      },
+      "sourceUrl": null,
+      "referencePages": [
+        "https://forgottenrealms.fandom.com/wiki/Enlil"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/enlil.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 29166,
+        "sha256": "96684dc3410d73842eec95f1e294470c7a4b23db0c8401c054f50672b1932d40"
+      }
+    },
+    {
+      "id": "finder_wyvernspur",
+      "name": "Finder Wyvernspur",
+      "editions": "somente 5e",
+      "pantheon": "Outros deuses de Faerûn",
+      "alignment": "Caótico e Neutro",
+      "domains": {
+        "5e": "Conhecimento, Luz",
+        "5.5e": null
+      },
+      "symbolDescription": "Harpa sobre pegada de saurial",
+      "canonicalSource": "Guia do Aventureiro para a Costa da Espada e Forgotten Realms: Heroes of Faerûn",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Finder Wyvernspur symbol.png",
+        "format": "png",
+        "width": 1024,
+        "height": 1024,
+        "bytes": 1525995
+      },
+      "sourceUrl": "https://static.wikia.nocookie.net/forgottenrealms/images/2/2e/Finder_symbol.jpg",
+      "referencePages": [
+        "https://forgottenrealms.fandom.com/wiki/Finder_Wyvernspur",
+        "https://frc.fandom.com/wiki/Finder_Wyvernspur",
+        "https://www.thievesguild.cc/gods/god?godid=117"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/finder_wyvernspur.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 36100,
+        "sha256": "46dead6db79087fe8936a0230687677471fdfc13407dc1dc8079cb0685e94667"
+      }
+    },
+    {
+      "id": "ghaunadaur",
+      "name": "Ghaunadaur",
+      "editions": "somente 5e",
+      "pantheon": "Outros deuses de Faerûn",
+      "alignment": "Caótico e Maligno",
+      "domains": {
+        "5e": "Morte, Enganação",
+        "5.5e": null
+      },
+      "symbolDescription": "Olho púrpura sobre círculo roxo",
+      "canonicalSource": "Guia do Aventureiro para a Costa da Espada e Forgotten Realms: Heroes of Faerûn",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Ghaunadaur symbol.png",
+        "format": "png",
+        "width": 1024,
+        "height": 1024,
+        "bytes": 1482917
+      },
+      "sourceUrl": "https://static.wikia.nocookie.net/forgottenrealms/images/1/12/Ghaunadaur_symbol.jpg",
+      "referencePages": [
+        "https://forgottenrealms.fandom.com/wiki/Ghaunadaur",
+        "https://frc.fandom.com/wiki/Ghaunadaur",
+        "https://www.thievesguild.cc/gods/god?godid=140"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/ghaunadaur.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 49054,
+        "sha256": "dda653d0ea16ddfd8f8e9df73e15533abd6c9905e6c8d3db00b733c2dc1925e4"
+      }
+    },
+    {
+      "id": "gilgeam",
+      "name": "Gilgeam",
+      "editions": "somente 5e",
+      "pantheon": "Outros deuses de Faerûn",
+      "alignment": "Leal e Maligno",
+      "domains": {
+        "5e": "Guerra",
+        "5.5e": null
+      },
+      "symbolDescription": "Punho erguido",
+      "canonicalSource": "Guia do Aventureiro para a Costa da Espada e Forgotten Realms: Heroes of Faerûn",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Gilgeam symbol.png",
+        "format": "png",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 1890349
+      },
+      "sourceUrl": "https://static.wikia.nocookie.net/adnd2e/images/5/55/Gilgeam_%28PP%29.png",
+      "referencePages": [
+        "https://adnd2e.fandom.com/wiki/Gilgeam_(PP)",
+        "https://forgottenrealms.fandom.com/wiki/Gilgeam"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/gilgeam.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 22982,
+        "sha256": "d57044cc0944eb81ed1982864f78b3efa1af529e4ec3b8a5ca4f57e4f4277213"
+      }
+    },
+    {
+      "id": "lurue",
+      "name": "Lurue",
+      "editions": "somente 5e",
+      "pantheon": "Outros deuses de Faerûn",
+      "alignment": "Caótico e Bom",
+      "domains": {
+        "5e": "Natureza, Vida",
+        "5.5e": null
+      },
+      "symbolDescription": "Cabeça de unicórnio com chifre prateado diante de uma lua crescente.",
+      "canonicalSource": "Guia do Aventureiro para a Costa da Espada e Forgotten Realms: Heroes of Faerûn",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Lurue symbol.png",
+        "format": "png",
+        "width": 1024,
+        "height": 1024,
+        "bytes": 1826720
+      },
+      "sourceUrl": "https://cdna.artstation.com/p/assets/images/images/041/603/644/large/maria-seppala-lurue.jpg",
+      "referencePages": [
+        "https://forgottenrealms.fandom.com/wiki/Lurue",
+        "https://frc.fandom.com/wiki/Lurue",
+        "https://www.artstation.com/artwork/9mY9RW",
+        "https://www.thievesguild.cc/gods/god?godid=127"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/lurue.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 45864,
+        "sha256": "eac0f757b9f868f04334b05841d4e5f9827d39e85ba4f74689cf6e939091b2eb"
+      }
+    },
+    {
+      "id": "moander",
+      "name": "Moander",
+      "editions": "somente 5e",
+      "pantheon": "Outros deuses de Faerûn",
+      "alignment": "Caótico e Maligno",
+      "domains": {
+        "5e": "Morte, Natureza",
+        "5.5e": null
+      },
+      "symbolDescription": "Massa pútrida de vinhas",
+      "canonicalSource": "Guia do Aventureiro para a Costa da Espada e Forgotten Realms: Heroes of Faerûn",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Moander symbol.webp",
+        "format": "webp",
+        "width": 346,
+        "height": 349,
+        "bytes": 17694
+      },
+      "sourceUrl": "https://static.wikia.nocookie.net/forgottenrealms/images/1/10/Moander%27s_fanged_hand.png",
+      "referencePages": [
+        "https://forgottenrealms.fandom.com/wiki/Moander"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/moander.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 30612,
+        "sha256": "27afcfa4ff1c41f124fc54526c685600bfae28c4c3578ab332621f5a6b2cb968"
+      }
+    },
+    {
+      "id": "nobanion",
+      "name": "Nobanion",
+      "editions": "somente 5e",
+      "pantheon": "Outros deuses de Faerûn",
+      "alignment": "Leal e Bom",
+      "domains": {
+        "5e": "Natureza, Guerra",
+        "5.5e": null
+      },
+      "symbolDescription": "Cabeça de leão coroada",
+      "canonicalSource": "Guia do Aventureiro para a Costa da Espada e Forgotten Realms: Heroes of Faerûn",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Nobanion symbol.png",
+        "format": "png",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 3333497
+      },
+      "sourceUrl": "https://static.wikia.nocookie.net/forgottenrealms/images/7/7e/Nobanion_symbol.jpg",
+      "referencePages": [
+        "https://forgottenrealms.fandom.com/wiki/Nobanion"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/nobanion.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 52638,
+        "sha256": "cb3270e3afe50b4a8b6b1079d4422aed0cb5fd969b7f8bb871381d5e80c517d2"
+      }
+    },
+    {
+      "id": "raven_queen",
+      "name": "Raven Queen",
+      "editions": "somente 5e",
+      "pantheon": "Outros deuses de Faerûn",
+      "alignment": "Leal e Neutro",
+      "domains": {
+        "5e": "Morte, Conhecimento",
+        "5.5e": null
+      },
+      "symbolDescription": "Cabeça de corvo em perfil",
+      "canonicalSource": "Guia do Aventureiro para a Costa da Espada e Forgotten Realms: Heroes of Faerûn",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Raven queen symbol.png",
+        "format": "png",
+        "width": 1536,
+        "height": 1024,
+        "bytes": 2162199
+      },
+      "sourceUrl": "https://static.wikia.nocookie.net/istria/images/3/30/Ravenqueen.jpg",
+      "referencePages": [
+        "https://forgottenrealms.fandom.com/wiki/Raven_Queen",
+        "https://istria.fandom.com/wiki/The_Raven_Queen"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/raven_queen.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 14682,
+        "sha256": "f378c16722c2230972c2e495a5566f3d711ed3049905ca04c4a8bc0dfca5bb99"
+      }
+    },
+    {
+      "id": "shaundakul",
+      "name": "Shaundakul",
+      "editions": "5e e 5.5e",
+      "pantheon": "Outros deuses de Faerûn",
+      "alignment": "Caótico e Neutro",
+      "domains": {
+        "5e": "Natureza, Tempestade",
+        "5.5e": "Conhecimento"
+      },
+      "symbolDescription": "Homem barbado caminhando no vento com capa e botas de viagem",
+      "canonicalSource": "Forgotten Realms: Heroes of Faerûn",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Shaundakul symbol.png",
+        "format": "png",
+        "width": 1000,
+        "height": 1000,
+        "bytes": 1249361
+      },
+      "sourceUrl": "https://cdna.artstation.com/p/assets/images/images/041/603/406/large/maria-seppala-shaundakul.jpg",
+      "referencePages": [
+        "https://forgottenrealms.fandom.com/wiki/Shaundakul",
+        "https://frc.fandom.com/wiki/Shaundakul",
+        "https://www.thievesguild.cc/gods/god?godid=101"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/shaundakul.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 54062,
+        "sha256": "5597d3ffa7b7fc91568eb75ec0b651438a8d343cea2528a8211b8e0dc4bc7a36"
+      }
+    },
+    {
+      "id": "tiamat",
+      "name": "Tiamat",
+      "editions": "somente 5e",
+      "pantheon": "Outros deuses de Faerûn",
+      "alignment": "Leal e Maligno",
+      "domains": {
+        "5e": "Enganação, Guerra",
+        "5.5e": null
+      },
+      "symbolDescription": "Cabeça de dragão com cinco faces",
+      "canonicalSource": "Guia do Aventureiro para a Costa da Espada e Forgotten Realms: Heroes of Faerûn",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Tiamat symbol.png",
+        "format": "png",
+        "width": 735,
+        "height": 690,
+        "bytes": 739221
+      },
+      "sourceUrl": "https://static.wikia.nocookie.net/forgottenrealms/images/5/5f/Tiamat_symbol.jpg",
+      "referencePages": [
+        "https://forgottenrealms.fandom.com/wiki/Tiamat",
+        "https://frc.fandom.com/wiki/Tiamat",
+        "https://www.thievesguild.cc/gods/god?godid=20"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/tiamat.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 54330,
+        "sha256": "a56474d994955ee814ed1c335f00046dedc9a8595e5626cf34ccd65c0b586bd3"
+      }
+    },
+    {
+      "id": "akadi",
+      "name": "Akadi",
+      "editions": "somente 5e",
+      "pantheon": "Panteão Faerûniano",
+      "alignment": "Neutro",
+      "domains": {
+        "5e": "Tempestade",
+        "5.5e": null
+      },
+      "symbolDescription": "Nuvem branca em fundo azul",
+      "canonicalSource": "Guia do Aventureiro para a Costa da Espada",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Akadi symbol.png",
+        "format": "png",
+        "width": 1536,
+        "height": 1024,
+        "bytes": 2316279
+      },
+      "sourceUrl": "https://static.wikia.nocookie.net/forgottenrealms/images/2/29/Akadi_symbol.jpg",
+      "referencePages": [
+        "https://forgottenrealms.fandom.com/wiki/Akadi",
+        "https://frc.fandom.com/wiki/Akadi",
+        "https://www.thievesguild.cc/gods/god?godid=112"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/akadi.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 49242,
+        "sha256": "943eca8a1e5e800bb50216a9d23b1fefe327769040ace650a335a42e4ba006c7"
+      }
+    },
+    {
+      "id": "amaunator",
+      "name": "Amaunator",
+      "editions": "5e e 5.5e",
+      "pantheon": "Panteão Faerûniano",
+      "alignment": "Leal e Neutro",
+      "domains": {
+        "5e": "Luz, Vida",
+        "5.5e": "Luz, Vida"
+      },
+      "symbolDescription": "Sol dourado",
+      "canonicalSource": "Guia do Aventureiro para a Costa da Espada",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Amaunautor symbol.png",
+        "format": "png",
+        "width": 1536,
+        "height": 1024,
+        "bytes": 2596556
+      },
+      "sourceUrl": "https://www.nicepng.com/png/detail/141-1414247_dungeons-dragons-clipart-pelor-amaunator-symbol.png",
+      "referencePages": [
+        "https://forgottenrealms.fandom.com/wiki/Amaunator"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/amaunator.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 57040,
+        "sha256": "72d17fb569274320ab85e318bbb60c50feaca098bbbb03630e33c21553dfb582"
+      }
+    },
+    {
+      "id": "asmodeus",
+      "name": "Asmodeus",
+      "editions": "5e e 5.5e",
+      "pantheon": "Panteão Faerûniano",
+      "alignment": "Leal e Maligno",
+      "domains": {
+        "5e": "Conhecimento, Enganação",
+        "5.5e": "Enganação"
+      },
+      "symbolDescription": "Três triângulos invertidos dispostos em um longo triângulo",
+      "canonicalSource": "Guia do Aventureiro para a Costa da Espada",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Asmodeus symbol.png",
+        "format": "png",
+        "width": 900,
+        "height": 800,
+        "bytes": 78128
+      },
+      "sourceUrl": "https://static.wikia.nocookie.net/khilaria/images/f/f2/Asmodeus_Holy_Symbol.jpg",
+      "referencePages": [
+        "https://forgottenrealms.fandom.com/wiki/Asmodeus"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/asmodeus.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 6430,
+        "sha256": "61d0a63396c10b2c02b2519663ba0cf378319aefcb5f71c59ae53fdaa7c283ad"
+      }
+    },
+    {
+      "id": "auril",
+      "name": "Auril",
+      "editions": "5e e 5.5e",
+      "pantheon": "Panteão Faerûniano",
+      "alignment": "Neutro e Maligno",
+      "domains": {
+        "5e": "Tempestade, Natureza",
+        "5.5e": "Guerra"
+      },
+      "symbolDescription": "Floco de neve de seis pontas",
+      "canonicalSource": "Guia do Aventureiro para a Costa da Espada",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Auril symbol.png",
+        "format": "png",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 2321634
+      },
+      "sourceUrl": "https://static.wikia.nocookie.net/forgottenrealms/images/5/5d/Auril_symbol.jpg",
+      "referencePages": [
+        "https://forgottenrealms.fandom.com/wiki/Auril",
+        "https://frc.fandom.com/wiki/Auril",
+        "https://www.thievesguild.cc/gods/god?godid=113"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/auril.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 22222,
+        "sha256": "266be35580908eeb635b77dd300cd0c1920af709842e3f5f60584f64729ad4aa"
+      }
+    },
+    {
+      "id": "azuth",
+      "name": "Azuth",
+      "editions": "5e e 5.5e",
+      "pantheon": "Panteão Faerûniano",
+      "alignment": "Leal e Neutro",
+      "domains": {
+        "5e": "Conhecimento, Magia",
+        "5.5e": "Conhecimento"
+      },
+      "symbolDescription": "Mão esquerda apontando para cima, envolta por chamas azuis",
+      "canonicalSource": "Guia do Aventureiro para a Costa da Espada",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Azuth symbol.png",
+        "format": "png",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 2332648
+      },
+      "sourceUrl": "https://www.thievesguild.cc/images/gods/symbols/azuth.jpg",
+      "referencePages": [
+        "https://forgottenrealms.fandom.com/wiki/Azuth",
+        "https://frc.fandom.com/wiki/Azuth",
+        "https://www.thievesguild.cc/gods/god?godid=81"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/azuth.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 37894,
+        "sha256": "7f64701d9a2ba0f49cbbe6915c1ac59a0dcb40c80b54c142bf679415c21e41b6"
+      }
+    },
+    {
+      "id": "bane",
+      "name": "Bane",
+      "editions": "5e e 5.5e",
+      "pantheon": "Panteão Faerûniano",
+      "alignment": "Leal e Maligno",
+      "domains": {
+        "5e": "Guerra",
+        "5.5e": "Guerra"
+      },
+      "symbolDescription": "Punho negro apertando raios verdes",
+      "canonicalSource": "Guia do Aventureiro para a Costa da Espada",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Bane symbol.png",
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "bytes": 2063373
+      },
+      "sourceUrl": "https://static.wikia.nocookie.net/forgottenrealms/images/b/bc/Bane_symbol.jpg",
+      "referencePages": [
+        "https://forgottenrealms.fandom.com/wiki/Bane",
+        "https://frc.fandom.com/wiki/Bane",
+        "https://www.thievesguild.cc/gods/god?godid=84"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/bane.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 58694,
+        "sha256": "93bcb35dd30bd42b92c4c3ae51c7e3fa193ea738487f72c1d588d7e3396b1ae2"
+      }
+    },
+    {
+      "id": "beshaba",
+      "name": "Beshaba",
+      "editions": "5e e 5.5e",
+      "pantheon": "Panteão Faerûniano",
+      "alignment": "Caótico e Maligno",
+      "domains": {
+        "5e": "Enganação",
+        "5.5e": "Enganação"
+      },
+      "symbolDescription": "Galhadas negras",
+      "canonicalSource": "Guia do Aventureiro para a Costa da Espada",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Basheba symbol.png",
+        "format": "png",
+        "width": 1024,
+        "height": 1024,
+        "bytes": 1937834
+      },
+      "sourceUrl": "https://static.wikia.nocookie.net/forgottenrealms/images/a/ac/Beshaba_symbol.jpg",
+      "referencePages": [
+        "https://forgottenrealms.fandom.com/wiki/Beshaba",
+        "https://frc.fandom.com/wiki/Beshaba"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/beshaba.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 39086,
+        "sha256": "c60f4e26818b4a8988eb006a624f91963be7d53cdcb7d16ffbc2e46b56a113b3"
+      }
+    },
+    {
+      "id": "bhaal",
+      "name": "Bhaal",
+      "editions": "5e e 5.5e",
+      "pantheon": "Panteão Faerûniano",
+      "alignment": "Neutro e Maligno",
+      "domains": {
+        "5e": "Morte",
+        "5.5e": "Guerra"
+      },
+      "symbolDescription": "Caveira cercada por gotas de sangue",
+      "canonicalSource": "Guia do Aventureiro para a Costa da Espada",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Bhaal symbol.png",
+        "format": "png",
+        "width": 1024,
+        "height": 1024,
+        "bytes": 2011473
+      },
+      "sourceUrl": "https://static.wikia.nocookie.net/forgottenrealms/images/8/8c/Symbol-of-Bhaal.jpg",
+      "referencePages": [
+        "https://forgottenrealms.fandom.com/wiki/Bhaal",
+        "https://www.thievesguild.cc/gods/god?godid=241"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/bhaal.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 59898,
+        "sha256": "f9450becab5eab8ca1f8ed12db17abece0d43207b894820f6de6ba33906b5b2c"
+      }
+    },
+    {
+      "id": "cavaleira_vermelha",
+      "name": "Cavaleira Vermelha",
+      "editions": "5e e 5.5e",
+      "pantheon": "Panteão Faerûniano",
+      "alignment": "Leal e Neutro",
+      "domains": {
+        "5e": "Guerra",
+        "5.5e": "Guerra"
+      },
+      "symbolDescription": "Peça de xadrez de cavalo vermelho com estrelas no lugar dos olhos",
+      "canonicalSource": "Guia do Aventureiro para a Costa da Espada",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Red Knight symbol.png",
+        "format": "png",
+        "width": 1024,
+        "height": 1024,
+        "bytes": 1529566
+      },
+      "sourceUrl": "https://www.thievesguild.cc/images/gods/pics/redknight-04.jpg",
+      "referencePages": [
+        "https://forgottenrealms.fandom.com/wiki/Red_Knight",
+        "https://frc.fandom.com/wiki/Red_Knight",
+        "https://www.thievesguild.cc/gods/god?godid=130"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/cavaleira_vermelha.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 33976,
+        "sha256": "379cbdca25575dcd831c59ab9f39ec6140ae54706dcb355a2ef7cd1cb43cb4b3"
+      }
+    },
+    {
+      "id": "chauntea",
+      "name": "Chauntea",
+      "editions": "5e e 5.5e",
+      "pantheon": "Panteão Faerûniano",
+      "alignment": "Neutro e Bom",
+      "domains": {
+        "5e": "Vida, Natureza",
+        "5.5e": "Vida"
+      },
+      "symbolDescription": "Rosa desabrochada sobre uma coroa dourada de grãos",
+      "canonicalSource": "Guia do Aventureiro para a Costa da Espada",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Chauntea symbol.png",
+        "format": "png",
+        "width": 1024,
+        "height": 1024,
+        "bytes": 2169733
+      },
+      "sourceUrl": "https://static.wikia.nocookie.net/forgottenrealms/images/2/27/Chauntea_symbol.jpg",
+      "referencePages": [
+        "https://forgottenrealms.fandom.com/wiki/Chauntea",
+        "https://frc.fandom.com/wiki/Chauntea",
+        "https://www.thievesguild.cc/gods/god?godid=85"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/chauntea.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 75346,
+        "sha256": "511284c587b89f983b403571554fd7cc9b756a9878d342faf0d14b3e41a6aac0"
+      }
+    },
+    {
+      "id": "cyric",
+      "name": "Cyric",
+      "editions": "5e e 5.5e",
+      "pantheon": "Panteão Faerûniano",
+      "alignment": "Caótico e Maligno",
+      "domains": {
+        "5e": "Enganação",
+        "5.5e": "Enganação"
+      },
+      "symbolDescription": "Crânio sem mandíbula num sol negro",
+      "canonicalSource": "Guia do Aventureiro para a Costa da Espada",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Cyric symbol.png",
+        "format": "png",
+        "width": 1024,
+        "height": 1024,
+        "bytes": 1561544
+      },
+      "sourceUrl": "https://www.thievesguild.cc/images/gods/pics/cyric-12.jpg",
+      "referencePages": [
+        "https://forgottenrealms.fandom.com/wiki/Cyric",
+        "https://www.thievesguild.cc/gods/god?godid=86"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/cyric.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 23208,
+        "sha256": "77b7fbbf40f97b718a62c6e1125f8ce46e2a0945f1832de87daf21b29187d1b0"
+      }
+    },
+    {
+      "id": "deneir",
+      "name": "Deneir",
+      "editions": "5e e 5.5e",
+      "pantheon": "Panteão Faerûniano",
+      "alignment": "Neutro e Bom",
+      "domains": {
+        "5e": "Conhecimento",
+        "5.5e": "Conhecimento"
+      },
+      "symbolDescription": "Vela acesa sobre um olho aberto",
+      "canonicalSource": "Guia do Aventureiro para a Costa da Espada",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Deneir symbol.png",
+        "format": "png",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 2420769
+      },
+      "sourceUrl": "https://static.wikia.nocookie.net/forgottenrealms/images/9/90/Deneir_symbol.jpg",
+      "referencePages": [
+        "https://forgottenrealms.fandom.com/wiki/Deneir",
+        "https://frc.fandom.com/wiki/Deneir",
+        "https://www.thievesguild.cc/gods/god?godid=115"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/deneir.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 29500,
+        "sha256": "ff0cf76110301cd8f1198ad6c233e4141b867b13c8969c7bbeca0e84e2763c06"
+      }
+    },
+    {
+      "id": "eldath",
+      "name": "Eldath",
+      "editions": "5e e 5.5e",
+      "pantheon": "Panteão Faerûniano",
+      "alignment": "Neutro e Bom",
+      "domains": {
+        "5e": "Natureza, Vida",
+        "5.5e": "Vida"
+      },
+      "symbolDescription": "Cachoeira caindo dentro de um poço tranquilo",
+      "canonicalSource": "Guia do Aventureiro para a Costa da Espada",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Eldath symbol.png",
+        "format": "png",
+        "width": 1536,
+        "height": 1024,
+        "bytes": 2430651
+      },
+      "sourceUrl": "https://static.wikia.nocookie.net/forgottenrealms/images/3/3d/Eldath_Symbol-5e.png",
+      "referencePages": [
+        "https://www.thievesguild.cc/gods/god?godid=116",
+        "https://forgottenrealms.fandom.com/wiki/Eldath"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/eldath.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 62922,
+        "sha256": "598874f145298143e7ec2974a48cf31746f406503f5f5d9edff5098b3bb69930"
+      }
+    },
+    {
+      "id": "gond",
+      "name": "Gond",
+      "editions": "5e e 5.5e",
+      "pantheon": "Panteão Faerûniano",
+      "alignment": "Neutro",
+      "domains": {
+        "5e": "Conhecimento",
+        "5.5e": "Conhecimento"
+      },
+      "symbolDescription": "Roda dentada com quatro raios",
+      "canonicalSource": "Guia do Aventureiro para a Costa da Espada",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Gond symbol.png",
+        "format": "png",
+        "width": 1024,
+        "height": 1024,
+        "bytes": 1738971
+      },
+      "sourceUrl": "https://static.wikia.nocookie.net/forgottenrealms/images/7/7a/Gondsymbol.png",
+      "referencePages": [
+        "https://www.thievesguild.cc/gods/god?godid=88"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/gond.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 40830,
+        "sha256": "6cb81a2e949131f4fd9496b2b87e52e3c03a4c4d4f8833e7f5157c0b22bf7616"
+      }
+    },
+    {
+      "id": "grumbar",
+      "name": "Grumbar",
+      "editions": "somente 5e",
+      "pantheon": "Panteão Faerûniano",
+      "alignment": "Neutro",
+      "domains": {
+        "5e": "Conhecimento, Natureza",
+        "5.5e": null
+      },
+      "symbolDescription": "Montanha",
+      "canonicalSource": "Guia do Aventureiro para a Costa da Espada",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Grumbar symbol.png",
+        "format": "png",
+        "width": 1024,
+        "height": 1024,
+        "bytes": 1466751
+      },
+      "sourceUrl": "https://www.thievesguild.cc/images/gods/pics/grumbar-02.jpg",
+      "referencePages": [
+        "https://www.thievesguild.cc/gods/god?godid=120",
+        "https://forgottenrealms.fandom.com/wiki/Grumbar"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/grumbar.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 19338,
+        "sha256": "cf3d38ffe459ee124271e1e3d7e54ef61e71f2bb5865e0802fab308bc6dd63ec"
+      }
+    },
+    {
+      "id": "gwaeron",
+      "name": "Gwaeron Windstrom",
+      "editions": "somente 5e",
+      "pantheon": "Panteão Faerûniano",
+      "alignment": "Neutro e Bom",
+      "domains": {
+        "5e": "Conhecimento, Natureza",
+        "5.5e": null
+      },
+      "symbolDescription": "Pegada com uma estrela de cinco pontas no centro",
+      "canonicalSource": "Guia do Aventureiro para a Costa da Espada",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Gwaeron Windstrom symbol.png",
+        "format": "png",
+        "width": 1024,
+        "height": 1024,
+        "bytes": 1419197
+      },
+      "sourceUrl": "https://www.thievesguild.cc/images/gods/symbols/gwaeronwindstrom.jpg",
+      "referencePages": [
+        "https://forgottenrealms.fandom.com/wiki/Gwaeron_Windstrom",
+        "https://www.thievesguild.cc/gods/god?godid=121"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/gwaeron.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 24606,
+        "sha256": "2bfda721c808f1355158f6f438e6686284e1406e2242ea7978c01078d7293c49"
+      }
+    },
+    {
+      "id": "helm",
+      "name": "Helm",
+      "editions": "5e e 5.5e",
+      "pantheon": "Panteão Faerûniano",
+      "alignment": "Leal e Neutro",
+      "domains": {
+        "5e": "Proteção, Luz",
+        "5.5e": "Guerra, Vida"
+      },
+      "symbolDescription": "Olho aberto sobre uma manopla esquerda",
+      "canonicalSource": "Guia do Aventureiro para a Costa da Espada",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Helm symbol.png",
+        "format": "png",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 2697329
+      },
+      "sourceUrl": "https://static.wikia.nocookie.net/forgottenrealms/images/4/41/Helm_symbol.jpg",
+      "referencePages": [
+        "https://forgottenrealms.fandom.com/wiki/Helm",
+        "https://www.thievesguild.cc/gods/god?godid=89"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/helm.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 29682,
+        "sha256": "5ddd417b22c7185e838744a397cf96d425f310bffe70aeeba3612d582102429d"
+      }
+    },
+    {
+      "id": "hoar",
+      "name": "Hoar",
+      "editions": "somente 5e",
+      "pantheon": "Panteão Faerûniano",
+      "alignment": "Leal e Neutro",
+      "domains": {
+        "5e": "Guerra",
+        "5.5e": null
+      },
+      "symbolDescription": "Luva preta segurando uma moeda com duas faces",
+      "canonicalSource": "Guia do Aventureiro para a Costa da Espada",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Hoar symbol.png",
+        "format": "png",
+        "width": 1024,
+        "height": 1024,
+        "bytes": 1663643
+      },
+      "sourceUrl": "https://static.wikia.nocookie.net/forgottenrealms/images/4/46/Hoar_symbol.jpg",
+      "referencePages": [
+        "https://forgottenrealms.fandom.com/wiki/Hoar"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/hoar.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 28488,
+        "sha256": "d42337fad8886e3c7dcc7850f15ddaa1792f80ea9c05ddb38d06f7ce6bdb99aa"
+      }
+    },
+    {
+      "id": "ilmater",
+      "name": "Ilmater",
+      "editions": "5e e 5.5e",
+      "pantheon": "Panteão Faerûniano",
+      "alignment": "Leal e Bom",
+      "domains": {
+        "5e": "Vida",
+        "5.5e": "Vida"
+      },
+      "symbolDescription": "Mãos com os pulsos atados por faixas vermelhas",
+      "canonicalSource": "Guia do Aventureiro para a Costa da Espada",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Ilmater symbol.png",
+        "format": "png",
+        "width": 1024,
+        "height": 1024,
+        "bytes": 1784115
+      },
+      "sourceUrl": "https://static.wikia.nocookie.net/frc/images/3/3b/Ilmater_symbol.jpg",
+      "referencePages": [
+        "https://forgottenrealms.fandom.com/wiki/Ilmater",
+        "https://www.thievesguild.cc/gods/god?godid=90"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/ilmater.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 47482,
+        "sha256": "70bdeb3003e125d49b8c8150f23571177bc6c50d1c757e9bab1b2c171aceb29a"
+      }
+    },
+    {
+      "id": "istishia",
+      "name": "Istishia",
+      "editions": "somente 5e",
+      "pantheon": "Panteão Faerûniano",
+      "alignment": "Neutro",
+      "domains": {
+        "5e": "Tempestade, Natureza",
+        "5.5e": null
+      },
+      "symbolDescription": "Onda",
+      "canonicalSource": "Guia do Aventureiro para a Costa da Espada",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Istishia symbol.png",
+        "format": "png",
+        "width": 1024,
+        "height": 1024,
+        "bytes": 1692130
+      },
+      "sourceUrl": "https://www.thievesguild.cc/images/gods/symbols/istishia.jpg",
+      "referencePages": [
+        "https://forgottenrealms.fandom.com/wiki/Istishia",
+        "https://www.thievesguild.cc/gods/god?godid=123"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/istishia.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 70578,
+        "sha256": "b8668fe13283f7fb1ce7c33755cdde79a94407d514113ac7f08d2edf4d39fdd2"
+      }
+    },
+    {
+      "id": "jergal",
+      "name": "Jergal",
+      "editions": "somente 5e",
+      "pantheon": "Panteão Faerûniano",
+      "alignment": "Leal e Neutro",
+      "domains": {
+        "5e": "Conhecimento, Morte",
+        "5.5e": null
+      },
+      "symbolDescription": "Crânio sem mandíbula e uma pena de escrever",
+      "canonicalSource": "Guia do Aventureiro para a Costa da Espada",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Jergal symbol.png",
+        "format": "png",
+        "width": 1024,
+        "height": 1024,
+        "bytes": 1568313
+      },
+      "sourceUrl": "https://www.thievesguild.cc/images/gods/pics/jergal-01.jpg",
+      "referencePages": [
+        "https://forgottenrealms.fandom.com/wiki/Jergal",
+        "https://www.thievesguild.cc/gods/god?godid=124"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/jergal.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 35350,
+        "sha256": "fd1e34430894c6c2fca6acf0a7c6296adc19a173cf8e3e17958ec0aa9dad227e"
+      }
+    },
+    {
+      "id": "kelemvor",
+      "name": "Kelemvor",
+      "editions": "5e e 5.5e",
+      "pantheon": "Panteão Faerûniano",
+      "alignment": "Leal e Neutro",
+      "domains": {
+        "5e": "Morte",
+        "5.5e": "Vida"
+      },
+      "symbolDescription": "Braço esquelético segurando uma balança",
+      "canonicalSource": "Guia do Aventureiro para a Costa da Espada",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Kelemvor symbol.png",
+        "format": "png",
+        "width": 1536,
+        "height": 1024,
+        "bytes": 2372540
+      },
+      "sourceUrl": "https://static.wikia.nocookie.net/forgottenrealms/images/6/6e/Kelemvor_symbol.jpg",
+      "referencePages": [
+        "https://forgottenrealms.fandom.com/wiki/Kelemvor",
+        "https://www.thievesguild.cc/gods/god?godid=91"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/kelemvor.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 22772,
+        "sha256": "7061ed9fd680a8e7fb674eb186d5c50e4765fabc2d5ebf3e13cbcf1d6c93b921"
+      }
+    },
+    {
+      "id": "kossuth",
+      "name": "Kossuth",
+      "editions": "somente 5e",
+      "pantheon": "Panteão Faerûniano",
+      "alignment": "Neutro",
+      "domains": {
+        "5e": "Luz",
+        "5.5e": null
+      },
+      "symbolDescription": "Chama",
+      "canonicalSource": "Guia do Aventureiro para a Costa da Espada",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Kossuth symbol.png",
+        "format": "png",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 2526851
+      },
+      "sourceUrl": "https://www.thievesguild.cc/images/gods/pics/kossuth-01.jpg",
+      "referencePages": [
+        "https://www.thievesguild.cc/gods/god?godid=92",
+        "https://forgottenrealms.fandom.com/wiki/Kossuth"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/kossuth.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 37250,
+        "sha256": "15bc575d0566cf2265a41503c701ae250d69874f4ff40003eace8f829de1a83c"
+      }
+    },
+    {
+      "id": "lathander",
+      "name": "Lathander",
+      "editions": "5e e 5.5e",
+      "pantheon": "Panteão Faerûniano",
+      "alignment": "Neutro e Bom",
+      "domains": {
+        "5e": "Luz, Vida",
+        "5.5e": "Luz, Vida"
+      },
+      "symbolDescription": "Estrada levando para o sol nascente",
+      "canonicalSource": "Guia do Aventureiro para a Costa da Espada",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Lathander symbol.png",
+        "format": "png",
+        "width": 1024,
+        "height": 1024,
+        "bytes": 1724292
+      },
+      "sourceUrl": "https://bg3.wiki/w/images/c/c2/Lathander_Icon_Original.png",
+      "referencePages": [
+        "https://www.thievesguild.cc/gods/god?godid=93",
+        "https://forgottenrealms.fandom.com/wiki/Lathander"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/lathander.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 54086,
+        "sha256": "4d178269e682a61fcfe690a56e2225b02a34dc0b8a76f0f0e79cfdfadc18c51c"
+      }
+    },
+    {
+      "id": "leira",
+      "name": "Leira",
+      "editions": "5e e 5.5e",
+      "pantheon": "Panteão Faerûniano",
+      "alignment": "Caótico e Bom",
+      "domains": {
+        "5e": "Enganação",
+        "5.5e": "Enganação"
+      },
+      "symbolDescription": "Triângulo apontado para baixo contendo uma espiral de névoa",
+      "canonicalSource": "Guia do Aventureiro para a Costa da Espada",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Leira symbol.png",
+        "format": "png",
+        "width": 1024,
+        "height": 1024,
+        "bytes": 1663900
+      },
+      "sourceUrl": "https://www.deviantart.com/valisharden-staff/art/Symbol-of-Leira-782066753",
+      "referencePages": [
+        "https://forgottenrealms.fandom.com/wiki/Leira"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/leira.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 31466,
+        "sha256": "e7a5b32eb2007301a2a7eb5113a7442d91bdd05740a74ae6a7c68de7a4a05045"
+      }
+    },
+    {
+      "id": "lliira",
+      "name": "Lliira",
+      "editions": "5e e 5.5e",
+      "pantheon": "Panteão Faerûniano",
+      "alignment": "Caótico e Bom",
+      "domains": {
+        "5e": "Vida",
+        "5.5e": "Luz, Vida"
+      },
+      "symbolDescription": "Triângulo formado por três estrelas de seis pontas",
+      "canonicalSource": "Guia do Aventureiro para a Costa da Espada",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Lliira symbol.png",
+        "format": "png",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 544417
+      },
+      "sourceUrl": "https://www.thievesguild.cc/images/gods/symbols/lliira.jpg",
+      "referencePages": [
+        "https://forgottenrealms.fandom.com/wiki/Lliira",
+        "https://www.thievesguild.cc/gods/god?godid=125"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/lliira.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 39530,
+        "sha256": "cf8045cca946cf33a3c2b2bd9123ac0f28e1f6869047161c2015667dc51c62a2"
+      }
+    },
+    {
+      "id": "loviatar",
+      "name": "Loviatar",
+      "editions": "5e e 5.5e",
+      "pantheon": "Panteão Faerûniano",
+      "alignment": "Leal e Maligno",
+      "domains": {
+        "5e": "Morte",
+        "5.5e": "Enganação, Guerra"
+      },
+      "symbolDescription": "Açoite de nove pontas farpadas",
+      "canonicalSource": "Guia do Aventureiro para a Costa da Espada",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Loviatar symbol.png",
+        "format": "png",
+        "width": 1024,
+        "height": 1024,
+        "bytes": 1721956
+      },
+      "sourceUrl": "https://static.wikia.nocookie.net/forgottenrealms/images/7/78/Loviatar_symbol.jpg",
+      "referencePages": [
+        "https://forgottenrealms.fandom.com/wiki/Loviatar",
+        "https://www.thievesguild.cc/gods/god?godid=126"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/loviatar.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 29070,
+        "sha256": "8a699d64a8128ba5ad9862be525bb3eb7e180ae78c67b9cec68220dc580d423e"
+      }
+    },
+    {
+      "id": "malar",
+      "name": "Malar",
+      "editions": "5e e 5.5e",
+      "pantheon": "Panteão Faerûniano",
+      "alignment": "Caótico e Maligno",
+      "domains": {
+        "5e": "Natureza",
+        "5.5e": "Guerra"
+      },
+      "symbolDescription": "Pata com garras",
+      "canonicalSource": "Guia do Aventureiro para a Costa da Espada",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Malar symbol.png",
+        "format": "png",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 2909909
+      },
+      "sourceUrl": "https://static.wikia.nocookie.net/forgottenrealms/images/b/b0/Malar_symbol.jpg",
+      "referencePages": [
+        "https://forgottenrealms.fandom.com/wiki/Malar"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/malar.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 34298,
+        "sha256": "9abb8e2e2a1e9917ef762e42c923761a780972ee1a5bb40ec80f87485498d782"
+      }
+    },
+    {
+      "id": "mask",
+      "name": "Mask",
+      "editions": "5e e 5.5e",
+      "pantheon": "Panteão Faerûniano",
+      "alignment": "Caótico e Neutro",
+      "domains": {
+        "5e": "Enganação",
+        "5.5e": "Enganação"
+      },
+      "symbolDescription": "Máscara negra",
+      "canonicalSource": "Guia do Aventureiro para a Costa da Espada",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Mask symbol.png",
+        "format": "png",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 2711121
+      },
+      "sourceUrl": "https://static.wikia.nocookie.net/forgottenrealms/images/3/31/Mask_symbol.jpg",
+      "referencePages": [
+        "https://forgottenrealms.fandom.com/wiki/Mask",
+        "https://www.thievesguild.cc/gods/god?godid=95"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/mask.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 27098,
+        "sha256": "d101a846b1f132d558e4c2babb839e337103844c1a07d32e0bf7497379ac6c63"
+      }
+    },
+    {
+      "id": "mielikki",
+      "name": "Mielikki",
+      "editions": "5e e 5.5e",
+      "pantheon": "Panteão Faerûniano",
+      "alignment": "Neutro e Bom",
+      "domains": {
+        "5e": "Natureza",
+        "5.5e": "Vida"
+      },
+      "symbolDescription": "Cabeça de unicórnio",
+      "canonicalSource": "Guia do Aventureiro para a Costa da Espada",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Mielikki Symbol.png",
+        "format": "png",
+        "width": 196,
+        "height": 196,
+        "bytes": 3823
+      },
+      "sourceUrl": "https://bg3.wiki/w/images/5/5b/Mielikki_Icon_Original.png",
+      "referencePages": [
+        "https://forgottenrealms.fandom.com/wiki/Mielikki"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/mielikki.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 3480,
+        "sha256": "0f95afcbebf6d389978552cfa9b4b3fa2757b3652bebab683f6993f0f03181cf"
+      }
+    },
+    {
+      "id": "milil",
+      "name": "Milil",
+      "editions": "5e e 5.5e",
+      "pantheon": "Panteão Faerûniano",
+      "alignment": "Neutro e Bom",
+      "domains": {
+        "5e": "Luz",
+        "5.5e": "Conhecimento, Luz"
+      },
+      "symbolDescription": "Harpa de cinco cordas feita de folhas",
+      "canonicalSource": "Guia do Aventureiro para a Costa da Espada",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Milil symbol.png",
+        "format": "png",
+        "width": 1024,
+        "height": 1024,
+        "bytes": 1804539
+      },
+      "sourceUrl": "https://www.thievesguild.cc/images/gods/pics/milil-01.jpg",
+      "referencePages": [
+        "https://forgottenrealms.fandom.com/wiki/Milil",
+        "https://www.thievesguild.cc/gods/god?godid=128"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/milil.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 40292,
+        "sha256": "25b82ed2802a84942fac8c83a46209f793dc9ebcf0f0cc316aac21cc09bf6a17"
+      }
+    },
+    {
+      "id": "myrkul",
+      "name": "Myrkul",
+      "editions": "5e e 5.5e",
+      "pantheon": "Panteão Faerûniano",
+      "alignment": "Neutro e Maligno",
+      "domains": {
+        "5e": "Morte",
+        "5.5e": "Enganação, Guerra"
+      },
+      "symbolDescription": "Caveira humana branca dentro de um triângulo",
+      "canonicalSource": "Guia do Aventureiro para a Costa da Espada",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Myrkul symbol.png",
+        "format": "png",
+        "width": 196,
+        "height": 196,
+        "bytes": 4385
+      },
+      "sourceUrl": "https://bg3.wiki/w/images/e/e7/Myrkul_Icon_Original.png",
+      "referencePages": [
+        "https://forgottenrealms.fandom.com/wiki/Myrkul"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/myrkul.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 2430,
+        "sha256": "9e9dc5b08f8fbc25b8b7b7d6b32819faefee6e7fe051d54b31f7b93dfe5103f8"
+      }
+    },
+    {
+      "id": "mystra",
+      "name": "Mystra",
+      "editions": "5e e 5.5e",
+      "pantheon": "Panteão Faerûniano",
+      "alignment": "Neutro e Bom",
+      "domains": {
+        "5e": "Magia",
+        "5.5e": "Conhecimento, Luz"
+      },
+      "symbolDescription": "Círculo de estrelas envolvendo uma névoa fluente",
+      "canonicalSource": "Guia do Aventureiro para a Costa da Espada",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Mystra symbol.png",
+        "format": "png",
+        "width": 1024,
+        "height": 1024,
+        "bytes": 1717900
+      },
+      "sourceUrl": "https://static.wikia.nocookie.net/forgottenrealms/images/5/56/Mystran_holy_symbol_2.svg",
+      "referencePages": [
+        "https://forgottenrealms.fandom.com/wiki/Mystra_(Midnight)",
+        "https://forgottenrealms.fandom.com/wiki/Mystra"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/mystra.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 51018,
+        "sha256": "0c81b3a3a987a72c4cb7480ab76c90c94581c003536d76f68b49ad06f7d50d8c"
+      }
+    },
+    {
+      "id": "oghma",
+      "name": "Oghma",
+      "editions": "5e e 5.5e",
+      "pantheon": "Panteão Faerûniano",
+      "alignment": "Neutro",
+      "domains": {
+        "5e": "Conhecimento",
+        "5.5e": "Conhecimento"
+      },
+      "symbolDescription": "Pergaminho em branco",
+      "canonicalSource": "Guia do Aventureiro para a Costa da Espada",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Oghma symbol.png",
+        "format": "png",
+        "width": 196,
+        "height": 196,
+        "bytes": 2077
+      },
+      "sourceUrl": "https://bg3.wiki/w/images/1/19/Oghma_Icon_Original.png",
+      "referencePages": [
+        "https://forgottenrealms.fandom.com/wiki/Oghma",
+        "https://www.thievesguild.cc/gods/god?godid=98"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/oghma.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 1734,
+        "sha256": "08721b60a8dbe9d664d53861547fcf091c67de0ec74c52de02f756c0ca23723a"
+      }
+    },
+    {
+      "id": "savras",
+      "name": "Savras",
+      "editions": "somente 5e",
+      "pantheon": "Panteão Faerûniano",
+      "alignment": "Leal e Neutro",
+      "domains": {
+        "5e": "Conhecimento",
+        "5.5e": null
+      },
+      "symbolDescription": "Bola de cristal contendo muitos olhos",
+      "canonicalSource": "Guia do Aventureiro para a Costa da Espada",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Savras symbol.png",
+        "format": "png",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 2756684
+      },
+      "sourceUrl": "https://www.gemmaline.com/savras.png",
+      "referencePages": [
+        "https://forgottenrealms.fandom.com/wiki/Savras",
+        "https://www.thievesguild.cc/gods/god?godid=131"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/savras.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 54782,
+        "sha256": "22d198e7f01990ad9fcc722f3493076131ae91132ee16c7045d0f4f7f1b560ad"
+      }
+    },
+    {
+      "id": "selune",
+      "name": "Selûne",
+      "editions": "5e e 5.5e",
+      "pantheon": "Panteão Faerûniano",
+      "alignment": "Caótico e Bom",
+      "domains": {
+        "5e": "Conhecimento, Vida",
+        "5.5e": "Luz, Vida"
+      },
+      "symbolDescription": "Par de olhos cercados por sete estrelas",
+      "canonicalSource": "Guia do Aventureiro para a Costa da Espada",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Selune symbol.png",
+        "format": "png",
+        "width": 196,
+        "height": 196,
+        "bytes": 8341
+      },
+      "sourceUrl": "https://bg3.wiki/w/images/0/01/Sel%C3%BBne_Icon_Original.png",
+      "referencePages": [
+        "https://forgottenrealms.fandom.com/wiki/Sel%C3%Bbne"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/selune.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 3768,
+        "sha256": "41c6938b50854118f7c41ecfaedfa80a87eb5d2230605eed54a38d13d2c4e7fa"
+      }
+    },
+    {
+      "id": "shar",
+      "name": "Shar",
+      "editions": "5e e 5.5e",
+      "pantheon": "Panteão Faerûniano",
+      "alignment": "Neutro e Maligno",
+      "domains": {
+        "5e": "Morte, Enganação",
+        "5.5e": "Enganação"
+      },
+      "symbolDescription": "Disco negro envolto por uma borda púrpura",
+      "canonicalSource": "Guia do Aventureiro para a Costa da Espada",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Shar symbol.png",
+        "format": "png",
+        "width": 1024,
+        "height": 1024,
+        "bytes": 1319602
+      },
+      "sourceUrl": "https://bg3.wiki/w/images/5/55/Shar_Icon_Original.png",
+      "referencePages": [
+        "https://forgottenrealms.fandom.com/wiki/Shar",
+        "https://www.thievesguild.cc/gods/god?godid=100"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/shar.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 17318,
+        "sha256": "1a724ebfb394c4d5ad9fe247ab9764f3b258970cb9dff9cae10b50fd1ef2c89b"
+      }
+    },
+    {
+      "id": "silvanus",
+      "name": "Silvanus",
+      "editions": "5e e 5.5e",
+      "pantheon": "Panteão Faerûniano",
+      "alignment": "Neutro",
+      "domains": {
+        "5e": "Natureza, Vida",
+        "5.5e": "Vida"
+      },
+      "symbolDescription": "Folha de carvalho verde",
+      "canonicalSource": "Guia do Aventureiro para a Costa da Espada",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Silvanus symbol.png",
+        "format": "png",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 2695453
+      },
+      "sourceUrl": "https://static.wikia.nocookie.net/forgottenrealms/images/e/e7/Silvanus_symbol.jpg",
+      "referencePages": [
+        "https://forgottenrealms.fandom.com/wiki/Silvanus",
+        "https://www.thievesguild.cc/gods/god?godid=102"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/silvanus.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 33476,
+        "sha256": "cbe94888da382d084dfdb4bc14c9ec00a5bcd67a15792c5ff51eb414b47f3214"
+      }
+    },
+    {
+      "id": "sune",
+      "name": "Sune",
+      "editions": "5e e 5.5e",
+      "pantheon": "Panteão Faerûniano",
+      "alignment": "Caótico e Bom",
+      "domains": {
+        "5e": "Luz, Vida",
+        "5.5e": "Luz, Vida"
+      },
+      "symbolDescription": "Rosto de uma bela mulher ruiva",
+      "canonicalSource": "Guia do Aventureiro para a Costa da Espada",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Sune symbol.png",
+        "format": "png",
+        "width": 1024,
+        "height": 1024,
+        "bytes": 1828846
+      },
+      "sourceUrl": "https://static.wikia.nocookie.net/forgottenrealms/images/4/4e/Sune_symbol.jpg",
+      "referencePages": [
+        "https://forgottenrealms.fandom.com/wiki/Sune",
+        "https://www.thievesguild.cc/gods/god?godid=103"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/sune.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 70494,
+        "sha256": "9f6d6896ea0cfbea1fdc7f9694b49c86136b86108bbc9a7c4621a0ced0f45f0c"
+      }
+    },
+    {
+      "id": "talona",
+      "name": "Talona",
+      "editions": "5e e 5.5e",
+      "pantheon": "Panteão Faerûniano",
+      "alignment": "Caótico e Maligno",
+      "domains": {
+        "5e": "Morte",
+        "5.5e": "Enganação, Guerra"
+      },
+      "symbolDescription": "Três lágrimas ambar num triângulo roxo",
+      "canonicalSource": "Guia do Aventureiro para a Costa da Espada",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Talona symbol.png",
+        "format": "png",
+        "width": 1024,
+        "height": 1024,
+        "bytes": 1573181
+      },
+      "sourceUrl": "https://www.thievesguild.cc/images/gods/symbols/talona.jpg",
+      "referencePages": [
+        "https://forgottenrealms.fandom.com/wiki/Talona",
+        "https://www.thievesguild.cc/gods/god?godid=135"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/talona.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 30164,
+        "sha256": "d316ca70477b708638da03ffb4d0d0f8bab6b13e8e1c0a93bbeffa88969c8766"
+      }
+    },
+    {
+      "id": "talos",
+      "name": "Talos",
+      "editions": "5e e 5.5e",
+      "pantheon": "Panteão Faerûniano",
+      "alignment": "Caótico e Maligno",
+      "domains": {
+        "5e": "Tempestade",
+        "5.5e": "Guerra"
+      },
+      "symbolDescription": "Três relâmpagos saindo de um ponto central",
+      "canonicalSource": "Guia do Aventureiro para a Costa da Espada",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Talos symbol.png",
+        "format": "png",
+        "width": 196,
+        "height": 196,
+        "bytes": 2544
+      },
+      "sourceUrl": "https://bg3.wiki/w/images/6/60/Talos_Icon_Original.png",
+      "referencePages": [
+        "https://forgottenrealms.fandom.com/wiki/Talos",
+        "https://www.thievesguild.cc/gods/god?godid=104"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/talos.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 2210,
+        "sha256": "e3b1f9e35109b766bfd870c1212773b3ecc2bf6b8d309e4fdd9b97b8b18c1136"
+      }
+    },
+    {
+      "id": "tempus",
+      "name": "Tempus",
+      "editions": "5e e 5.5e",
+      "pantheon": "Panteão Faerûniano",
+      "alignment": "Neutro",
+      "domains": {
+        "5e": "Guerra",
+        "5.5e": "Guerra"
+      },
+      "symbolDescription": "Espada em chamas erguida",
+      "canonicalSource": "Guia do Aventureiro para a Costa da Espada",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Tempus symbol.png",
+        "format": "png",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 2225962
+      },
+      "sourceUrl": "https://bg3.wiki/w/images/f/f9/Tempus_Icon_Original.png",
+      "referencePages": [
+        "https://forgottenrealms.fandom.com/wiki/Tempus",
+        "https://www.thievesguild.cc/gods/god?godid=105"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/tempus.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 36232,
+        "sha256": "c44d04121a949392aeeb1337427013db85ff2aea2ff91f386f68118a0ebdf20f"
+      }
+    },
+    {
+      "id": "torm",
+      "name": "Torm",
+      "editions": "5e e 5.5e",
+      "pantheon": "Panteão Faerûniano",
+      "alignment": "Leal e Bom",
+      "domains": {
+        "5e": "Guerra, Proteção",
+        "5.5e": "Guerra"
+      },
+      "symbolDescription": "Manopla direita branca",
+      "canonicalSource": "Guia do Aventureiro para a Costa da Espada",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Torm symbol.png",
+        "format": "png",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 2262578
+      },
+      "sourceUrl": "https://static.wikia.nocookie.net/forgottenrealms/images/a/a5/Torm_symbol.jpg/revision/latest?cb=20260711080606",
+      "referencePages": [
+        "https://forgottenrealms.fandom.com/wiki/Torm",
+        "https://www.thievesguild.cc/gods/god?godid=106"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/torm.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 37844,
+        "sha256": "380f4528b96223969764bdeb35cbd618557cfa096d557e63f4d1528f57e2252e"
+      }
+    },
+    {
+      "id": "tymora",
+      "name": "Tymora",
+      "editions": "5e e 5.5e",
+      "pantheon": "Panteão Faerûniano",
+      "alignment": "Caótico e Bom",
+      "domains": {
+        "5e": "Enganação",
+        "5.5e": "Enganação"
+      },
+      "symbolDescription": "Face numa moeda",
+      "canonicalSource": "Guia do Aventureiro para a Costa da Espada",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Tymora symbol.png",
+        "format": "png",
+        "width": 1024,
+        "height": 1024,
+        "bytes": 2259930
+      },
+      "sourceUrl": "https://bg3.wiki/w/images/3/33/Tymora_Icon_Original.png",
+      "referencePages": [
+        "https://forgottenrealms.fandom.com/wiki/Tymora",
+        "https://www.thievesguild.cc/gods/god?godid=107"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/tymora.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 83188,
+        "sha256": "ff56e496952e88ea8c8e00b19b4b5713ad3c27922c3132aeefd6ca81efd005a3"
+      }
+    },
+    {
+      "id": "tyr",
+      "name": "Tyr",
+      "editions": "5e e 5.5e",
+      "pantheon": "Panteão Faerûniano",
+      "alignment": "Leal e Bom",
+      "domains": {
+        "5e": "Guerra, Proteção",
+        "5.5e": "Guerra"
+      },
+      "symbolDescription": "Balança descansando sobre um martelo de guerra",
+      "canonicalSource": "Guia do Aventureiro para a Costa da Espada",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Tyr symbol.png",
+        "format": "png",
+        "width": 1024,
+        "height": 1024,
+        "bytes": 1656386
+      },
+      "sourceUrl": "https://bg3.wiki/w/images/e/e3/Tyr_Icon_Original.png",
+      "referencePages": [
+        "https://forgottenrealms.fandom.com/wiki/Tyr",
+        "https://www.thievesguild.cc/gods/god?godid=108"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/tyr.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 46748,
+        "sha256": "153fef9c299faa6d42743f79ef79c9223fa9876a1c7cf116825a6654885064f7"
+      }
+    },
+    {
+      "id": "umberlee",
+      "name": "Umberlee",
+      "editions": "5e e 5.5e",
+      "pantheon": "Panteão Faerûniano",
+      "alignment": "Caótico e Maligno",
+      "domains": {
+        "5e": "Tempestade",
+        "5.5e": "Guerra"
+      },
+      "symbolDescription": "Onda bifurcada para a direita e esquerda",
+      "canonicalSource": "Guia do Aventureiro para a Costa da Espada",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Umberlee symbol.png",
+        "format": "png",
+        "width": 1024,
+        "height": 1024,
+        "bytes": 2165593
+      },
+      "sourceUrl": "https://static.wikia.nocookie.net/forgottenrealms/images/1/14/Umberlee_symbol.jpg",
+      "referencePages": [
+        "https://forgottenrealms.fandom.com/wiki/Umberlee"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/umberlee.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 59794,
+        "sha256": "f133cd22ca8185c4d498a76462262e1e29c00512f37f0163e5836617e0e5e629"
+      }
+    },
+    {
+      "id": "valkur",
+      "name": "Valkur",
+      "editions": "somente 5e",
+      "pantheon": "Panteão Faerûniano",
+      "alignment": "Caótico e Bom",
+      "domains": {
+        "5e": "Tempestade, Guerra",
+        "5.5e": null
+      },
+      "symbolDescription": "Nuvem com três relâmpagos",
+      "canonicalSource": "Guia do Aventureiro para a Costa da Espada",
+      "workbookStatus": "Validada",
+      "usageCondition": "Permitido",
+      "sourceFile": {
+        "name": "Valkur symbol.png",
+        "format": "png",
+        "width": 1024,
+        "height": 1024,
+        "bytes": 1763472
+      },
+      "sourceUrl": "https://www.thievesguild.cc/images/gods/symbols/valkur.jpg",
+      "referencePages": [
+        "https://forgottenrealms.fandom.com/wiki/Valkur",
+        "https://www.thievesguild.cc/gods/god?godid=138"
+      ],
+      "bookReference": null,
+      "notes": null,
+      "reviewedAt": "2026-07-29T00:00:00.000Z",
+      "output": {
+        "path": "/assets/icons/divinities/valkur.webp",
+        "format": "webp-lossless",
+        "width": 256,
+        "height": 256,
+        "bytes": 50258,
+        "sha256": "3b743c312015c874d67f8a39cb4105a258a11642630aa78370208b403460d796"
+      }
+    }
+  ]
+}

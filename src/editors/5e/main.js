@@ -244,6 +244,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     if (isDivinityCatalogLoaded()) return DIVINITIES;
 
     if (!divinityCatalogLoadPromise) {
+      import("../divinity-icons.js");
       divinityCatalogLoadPromise = import("../../data/5e/divindades.js")
         .then(({ DIVINDADES }) => {
           DIVINITIES = Object.values(DIVINDADES || {});
@@ -16897,7 +16898,7 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
         <span
           class="contextual-divinity-symbol-slot"
           data-divinity-name="${escapeHtml(state.divindade || "")}"
-          data-divinity-symbol="${escapeHtml(selectedDivinity?.símbolo || "")}"
+          data-divinity-id="${escapeHtml(selectedDivinity?.id || "")}"
           aria-label="${escapeHtml(state.divindade ? `Símbolo de ${state.divindade}` : "Símbolo da divindade ainda não selecionada")}"
           hidden
         ></span>
