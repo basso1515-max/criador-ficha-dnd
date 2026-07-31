@@ -456,7 +456,14 @@ const smokePages = [
   {
     name: "estatisticas",
     path: "/estatisticas.html",
-    selectors: ["#statsTopClass", "#statsTopEdition", "#statsGlobalIndexes", ".stats-privacy-band"],
+    selectors: [
+      "#statsTopClass",
+      "#statsTopEdition",
+      "#statsGlobalIndexes",
+      ".stats-privacy-band",
+      ".stats-brand .stats-d20 use[href='#statsD20Symbol']",
+      ".stats-emblem .stats-d20 use[href='#statsD20Symbol']",
+    ],
   },
   {
     name: "conta",
