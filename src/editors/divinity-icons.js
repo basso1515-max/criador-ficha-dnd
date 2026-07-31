@@ -8,7 +8,14 @@ export const DIVINITY_ICON_IDS = Object.freeze(`
   chauntea cyric deneir eldath gond grumbar gwaeron helm hoar ilmater istishia
   jergal kelemvor kossuth lathander leira lliira loviatar malar mask mielikki
   milil myrkul mystra oghma savras selune shar silvanus sune talona talos
-  tempus torm tymora tyr umberlee valkur
+  tempus torm tymora tyr umberlee valkur waukeen anhur bast geb hathor horus
+  isis nephthys osiris re sebek set thoth bahgtru gruumsh ilneval luthic
+  shargaas yurtrus aerdrie_faenya angharradh corellon deep_sashelas erevan
+  fenmarel_mestarine hanali_celanil labelas_enoreth rillifane_rallathil
+  sehanine_moonbow shevarash solonor_thelandira eilistraee kiaransalee lolth
+  selvetarm vhaeraun baervan_wildwanderer baravar_cloakshadow
+  callarduran_smoothhands flandal_steelskin gaerdal_ironhand garl_glittergold
+  nebelun segojan_earthcaller urdlen
 `.trim().split(/\s+/));
 
 const DIVINITY_ICON_ID_SET = new Set(DIVINITY_ICON_IDS);
