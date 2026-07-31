@@ -70,7 +70,6 @@ import {
 const root = process.cwd();
 const requiredFiles = [
   "index.html",
-  "favicon.svg",
   "favicon.png",
   "estatisticas.html",
   "conta.html",
