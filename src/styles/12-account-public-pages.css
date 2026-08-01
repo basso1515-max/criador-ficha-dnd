@@ -883,6 +883,32 @@ body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-
   }
 }
 
+/*
+ * Evita manter camadas filtradas e fixas durante a rolagem das telas longas
+ * de conta e admin. Em navegadores moveis, essa combinacao pode esgotar o
+ * compositor alguns segundos depois que os dados autenticados sao renderizados.
+ */
+@media (max-width: 720px) {
+  body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .account-page-shell::before {
+    display: none;
+  }
+
+  body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .account-page-shell::after {
+    position: absolute;
+    inset: 120px 0 auto auto;
+    width: 260px;
+    height: 260px;
+    filter: none;
+    opacity: 0.08;
+    transform: none;
+  }
+
+  body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) .version-toolbar {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
 @media (max-width: 620px) {
   body:is([data-active-screen="account"], [data-active-screen="user-page"], [data-active-screen="admin-page"]) {
     padding-bottom: 28px;

@@ -112,10 +112,33 @@ async function main() {
       throw new Error(`Regressao de layout admin em ${viewport.name} (${viewport.width}x${viewport.height}):\n${audit.errors.map((error) => `- ${error}`).join("\n")}`);
     }
 
+    if (viewport.mobile) {
+      await delay(6_500);
+      await assertStableMobileAccountSurface(cdp, "admin");
+    }
+
     if (screenshotDir) {
       await captureViewportScreenshot(cdp, viewport);
     }
   }
+
+  const mobileViewport = viewports.find((viewport) => viewport.mobile);
+  await cdp.send("Emulation.setDeviceMetricsOverride", {
+    width: mobileViewport.width,
+    height: mobileViewport.height,
+    deviceScaleFactor: 1,
+    mobile: true,
+  });
+  await navigate(cdp, `${baseUrl}/minha-conta.html?__accountMobileLayout=mobile`);
+  await waitForFunction(
+    cdp,
+    "Boolean(document.querySelector('#userPageContent:not([hidden])'))",
+    PAGE_TIMEOUT_MS,
+    "Minha conta nao renderizou no mobile",
+  );
+  await delay(6_500);
+  await assertStableMobileAccountSurface(cdp, "minha conta");
+  viewportResults.push(`minha conta mobile: ${mobileViewport.width}x${mobileViewport.height}`);
 
   if (consoleProblems.length) {
     throw new Error(`Erros no console:\n${consoleProblems.map((item) => `- ${item}`).join("\n")}`);
@@ -129,6 +152,47 @@ async function main() {
 
   await closeBrowser(cdp, chrome);
   terminateChild(server);
+}
+
+async function assertStableMobileAccountSurface(cdp, label) {
+  const audit = await evaluate(cdp, `(${mobileAccountSurfaceAudit.toString()})()`);
+  if (audit.errors.length) {
+    throw new Error(`Regressao de estabilidade mobile em ${label}:\n${audit.errors.map((error) => `- ${error}`).join("\n")}`);
+  }
+}
+
+function mobileAccountSurfaceAudit() {
+  const errors = [];
+  const shell = document.querySelector(".account-page-shell");
+  const toolbar = document.querySelector(".version-toolbar");
+  if (!shell) {
+    return { errors: ["shell da pagina nao encontrado"] };
+  }
+
+  const before = getComputedStyle(shell, "::before");
+  const after = getComputedStyle(shell, "::after");
+  const toolbarStyle = toolbar ? getComputedStyle(toolbar) : null;
+  const toolbarBackdrop = toolbarStyle?.backdropFilter || toolbarStyle?.webkitBackdropFilter || "none";
+
+  if (before.display !== "none") {
+    errors.push(`grade decorativa ainda cria camada mobile (${before.display})`);
+  }
+  if (after.position === "fixed") {
+    errors.push("marca-d'agua ainda usa position: fixed");
+  }
+  if (after.filter !== "none") {
+    errors.push(`marca-d'agua ainda usa filtro composto (${after.filter})`);
+  }
+  if (toolbarBackdrop !== "none") {
+    errors.push(`toolbar ainda usa backdrop-filter (${toolbarBackdrop})`);
+  }
+
+  const pageOverflow = document.documentElement.scrollWidth - document.documentElement.clientWidth;
+  if (pageOverflow > 1) {
+    errors.push(`pagina tem overflow horizontal de ${Math.round(pageOverflow)}px`);
+  }
+
+  return { errors };
 }
 
 async function captureViewportScreenshot(cdp, viewport) {
