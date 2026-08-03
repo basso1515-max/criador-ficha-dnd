@@ -651,6 +651,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
   let lastMagicPointerWasTouch = false;
   let magicTouchPreviewController = null;
   let magicTouchPreviewPromise = null;
+  let pendingMagicListViewState = null;
   let lastAttributeRolls = [];
   let lastValidPointBuyValues = Object.fromEntries(ABILITIES.map((ability) => [ability.key, 8]));
   let selectedPortraitImage = null;
@@ -1003,6 +1004,9 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       onEquipmentChoicesChanged,
       onEquipmentChoicesInput,
     });
+    if (el.magicSpellHoverCard?.parentElement !== document.body) {
+      document.body.append(el.magicSpellHoverCard);
+    }
     bindSpellsUiEvents5e(el, {
       onSpellChecklistChanged,
       onMagicFilterControlChanged,
@@ -14043,8 +14047,9 @@ function listVisibleSpellPickerSourceKeys(sources = []) {
         .then(({ createSpellTouchPreviewController }) => {
           magicTouchPreviewController = createSpellTouchPreviewController({
             hoverCard: () => el.magicSpellHoverCard,
-            showCard: showMagicSpellHoverCard,
-            hideCard: hideMagicSpellHoverCard,
+            availablePanel: () => el.availableSpellPanel,
+            selectedPanel: () => el.selectedSpellBook,
+            buildMarkup: buildMagicSpellHoverCardMarkup,
             isSelected: isSpellSelected,
           });
           return magicTouchPreviewController;
@@ -14171,47 +14176,19 @@ function buildMagicSpellHoverCardMarkup(target) {
   `;
 }
 
-  function positionMagicSpellHoverCard(clientX, clientY) {
-    if (!el.magicSpellHoverCard || el.magicSpellHoverCard.hidden) return;
-
-    const offset = 18;
-    const viewportWidth = window.innerWidth || document.documentElement.clientWidth || 0;
-    const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
-    const { offsetWidth, offsetHeight } = el.magicSpellHoverCard;
-    let left = clientX + offset;
-    let top = clientY + offset;
-
-    if (left + offsetWidth > viewportWidth - 12) {
-      left = Math.max(12, clientX - offsetWidth - offset);
-    }
-
-    if (top + offsetHeight > viewportHeight - 12) {
-      top = Math.max(12, viewportHeight - offsetHeight - 12);
-    }
-
-    el.magicSpellHoverCard.style.left = `${left}px`;
-    el.magicSpellHoverCard.style.top = `${top}px`;
-  }
-
   function showMagicSpellHoverCard(target, event) {
-    if (!el.magicSpellHoverCard || !target) return;
-    const markup = buildMagicSpellHoverCardMarkup(target);
-    if (!markup) {
-      hideMagicSpellHoverCard();
-      return;
-    }
-
     activeMagicHoverTarget = target;
-    el.magicSpellHoverCard.innerHTML = markup;
-    el.magicSpellHoverCard.hidden = false;
-    positionMagicSpellHoverCard(event.clientX, event.clientY);
+    getMagicTouchPreviewController()
+      .then((controller) => {
+        if (activeMagicHoverTarget === target) controller.show(target, event);
+      })
+      .catch((error) => console.error("Erro ao exibir preview de magia:", error));
   }
 
   function hideMagicSpellHoverCard() {
     activeMagicHoverTarget = null;
-    magicTouchPreviewController?.reset();
-    if (!el.magicSpellHoverCard) return;
-    el.magicSpellHoverCard.hidden = true;
+    if (magicTouchPreviewController) magicTouchPreviewController.hide();
+    else if (el.magicSpellHoverCard) el.magicSpellHoverCard.hidden = true;
   }
 
   function onMagicSpellHoverStart(event) {
@@ -14224,8 +14201,7 @@ function buildMagicSpellHoverCardMarkup(target) {
   }
 
   function onMagicSpellHoverMove(event) {
-    if (!activeMagicHoverTarget) return;
-    positionMagicSpellHoverCard(event.clientX, event.clientY);
+    magicTouchPreviewController?.move(event);
   }
 
   function onMagicSpellHoverEnd(event) {
@@ -14235,6 +14211,10 @@ function buildMagicSpellHoverCardMarkup(target) {
     const related = findMagicSpellHoverTarget(event.relatedTarget);
     if (related === target) return;
     hideMagicSpellHoverCard();
+  }
+
+  function reconcileMagicSpellHoverCard() {
+    magicTouchPreviewPromise?.then((controller) => controller.reconcile());
   }
 
   function countFlexibleSpellsSelectedForSource(source) {
@@ -14472,6 +14452,13 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
       sourceCardsMarkup,
     ].join("");
     restoreMagicChecklistScrollPositions();
+    const viewState = pendingMagicListViewState;
+    if (viewState) {
+      getMagicTouchPreviewController().then((controller) => controller.restoreView(el.magicSourcesList, viewState));
+      setTimeout(() => {
+        if (pendingMagicListViewState === viewState) pendingMagicListViewState = null;
+      });
+    }
   }
 
   function summarizeSpellSelection(context) {
@@ -14688,12 +14675,12 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
       return;
     }
     if (!el.magicSection || !el.magicSummary) return;
-    hideMagicSpellHoverCard();
     const state = collectState();
     const context = buildSpellcastingContext(state);
     lastMagicContext = context;
 
     if (!context.sources.length) {
+      hideMagicSpellHoverCard();
       el.magicSection.style.display = "none";
       if (el.magicSlotsPanel) el.magicSlotsPanel.hidden = true;
       if (el.magicSlotsGrid) el.magicSlotsGrid.innerHTML = "";
@@ -14705,6 +14692,7 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
     }
 
     if (!isSpellCatalogLoaded()) {
+      hideMagicSpellHoverCard();
       el.magicSection.style.display = "";
       if (el.magicSlotsPanel) el.magicSlotsPanel.hidden = true;
       if (el.magicSlotsGrid) el.magicSlotsGrid.innerHTML = "";
@@ -14759,6 +14747,7 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
     }
 
     renderSelectedSpellBook(context, state);
+    reconcileMagicSpellHoverCard();
     atualizarPreview();
   }
 
@@ -14772,6 +14761,7 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
     const visibleSourceKeys = listVisibleSpellPickerSourceKeys(context.sources);
     const source = context.sources.find((entry) => entry.sourceKey === checkbox.getAttribute("data-source-key"));
     if (!source) return;
+    pendingMagicListViewState ||= [checkbox.dataset.sourceKey, checkbox.dataset.kind, checkbox.value, window.scrollX, window.scrollY];
 
     const kind = checkbox.getAttribute("data-kind");
     const selection = getSpellSelectionForSource(source.sourceKey);
@@ -14786,6 +14776,7 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
       checkbox.checked = false;
       setStatus(`${spellName} já foi selecionada para ${getSpellSelectionSourceLabel(duplicateSourceKey, sourceMap)}.`);
       if (selectionSanitized) renderMagicSection();
+      else pendingMagicListViewState = null;
       return;
     }
 
@@ -14794,6 +14785,7 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
         checkbox.checked = false;
         setStatus(`Você só pode selecionar ${source.limits.cantripLimit} truque(s) para ${source.classLabel}.`);
         if (selectionSanitized) renderMagicSection();
+        else pendingMagicListViewState = null;
         return;
       }
 
@@ -14810,6 +14802,7 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
         checkbox.checked = false;
         setStatus(`Você só pode selecionar ${source.limits.spellLimit} magia(s) para ${source.classLabel}.`);
         if (selectionSanitized) renderMagicSection();
+        else pendingMagicListViewState = null;
         return;
       }
 
@@ -14817,6 +14810,7 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
         checkbox.checked = false;
         setStatus(`As escolhas livres de ${source.classLabel} já foram usadas (${source.limits.flexibleSpellAllowance}).`);
         if (selectionSanitized) renderMagicSection();
+        else pendingMagicListViewState = null;
         return;
       }
 
@@ -14828,9 +14822,6 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
     }
 
     setStatus("");
-    const nextState = collectState();
-    const nextContext = buildSpellcastingContext(nextState);
-    renderSelectedSpellBook(nextContext, nextState);
     renderMagicSection();
     renderWarlockInvocationChoices();
     commitCharacterStateMutation("spell-selection");

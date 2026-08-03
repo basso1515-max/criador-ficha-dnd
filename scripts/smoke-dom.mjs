@@ -955,6 +955,7 @@ const smokePages = [
           const scrollKey = checklist.getAttribute("data-scroll-key");
           checklist.scrollTop = Math.min(96, checklist.scrollHeight - checklist.clientHeight);
           const expectedScrollTop = checklist.scrollTop;
+          const expectedWindowScrollY = window.scrollY;
           assert(expectedScrollTop > 0, "Lista de magias 5e não aceitou rolagem antes da seleção por toque.");
           const inputKey = (input) => ({
             sourceKey: input.getAttribute("data-source-key"),
@@ -984,7 +985,13 @@ const smokePages = [
             await waitForCondition(() => {
               const hover = document.querySelector(hoverSelector);
               const text = hover?.textContent || "";
-              return hover && !hover.hidden && normalize(text).includes(normalize(name)) && /Tempo|Alcance|Duração/.test(text);
+              const style = hover ? window.getComputedStyle(hover) : null;
+              return hover
+                && !hover.hidden
+                && style?.display !== "none"
+                && style?.visibility !== "hidden"
+                && normalize(text).includes(normalize(name))
+                && /Tempo|Alcance|Duração/.test(text);
             }, message);
           };
           const firstItem = items[0];
@@ -995,21 +1002,40 @@ const smokePages = [
           const secondKey = inputKey(secondInput);
           const firstName = firstItem.querySelector("strong")?.textContent || firstKey.value;
           const secondName = secondItem.querySelector("strong")?.textContent || secondKey.value;
+          const currentChecklist = () => Array.from(document.querySelectorAll(listSelector + " .spell-checklist[data-scroll-key]"))
+            .find((node) => node.getAttribute("data-scroll-key") === scrollKey);
+          const currentItem = (key) => findInputByKey(key)?.closest(".spell-check-item");
 
-          tapSpell(firstItem);
+          tapSpell(currentItem(firstKey));
           await assertHoverShows(firstName, "Primeiro toque 5e não abriu o card da magia.");
-          assert(!firstInput.checked, "Primeiro toque 5e selecionou a magia antes da confirmação.");
+          assert(!findInputByKey(firstKey)?.checked, "Primeiro toque 5e selecionou a magia antes da confirmação.");
+          assert(Math.abs(currentChecklist()?.scrollTop - expectedScrollTop) <= 4, "Primeiro toque 5e alterou a rolagem da lista antes da seleção.");
 
-          tapSpell(secondItem, 200, 240);
+          tapSpell(currentItem(secondKey), 200, 240);
           await assertHoverShows(secondName, "Toque em outra magia 5e não trocou o card ativo.");
-          assert(!secondInput.checked, "Toque em outra magia 5e deveria apenas trocar o card ativo.");
+          assert(!findInputByKey(secondKey)?.checked, "Toque em outra magia 5e deveria apenas trocar o card ativo.");
+          assert(Math.abs(currentChecklist()?.scrollTop - expectedScrollTop) <= 4, "Troca de card 5e alterou a rolagem da lista antes da seleção.");
 
-          tapSpell(secondItem, 200, 240);
+          tapSpell(currentItem(secondKey), 200, 240);
           await waitForCondition(() => {
             const selectedInput = findInputByKey(secondKey);
             const restoredChecklist = Array.from(document.querySelectorAll(listSelector + " .spell-checklist[data-scroll-key]"))
               .find((node) => node.getAttribute("data-scroll-key") === scrollKey);
-            return selectedInput?.checked && restoredChecklist && Math.abs(restoredChecklist.scrollTop - expectedScrollTop) <= 4;
+            const stable = selectedInput?.checked
+              && restoredChecklist
+              && Math.abs(restoredChecklist.scrollTop - expectedScrollTop) <= 4
+              && Math.abs(window.scrollY - expectedWindowScrollY) <= 4;
+            if (stable) return true;
+            throw new Error(JSON.stringify({
+              checked: selectedInput?.checked,
+              expectedScrollTop,
+              actualScrollTop: restoredChecklist?.scrollTop,
+              scrollKey,
+              firstName,
+              secondName,
+              expectedWindowScrollY,
+              actualWindowScrollY: window.scrollY,
+            }));
           }, "Segundo toque 5e não selecionou a magia preservando a rolagem da lista.");
 
           const freshFirstInput = findInputByKey(firstKey);
@@ -1612,7 +1638,7 @@ const smokePages = [
           assert(availableSpell, "Assistente 5e não tem magia disponível para testar hovercard.");
           availableSpell.dispatchEvent(new MouseEvent("mouseover", { bubbles: true, clientX: 160, clientY: 160 }));
           const hover = document.querySelector("#magicSpellHoverCard");
-          assert(hover && !hover.hidden && /Tempo|Alcance|Duração/.test(hover.textContent || ""), "Hovercard de magia disponível 5e não abriu no assistente.");
+          await waitForCondition(() => hover && !hover.hidden && /Tempo|Alcance|Duração/.test(hover.textContent || ""), "Hovercard de magia disponível 5e não abriu no assistente.");
 
           const input = availableSpell.querySelector("input[type='checkbox']");
           if (input && !input.disabled && !input.checked) {
@@ -1623,7 +1649,7 @@ const smokePages = [
           const selectedSpell = document.querySelector(".level-up-portaled-panel [id^='selectedSpellBook'] [data-spell-id]");
           assert(selectedSpell, "Assistente 5e não tem magia selecionada para testar hovercard.");
           selectedSpell.dispatchEvent(new MouseEvent("mouseover", { bubbles: true, clientX: 180, clientY: 180 }));
-          assert(hover && !hover.hidden && /Tempo|Alcance|Duração/.test(hover.textContent || ""), "Hovercard de magia escolhida 5e não abriu no assistente.");
+          await waitForCondition(() => hover && !hover.hidden && /Tempo|Alcance|Duração/.test(hover.textContent || ""), "Hovercard de magia escolhida 5e não abriu no assistente.");
           hover.hidden = true;
         };
 
@@ -1810,6 +1836,7 @@ const smokePages = [
           const scrollKey = checklist.getAttribute("data-scroll-key");
           checklist.scrollTop = Math.min(96, checklist.scrollHeight - checklist.clientHeight);
           const expectedScrollTop = checklist.scrollTop;
+          const expectedWindowScrollY = window.scrollY;
           assert(expectedScrollTop > 0, "Lista de magias 2024 não aceitou rolagem antes da seleção por toque.");
           const inputKey = (input) => ({
             sourceKey: input.getAttribute("data-source-key"),
@@ -1839,7 +1866,13 @@ const smokePages = [
             await waitForCondition(() => {
               const hover = document.querySelector(hoverSelector);
               const text = hover?.textContent || "";
-              return hover && !hover.hidden && normalize(text).includes(normalize(name)) && /Tempo|Alcance|Duração/.test(text);
+              const style = hover ? window.getComputedStyle(hover) : null;
+              return hover
+                && !hover.hidden
+                && style?.display !== "none"
+                && style?.visibility !== "hidden"
+                && normalize(text).includes(normalize(name))
+                && /Tempo|Alcance|Duração/.test(text);
             }, message);
           };
           const firstItem = items[0];
@@ -1850,21 +1883,29 @@ const smokePages = [
           const secondKey = inputKey(secondInput);
           const firstName = firstItem.querySelector("strong")?.textContent || firstKey.value;
           const secondName = secondItem.querySelector("strong")?.textContent || secondKey.value;
+          const currentChecklist = () => Array.from(document.querySelectorAll(listSelector + " .spell-checklist[data-scroll-key]"))
+            .find((node) => node.getAttribute("data-scroll-key") === scrollKey);
+          const currentItem = (key) => findInputByKey(key)?.closest(".spell-check-item");
 
-          tapSpell(firstItem);
+          tapSpell(currentItem(firstKey));
           await assertHoverShows(firstName, "Primeiro toque 2024 não abriu o card da magia.");
-          assert(!firstInput.checked, "Primeiro toque 2024 selecionou a magia antes da confirmação.");
+          assert(!findInputByKey(firstKey)?.checked, "Primeiro toque 2024 selecionou a magia antes da confirmação.");
+          assert(Math.abs(currentChecklist()?.scrollTop - expectedScrollTop) <= 4, "Primeiro toque 2024 alterou a rolagem da lista antes da seleção.");
 
-          tapSpell(secondItem, 200, 240);
+          tapSpell(currentItem(secondKey), 200, 240);
           await assertHoverShows(secondName, "Toque em outra magia 2024 não trocou o card ativo.");
-          assert(!secondInput.checked, "Toque em outra magia 2024 deveria apenas trocar o card ativo.");
+          assert(!findInputByKey(secondKey)?.checked, "Toque em outra magia 2024 deveria apenas trocar o card ativo.");
+          assert(Math.abs(currentChecklist()?.scrollTop - expectedScrollTop) <= 4, "Troca de card 2024 alterou a rolagem da lista antes da seleção.");
 
-          tapSpell(secondItem, 200, 240);
+          tapSpell(currentItem(secondKey), 200, 240);
           await waitForCondition(() => {
             const selectedInput = findInputByKey(secondKey);
             const restoredChecklist = Array.from(document.querySelectorAll(listSelector + " .spell-checklist[data-scroll-key]"))
               .find((node) => node.getAttribute("data-scroll-key") === scrollKey);
-            return selectedInput?.checked && restoredChecklist && Math.abs(restoredChecklist.scrollTop - expectedScrollTop) <= 4;
+            return selectedInput?.checked
+              && restoredChecklist
+              && Math.abs(restoredChecklist.scrollTop - expectedScrollTop) <= 4
+              && Math.abs(window.scrollY - expectedWindowScrollY) <= 4;
           }, "Segundo toque 2024 não selecionou a magia preservando a rolagem da lista.");
 
           const freshFirstInput = findInputByKey(firstKey);
@@ -2604,7 +2645,7 @@ const smokePages = [
           assert(availableSpell, "Assistente 5.5e não tem magia disponível para testar hovercard.");
           availableSpell.dispatchEvent(new MouseEvent("mouseover", { bubbles: true, clientX: 160, clientY: 160 }));
           const hover = document.querySelector("#magicSpellHoverCard2024");
-          assert(hover && !hover.hidden && /Tempo|Alcance|Duração/.test(hover.textContent || ""), "Hovercard de magia disponível 5.5e não abriu no assistente.");
+          await waitForCondition(() => hover && !hover.hidden && /Tempo|Alcance|Duração/.test(hover.textContent || ""), "Hovercard de magia disponível 5.5e não abriu no assistente.");
 
           const input = availableSpell.querySelector("input[type='checkbox']");
           if (input && !input.disabled && !input.checked) {
@@ -2615,7 +2656,7 @@ const smokePages = [
           const selectedSpell = document.querySelector(".level-up-portaled-panel [id^='selectedSpellBook'] [data-spell-id]");
           assert(selectedSpell, "Assistente 5.5e não tem magia selecionada para testar hovercard.");
           selectedSpell.dispatchEvent(new MouseEvent("mouseover", { bubbles: true, clientX: 180, clientY: 180 }));
-          assert(hover && !hover.hidden && /Tempo|Alcance|Duração/.test(hover.textContent || ""), "Hovercard de magia escolhida 5.5e não abriu no assistente.");
+          await waitForCondition(() => hover && !hover.hidden && /Tempo|Alcance|Duração/.test(hover.textContent || ""), "Hovercard de magia escolhida 5.5e não abriu no assistente.");
           hover.hidden = true;
         };
 
@@ -2818,7 +2859,15 @@ async function main() {
   });
 
   const results = [];
-  for (const page of smokePages) {
+  const requestedSmokePage = String(process.env.DND_SMOKE_PAGE || "").trim();
+  const smokePagesToRun = requestedSmokePage
+    ? smokePages.filter((page) => page.name === requestedSmokePage)
+    : smokePages;
+  if (requestedSmokePage && !smokePagesToRun.length) {
+    throw new Error(`Smoke solicitado não encontrado: ${requestedSmokePage}`);
+  }
+
+  for (const page of smokePagesToRun) {
     console.log(`Smoke: ${page.name}`);
     let pageInitScriptId = "";
     if (page.initScript) {

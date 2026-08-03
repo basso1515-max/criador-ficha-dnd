@@ -81,15 +81,17 @@ test("spell touch preview opens the card on first tap and selects on second tap"
   const target = createSpellTarget({ spellId: "luz", input });
   const { card, controller, shownTargets } = createController();
 
-  controller.handleClick(target, { clientX: 120, clientY: 160 });
+  const previewAction = controller.handleClick(target, { clientX: 120, clientY: 160 });
 
+  assert.equal(previewAction, "preview");
   assert.equal(card.hidden, false);
   assert.equal(shownTargets.length, 1);
   assert.equal(input.checked, false);
   assert.equal(input.events.length, 0);
 
-  controller.handleClick(target, { clientX: 120, clientY: 160 });
+  const toggleAction = controller.handleClick(target, { clientX: 120, clientY: 160 });
 
+  assert.equal(toggleAction, "toggle");
   assert.equal(shownTargets.length, 1);
   assert.equal(input.checked, true);
   assert.equal(input.events.length, 1);
@@ -142,8 +144,8 @@ test("spell touch preview does not dispatch selection changes for disabled input
   const target = createSpellTarget({ input });
   const { controller } = createController();
 
-  controller.handleClick(target, {});
-  controller.handleClick(target, {});
+  assert.equal(controller.handleClick(target, {}), "preview");
+  assert.equal(controller.handleClick(target, {}), "blocked");
 
   assert.equal(input.checked, false);
   assert.equal(input.events.length, 0);

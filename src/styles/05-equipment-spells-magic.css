@@ -1308,6 +1308,7 @@
   gap: 8px;
   min-height: 220px;
   max-height: min(42vh, 360px);
+  overflow-anchor: none;
   padding: 12px;
   border-radius: 12px;
   background: rgba(255,251,242,0.94);
@@ -1387,7 +1388,7 @@
   position: fixed;
   top: 0;
   left: 0;
-  z-index: 60;
+  z-index: 95;
   width: min(360px, calc(100vw - 24px));
   max-height: min(70vh, 520px);
   overflow: auto;

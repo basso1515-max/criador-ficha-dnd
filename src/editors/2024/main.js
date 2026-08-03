@@ -584,6 +584,7 @@ import {
   let lastMagicPointerWasTouch2024 = false;
   let magicTouchPreviewController2024 = null;
   let magicTouchPreviewPromise2024 = null;
+  let pendingMagicListViewState2024 = null;
   const magicChecklistScrollState2024 = new Map();
   let hitPointRollControlsSignature2024 = "";
   let editorA11y2024 = null;
@@ -1195,6 +1196,9 @@ import {
       onEquipmentChoicesChanged: onEquipmentChoicesChanged2024,
       onEquipmentChoicesInput: onEquipmentChoicesInput2024,
     });
+    if (el.magicSpellHoverCard?.parentElement !== document.body) {
+      document.body.append(el.magicSpellHoverCard);
+    }
     bindSpellsUiEvents2024(el, {
       onMagicSpellChecklistChanged: onMagicSpellChecklistChanged2024,
       onMagicFilterControlChanged: onMagicFilterControlChanged2024,
@@ -13036,8 +13040,9 @@ import {
         .then(({ createSpellTouchPreviewController }) => {
           magicTouchPreviewController2024 = createSpellTouchPreviewController({
             hoverCard: () => el.magicSpellHoverCard,
-            showCard: showMagicSpellHoverCard2024,
-            hideCard: hideMagicSpellHoverCard2024,
+            availablePanel: () => el.availableSpellPanel,
+            selectedPanel: () => el.selectedSpellBook,
+            buildMarkup: buildMagicSpellHoverCardMarkup2024,
             isSelected(sourceKey, spellId, kind) {
               const selection = getSpellSelectionForSource2024(sourceKey);
               return kind === "cantrip" ? selection.cantrips.has(spellId) : selection.spells.has(spellId);
@@ -13121,47 +13126,19 @@ import {
     `;
   }
 
-  function positionMagicSpellHoverCard2024(clientX, clientY) {
-    if (!el.magicSpellHoverCard || el.magicSpellHoverCard.hidden) return;
-
-    const offset = 18;
-    const viewportWidth = window.innerWidth || document.documentElement.clientWidth || 0;
-    const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
-    const { offsetWidth, offsetHeight } = el.magicSpellHoverCard;
-    let left = clientX + offset;
-    let top = clientY + offset;
-
-    if (left + offsetWidth > viewportWidth - 12) {
-      left = Math.max(12, clientX - offsetWidth - offset);
-    }
-
-    if (top + offsetHeight > viewportHeight - 12) {
-      top = Math.max(12, viewportHeight - offsetHeight - 12);
-    }
-
-    el.magicSpellHoverCard.style.left = `${left}px`;
-    el.magicSpellHoverCard.style.top = `${top}px`;
-  }
-
   function showMagicSpellHoverCard2024(target, event) {
-    if (!el.magicSpellHoverCard || !target) return;
-    const markup = buildMagicSpellHoverCardMarkup2024(target);
-    if (!markup) {
-      hideMagicSpellHoverCard2024();
-      return;
-    }
-
     activeMagicHoverTarget2024 = target;
-    el.magicSpellHoverCard.innerHTML = markup;
-    el.magicSpellHoverCard.hidden = false;
-    positionMagicSpellHoverCard2024(event.clientX, event.clientY);
+    getMagicTouchPreviewController2024()
+      .then((controller) => {
+        if (activeMagicHoverTarget2024 === target) controller.show(target, event);
+      })
+      .catch((error) => console.error("Erro ao exibir preview de magia:", error));
   }
 
   function hideMagicSpellHoverCard2024() {
     activeMagicHoverTarget2024 = null;
-    magicTouchPreviewController2024?.reset();
-    if (!el.magicSpellHoverCard) return;
-    el.magicSpellHoverCard.hidden = true;
+    if (magicTouchPreviewController2024) magicTouchPreviewController2024.hide();
+    else if (el.magicSpellHoverCard) el.magicSpellHoverCard.hidden = true;
   }
 
   function onMagicSpellHoverStart2024(event) {
@@ -13174,8 +13151,7 @@ import {
   }
 
   function onMagicSpellHoverMove2024(event) {
-    if (!activeMagicHoverTarget2024) return;
-    positionMagicSpellHoverCard2024(event.clientX, event.clientY);
+    magicTouchPreviewController2024?.move(event);
   }
 
   function onMagicSpellHoverEnd2024(event) {
@@ -13185,6 +13161,10 @@ import {
     const related = findMagicSpellHoverTarget2024(event.relatedTarget);
     if (related === target) return;
     hideMagicSpellHoverCard2024();
+  }
+
+  function reconcileMagicSpellHoverCard2024() {
+    magicTouchPreviewPromise2024?.then((controller) => controller.reconcile());
   }
 
   function getUniqueSelectedSpellEntries2024(selectedEntries = []) {
@@ -13519,6 +13499,13 @@ import {
       sourceCardsMarkup,
     ].join("");
     restoreMagicChecklistScrollPositions2024();
+    const viewState = pendingMagicListViewState2024;
+    if (viewState) {
+      getMagicTouchPreviewController2024().then((controller) => controller.restoreView(el.magicSourcesList, viewState));
+      setTimeout(() => {
+        if (pendingMagicListViewState2024 === viewState) pendingMagicListViewState2024 = null;
+      });
+    }
   }
 
   function renderSelectedSpellBook2024(context) {
@@ -13576,12 +13563,12 @@ import {
       return;
     }
     if (!el.magicSection || !el.magicSummary) return;
-    hideMagicSpellHoverCard2024();
     const previousUsage = collectSpellSlotUsageState2024();
     const context = buildSpellcastingContext2024();
     lastMagicContext2024 = context;
 
     if (!context.sources.length) {
+      hideMagicSpellHoverCard2024();
       el.magicSection.style.display = "none";
       el.magicSummary.textContent = "";
       if (el.selectedSpellBook) el.selectedSpellBook.innerHTML = "";
@@ -13593,6 +13580,7 @@ import {
     }
 
     if (!isSpellCatalogLoaded2024()) {
+      hideMagicSpellHoverCard2024();
       el.magicSection.style.display = "";
       if (el.magicSlotsPanel) el.magicSlotsPanel.hidden = true;
       if (el.magicSlotsGrid) el.magicSlotsGrid.innerHTML = "";
@@ -13647,6 +13635,7 @@ import {
     renderMagicSlotUsageInputs2024(context, previousUsage);
     renderMagicSourceCards2024(context);
     renderSelectedSpellBook2024(context);
+    reconcileMagicSpellHoverCard2024();
   }
 
   function onMagicSpellChecklistChanged2024(event) {
@@ -13657,6 +13646,7 @@ import {
     const sourceMap = new Map(context.sources.map((entry) => [entry.sourceKey, entry]));
     const source = context.sources.find((entry) => entry.sourceKey === input.getAttribute("data-source-key"));
     if (!source) return;
+    pendingMagicListViewState2024 ||= [input.dataset.sourceKey, input.dataset.kind, input.value, window.scrollX, window.scrollY];
 
     const selection = getSpellSelectionForSource2024(source.sourceKey);
     const kind = input.getAttribute("data-kind");

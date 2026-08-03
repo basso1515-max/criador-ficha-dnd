@@ -888,14 +888,9 @@ html:not([data-theme="dark"]) body[data-active-screen="5.5e-2024"] .level-up-hov
     max-width: none;
   }
 
-  .magic-spell-hover-card {
-    display: none !important;
-  }
+  .magic-spell-hover-card:not([hidden]){display:block!important;max-height:min(58svh,420px)}
 
-  body.level-up-modal-open .magic-spell-hover-card:not([hidden]) {
-    display: block !important;
-    max-height: min(58svh, 420px);
-  }
+  body.level-up-modal-open .magic-spell-hover-card:not([hidden]){z-index:1105}
 
   .floating-submit-bar,
   .floating-submit-bar.is-floating,
