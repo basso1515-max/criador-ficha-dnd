@@ -1,10 +1,10 @@
 const feature = (nome, descricao = "") => ({ nome, descricao });
 
-const subclass = (id, classeBase, nome, nivel, descricao, features) => ({
+const subclass = (id, classeBase, nome, nivel, descricao, features, fonte = "PHB24") => ({
   id,
   classeBase,
   nome,
-  fonte: "PHB24",
+  fonte,
   nivel,
   descricao,
   features,
@@ -672,6 +672,99 @@ const SUBCLASS_LIST = [
       15: [feature("Sentinela Imortal")],
       20: [feature("Campeão Ancestral")],
     }
+  ),
+  subclass(
+    "artifice-alquimista",
+    "artifice",
+    "Alquimista",
+    3,
+    "Especialista em reagentes, elixires e magia transformada em cura ou substâncias explosivas.",
+    {
+      3: [
+        feature("Ferramentas do Ofício", "Ganha proficiência com suprimentos de alquimista e kit de herbalismo; acelera a criação de poções."),
+        feature("Magias de Alquimista", "Mantém as magias da subclasse preparadas conforme seu nível de Artífice."),
+        feature("Elixir Experimental", "Após Descanso Longo produz elixires aleatórios; pode usar espaços de magia para preparar elixires escolhidos."),
+      ],
+      5: [feature("Sábio Alquímico", "Quando usa suprimentos de alquimista como foco, soma Inteligência a uma rolagem adequada de cura ou dano de uma magia.")],
+      9: [feature("Reagentes Restauradores", "Conjura Restauração Menor sem espaço um número limitado de vezes e melhora a recuperação concedida por elixires.")],
+      15: [feature("Maestria Química", "Ganha defesas contra ácido e veneno, protege-se da condição Envenenado e reforça sua produção alquímica.")],
+    },
+    "EFotA"
+  ),
+  subclass(
+    "artifice-armeiro",
+    "artifice",
+    "Armeiro",
+    3,
+    "Artífice que converte uma armadura em um exoesqueleto arcano com modelos adaptáveis para defesa, alcance ou infiltração.",
+    {
+      3: [
+        feature("Ferramentas do Ofício", "Ganha treinamento com armaduras pesadas, proficiência com ferramentas de ferreiro e criação acelerada de armaduras."),
+        feature("Magias de Armeiro", "Mantém as magias da subclasse preparadas conforme seu nível de Artífice."),
+        feature("Armadura Arcana", "Converte a armadura vestida em foco mágico e ignora seu requisito de Força; pode equipá-la ou removê-la rapidamente."),
+        feature("Modelo de Armadura", "Após Descanso Curto ou Longo, escolhe Couraçado, Guardião ou Infiltrador para sua Armadura Arcana."),
+      ],
+      5: [feature("Ataque Extra", "Ataca duas vezes ao usar a ação Atacar.")],
+      9: [feature("Armeiro Aprimorado", "Melhora os ataques do Modelo de Armadura e expande as opções de Replicar Item Mágico.")],
+      15: [feature("Armadura Perfeita", "Cada Modelo de Armadura recebe um aprimoramento de alto nível próprio.")],
+    },
+    "EFotA"
+  ),
+  subclass(
+    "artifice-artilheiro",
+    "artifice",
+    "Artilheiro",
+    3,
+    "Engenheiro de cerco que molda armas, varinhas e canhões arcanos para defender aliados e controlar o campo de batalha.",
+    {
+      3: [
+        feature("Ferramentas do Ofício", "Ganha proficiência com armas marciais à distância e ferramentas de entalhador; acelera a criação de varinhas mágicas."),
+        feature("Magias de Artilheiro", "Mantém as magias da subclasse preparadas conforme seu nível de Artífice."),
+        feature("Canhão Arcano", "Cria um canhão Pequeno ou Miúdo e o ativa para lançar fogo, força ou proteção temporária."),
+      ],
+      5: [feature("Arma de Fogo Arcana", "Marca um foco ou arma marcial à distância para amplificar uma rolagem de dano de magia de Artífice.")],
+      9: [feature("Canhão Explosivo", "Melhora os modos do canhão e permite detoná-lo para liberar dano de força.")],
+      15: [feature("Posição Fortificada", "Opera dois canhões e cria uma área defensiva ao redor de sua posição.")],
+    },
+    "EFotA"
+  ),
+  subclass(
+    "artifice-ferreiro-batalha",
+    "artifice",
+    "Ferreiro de Batalha",
+    3,
+    "Combatente inventivo que canaliza Inteligência por armas mágicas e luta ao lado de um Defensor de Aço.",
+    {
+      3: [
+        feature("Ferramentas do Ofício", "Ganha proficiência com armas marciais e ferramentas de ferreiro; acelera a criação de armas."),
+        feature("Magias de Ferreiro de Batalha", "Mantém as magias da subclasse preparadas conforme seu nível de Artífice."),
+        feature("Pronto para a Batalha", "Usa Inteligência nos ataques e danos com armas mágicas e pode usar arma proficiente como foco."),
+        feature("Defensor de Aço", "Constrói um companheiro Construto que recebe comandos e escala com seu nível de Artífice."),
+      ],
+      5: [feature("Ataque Extra", "Ataca duas vezes ou substitui um ataque por um comando de ataque ao Defensor de Aço.")],
+      9: [feature("Abalo Arcano", "Quando você ou o Defensor acerta, acrescenta dano de força ou cura uma criatura, em usos limitados.")],
+      15: [feature("Defensor Aprimorado", "Reforça o Abalo Arcano e torna a reação defensiva do Defensor de Aço mais poderosa.")],
+    },
+    "EFotA"
+  ),
+  subclass(
+    "artifice-cartografo",
+    "artifice",
+    "Cartógrafo",
+    3,
+    "Navegador arcano que usa tinta e mapas conectados para explorar, reposicionar aliados e antecipar ameaças.",
+    {
+      3: [
+        feature("Ferramentas do Ofício", "Ganha proficiência com suprimentos de calígrafo e ferramentas de cartógrafo; acelera a escrita de pergaminhos mágicos."),
+        feature("Magias de Cartógrafo", "Mantém as magias da subclasse preparadas conforme seu nível de Artífice."),
+        feature("Atlas do Aventureiro", "Após Descanso Longo cria mapas vinculados que ajudam na iniciativa, no rastreio de aliados e na seleção de alvos."),
+        feature("Magia de Mapeamento", "Conjura Fogo das Fadas sem espaço em usos limitados e usa Salto de Portal para reposicionamento curto."),
+      ],
+      5: [feature("Precisão Guiada", "Protege sua Concentração em Fogo das Fadas e acrescenta Inteligência a dano de magia ou ataque em circunstâncias cartografadas.")],
+      9: [feature("Movimento Engenhoso", "Ao usar Lampejo de Gênio, você ou um aliado voluntário pode se teleportar como parte da mesma Reação.")],
+      15: [feature("Atlas Superior", "Mapas concedem rota segura a portadores caídos e acesso limitado a Encontrar o Caminho.")],
+    },
+    "EFotA"
   ),
 ];
 

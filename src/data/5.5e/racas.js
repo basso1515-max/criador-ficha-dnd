@@ -1,4 +1,4 @@
-export const DATASET_VERSION = "1.1.0";
+export const DATASET_VERSION = "1.2.0";
 
 const ftToM = (ft) => Math.round(ft * 0.3048 * 10) / 10;
 
@@ -9,9 +9,11 @@ export const META_RACAS = {
   builtAt: "2026-04-20",
   sources: {
     phb2024: "Player's Handbook (2024)",
+    efota: "Eberron: Forge of the Artificer (2025)",
     referenciaLocal: "src/data/5.5e/DnD 5.5 - Livro do Jogador (2024).pdf",
   },
   changelog: [
+    "1.2.0: Adiciona Changeling, Kalashtar, Khoravar, Shifter e Warforged de Eberron: Forge of the Artificer.",
     "1.1.0: Ajusta a modelagem do aasimar para a escolha dinâmica de Revelação Celestial e corrige ligações internas de subespécies.",
   ],
 };
@@ -204,9 +206,100 @@ export const RACAS = {
     subracas: ["tiferino-abissal", "tiferino-ctonico", "tiferino-infernal"],
     extra: { tamanhoEscolha: ["P", "M"] },
   }),
+  changeling: race({
+    id: "changeling",
+    nome: "Changeling",
+    descricao: "Metamorfo de natureza feérica que assume identidades e se adapta a qualquer ambiente social.",
+    tracos: [
+      trait("fey", "Feérico", "Você também é considerado Feérico para efeitos que dependem do seu tipo de criatura."),
+      trait("instintos-de-changeling", "Instintos de Changeling", "Você ganha proficiência em duas perícias entre Enganação, Intuição, Intimidação, Atuação e Persuasão."),
+      trait("metamorfo", "Metamorfo", "Você pode alterar sua aparência e voz para imitar outra pessoa, sem mudar seu equipamento."),
+    ],
+    extra: { fonte: "EFotA" },
+  }),
+  kalashtar: race({
+    id: "kalashtar",
+    nome: "Kalashtar",
+    descricao: "Humanoide ligado espiritualmente a um quori, com disciplina mental e comunicação telepática.",
+    tracos: [
+      trait("aberracao", "Aberração", "Você também é considerado uma Aberração para efeitos que dependem do seu tipo de criatura."),
+      trait("mente-dual", "Mente Dual", "Sua ligação quori reforça suas defesas mentais contra influências e ataques psíquicos."),
+      trait("disciplina-mental", "Disciplina Mental", "Você possui resistência a dano psíquico e proteção especial contra efeitos que perturbam a mente."),
+      trait("elo-mental", "Elo Mental", "Você pode se comunicar telepaticamente com criaturas próximas que compreendam um idioma."),
+      trait("separado-dos-sonhos", "Separado dos Sonhos", "Você não sonha durante o descanso e é difícil de afetar por magia que induz sono."),
+    ],
+    extra: { fonte: "EFotA" },
+  }),
+  khoravar: race({
+    id: "khoravar",
+    nome: "Khoravar",
+    descricao: "Povo de herança humana e élfica, unido por tradições familiares, versatilidade e afinidade feérica.",
+    tracos: [
+      trait("visao-no-escuro", "Visão no Escuro", "Você enxerga no escuro até 18 metros."),
+      trait("ancestralidade-feerica", "Ancestralidade Feérica", "Você tem vantagem para evitar ou encerrar a condição Enfeitiçado."),
+      trait("dom-feerico", "Dom Feérico", "Você conhece uma magia menor de origem feérica e amplia suas opções mágicas conforme avança de nível."),
+      trait("resiliencia-a-letargia", "Resiliência à Letargia", "Você possui proteção especial contra efeitos que tentam deixá-lo adormecido."),
+      trait("versatilidade-em-pericia", "Versatilidade em Perícia", "Você ganha proficiência em duas perícias à sua escolha."),
+    ],
+    extra: { fonte: "EFotA" },
+  }),
+  shifter: race({
+    id: "shifter",
+    nome: "Shifter",
+    descricao: "Humanoide de instinto bestial que manifesta uma forma híbrida temporária conforme sua linhagem animal.",
+    tracos: [
+      trait("instintos-bestiais", "Instintos Bestiais", "Você ganha proficiência em uma perícia ligada à agilidade, presença ou sobrevivência animal."),
+      trait("visao-no-escuro", "Visão no Escuro", "Você enxerga no escuro até 18 metros."),
+      trait("transformacao", "Transformação", "Como ação bônus, você assume uma forma mais bestial por 1 minuto e recebe Pontos de Vida temporários e o benefício da sua linhagem."),
+    ],
+    subracas: ["shifter-presa-feroz", "shifter-pele-de-fera", "shifter-passos-rapidos", "shifter-cacador-selvagem"],
+    extra: { fonte: "EFotA" },
+  }),
+  warforged: race({
+    id: "warforged",
+    nome: "Warforged",
+    descricao: "Constructo senciente criado para a guerra, resistente, incansável e capaz de integrar proteção ao próprio corpo.",
+    tracos: [
+      trait("constructo", "Constructo", "Você também é considerado um Constructo para efeitos que dependem do seu tipo de criatura."),
+      trait("resiliencia-de-constructo", "Resiliência de Constructo", "Seu corpo construído oferece resistência a veneno e proteção contra várias necessidades e condições orgânicas."),
+      trait("protecao-integrada", "Proteção Integrada", "Enquanto não veste armadura, sua estrutura integrada melhora sua Classe de Armadura."),
+      trait("repouso-de-sentinela", "Repouso de Sentinela", "Você permanece consciente enquanto descansa e precisa de menos manutenção do que criaturas orgânicas."),
+      trait("design-especializado", "Design Especializado", "Você ganha proficiência em uma perícia e uma ferramenta à sua escolha."),
+      trait("incansavel", "Incansável", "Sua constituição artificial reduz os efeitos de exaustão e mantém você ativo por mais tempo."),
+    ],
+    extra: { fonte: "EFotA" },
+  }),
 };
 
 export const SUBRACAS = {
+  "shifter-presa-feroz": subrace({
+    id: "shifter-presa-feroz",
+    race: "shifter",
+    nome: "Presa Feroz",
+    descricao: "Linhagem Longtooth que manifesta uma mordida agressiva durante a transformação.",
+    tracos: [trait("mordida-feroz", "Mordida Feroz", "Enquanto transformado, você pode atacar com uma mordida bestial como ação bônus.")],
+  }),
+  "shifter-pele-de-fera": subrace({
+    id: "shifter-pele-de-fera",
+    race: "shifter",
+    nome: "Pele de Fera",
+    descricao: "Linhagem Beasthide de constituição densa e proteção natural.",
+    tracos: [trait("pele-de-fera", "Pele de Fera", "Sua transformação concede maior proteção física e Pontos de Vida temporários adicionais.")],
+  }),
+  "shifter-passos-rapidos": subrace({
+    id: "shifter-passos-rapidos",
+    race: "shifter",
+    nome: "Passos Rápidos",
+    descricao: "Linhagem Swiftstride, veloz e difícil de encurralar.",
+    tracos: [trait("passos-rapidos", "Passos Rápidos", "Sua transformação aumenta o deslocamento e permite escapar com rapidez de ameaças próximas.")],
+  }),
+  "shifter-cacador-selvagem": subrace({
+    id: "shifter-cacador-selvagem",
+    race: "shifter",
+    nome: "Caçador Selvagem",
+    descricao: "Linhagem Wildhunt que combina sentidos atentos e defesa contra emboscadas.",
+    tracos: [trait("instinto-de-caca", "Instinto de Caça", "Enquanto transformado, você reforça seus sentidos e impede que inimigos tirem proveito fácil contra você.")],
+  }),
     "draconato-azul": subrace({
     id: "draconato-azul",
     race: "draconato",

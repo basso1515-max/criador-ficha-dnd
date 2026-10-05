@@ -1,4 +1,4 @@
-export const DATASET_VERSION = "1.0.2";
+export const DATASET_VERSION = "1.1.0";
 
 export const META_CLASSES = {
   dataset: "dnd5e-2024-ptbr",
@@ -7,9 +7,11 @@ export const META_CLASSES = {
   builtAt: "2026-04-28",
   sources: {
     phb2024: "Player's Handbook (2024)",
+    efota: "Eberron: Forge of the Artificer (2025)",
     referenciaLocal: "src/data/5.5e/DnD 5.5 - Livro do Jogador (2024).pdf",
   },
   changelog: [
+    "1.1.0: Adiciona o Artífice revisado de Eberron: Forge of the Artificer, incluindo progressão, recursos e as cinco subclasses oficiais.",
     "1.0.2: Revisao do Mago 5.5e, corrigindo magias preparadas no nivel 20 para 25 e detalhando Conjuracao, Adepto de Ritual, Recuperacao Arcana, Academico, Memorizar Magia, Maestria de Magias, Magias Assinatura e subclasses de Mago.",
     "1.0.1: Revisao do Feiticeiro 5.5e, corrigindo progressao inicial de magias preparadas e detalhando recursos de Feiticaria Inata, Fonte de Magia, Metamagia, Restauracao Feiticeira, Feiticaria Encarnada e Apoteose Arcana.",
     "1.0.0: Reescrita do dataset de classes para o PHB 2024/5.5e, removendo opções legadas e alinhando proficiências, equipamentos iniciais, progressão e subclasses oficiais do livro base.",
@@ -35,6 +37,50 @@ const PALADIN_FIGHTING_STYLE_CHOICES = [...FIGHTING_STYLE_CHOICES, "guerreiro-ab
 const RANGER_FIGHTING_STYLE_CHOICES = [...FIGHTING_STYLE_CHOICES, "guerreiro-druidico"];
 
 export const CLASSES = {
+  artifice: {
+    id: "artifice",
+    nome: "Artífice",
+    fonte: "EFotA",
+    descricao: "Inventor arcano que transforma ferramentas e objetos em soluções mágicas para combate, exploração e suporte.",
+    dadoVida: 8,
+    atributoPrincipal: ["int"],
+    salvaguardas: ["con", "int"],
+    proficiencias: {
+      armaduras: ["leve", "media", "escudo"],
+      armas: ["simples"],
+      ferramentas: ["ferramentas-de-ladrao", "ferramentas-de-funileiro"],
+      periciasEscolha: {
+        picks: 2,
+        from: ["arcanismo", "historia", "investigacao", "medicina", "natureza", "percepcao", "prestidigitacao"],
+      },
+    },
+    equipamentoInicial: [
+      { grupo: "A", descr: "Cota de escamas, escudo, foice, 2 adagas, ferramentas de ladrão, ferramentas de funileiro, kit de explorador e 13 PO", armaduras: ["cota-de-escamas", "escudo"], armas: ["foice", "adaga", "adaga"] },
+      { grupo: "B", descr: "150 PO", armas: [] },
+    ],
+    escolhas: { estilosLuta: [], talentosSugestao: ["artifista", "mestre-de-armas"] },
+    features: {
+      1: [
+        feature("Conjuração", "Prepara magias de Artífice usando Inteligência; usa ferramentas de artesão como foco de conjuração."),
+        feature("Magia de Funileiro", "Conhece Consertar e cria um pequeno objeto mundano com ferramentas de funileiro; a criação permanece até seu próximo Descanso Longo."),
+      ],
+      2: [feature("Replicar Item Mágico", "Aprende Planos para criar itens mágicos depois de um Descanso Longo. Conhece 4 Planos e pode manter 2 itens replicados; ambos os limites aumentam nos níveis 6, 10, 14 e 18.")],
+      3: [feature("Subclasse de Artífice", "Escolhe Alquimista, Armeiro, Artilheiro, Ferreiro de Batalha ou Cartógrafo.")],
+      4: [feature("Aumento no Valor de Atributo", "Recebe Aumento no Valor de Atributo ou outro talento para o qual se qualifique.")],
+      6: [feature("Funileiro de Itens Mágicos", "Usa espaços de magia para carregar certos itens mágicos, pode drenar uma carga para recuperar espaço e transmuta um item mágico uma vez por Descanso Longo.")],
+      7: [feature("Lampejo de Gênio", "Quando uma criatura que você vê falha em um teste de atributo ou salvaguarda, usa sua Reação para adicionar seu modificador de Inteligência ao resultado.")],
+      8: [feature("Aumento no Valor de Atributo", "Recebe Aumento no Valor de Atributo ou outro talento para o qual se qualifique.")],
+      10: [feature("Adepto de Itens Mágicos", "Pode sintonizar até quatro itens mágicos e amplia sua capacidade de criar itens com Replicar Item Mágico.")],
+      11: [feature("Item que Armazena Magia", "Armazena em um objeto uma magia de Artífice de até 3º círculo com tempo de conjuração de Ação, para que outra criatura possa liberá-la.")],
+      12: [feature("Aumento no Valor de Atributo", "Recebe Aumento no Valor de Atributo ou outro talento para o qual se qualifique.")],
+      14: [feature("Artífice Avançado", "Aprimora seus limites de itens replicados e suas opções de Replicar Item Mágico.")],
+      16: [feature("Aumento no Valor de Atributo", "Recebe Aumento no Valor de Atributo ou outro talento para o qual se qualifique.")],
+      18: [feature("Mestre de Itens Mágicos", "Pode sintonizar até seis itens mágicos e alcança o máximo de Planos e itens replicados.")],
+      19: [feature("Dádiva Épica", "Recebe uma Dádiva Épica ou outro talento elegível.")],
+      20: [feature("Alma do Artífice", "Sua sintonização protege suas salvaguardas; pode desmontar itens replicados para evitar cair a 0 PV e recupera Lampejos de Gênio em descanso curto.")],
+    },
+    subclasses: ["artifice-alquimista", "artifice-armeiro", "artifice-artilheiro", "artifice-ferreiro-batalha", "artifice-cartografo"],
+  },
   barbaro: {
     id: "barbaro",
     nome: "Bárbaro",

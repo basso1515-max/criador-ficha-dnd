@@ -1,4 +1,4 @@
-export const DATASET_VERSION = "1.0.0";
+export const DATASET_VERSION = "1.1.0";
 
 export const META_TALENTOS = {
   dataset: "dnd5e-2024-ptbr",
@@ -7,9 +7,11 @@ export const META_TALENTOS = {
   builtAt: "2026-04-16",
   sources: {
     phb2024: "Player's Handbook (2024)",
+    efota: "Eberron: Forge of the Artificer (2025)",
     referenciaLocal: "src/data/5.5e/DnD 5.5 - Livro do Jogador (2024).pdf",
   },
   changelog: [
+    "1.1.0: Adiciona as 28 opções de talentos de Marca Dracônica de Eberron: Forge of the Artificer.",
     "1.0.0: Reescrita do catálogo de talentos para o PHB 2024, incluindo talentos de origem, gerais, estilos de luta e dádivas épicas.",
   ],
 };
@@ -23,6 +25,8 @@ export const TAGS_TALENTOS = [
   "cura",
   "dano",
   "defesa",
+  "dragonmark",
+  "eberron",
   "epico",
   "exploracao",
   "furtividade",
@@ -44,14 +48,16 @@ const feat = ({
   description_pt,
   tags = [],
   repeatable = false,
+  source = "PHB24",
+  source_full = "Player's Handbook (2024)",
 }) => ({
   id,
   name: name || name_pt,
   name_pt,
   categoria,
   repeatable,
-  source: "PHB24",
-  source_full: "Player's Handbook (2024)",
+  source,
+  source_full,
   prerequisites,
   official_url: "",
   description_en: "",
@@ -63,6 +69,31 @@ const ORIGEM = "origem";
 const GERAL = "geral";
 const ESTILO = "estilo-de-luta";
 const EPICO = "dadiva-epica";
+const DRAGONMARK = "marca-do-dragao";
+const EFOTA_SOURCE = "EFotA";
+const EFOTA_SOURCE_FULL = "Eberron: Forge of the Artificer (2025)";
+const dragonmarkFeat = (id, name, name_pt, description_pt, tags = []) => feat({
+  id,
+  name,
+  name_pt,
+  categoria: DRAGONMARK,
+  prerequisites: ["Campanha de Eberron", "Não possuir outro talento de Marca Dracônica"],
+  description_pt,
+  tags: ["eberron", "dragonmark", "magia", ...tags],
+  source: EFOTA_SOURCE,
+  source_full: EFOTA_SOURCE_FULL,
+});
+const greaterDragonmarkFeat = (id, name, name_pt, prerequisite, description_pt, tags = []) => feat({
+  id,
+  name,
+  name_pt,
+  categoria: GERAL,
+  prerequisites: ["Nível 4 ou superior", prerequisite],
+  description_pt,
+  tags: ["eberron", "dragonmark", "magia", "atributo", ...tags],
+  source: EFOTA_SOURCE,
+  source_full: EFOTA_SOURCE_FULL,
+});
 
 export const TALENTOS = [
   feat({ id: "alerta", name_pt: "Alerta", categoria: ORIGEM, description_pt: "Ganha bônus de iniciativa, troca iniciativa com aliados e continua difícil de surpreender.", tags: ["combate", "utilidade"] }),
@@ -75,6 +106,36 @@ export const TALENTOS = [
   feat({ id: "sortudo", name_pt: "Sortudo", categoria: ORIGEM, description_pt: "Gasta pontos de sorte para obter vantagem, impor desvantagem ou escapar de jogadas decisivas.", tags: ["combate", "defesa", "utilidade"] }),
   feat({ id: "valentao-de-taverna", name_pt: "Valentão de Taverna", categoria: ORIGEM, description_pt: "Melhora ataques desarmados, armas improvisadas e empurrões em combates corpo a corpo.", tags: ["combate", "dano"] }),
   feat({ id: "vigoroso", name_pt: "Vigoroso", categoria: ORIGEM, description_pt: "Aumenta Pontos de Vida máximos e reforça sua durabilidade a cada avanço.", tags: ["defesa", "atributo"] }),
+
+  dragonmarkFeat("marca-draconica-aberrante", "Aberrant Dragonmark", "Marca Dracônica Aberrante", "Sua marca instável concede magia menor e manifesta efeitos arcanos imprevisíveis quando você força seu poder."),
+  dragonmarkFeat("marca-da-deteccao", "Mark of Detection", "Marca da Detecção", "A marca amplia sua percepção e concede magia voltada a revelar presenças, pistas e ameaças ocultas.", ["utilidade"]),
+  dragonmarkFeat("marca-da-localizacao", "Mark of Finding", "Marca da Localização", "A marca aguça sua capacidade de encontrar pessoas, objetos e caminhos difíceis de rastrear.", ["exploracao"]),
+  dragonmarkFeat("marca-do-trato", "Mark of Handling", "Marca do Trato", "A marca estabelece afinidade mágica com animais e criaturas sob seus cuidados.", ["suporte"]),
+  dragonmarkFeat("marca-da-cura", "Mark of Healing", "Marca da Cura", "A marca desbloqueia magia restauradora e torna você uma presença de suporte em situações críticas.", ["cura"]),
+  dragonmarkFeat("marca-da-hospitalidade", "Mark of Hospitality", "Marca da Hospitalidade", "A marca oferece magia de conforto, provisão e proteção para aliados e convidados.", ["suporte"]),
+  dragonmarkFeat("marca-da-criacao", "Mark of Making", "Marca da Criação", "A marca reforça habilidades de ofício e concede magia associada a criação, reparo e invenção.", ["utilidade"]),
+  dragonmarkFeat("marca-da-passagem", "Mark of Passage", "Marca da Passagem", "A marca concede recursos mágicos para velocidade, movimento e viagens seguras.", ["movimento"]),
+  dragonmarkFeat("marca-da-escrita", "Mark of Scribing", "Marca da Escrita", "A marca torna comunicação, registro e leitura de informação parte do seu repertório mágico.", ["utilidade"]),
+  dragonmarkFeat("marca-da-sentinela", "Mark of Sentinel", "Marca da Sentinela", "A marca favorece defesa e proteção, permitindo reagir quando aliados precisam de cobertura.", ["defesa"]),
+  dragonmarkFeat("marca-da-sombra", "Mark of Shadow", "Marca da Sombra", "A marca combina sutileza, performance e magia de ilusão para operar sem ser notado.", ["furtividade"]),
+  dragonmarkFeat("marca-da-tempestade", "Mark of Storm", "Marca da Tempestade", "A marca comanda ventos e tempestades, oferecendo magia de clima e deslocamento.", ["movimento"]),
+  dragonmarkFeat("marca-da-protecao", "Mark of Warding", "Marca da Proteção", "A marca oferece defesas arcanas, selos e magia para preservar pessoas e lugares.", ["defesa"]),
+
+  greaterDragonmarkFeat("marca-aberrante-maior", "Greater Aberrant Mark", "Marca Aberrante Maior", "Marca Dracônica Aberrante", "Sua marca aberrante cresce em poder, reforça Constituição e permite acessar efeitos mágicos mais perigosos."),
+  greaterDragonmarkFeat("marca-maior-da-deteccao", "Greater Mark of Detection", "Marca Maior da Detecção", "Marca da Detecção", "Aprofunda os poderes de revelação da sua marca e aumenta um atributo apropriado.", ["utilidade"]),
+  greaterDragonmarkFeat("marca-maior-da-localizacao", "Greater Mark of Finding", "Marca Maior da Localização", "Marca da Localização", "Aprofunda os poderes de rastreamento da sua marca e aumenta um atributo apropriado.", ["exploracao"]),
+  greaterDragonmarkFeat("marca-maior-do-trato", "Greater Mark of Handling", "Marca Maior do Trato", "Marca do Trato", "Aprofunda os poderes de vínculo animal da sua marca e aumenta um atributo apropriado.", ["suporte"]),
+  greaterDragonmarkFeat("marca-maior-da-cura", "Greater Mark of Healing", "Marca Maior da Cura", "Marca da Cura", "Aprofunda os poderes restauradores da sua marca e aumenta um atributo apropriado.", ["cura"]),
+  greaterDragonmarkFeat("marca-maior-da-hospitalidade", "Greater Mark of Hospitality", "Marca Maior da Hospitalidade", "Marca da Hospitalidade", "Aprofunda os poderes de acolhimento da sua marca e aumenta um atributo apropriado.", ["suporte"]),
+  greaterDragonmarkFeat("marca-maior-da-criacao", "Greater Mark of Making", "Marca Maior da Criação", "Marca da Criação", "Aprofunda os poderes de invenção da sua marca e aumenta um atributo apropriado.", ["utilidade"]),
+  greaterDragonmarkFeat("marca-maior-da-passagem", "Greater Mark of Passage", "Marca Maior da Passagem", "Marca da Passagem", "Aprofunda os poderes de viagem da sua marca e aumenta um atributo apropriado.", ["movimento"]),
+  greaterDragonmarkFeat("marca-maior-da-escrita", "Greater Mark of Scribing", "Marca Maior da Escrita", "Marca da Escrita", "Aprofunda os poderes de comunicação da sua marca e aumenta um atributo apropriado.", ["utilidade"]),
+  greaterDragonmarkFeat("marca-maior-da-sentinela", "Greater Mark of Sentinel", "Marca Maior da Sentinela", "Marca da Sentinela", "Aprofunda os poderes de proteção da sua marca e aumenta um atributo apropriado.", ["defesa"]),
+  greaterDragonmarkFeat("marca-maior-da-sombra", "Greater Mark of Shadow", "Marca Maior da Sombra", "Marca da Sombra", "Aprofunda os poderes sutis da sua marca e aumenta um atributo apropriado.", ["furtividade"]),
+  greaterDragonmarkFeat("marca-maior-da-tempestade", "Greater Mark of Storm", "Marca Maior da Tempestade", "Marca da Tempestade", "Aprofunda os poderes climáticos da sua marca e aumenta um atributo apropriado.", ["movimento"]),
+  greaterDragonmarkFeat("marca-maior-da-protecao", "Greater Mark of Warding", "Marca Maior da Proteção", "Marca da Proteção", "Aprofunda os poderes defensivos da sua marca e aumenta um atributo apropriado.", ["defesa"]),
+  feat({ id: "marca-draconica-potente", name: "Potent Dragonmark", name_pt: "Marca Dracônica Potente", categoria: GERAL, prerequisites: ["Nível 4 ou superior", "Qualquer talento de Marca Dracônica"], description_pt: "Sua Marca Dracônica alcança novo potencial: reforça seu atributo de conjuração, mantém as magias da marca preparadas e concede um espaço adicional limitado.", tags: ["eberron", "dragonmark", "magia", "atributo"], source: EFOTA_SOURCE, source_full: EFOTA_SOURCE_FULL }),
+  feat({ id: "dadiva-de-siberys", name: "Boon of Siberys", name_pt: "Dádiva de Siberys", categoria: EPICO, prerequisites: ["Nível 19 ou superior", "Campanha de Eberron"], description_pt: "Você recebe uma manifestação extraordinária de Siberys, escolhida ou determinada pela campanha, que concede poder mágico épico.", tags: ["eberron", "dragonmark", "epico", "magia"], source: EFOTA_SOURCE, source_full: EFOTA_SOURCE_FULL }),
 
   feat({ id: "adepto-elemental", name_pt: "Adepto Elemental", categoria: GERAL, prerequisites: ["Nível 4 ou superior", "Característica Conjuração ou Magia de Pacto"], description_pt: "Escolhe um tipo de dano elemental para ignorar resistências parciais e melhorar a consistência das magias.", tags: ["magia", "dano"], repeatable: true }),
   feat({ id: "agressor", name_pt: "Agressor", categoria: GERAL, prerequisites: ["Nível 4 ou superior"], description_pt: "Depois de Correr, ainda pressiona com ataque ou empurrão mais forte.", tags: ["combate", "movimento"] }),

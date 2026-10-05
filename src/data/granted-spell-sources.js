@@ -204,6 +204,46 @@ export const PALADIN_OATH_GRANTED_SPELL_IDS_2024 = {
   },
 };
 
+// Eberron: Forge of the Artificer (2025). These spells are always prepared
+// by the indicated Artificer specialty and do not count against its limit.
+export const ARTIFICER_SUBCLASS_GRANTED_SPELL_IDS_2024 = {
+  "artifice-alquimista": {
+    3: ["palavra-da-cura", "raio-do-enjoo"],
+    5: ["esfera-flamejante", "flecha-acida"],
+    9: ["forma-gasosa", "palavra-de-cura-em-massa"],
+    13: ["praga", "esfera-vitriolica"],
+    17: ["nevoa-mortal", "ressuscitar-os-mortos"],
+  },
+  "artifice-armeiro": {
+    3: ["misseis-magicos", "onda-de-trovao"],
+    5: ["reflexos", "esmigalhar"],
+    9: ["padrao-hipnotico", "relampago"],
+    13: ["escudo-de-fogo", "invisibilidade-maior"],
+    17: ["passar-parede", "muralha-de-energia"],
+  },
+  "artifice-artilheiro": {
+    3: ["escudo", "onda-de-trovao"],
+    5: ["raio-ardente", "esmigalhar"],
+    9: ["bola-de-fogo", "muralha-de-vento"],
+    13: ["tempestade-de-gelo", "muralha-de-fogo"],
+    17: ["cone-de-frio", "muralha-de-energia"],
+  },
+  "artifice-ferreiro-batalha": {
+    3: ["heroismo", "escudo"],
+    5: ["destruicao-radiante", "elo-protetor"],
+    9: ["aura-da-vitalidade", "conjurar-barragem"],
+    13: ["aura-da-pureza", "escudo-de-fogo"],
+    17: ["destruicao-do-banimento", "curar-ferimentos-em-massa"],
+  },
+  "artifice-cartografo": {
+    3: ["fogo-feerico", "disparo-guia", "palavra-da-cura"],
+    5: ["localizar-objeto", "espinho-mental"],
+    9: ["convocar-relampago", "clarividencia"],
+    13: ["banimento", "localizar-criatura"],
+    17: ["espionagem", "circulo-de-teletransporte"],
+  },
+};
+
 export function collectGrantedSpellIdsByLevel(definition, level = Number.POSITIVE_INFINITY) {
   const safeLevel = Number.isFinite(Number(level)) ? Math.max(0, Math.floor(Number(level) || 0)) : Number.POSITIVE_INFINITY;
   const grantedSpellIds = [];

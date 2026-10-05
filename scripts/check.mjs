@@ -816,13 +816,21 @@ function validateRacialSpellSourceRefs(edition, races, subraces, classes, spells
   });
 }
 
-function validateEditionBoundary(edition, subclasses, expectedSource, errors) {
+function validateEditionBoundary(edition, classes, subclasses, expectedSource, errors) {
+  const classSources = new Map(
+    listRecords(classes).map((classRecord) => [
+      classRecord.id,
+      String(classRecord.fonte || "").trim().toUpperCase(),
+    ]),
+  );
+
   listRecords(subclasses).forEach((subclass) => {
     const source = String(subclass.fonte || "").trim().toUpperCase();
     if (edition === "5e" && source === "PHB24") {
       errors.push(`5e: subclasse 2024 vazou para o catálogo legado (${subclass.id}).`);
     }
-    if (edition === "2024" && source && source !== expectedSource) {
+    const classSource = classSources.get(subclass.classeBase);
+    if (edition === "2024" && source && source !== expectedSource && source !== classSource) {
       errors.push(`2024: subclasse fora do PHB24 no catálogo 2024 (${subclass.id}: ${subclass.fonte}).`);
     }
   });
@@ -913,7 +921,7 @@ function validateCatalogReferenceIntegrity() {
       dataset.racialSpellSourceDefinitions,
       errors,
     );
-    validateEditionBoundary(dataset.edition, dataset.subclasses, "PHB24", errors);
+    validateEditionBoundary(dataset.edition, dataset.classes, dataset.subclasses, "PHB24", errors);
 
     const weaponIds = new Set(listRecords(dataset.weapons).map((item) => item.id));
     const armorIds = new Set(listRecords(dataset.armors).map((item) => item.id));

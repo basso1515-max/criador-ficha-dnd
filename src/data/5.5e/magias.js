@@ -1,5 +1,5 @@
 // magias.js
-export const DATASET_VERSION = "0.3.1";
+export const DATASET_VERSION = "0.4.0";
 export const META_MAGIAS = {
   dataset: "dnd5e-ptbr",
   version: DATASET_VERSION,
@@ -8,9 +8,11 @@ export const META_MAGIAS = {
   sources: {
     srd: "https://media.wizards.com/2023/downloads/dnd/SRD_CC_v5.1.pdf",
     drsMagiasIndice: "https://aventureirosdosreinos.com/lista-de-magias-por-ordem-alfabetica/",
-    srdJsonPublic: "https://raw.githubusercontent.com/vorpalhex/srd_spells/master/spells.json"
+    srdJsonPublic: "https://raw.githubusercontent.com/vorpalhex/srd_spells/master/spells.json",
+    efota: "Eberron: Forge of the Artificer (2025)"
   },
   changelog: [
+    "0.4.0: Adiciona Servo Homúnculo e vincula a lista de magias publicada do Artífice ao catálogo 2024.",
     "0.3.1: Alinha a lista 2024 com o D&D Beyond (Player's Handbook), reclassifica reprints oficiais e marca sobras 2014 como PHB14.",
     "0.3.0: Reconcilia magias oficiais do PHB 2024, adiciona ausentes, corrige nomes PT-BR/EN e ajusta smites/summons verificados no PDF oficial.",
     "0.2.0: Sincroniza magias das páginas 299-343 do Livro do Jogador 2024 e corrige nomes PT-BR, classes e paginação."
@@ -15832,3 +15834,42 @@ function patchSpell2024(spellId, patch) {
     }
   }
 ].forEach(({ id, patch }) => patchSpell2024(id, patch));
+
+upsertSpell2024({
+  id: "servo-homunculo",
+  nome: "Servo Homúnculo",
+  nomeEN: "Homunculus Servant",
+  nivel: 2,
+  escola: "conjuração",
+  ritual: true,
+  concentracao: false,
+  tempoConjuracao: "1 hora",
+  alcance: "Toque",
+  componentes: ["V", "S", "M"],
+  componentesDetalhe: "uma gema de valor mínimo de 100 PO",
+  duracao: "Instantânea",
+  classes: ["artifice"],
+  descricao: "Você cria um pequeno Constructo homúnculo que obedece a seus comandos e pode ajudar em tarefas, exploração e combate.",
+  emNiveisSuperiores: "",
+  fonte: "EFotA",
+  pagina: 27,
+  resumo: "Cria um companheiro Constructo homúnculo duradouro.",
+  tags: ["conjuracao", "companheiro", "utilidade"],
+});
+
+const ARTIFICER_SPELL_IDS_2024 = [
+  "disparo-acido", "globos-de-luz", "elementalismo", "disparo-de-fogo", "orientacao", "luz", "maos-magicas", "consertar", "mensagem", "spray-venenoso", "prestidigitacao", "raio-de-gelo", "resistencia", "toque-chocante", "poupar-os-moribundos", "chicote-de-espinhos", "golpe-trovejante", "ataque-certeiro",
+  "alarme", "curar-ferimentos", "detectar-magia", "disfarc\u0327ar-se", "recuo-acelerado", "fogo-feerico", "vida-falsa", "queda-suave", "area-escorregadia", "identificacao", "salto", "passolargo", "purificar-alimentos-e-bebidas", "santuario",
+  "ajuda", "alterar-se", "tranca-arcana", "vigor-arcano", "nublar", "chama-continua", "visao-no-escuro", "sopro-do-dragao", "melhorar-habilidade", "aumentar-reduzir", "aquecer-metal", "servo-homunculo", "invisibilidade", "restauracao-menor", "levitacao", "boca-magica", "arma-magica", "protecao-contra-veneno", "truque-de-corda", "ver-invisibilidade", "patas-de-aranha", "teia",
+  "piscar", "criar-alimentos", "dissipar-magia", "arma-elemental", "voo", "glifo-de-protecao", "velocidade", "protecao-contra-energia", "revificar", "respirar-agua", "andar-na-agua",
+  "olho-arcano", "fabricar", "movimento-livre", "bau-secreto-de-leomund", "cao-fiel", "santuario-privativo", "esfera-resiliente", "moldar-pedra", "pele-de-pedra", "invocar-construto",
+  "animar-objetos", "mao-de-energia", "circulo-de-poder", "criacao", "restauracao-maior", "muralha-de-pedra",
+];
+
+ARTIFICER_SPELL_IDS_2024.forEach((spellId) => {
+  const location = findSpellLocation2024(spellId);
+  if (!location?.spell) return;
+  patchSpell2024(spellId, {
+    classes: Array.from(new Set([...(location.spell.classes || []), "artifice"])),
+  });
+});

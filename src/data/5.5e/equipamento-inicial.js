@@ -78,6 +78,10 @@ export const EQUIPMENT_OPTION_LISTS = {
 };
 
 export const CLASS_EQUIPMENT_RULES = {
+  artifice: packageOptions(
+    packageOption("a", "Pacote A", "Cota de escamas, escudo, foice, 2 adagas, ferramentas de ladrão, ferramentas de funileiro, kit de explorador e 13 PO"),
+    packageOption("b", "Pacote B", "150 PO")
+  ),
   barbaro: packageOptions(
     packageOption("a", "Pacote A", "4 machadinhas, machado grande, kit de aventureiro e 15 PO"),
     packageOption("b", "Pacote B", "75 PO")
@@ -185,6 +189,74 @@ export const CLASS_EQUIPMENT_RULES = {
 };
 
 export const BACKGROUND_EQUIPMENT_RULES = {
+  "herdeiro-aberrante": packageOptions(
+    packageOption("a", "Pacote A", "Kit de disfarce, símbolo de linhagem, roupas de viagem e 15 PO"),
+    packageOption("b", "Pacote B", "50 PO")
+  ),
+  arqueologo: packageOptions(
+    packageOption("a", "Pacote A", "Ferramentas de cartógrafo, diário de campo, pá, roupas de viagem e 15 PO"),
+    packageOption("b", "Pacote B", "50 PO")
+  ),
+  "agente-de-casa": packageOptions(
+    packageOption("a", "Pacote A", "Ferramenta de artesão, selo da casa, roupas finas e 15 PO"),
+    packageOption("b", "Pacote B", "50 PO")
+  ),
+  "herdeiro-casa-cannith": packageOptions(
+    packageOption("a", "Pacote A", "Ferramenta de artesão, selo Cannith, projeto inacabado e 15 PO"),
+    packageOption("b", "Pacote B", "50 PO")
+  ),
+  "herdeiro-casa-deneith": packageOptions(
+    packageOption("a", "Pacote A", "Jogo, selo Deneith, uniforme de guarda e 15 PO"),
+    packageOption("b", "Pacote B", "50 PO")
+  ),
+  "herdeiro-casa-ghallanda": packageOptions(
+    packageOption("a", "Pacote A", "Utensílios de cozinheiro, selo Ghallanda, comida para viagem e 15 PO"),
+    packageOption("b", "Pacote B", "50 PO")
+  ),
+  "herdeiro-casa-jorasco": packageOptions(
+    packageOption("a", "Pacote A", "Kit de herbalismo, selo Jorasco, kit de curandeiro e 15 PO"),
+    packageOption("b", "Pacote B", "50 PO")
+  ),
+  "herdeiro-casa-kundarak": packageOptions(
+    packageOption("a", "Pacote A", "Ferramentas de ladrão, selo Kundarak, livro-caixa e 15 PO"),
+    packageOption("b", "Pacote B", "50 PO")
+  ),
+  "herdeiro-casa-lyrandar": packageOptions(
+    packageOption("a", "Pacote A", "Ferramentas de navegador, selo Lyrandar, capa de viagem e 15 PO"),
+    packageOption("b", "Pacote B", "50 PO")
+  ),
+  "herdeiro-casa-medani": packageOptions(
+    packageOption("a", "Pacote A", "Kit de disfarce, selo Medani, lente de aumento e 15 PO"),
+    packageOption("b", "Pacote B", "50 PO")
+  ),
+  "herdeiro-casa-orien": packageOptions(
+    packageOption("a", "Pacote A", "Ferramentas de cartógrafo, selo Orien, mapa de rota e 15 PO"),
+    packageOption("b", "Pacote B", "50 PO")
+  ),
+  "herdeiro-casa-phiarlan": packageOptions(
+    packageOption("a", "Pacote A", "Kit de disfarce, selo Phiarlan, fantasia e 15 PO"),
+    packageOption("b", "Pacote B", "50 PO")
+  ),
+  "herdeiro-casa-sivis": packageOptions(
+    packageOption("a", "Pacote A", "Ferramentas de calígrafo, selo Sivis, pergaminhos e 15 PO"),
+    packageOption("b", "Pacote B", "50 PO")
+  ),
+  "herdeiro-casa-tharashk": packageOptions(
+    packageOption("a", "Pacote A", "Jogo, selo Tharashk, kit de explorador e 15 PO"),
+    packageOption("b", "Pacote B", "50 PO")
+  ),
+  "herdeiro-casa-thuranni": packageOptions(
+    packageOption("a", "Pacote A", "Instrumento musical, selo Thuranni, roupas de artista e 15 PO"),
+    packageOption("b", "Pacote B", "50 PO")
+  ),
+  "herdeiro-casa-vadalis": packageOptions(
+    packageOption("a", "Pacote A", "Kit de herbalismo, selo Vadalis, ração animal e 15 PO"),
+    packageOption("b", "Pacote B", "50 PO")
+  ),
+  inquisitivo: packageOptions(
+    packageOption("a", "Pacote A", "Ferramentas de ladrão, lente de aumento, anotações de caso e 15 PO"),
+    packageOption("b", "Pacote B", "50 PO")
+  ),
   acolito: packageOptions(
     packageOption("a", "Pacote A", "Suprimentos de calígrafo, livro de orações, símbolo sagrado, pergaminho (10 folhas), túnica e 8 PO"),
     packageOption("b", "Pacote B", "50 PO")

@@ -213,7 +213,18 @@ export const PREPARED_FULL_SPELLS_2024 = [0, 4, 5, 6, 7, 9, 10, 11, 12, 14, 15, 
 export const PREPARED_SORCERER_SPELLS_2024 = [0, 2, 4, 6, 7, 9, 10, 11, 12, 14, 15, 16, 16, 17, 17, 18, 18, 19, 20, 21, 22];
 export const PREPARED_WIZARD_SPELLS_2024 = [0, 4, 5, 6, 7, 9, 10, 11, 12, 14, 15, 16, 16, 17, 18, 19, 21, 22, 23, 24, 25];
 export const PREPARED_HALF_SPELLS_2024 = [0, 2, 3, 4, 5, 6, 6, 7, 7, 9, 9, 10, 10, 11, 11, 12, 12, 14, 14, 15, 15];
+export const PREPARED_ARTIFICER_SPELLS_2024 = [0, 2, 3, 4, 5, 6, 6, 7, 7, 9, 9, 10, 10, 11, 11, 12, 12, 14, 14, 15, 15];
 export const SPELLCASTING_RULES_2024 = {
+  artifice: {
+    kind: "prepared",
+    sourceClassId: "artifice",
+    ability: "int",
+    multiclassProgression: "half-up",
+    slotTable: SLOT_TABLES_2024.half,
+    cantripsByLevel: [0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4],
+    preparedByLevel: PREPARED_ARTIFICER_SPELLS_2024,
+    selectionLabel: "Magias preparadas",
+  },
   bardo: {
     kind: "prepared",
     sourceClassId: "bardo",
@@ -326,6 +337,7 @@ export const SUBCLASS_SPELLCASTING_RULES_2024 = {
 };
 
 export const MULTICLASS_PREREQUISITES_2024 = {
+  artifice: { mode: "all", checks: [{ attr: "int", min: 13 }] },
   barbaro: { mode: "all", checks: [{ attr: "for", min: 13 }] },
   bardo: { mode: "all", checks: [{ attr: "car", min: 13 }] },
   bruxo: { mode: "all", checks: [{ attr: "car", min: 13 }] },
@@ -341,6 +353,12 @@ export const MULTICLASS_PREREQUISITES_2024 = {
 };
 
 export const MULTICLASS_PROFICIENCIES_2024 = {
+  artifice: {
+    armaduras: ["leve", "media", "escudo"],
+    armas: [],
+    ferramentas: ["ferramentas-de-funileiro"],
+    skillChoice: { picks: 1, from: (CLASSES_2024?.artifice?.proficiencias?.periciasEscolha?.from || []) },
+  },
   barbaro: {
     armaduras: ["escudo"],
     armas: ["marcial"],
@@ -572,6 +590,7 @@ export const DEFAULT_TEMPLATE_URL_2024 = "./assets/pdf/5.5e/ficha5.5e.pdf";
 
 export const FEAT_CATEGORY_LABELS = {
   origem: "talento de origem",
+  "marca-do-dragao": "talento de marca dracônica",
   geral: "talento geral",
   "estilo-de-luta": "estilo de luta",
   "dadiva-epica": "dádiva épica",
@@ -623,8 +642,10 @@ export const TOOL_LABELS = new Map([
   ["ferramentas-de-caligrafo", "Ferramentas de calígrafo"],
   ["ferramentas-de-carpinteiro", "Ferramentas de carpinteiro"],
   ["ferramentas-de-cartografo", "Ferramentas de cartógrafo"],
+  ["ferramentas-de-funileiro", "Ferramentas de funileiro"],
   ["ferramentas-de-ladrao", "Ferramentas de ladrão"],
   ["ferramentas-de-navegador", "Ferramentas de navegador"],
+  ["suprimentos-de-cozinheiro", "Utensílios de cozinheiro"],
   ["kit-de-disfarce", "Kit de disfarce"],
   ["kit-de-falsificacao", "Kit de falsificação"],
   ["kit-de-herborismo", "Kit de herborismo"],

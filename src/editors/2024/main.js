@@ -139,6 +139,7 @@ import {
   normalizeSpellSlotUsage2024,
 } from "./spell-rules.js";
 import {
+  ARTIFICER_SUBCLASS_GRANTED_SPELL_IDS_2024,
   DRUID_WILD_SHAPE_USES_BY_LEVEL_2024,
   DRUID_DRUIDIC_GRANTED_SPELL_IDS_2024,
   DRUID_CIRCLE_GRANTED_SPELL_IDS_2024,
@@ -374,6 +375,7 @@ import {
   let FEATURE_SUMMARIES_2024 = null;
   let featureSummariesLoadPromise2024 = null;
   const ALL_SPELLCASTING_CLASS_IDS_2024 = [
+    "artifice",
     "bardo",
     "bruxo",
     "clerigo",
@@ -453,6 +455,7 @@ import {
     },
   };
   const SPELLCASTING_CLASS_LEVELS = {
+    artifice: 1,
     bardo: 1,
     bruxo: 1,
     clerigo: 1,
@@ -467,6 +470,7 @@ import {
     "ladino-trapaceiro-arcano": 3,
   };
   const SPELLCASTING_ABILITY_BY_CLASS = {
+    artifice: "int",
     bardo: "car",
     bruxo: "car",
     clerigo: "sab",
@@ -10629,7 +10633,7 @@ import {
 
   function isOfficialSpellFor2024(spell) {
     const source = String(spell?.fonte || "").trim().toUpperCase();
-    return source === "PHB" || source === "PHB24";
+    return source === "PHB" || source === "PHB24" || source === "EFOTA";
   }
 
   function flattenMagicDataset2024(dataset) {
@@ -11952,6 +11956,13 @@ import {
           config,
           collectGrantedSpellIdsByLevel2024(CLERIC_DOMAIN_GRANTED_SPELL_IDS_2024[entry.subclassId], entry.level),
           `Domínio Divino (${entry.subclassData?.nome || labelFromSlug(entry.subclassId)})`
+        );
+      }
+      if (entry.classId === "artifice" && entry.subclassId) {
+        mergeGrantedSpellIdsIntoConfig2024(
+          config,
+          collectGrantedSpellIdsByLevel2024(ARTIFICER_SUBCLASS_GRANTED_SPELL_IDS_2024[entry.subclassId], entry.level),
+          `Magias de Especialidade (${entry.subclassData?.nome || labelFromSlug(entry.subclassId)})`
         );
       }
       if (entry.classId === "paladino") {
