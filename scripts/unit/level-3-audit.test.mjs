@@ -158,6 +158,7 @@ const EXPECTED_5E_SUBCLASS_FEATURES_LEVEL_3 = {
 };
 
 const EXPECTED_2024_CLASS_FEATURES_LEVEL_3 = {
+  artifice: ["Subclasse de Artífice"],
   barbaro: ["Conhecimento Primal", "Subclasse de Bárbaro"],
   bardo: ["Subclasse de Bardo"],
   bruxo: ["Subclasse de Bruxo"],
@@ -173,6 +174,11 @@ const EXPECTED_2024_CLASS_FEATURES_LEVEL_3 = {
 };
 
 const EXPECTED_2024_SUBCLASS_FEATURES_LEVEL_3 = {
+  "artifice-alquimista": ["Ferramentas do Ofício", "Magias de Alquimista", "Elixir Experimental"],
+  "artifice-armeiro": ["Ferramentas do Ofício", "Magias de Armeiro", "Armadura Arcana", "Modelo de Armadura"],
+  "artifice-artilheiro": ["Ferramentas do Ofício", "Magias de Artilheiro", "Canhão Arcano"],
+  "artifice-ferreiro-batalha": ["Ferramentas do Ofício", "Magias de Ferreiro de Batalha", "Pronto para a Batalha", "Defensor de Aço"],
+  "artifice-cartografo": ["Ferramentas do Ofício", "Magias de Cartógrafo", "Atlas do Aventureiro", "Magia de Mapeamento"],
   "barbaro-arvore-mundo": ["Vitalidade da Árvore", "Força que Dá Vida"],
   "barbaro-berserker": ["Frenesi"],
   "barbaro-coracao-selvagem": ["Arauto da Fauna", "Fúria dos Selvagens"],
@@ -305,10 +311,10 @@ test("matriz 5e declara exatamente os recursos de classe e subclasse de nivel 3"
 test("matriz 2024 declara exatamente os recursos de classe e subclasse de nivel 3", () => {
   assertFeatureMatrix(CLASSES_2024, EXPECTED_2024_CLASS_FEATURES_LEVEL_3, "2024 nivel 3");
   assertFeatureMatrix(SUBCLASSES_2024, EXPECTED_2024_SUBCLASS_FEATURES_LEVEL_3, "2024 nivel 3");
-  assert.equal(records(CLASSES_2024).length, 12, "classes 2024 auditadas");
-  assert.equal(records(SUBCLASSES_2024).length, 48, "subclasses 2024 auditadas");
-  assert.equal(countRecordsWithFeatures(CLASSES_2024), 12, "classes 2024 com recurso textual no nivel 3");
-  assert.equal(countRecordsWithFeatures(SUBCLASSES_2024), 48, "subclasses 2024 com recurso textual no nivel 3");
+  assert.equal(records(CLASSES_2024).length, 13, "classes 2024 auditadas");
+  assert.equal(records(SUBCLASSES_2024).length, 53, "subclasses 2024 auditadas");
+  assert.equal(countRecordsWithFeatures(CLASSES_2024), 13, "classes 2024 com recurso textual no nivel 3");
+  assert.equal(countRecordsWithFeatures(SUBCLASSES_2024), 53, "subclasses 2024 com recurso textual no nivel 3");
 });
 
 test("texto de nivel 3 fica alinhado aos resumos e a validacao estrutural", () => {

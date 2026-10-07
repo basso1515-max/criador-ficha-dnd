@@ -112,6 +112,11 @@ const EXPECTED_2024_CLASS_FEATURES_LEVEL_9 = {
 };
 
 const EXPECTED_2024_SUBCLASS_FEATURES_LEVEL_9 = {
+  "artifice-alquimista": ["Reagentes Restauradores"],
+  "artifice-armeiro": ["Armeiro Aprimorado"],
+  "artifice-artilheiro": ["Canhão Explosivo"],
+  "artifice-ferreiro-batalha": ["Abalo Arcano"],
+  "artifice-cartografo": ["Movimento Engenhoso"],
   "ladino-faca-alma": ["Lâminas da Alma"],
   "ladino-assassino": ["Especialista em Infiltração"],
   "ladino-ladrao": ["Furtividade Suprema"],
@@ -198,10 +203,10 @@ test("matriz 2024: classes e subclasses declaram exatamente os recursos de nivel
   assertFeatureMatrix(CLASSES_2024, EXPECTED_2024_CLASS_FEATURES_LEVEL_9, "2024 nivel 9");
   assertFeatureMatrix(SUBCLASSES_2024, EXPECTED_2024_SUBCLASS_FEATURES_LEVEL_9, "2024 nivel 9");
 
-  assert.equal(records(CLASSES_2024).length, 12, "classes 2024 auditadas");
-  assert.equal(records(SUBCLASSES_2024).length, 48, "subclasses 2024 auditadas");
+  assert.equal(records(CLASSES_2024).length, 13, "classes 2024 auditadas");
+  assert.equal(records(SUBCLASSES_2024).length, 53, "subclasses 2024 auditadas");
   assert.equal(countRecordsWithFeatures(CLASSES_2024), 7, "classes 2024 com recurso textual no nivel 9");
-  assert.equal(countRecordsWithFeatures(SUBCLASSES_2024), 4, "subclasses 2024 com recurso textual no nivel 9");
+  assert.equal(countRecordsWithFeatures(SUBCLASSES_2024), 9, "subclasses 2024 com recurso textual no nivel 9");
 });
 
 test("fluxos oficiais de nivel 9 ficam estruturados fora do smoke DOM", () => {

@@ -104,6 +104,14 @@ const EXPECTED_2024_CLASS_FEATURES_LEVEL_5 = {
   guardiao: ["Ataque Extra"],
 };
 
+const EXPECTED_2024_SUBCLASS_FEATURES_LEVEL_5 = {
+  "artifice-alquimista": ["Sábio Alquímico"],
+  "artifice-armeiro": ["Ataque Extra"],
+  "artifice-artilheiro": ["Arma de Fogo Arcana"],
+  "artifice-ferreiro-batalha": ["Ataque Extra"],
+  "artifice-cartografo": ["Precisão Guiada"],
+};
+
 function records(collection) {
   return Array.isArray(collection) ? collection : Object.values(collection || {});
 }
@@ -167,11 +175,11 @@ test("matriz 5e declara exatamente os recursos de classe e subclasse de nivel 5"
 
 test("matriz 2024 declara exatamente os recursos de classe e subclasse de nivel 5", () => {
   assertFeatureMatrix(CLASSES_2024, EXPECTED_2024_CLASS_FEATURES_LEVEL_5, "2024 nivel 5");
-  assertFeatureMatrix(SUBCLASSES_2024, {}, "2024 nivel 5");
-  assert.equal(records(CLASSES_2024).length, 12, "classes 2024 auditadas");
-  assert.equal(records(SUBCLASSES_2024).length, 48, "subclasses 2024 auditadas");
+  assertFeatureMatrix(SUBCLASSES_2024, EXPECTED_2024_SUBCLASS_FEATURES_LEVEL_5, "2024 nivel 5");
+  assert.equal(records(CLASSES_2024).length, 13, "classes 2024 auditadas");
+  assert.equal(records(SUBCLASSES_2024).length, 53, "subclasses 2024 auditadas");
   assert.equal(countRecordsWithFeatures(CLASSES_2024), 11, "classes 2024 com texto no nivel 5");
-  assert.equal(countRecordsWithFeatures(SUBCLASSES_2024), 0, "subclasses 2024 com texto no nivel 5");
+  assert.equal(countRecordsWithFeatures(SUBCLASSES_2024), 5, "subclasses 2024 com texto no nivel 5");
 });
 
 test("texto oficial e cobertura de nivel 5 ficam estruturados", () => {

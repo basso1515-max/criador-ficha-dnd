@@ -93,6 +93,7 @@ const EXPECTED_5E_SUBCLASS_FEATURES_LEVEL_8 = {
 };
 
 const EXPECTED_2024_CLASS_FEATURES_LEVEL_8 = {
+  artifice: ["Aumento no Valor de Atributo"],
   barbaro: ["Aumento no Valor de Atributo"],
   bardo: ["Aumento no Valor de Atributo"],
   bruxo: ["Aumento no Valor de Atributo"],
@@ -192,9 +193,9 @@ test("matriz 2024: classes declaram ASI no nivel 8 e subclasses nao declaram rec
     assert.deepEqual(featureNamesAtLevel(subclass), [], `${subclass.id} 2024 nao deve declarar recurso textual no nivel 8`);
   });
 
-  assert.equal(records(CLASSES_2024).length, 12, "classes 2024 auditadas");
-  assert.equal(records(SUBCLASSES_2024).length, 48, "subclasses 2024 auditadas");
-  assert.equal(countRecordsWithFeatures(CLASSES_2024), 12, "classes 2024 com ASI no nivel 8");
+  assert.equal(records(CLASSES_2024).length, 13, "classes 2024 auditadas");
+  assert.equal(records(SUBCLASSES_2024).length, 53, "subclasses 2024 auditadas");
+  assert.equal(countRecordsWithFeatures(CLASSES_2024), 13, "classes 2024 com ASI no nivel 8");
   assert.equal(countRecordsWithFeatures(SUBCLASSES_2024), 0, "subclasses 2024 com recurso textual no nivel 8");
 });
 

@@ -110,7 +110,7 @@ test("matriz 2024: todas as classes declaram Dadiva Epica no nivel 19", () => {
   });
 
   const epicFeats = records(FEATS_2024).filter((feat) => feat.categoria === "dadiva-epica");
-  assert.equal(epicFeats.length, 12, "catalogo 2024 deve manter as 12 dadivas epicas cadastradas");
+  assert.equal(epicFeats.length, 13, "catalogo 2024 deve manter as 13 dadivas epicas cadastradas");
   assert.ok(epicFeats.some((feat) => feat.id === "dadiva-da-fortitude"));
   assert.ok(epicFeats.some((feat) => feat.id === "dadiva-do-destino"));
 });

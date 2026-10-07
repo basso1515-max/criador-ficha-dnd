@@ -1,5 +1,20 @@
 export const FEATURE_SUMMARIES_2024 = {
   "classes": {
+    "artifice": {
+      "Conjuração": "Prepara magias de Artífice usando Inteligência e pode usar ferramentas de artesão como foco de conjuração.",
+      "Magia de Funileiro": "Conhece Consertar e pode criar um pequeno objeto mundano com ferramentas de funileiro até o próximo Descanso Longo.",
+      "Replicar Item Mágico": "Usa Planos para criar itens mágicos replicados após um Descanso Longo; os limites de Planos e itens aumentam com o nível.",
+      "Subclasse de Artífice": "Escolhe uma especialidade de Artífice: Alquimista, Armeiro, Artilheiro, Ferreiro de Batalha ou Cartógrafo.",
+      "Aumento no Valor de Atributo": "Recebe Aumento no Valor de Atributo ou outro talento para o qual se qualifique.",
+      "Funileiro de Itens Mágicos": "Carrega ou drena certos itens mágicos usando espaços de magia e pode transmutar um item mágico após um Descanso Longo.",
+      "Lampejo de Gênio": "Como Reação, adiciona seu modificador de Inteligência ao teste de atributo ou salvaguarda que uma criatura visível acabou de falhar.",
+      "Adepto de Itens Mágicos": "Pode sintonizar até quatro itens mágicos e amplia suas opções de itens replicados.",
+      "Item que Armazena Magia": "Armazena uma magia de Artífice de até 3º círculo em um objeto para que outra criatura possa liberá-la.",
+      "Artífice Avançado": "Pode sintonizar até cinco itens mágicos, melhora Replicar Item Mágico e recupera usos extras de Lampejo de Gênio em descanso curto.",
+      "Mestre de Itens Mágicos": "Pode sintonizar até seis itens mágicos e alcança o limite máximo de Planos e itens replicados.",
+      "Dádiva Épica": "Recebe uma Dádiva Épica ou outro talento elegível.",
+      "Alma do Artífice": "Usa itens replicados para evitar cair a 0 PV e recupera Lampejo de Gênio com mais facilidade enquanto estiver sintonizado.",
+    },
     "barbaro": {
       "Fúria": "Ação bônus sem armadura pesada; ganha resistência a contundente, perfurante e cortante, bônus de dano por Força e Vantagem em testes e salvaguardas de Força.",
       "Defesa sem Armadura": "Sem armadura, sua CA usa Destreza e Constituição; você ainda pode usar escudo.",
@@ -212,6 +227,49 @@ export const FEATURE_SUMMARIES_2024 = {
     }
   },
   "subclasses": {
+    "artifice-alquimista": {
+      "Ferramentas do Ofício": "Ganha treinamento em suprimentos de alquimista e kit de herbalismo, além de criar poções com mais eficiência.",
+      "Magias de Alquimista": "As magias da especialidade ficam sempre preparadas e não contam contra o limite de magias preparadas.",
+      "Elixir Experimental": "Produz elixires experimentais após um Descanso Longo e pode gastar espaços de magia para criar elixires escolhidos.",
+      "Sábio Alquímico": "Ao usar suprimentos de alquimista como foco, soma Inteligência a uma rolagem adequada de cura ou dano de magia.",
+      "Reagentes Restauradores": "Conjura Restauração Menor sem gastar espaço em usos limitados e melhora a recuperação concedida por elixires.",
+      "Maestria Química": "Ganha defesas contra ácido e veneno e reforça seus efeitos alquímicos.",
+    },
+    "artifice-armeiro": {
+      "Ferramentas do Ofício": "Ganha treinamento com armaduras pesadas e ferramentas de ferreiro, além de criar armaduras com mais eficiência.",
+      "Magias de Armeiro": "As magias da especialidade ficam sempre preparadas e não contam contra o limite de magias preparadas.",
+      "Armadura Arcana": "Transforma a armadura vestida em foco mágico, ignora seu requisito de Força e pode equipá-la ou removê-la rapidamente.",
+      "Modelo de Armadura": "Depois de um descanso, configura sua Armadura Arcana como Couraçado, Guardião ou Infiltrador.",
+      "Ataque Extra": "Ataca duas vezes ao usar a ação Atacar.",
+      "Armeiro Aprimorado": "Melhora as capacidades de sua Armadura Arcana e permite aplicar benefícios mágicos a mais partes dela.",
+      "Armadura Perfeita": "Cada modelo de Armadura Arcana recebe um aperfeiçoamento defensivo ou ofensivo adicional.",
+    },
+    "artifice-artilheiro": {
+      "Ferramentas do Ofício": "Ganha proficiência com armas marciais à distância e ferramentas de entalhador, além de criar varinhas mais rapidamente.",
+      "Magias de Artilheiro": "As magias da especialidade ficam sempre preparadas e não contam contra o limite de magias preparadas.",
+      "Canhão Arcano": "Cria um canhão arcano Pequeno ou Miúdo que dispara fogo, força ou concede proteção temporária.",
+      "Arma de Fogo Arcana": "Marca um foco ou arma à distância para amplificar uma rolagem de dano de magia de Artífice.",
+      "Canhão Explosivo": "Melhora os modos do canhão e permite detoná-lo para causar dano de força.",
+      "Posição Fortificada": "Opera dois canhões e cria uma área defensiva para sua posição.",
+    },
+    "artifice-ferreiro-batalha": {
+      "Ferramentas do Ofício": "Ganha proficiência com armas marciais e ferramentas de ferreiro, além de criar armas com mais eficiência.",
+      "Magias de Ferreiro de Batalha": "As magias da especialidade ficam sempre preparadas e não contam contra o limite de magias preparadas.",
+      "Pronto para a Batalha": "Usa Inteligência nos ataques e danos com armas mágicas e pode usar uma arma proficiente como foco.",
+      "Defensor de Aço": "Constrói um companheiro Constructo que recebe comandos e escala com seu nível de Artífice.",
+      "Ataque Extra": "Ataca duas vezes ou substitui um ataque por um comando de ataque ao Defensor de Aço.",
+      "Abalo Arcano": "Quando você ou o Defensor acerta, causa dano de força adicional ou cura uma criatura em usos limitados.",
+      "Defensor Aprimorado": "Seu Defensor de Aço recebe melhorias de sobrevivência e de resposta aos comandos.",
+    },
+    "artifice-cartografo": {
+      "Ferramentas do Ofício": "Ganha proficiência com suprimentos de calígrafo e ferramentas de cartógrafo, além de criar pergaminhos com mais eficiência.",
+      "Magias de Cartógrafo": "As magias da especialidade ficam sempre preparadas e não contam contra o limite de magias preparadas.",
+      "Atlas do Aventureiro": "Cria mapas vinculados que ajudam na iniciativa, no rastreio de aliados e na seleção de alvos.",
+      "Magia de Mapeamento": "Usa magia de navegação e reposicionamento vinculada ao atlas em usos limitados.",
+      "Precisão Guiada": "Seu atlas ajuda aliados a acertar ataques e superar desafios táticos.",
+      "Movimento Engenhoso": "Usa seus mapas para criar trajetos e deslocamentos surpreendentes.",
+      "Atlas Superior": "Aprimora o atlas para ampliar as opções de exploração, reposicionamento e orientação.",
+    },
     "barbaro-arvore-mundo": {
       "Vitalidade da Árvore": "Ao ativar Fúria, ganha PV temporários iguais ao nível de bárbaro.",
       "Força que Dá Vida": "No início de cada turno em Fúria, outra criatura a até 3 m recebe PV temporários iguais a dados d6 em número igual ao bônus de Dano da Fúria.",

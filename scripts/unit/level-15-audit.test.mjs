@@ -105,6 +105,7 @@ const EXPECTED_5E_SUBCLASS_FEATURES_LEVEL_15 = {
 };
 
 const EXPECTED_2024_CLASS_FEATURES_LEVEL_15 = {
+  artifice: [],
   barbaro: ["Fúria Persistente"],
   bardo: [],
   bruxo: ["Arcana Mística (8º círculo)"],
@@ -120,6 +121,11 @@ const EXPECTED_2024_CLASS_FEATURES_LEVEL_15 = {
 };
 
 const EXPECTED_2024_SUBCLASS_FEATURES_LEVEL_15 = {
+  "artifice-alquimista": ["Maestria Química"],
+  "artifice-armeiro": ["Armadura Perfeita"],
+  "artifice-artilheiro": ["Posição Fortificada"],
+  "artifice-ferreiro-batalha": ["Defensor Aprimorado"],
+  "artifice-cartografo": ["Atlas Superior"],
   "guardiao-andarilho-feerico": ["Andarilho Nebuloso"],
   "guardiao-cacador": ["Defesa Superior do Caçador"],
   "guardiao-mestre-feras": ["Compartilhar Magias"],
@@ -210,7 +216,7 @@ test("matriz 2024: classes e subclasses declaram exatamente os recursos de nivel
     assert.deepEqual(featureNamesAtLevel(subclass), expected, `${subclass.id} 2024 nivel 15`);
   });
 
-  assert.equal(Object.keys(EXPECTED_2024_SUBCLASS_FEATURES_LEVEL_15).length, 12, "subclasses 2024 com recurso no nivel 15");
+  assert.equal(Object.keys(EXPECTED_2024_SUBCLASS_FEATURES_LEVEL_15).length, 17, "subclasses 2024 com recurso no nivel 15");
 });
 
 test("matriz 5e: contas de magia e recursos selecionaveis batem no nivel 15", () => {

@@ -143,6 +143,7 @@ test("matriz 5e: todas as classes declaram o recurso de nivel 20 correto", () =>
 
 test("matriz 2024: capstones de classe e juramentos de paladino estao completos", () => {
   const expectedFeatures = {
+    artifice: "Alma do Artífice",
     barbaro: "Campeão Primal",
     bardo: "Palavras de Criação",
     bruxo: "Mestre Místico",

@@ -93,6 +93,7 @@ const EXPECTED_5E_SUBCLASS_FEATURES_LEVEL_11 = {
 };
 
 const EXPECTED_2024_CLASS_FEATURES_LEVEL_11 = {
+  artifice: ["Item que Armazena Magia"],
   barbaro: ["Fúria Implacável"],
   bardo: [],
   bruxo: ["Arcana Mística (6º círculo)"],
@@ -197,9 +198,9 @@ test("matriz 2024: classes e subclasses declaram exatamente os recursos de nivel
   assertFeatureMatrix(CLASSES_2024, EXPECTED_2024_CLASS_FEATURES_LEVEL_11, "2024 nivel 11");
   assertFeatureMatrix(SUBCLASSES_2024, EXPECTED_2024_SUBCLASS_FEATURES_LEVEL_11, "2024 nivel 11");
 
-  assert.equal(records(CLASSES_2024).length, 12, "classes 2024 auditadas");
-  assert.equal(records(SUBCLASSES_2024).length, 48, "subclasses 2024 auditadas");
-  assert.equal(countRecordsWithFeatures(CLASSES_2024), 5, "classes 2024 com recurso textual no nivel 11");
+  assert.equal(records(CLASSES_2024).length, 13, "classes 2024 auditadas");
+  assert.equal(records(SUBCLASSES_2024).length, 53, "subclasses 2024 auditadas");
+  assert.equal(countRecordsWithFeatures(CLASSES_2024), 6, "classes 2024 com recurso textual no nivel 11");
   assert.equal(countRecordsWithFeatures(SUBCLASSES_2024), 8, "subclasses 2024 com recurso textual no nivel 11");
 });
 

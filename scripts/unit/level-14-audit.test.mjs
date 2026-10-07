@@ -129,6 +129,7 @@ const EXPECTED_5E_SUBCLASS_FEATURES_LEVEL_14 = {
 };
 
 const EXPECTED_2024_CLASS_FEATURES_LEVEL_14 = {
+  artifice: ["Artífice Avançado"],
   barbaro: [],
   bardo: [],
   bruxo: [],

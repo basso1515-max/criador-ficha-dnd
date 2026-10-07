@@ -150,6 +150,7 @@ const EXPECTED_5E_SUBCLASS_FEATURES_LEVEL_6 = {
 };
 
 const EXPECTED_2024_CLASS_FEATURES_LEVEL_6 = {
+  artifice: ["Funileiro de Itens Mágicos"],
   guerreiro: ["Aumento no Valor de Atributo"],
   ladino: ["Especialista Adicional"],
   monge: ["Golpes Potencializados"],
@@ -252,9 +253,9 @@ test("matriz 5e declara exatamente os recursos de classe e subclasse de nivel 6"
 test("matriz 2024 declara exatamente os recursos de classe e subclasse de nivel 6", () => {
   assertFeatureMatrix(CLASSES_2024, EXPECTED_2024_CLASS_FEATURES_LEVEL_6, "2024 nivel 6");
   assertFeatureMatrix(SUBCLASSES_2024, EXPECTED_2024_SUBCLASS_FEATURES_LEVEL_6, "2024 nivel 6");
-  assert.equal(records(CLASSES_2024).length, 12);
-  assert.equal(records(SUBCLASSES_2024).length, 48);
-  assert.equal(countRecordsWithFeatures(CLASSES_2024), 5);
+  assert.equal(records(CLASSES_2024).length, 13);
+  assert.equal(records(SUBCLASSES_2024).length, 53);
+  assert.equal(countRecordsWithFeatures(CLASSES_2024), 6);
   assert.equal(countRecordsWithFeatures(SUBCLASSES_2024), 32);
 });
 

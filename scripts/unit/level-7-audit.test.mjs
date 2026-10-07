@@ -112,6 +112,7 @@ const EXPECTED_5E_SUBCLASS_FEATURES_LEVEL_7 = {
 };
 
 const EXPECTED_2024_CLASS_FEATURES_LEVEL_7 = {
+  artifice: ["Lampejo de Gênio"],
   barbaro: ["Bote Instintivo", "Instinto Feral"],
   bardo: ["Contra-Encantamento"],
   bruxo: [],
@@ -202,9 +203,9 @@ test("matriz 5e: classes e subclasses declaram exatamente os recursos de nivel 7
 test("matriz 2024: classes e subclasses declaram exatamente os recursos de nivel 7 esperados", () => {
   assertFeatureMatrix(CLASSES_2024, EXPECTED_2024_CLASS_FEATURES_LEVEL_7, "2024 nivel 7");
   assertFeatureMatrix(SUBCLASSES_2024, EXPECTED_2024_SUBCLASS_FEATURES_LEVEL_7, "2024 nivel 7");
-  assert.equal(records(CLASSES_2024).length, 12);
-  assert.equal(records(SUBCLASSES_2024).length, 48);
-  assert.equal(countRecordsWithFeatures(CLASSES_2024), 7);
+  assert.equal(records(CLASSES_2024).length, 13);
+  assert.equal(records(SUBCLASSES_2024).length, 53);
+  assert.equal(countRecordsWithFeatures(CLASSES_2024), 8);
   assert.equal(countRecordsWithFeatures(SUBCLASSES_2024), 12);
 });
 

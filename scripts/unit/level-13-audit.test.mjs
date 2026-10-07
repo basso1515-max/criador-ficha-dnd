@@ -91,6 +91,7 @@ const EXPECTED_5E_SUBCLASS_FEATURES_LEVEL_13 = {
 };
 
 const EXPECTED_2024_CLASS_FEATURES_LEVEL_13 = {
+  artifice: [],
   barbaro: ["Golpe Brutal Aprimorado (13º nível)"],
   bardo: [],
   bruxo: ["Arcana Mística (7º círculo)"],

@@ -75,6 +75,7 @@ const EXPECTED_5E_SUBCLASS_FEATURES_LEVEL_18 = {
 };
 
 const EXPECTED_2024_CLASS_FEATURES_LEVEL_18 = {
+  artifice: ["Mestre de Itens Mágicos"],
   barbaro: ["Força Indomável"],
   bardo: ["Inspiração Superior"],
   bruxo: [],

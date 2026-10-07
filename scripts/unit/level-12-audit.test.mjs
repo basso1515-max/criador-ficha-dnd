@@ -57,6 +57,7 @@ const THIRD_SLOTS_LEVEL_12 = [4, 3];
 const DEFAULT_5E_FEAT_LEVELS = [4, 8, 12, 16, 19];
 
 const EXPECTED_2024_CLASS_FEATURES_LEVEL_12 = {
+  artifice: ["Aumento no Valor de Atributo"],
   barbaro: ["Aumento no Valor de Atributo"],
   bardo: ["Aumento no Valor de Atributo"],
   bruxo: ["Aumento no Valor de Atributo"],
@@ -137,7 +138,7 @@ test("matriz 2024: classes declaram ASI no nivel 12 e subclasses nao declaram re
     assert.deepEqual(featureNamesAtLevel(subclass), [], `${subclass.id} 2024 nao deve declarar recurso textual no nivel 12`);
   });
 
-  assert.equal(Object.keys(EXPECTED_2024_CLASS_FEATURES_LEVEL_12).length, 12, "classes 2024 com ASI no nivel 12");
+  assert.equal(Object.keys(EXPECTED_2024_CLASS_FEATURES_LEVEL_12).length, 13, "classes 2024 com ASI no nivel 12");
   assert.ok(OMITTED_PDF_FEATURE_NAMES_2024.has("Aumento no Valor de Atributo"), "ASI 2024 deve virar escolha, nao texto solto no PDF");
 });
 
@@ -149,7 +150,7 @@ test("seletores de nivel 12 ficam estruturados fora do smoke DOM", () => {
   assert.equal(asiFeat.repeatable, true);
   assert.equal(
     records(CLASSES_2024).filter((cls) => featureNamesAtLevel(cls).includes(asiFeat.name_pt)).length,
-    12,
+    13,
     "ASI 2024 deve estar disponivel para todas as classes no nivel 12"
   );
   assert.ok(OMITTED_PDF_FEATURE_NAMES_2024.has(asiFeat.name_pt), "ASI 2024 deve ser resolvido pelo seletor, nao pelo texto do PDF");

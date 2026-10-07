@@ -54,6 +54,7 @@ const HALF_SLOTS_LEVEL_16 = [4, 3, 3, 2];
 const THIRD_SLOTS_LEVEL_16 = [4, 3, 3];
 
 const EXPECTED_2024_CLASS_FEATURES_LEVEL_16 = {
+  artifice: ["Aumento no Valor de Atributo"],
   barbaro: ["Aumento no Valor de Atributo"],
   bardo: ["Aumento no Valor de Atributo"],
   bruxo: ["Aumento no Valor de Atributo"],
@@ -130,7 +131,7 @@ test("matriz 2024: todas as classes declaram ASI no nivel 16 e subclasses nao de
     assert.deepEqual(featureNamesAtLevel(subclass), [], `${subclass.id} 2024 nao deve declarar recurso textual no nivel 16`);
   });
 
-  assert.equal(Object.keys(EXPECTED_2024_CLASS_FEATURES_LEVEL_16).length, 12, "classes 2024 com ASI no nivel 16");
+  assert.equal(Object.keys(EXPECTED_2024_CLASS_FEATURES_LEVEL_16).length, 13, "classes 2024 com ASI no nivel 16");
   assert.ok(OMITTED_PDF_FEATURE_NAMES_2024.has("Aumento no Valor de Atributo"), "ASI 2024 deve virar escolha, nao texto solto no PDF");
 });
 
