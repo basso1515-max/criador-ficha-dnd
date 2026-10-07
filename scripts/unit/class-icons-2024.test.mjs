@@ -10,7 +10,7 @@ const EXPECTED_CLASS_IDS = [
 ];
 
 test("ícones vetoriais da 5.5e cobrem as treze classes previstas", async () => {
-  assert.deepEqual(Object.keys(CLASSES).sort(), EXPECTED_CLASS_IDS.filter((classId) => classId !== "artifice").sort());
+  assert.deepEqual(Object.keys(CLASSES).sort(), EXPECTED_CLASS_IDS.sort());
 
   for (const classId of EXPECTED_CLASS_IDS) {
     const publicPath = `/assets/icons/classes/2024/${classId}.svg`;
