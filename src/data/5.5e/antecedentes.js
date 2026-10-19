@@ -1,16 +1,25 @@
-export const DATASET_VERSION = "1.1.0";
+import { ADDITIONAL_BACKGROUNDS_2024 } from "./official-expansions-2024.js";
+
+export const DATASET_VERSION = "1.2.0";
 
 export const META_ANTECEDENTES = {
   dataset: "dnd5e-2024-ptbr",
   version: DATASET_VERSION,
   locale: "pt-BR",
-  builtAt: "2026-04-16",
+  builtAt: "2026-10-19",
   sources: {
     phb2024: "Player's Handbook (2024)",
     efota: "Eberron: Forge of the Artificer (2025)",
+    au: "Arcana Unleashed",
+    aboh: "Astarion’s Book of Hungers",
+    frhof: "Forgotten Realms: Heroes of Faerûn",
+    rthw: "Ravenloft: The Horrors Within",
+    lfl: "Lorwyn: First Light",
+    drops2026: "D&D Beyond Drops (2026)",
     referenciaLocal: "src/data/5.5e/DnD 5.5 - Livro do Jogador (2024).pdf",
   },
   changelog: [
+    "1.2.0: Adiciona 38 antecedentes de Arcana Unleashed, Astarion’s Book of Hungers, Forgotten Realms: Heroes of Faerûn, Ravenloft, Lorwyn e Drops de 2026.",
     "1.1.0: Adiciona os 17 antecedentes de Eberron: Forge of the Artificer, com seus talentos de Marca Dracônica, perícias, ferramentas e opções de atributo.",
     "1.0.0: Reescrita dos antecedentes para o PHB 2024, usando os 16 pacotes oficiais de origem com talentos de origem, perícias, ferramentas, escolhas de atributos e equipamento A/B.",
   ],
@@ -51,15 +60,44 @@ const background = ({
     id: talentoOrigem.id,
     nome: talentoOrigem.nome,
     variante: talentoVariante,
+    ...(Array.isArray(talentoOrigem.opcoes) ? { opcoes: [...talentoOrigem.opcoes] } : {}),
   },
   equipamento2024: {
     optionA: equipamento,
     optionB: ["50 PO"],
-  moedasA,
+    moedasA,
     moedasB: 50,
   },
   fonte,
 });
+
+const expansionBackground = (entry) => {
+  const choiceLabel = entry.featOptions?.includes("survivor")
+    ? "Sobrevivente ou Dádiva Sombria"
+    : entry.featOptions?.includes("sharp-eye")
+      ? "Olho Aguçado ou Dádiva Sombria"
+      : entry.featOptions?.some((id) => ["aberrant-anatomy", "echoing-soul", "gathered-whispers", "living-shadow", "mist-walker", "second-skin", "symbiotic-being", "touch-of-death", "watchers"].includes(id))
+        ? "Dádiva Sombria à escolha"
+        : "Talento à escolha";
+  const featName = entry.featOptions?.length ? choiceLabel : entry.originalFeat || "Talento de origem";
+  return background({
+    id: entry.id,
+    nome: entry.nome,
+    atributos: entry.attributes,
+    talentoOrigem: {
+      id: entry.featId || "",
+      nome: featName,
+      ...(entry.featOptions?.length ? { opcoes: entry.featOptions } : {}),
+    },
+    talentoVariante: entry.featVariant,
+    pericias: entry.skills,
+    ferramentas: entry.tool,
+    equipamento: entry.equipment,
+    moedasA: entry.gold,
+    resumo: entry.summary,
+    fonte: entry.source,
+  });
+};
 
 export const ANTECEDENTES = {
   acolito: background({
@@ -445,4 +483,5 @@ export const ANTECEDENTES = {
     resumo: "Investigador de Eberron com Alerta, leitura de pistas e ferramentas para casos difíceis.",
     fonte: "EFotA",
   }),
+  ...Object.fromEntries(ADDITIONAL_BACKGROUNDS_2024.map((entry) => [entry.id, expansionBackground(entry)])),
 };

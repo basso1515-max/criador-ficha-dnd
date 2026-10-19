@@ -1,3 +1,5 @@
+import { ADDITIONAL_SUBCLASSES_2024 } from "./official-expansions-2024.js";
+
 const feature = (nome, descricao = "") => ({ nome, descricao });
 
 const subclass = (id, classeBase, nome, nivel, descricao, features, fonte = "PHB24") => ({
@@ -769,3 +771,47 @@ const SUBCLASS_LIST = [
 ];
 
 export const SUBCLASSES = Object.fromEntries(SUBCLASS_LIST.map((entry) => [entry.id, entry]));
+
+const ADDITIONAL_SUBCLASS_SUMMARIES_2024 = {
+  "clerigo-arcana-domain": "Compartilha conhecimento mágico e modifica magias por meio de Canalizar Divindade.",
+  "guerreiro-arcane-archer": "Dispara munição encantada com efeitos arcanos variados.",
+  "mago-conjurer": "Desloca-se magicamente e reforça criaturas conjuradas.",
+  "mago-enchanter": "Manipula emoções e controla inimigos com magia de encantamento.",
+  "mago-necromancer": "Especializa o grimório em necromancia e fortalece aliados mortos-vivos.",
+  "mago-transmuter": "Transforma matéria, energia e a própria forma com magia transmutadora.",
+  "bruxo-vestige-patron": "Forma um pacto com um vestígio divino e invoca um companheiro sobrenatural.",
+  "monge-warrior-of-the-mystic-arts": "Combina técnicas marciais com artes místicas de diferentes tradições.",
+  "guerreiro-banneret": "Lidera aliados no combate e amplia sua capacidade de agir em equipe.",
+  "mago-bladesinger": "Combina esgrima ágil com magia defensiva e ofensiva de mago.",
+  "bardo-college-of-the-moon": "Canaliza a tradição feérica e primal das Ilhas Moonshae.",
+  "clerigo-knowledge-domain": "Busca conhecimento divino, domínio mental e perícia em estudos.",
+  "paladino-oath-of-the-noble-genies": "Canaliza poderes elementais de gênios para proteger e enfrentar inimigos.",
+  "ladino-scion-of-the-three": "Usa segredos e poderes ligados às três grandes tradições de Faerûn.",
+  "feiticeiro-spellfire-sorcery": "Canaliza fogo mágico para atacar, proteger e restaurar aliados.",
+  "guardiao-winter-walker": "Sobrevive aos ermos gelados e manifesta o poder sobrenatural do inverno.",
+  "bardo-college-of-spirits": "Convoca espíritos lendários por meio de histórias e manifestações místicas.",
+  "clerigo-grave-domain": "Protege a fronteira entre vida e morte e combate forças da não vida.",
+  "guardiao-hollow-warden": "Assume uma forma horrenda e usa a força sobrenatural dos ermos corrompidos.",
+  "ladino-phantom": "Canaliza ecos dos mortos e transforma lembranças em recursos sobrenaturais.",
+  "artifice-reanimator": "Constrói um companheiro reanimado por meio de ciência e necromancia.",
+  "feiticeiro-shadow-sorcery": "Comanda escuridão e magia sombria para sobreviver e deslocar-se pelo campo.",
+  "bruxo-undead-patron": "Recebe poderes de um patrono morto-vivo e assume uma forma aterradora.",
+  "guerreiro-sorrow-knight": "Canaliza o peso sobrenatural da tristeza em técnicas de combate.",
+};
+
+export const SUBCLASSES_ADDITIONAL_2024 = Object.fromEntries(ADDITIONAL_SUBCLASSES_2024.map((entry) => [
+  entry.id,
+  subclass(
+    entry.id,
+    entry.classId,
+    entry.name,
+    3,
+    ADDITIONAL_SUBCLASS_SUMMARIES_2024[entry.id]
+      || `Especialização oficial publicada em ${entry.source}; recursos nos níveis ${Object.keys(entry.features).join(", ")}.`,
+    Object.fromEntries(Object.entries(entry.features).map(([level, features]) => [
+      level,
+      features.map((item) => feature(item.nome, item.descricao || "")),
+    ])),
+    entry.source,
+  ),
+]));

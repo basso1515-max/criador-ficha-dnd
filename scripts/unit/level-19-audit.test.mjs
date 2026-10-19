@@ -110,7 +110,9 @@ test("matriz 2024: todas as classes declaram Dadiva Epica no nivel 19", () => {
   });
 
   const epicFeats = records(FEATS_2024).filter((feat) => feat.categoria === "dadiva-epica");
-  assert.equal(epicFeats.length, 13, "catalogo 2024 deve manter as 13 dadivas epicas cadastradas");
+  const coreEpicFeats = epicFeats.filter((feat) => ["PHB24", "EFotA"].includes(feat.source));
+  assert.equal(coreEpicFeats.length, 13, "catálogo-base 2024 deve manter as 13 dádivas épicas do PHB e Eberron");
+  assert.ok(epicFeats.length > coreEpicFeats.length, "catálogo deve incluir dádivas épicas oficiais das expansões");
   assert.ok(epicFeats.some((feat) => feat.id === "dadiva-da-fortitude"));
   assert.ok(epicFeats.some((feat) => feat.id === "dadiva-do-destino"));
 });

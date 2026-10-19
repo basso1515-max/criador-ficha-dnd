@@ -594,6 +594,8 @@ export const FEAT_CATEGORY_LABELS = {
   geral: "talento geral",
   "estilo-de-luta": "estilo de luta",
   "dadiva-epica": "dádiva épica",
+  "dadiva-sombria": "Dádiva Sombria",
+  "pacto-planar": "Pacto Planar",
 };
 
 export const SKILL_OPTIONS = [
@@ -640,6 +642,7 @@ export const SKILL_ABILITY_MAP = {
 
 export const TOOL_LABELS = new Map([
   ["ferramentas-de-caligrafo", "Ferramentas de calígrafo"],
+  ["ferramentas-de-curtidor", "Ferramentas de curtidor"],
   ["ferramentas-de-carpinteiro", "Ferramentas de carpinteiro"],
   ["ferramentas-de-cartografo", "Ferramentas de cartógrafo"],
   ["ferramentas-de-funileiro", "Ferramentas de funileiro"],

@@ -21,6 +21,7 @@ import {
 import { CLASSES as CLASSES_2024 } from "../src/data/5.5e/classes.js";
 import { MAGIAS as MAGIAS_2024 } from "../src/data/5.5e/magias.js";
 import { SUBCLASSES as SUBCLASSES_2024 } from "../src/data/5.5e/subclasses.js";
+import { SUBCLASSES_ADDITIONAL_2024 } from "../src/data/5.5e/subclasses.js";
 import { RACAS as RACAS_2024, SUBRACAS as SUBRACAS_2024 } from "../src/data/5.5e/racas.js";
 import { ARMAS as ARMAS_2024 } from "../src/data/5.5e/armas.js";
 import { ARMADURAS as ARMADURAS_2024 } from "../src/data/5.5e/armaduras.js";
@@ -34,6 +35,8 @@ import {
   CLASS_EQUIPMENT_RULES as CLASS_EQUIPMENT_RULES_2024,
   BACKGROUND_EQUIPMENT_RULES as BACKGROUND_EQUIPMENT_RULES_2024,
 } from "../src/data/5.5e/equipamento-inicial.js";
+
+const SUBCLASSES_ALL_2024 = Object.freeze({ ...SUBCLASSES_2024, ...SUBCLASSES_ADDITIONAL_2024 });
 import {
   collectDivinityCatalogIssues,
   collectDivinityCatalogPairIssues,
@@ -48,6 +51,7 @@ import {
   WARLOCK_PACT_BOONS_5E,
 } from "../src/data/warlock-invocations.js";
 import {
+  ADDITIONAL_PALADIN_OATH_GRANTED_SPELL_IDS_2024,
   collectGrantedSpellIdsByLevel,
   DRUID_CIRCLE_GRANTED_SPELL_IDS_2024,
   DRUID_LAND_CIRCLE_SPELL_IDS_2024,
@@ -59,7 +63,9 @@ import {
 import {
   DRUID_LAND_CIRCLE_TERRAIN_OPTIONS_2024,
   FEATURE_CHOICE_DEFINITIONS_2024,
+  SUBCLASS_DETAIL_DEFINITIONS_2024,
 } from "../src/editors/2024/feature-config.js";
+import { CLERIC_DOMAIN_GRANTED_SPELL_IDS_2024 } from "../src/editors/2024/class-progressions.js";
 import {
   FEATURE_CHOICE_DEFINITIONS_5E,
   DRUID_LAND_CIRCLE_SPELLS,
@@ -897,6 +903,7 @@ function validateCatalogReferenceIntegrity() {
       edition: "2024",
       classes: CLASSES_2024,
       subclasses: SUBCLASSES_2024,
+      subclassesForRefs: SUBCLASSES_ALL_2024,
       races: RACAS_2024,
       subraces: SUBRACAS_2024,
       spells: MAGIAS_2024,
@@ -910,7 +917,7 @@ function validateCatalogReferenceIntegrity() {
   datasets.forEach((dataset) => {
     validateCatalogKeyIds(dataset.edition, "arma", dataset.weapons, errors);
     validateCatalogKeyIds(dataset.edition, "armadura", dataset.armors, errors);
-    validateClassSubclassRefs(dataset.edition, dataset.classes, dataset.subclasses, errors);
+    validateClassSubclassRefs(dataset.edition, dataset.classes, dataset.subclassesForRefs || dataset.subclasses, errors);
     validateRaceSubraceRefs(dataset.edition, dataset.races, dataset.subraces, errors);
     validateRacialSpellSourceRefs(
       dataset.edition,
@@ -1078,11 +1085,13 @@ function validateWarlockData() {
   const classes5e = listRecords(CLASSES_5E);
   const classes2024 = listRecords(CLASSES_2024);
   const subclasses5e = listRecords(SUBCLASSES_5E);
-  const subclasses2024 = listRecords(SUBCLASSES_2024);
+  const subclasses2024 = listRecords(SUBCLASSES_ALL_2024);
+  const allSubclasses2024 = listRecords(SUBCLASSES_ALL_2024);
   const warlock5e = classes5e.find((item) => item.id === "bruxo");
   const warlock2024 = classes2024.find((item) => item.id === "bruxo");
   const warlockSubclasses5e = subclasses5e.filter((item) => item.classeBase === "bruxo");
   const warlockSubclasses2024 = subclasses2024.filter((item) => item.classeBase === "bruxo");
+  const allWarlockSubclasses2024 = allSubclasses2024.filter((item) => item.classeBase === "bruxo");
   const spellIds5e = collectSpellIds(MAGIAS_5E);
   const spellIds2024 = collectSpellIds(MAGIAS_2024);
   const spellRecords5eById = new Map(collectSpellRecords(MAGIAS_5E).map((spell) => [spell.id, spell]));
@@ -1101,7 +1110,7 @@ function validateWarlockData() {
   });
 
   (warlock2024?.subclasses || []).forEach((id) => {
-    if (!warlockSubclasses2024.some((subclass) => subclass.id === id)) {
+    if (!allWarlockSubclasses2024.some((subclass) => subclass.id === id)) {
       errors.push(`2024: classe Bruxo referencia subclasse ausente (${id}).`);
     }
   });
@@ -1215,6 +1224,31 @@ function validateWarlockData() {
   );
   warlockSubclasses2024.forEach(({ id }) => {
     if (!patronSpellMaps2024.has(id)) {
+      const detail = SUBCLASS_DETAIL_DEFINITIONS_2024[id];
+      if (detail?.detailType === "vestige-domain") {
+        if (!detail.options?.length) {
+          errors.push(`2024: ${id} sem opções de domínio para suas magias concedidas.`);
+          return;
+        }
+        if (!script2024.includes("collectSubclassDetailSpellIds2024")) {
+          errors.push(`2024: ${id} sem integração das magias do domínio selecionado.`);
+        }
+        detail.options.forEach((option) => {
+          const domainSpells = CLERIC_DOMAIN_GRANTED_SPELL_IDS_2024[option.value];
+          if (!domainSpells) {
+            errors.push(`2024: ${id} referencia domínio ausente (${option.value}).`);
+            return;
+          }
+          validateGrantedSpellDefinitionRefs(
+            "2024",
+            `${id}/${option.value}`,
+            domainSpells,
+            spellIds2024,
+            errors,
+          );
+        });
+        return;
+      }
       errors.push(`2024: ${id} sem mapa de magias preparadas do patrono.`);
     }
   });
@@ -1292,8 +1326,20 @@ function validatePaladinOathSpellData() {
   const spellIds5e = collectSpellIds(MAGIAS_5E);
   const spellIds2024 = collectSpellIds(MAGIAS_2024);
   const subclasses5e = listRecords(SUBCLASSES_5E);
-  const subclasses2024 = listRecords(SUBCLASSES_2024);
+  const subclasses2024 = listRecords(SUBCLASSES_ALL_2024);
   const script5e = readEditorSource("5e");
+
+  Object.entries(ADDITIONAL_PALADIN_OATH_GRANTED_SPELL_IDS_2024).forEach(([subclassId, definition]) => {
+    const subclass = subclasses2024.find((item) => item.id === subclassId);
+    if (!subclass) {
+      errors.push(`2024: subclasse adicional ausente (${subclassId}).`);
+    } else {
+      const hasFeature = getFeaturesAtLevel(subclass, 3)
+        .some((feature) => normalizeFeatureName(feature?.nome) === "genie spells");
+      if (!hasFeature) errors.push(`2024: ${subclassId} sem feature Genie Spells no nivel 3.`);
+    }
+    validateGrantedSpellDefinitionRefs("2024", `${subclassId}/Genie Spells`, definition, spellIds2024, errors);
+  });
 
   Object.entries(PALADIN_OATH_GRANTED_SPELL_IDS_2024).forEach(([subclassId, definition]) => {
     const subclass = subclasses2024.find((item) => item.id === subclassId);

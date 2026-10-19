@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import {
+  ADDITIONAL_PALADIN_OATH_GRANTED_SPELL_IDS_2024,
   collectGrantedSpellIdsByLevel,
   flattenGrantedSpellMap,
   DRUID_CIRCLE_GRANTED_SPELL_IDS_2024,
@@ -12,6 +13,7 @@ import {
   PALADIN_OATH_GRANTED_SPELL_IDS_5E,
 } from "../../src/data/granted-spell-sources.js";
 import {
+  ADDITIONAL_PALADIN_OATH_GRANTED_SPELL_IDS_2024 as EDITOR_ADDITIONAL_PALADIN_OATH_GRANTED_SPELL_IDS_2024,
   DRUID_CIRCLE_GRANTED_SPELL_IDS_2024 as EDITOR_DRUID_CIRCLE_GRANTED_SPELL_IDS_2024,
   DRUID_LAND_CIRCLE_SPELL_IDS_2024 as EDITOR_DRUID_LAND_CIRCLE_SPELL_IDS_2024,
   PALADIN_OATH_GRANTED_SPELL_IDS_2024 as EDITOR_PALADIN_OATH_GRANTED_SPELL_IDS_2024,
@@ -25,6 +27,17 @@ test("editor 2024 consome os mapas compartilhados de Paladino e Druida", () => {
   assert.equal(EDITOR_PALADIN_OATH_GRANTED_SPELL_IDS_2024, PALADIN_OATH_GRANTED_SPELL_IDS_2024);
   assert.equal(EDITOR_DRUID_CIRCLE_GRANTED_SPELL_IDS_2024, DRUID_CIRCLE_GRANTED_SPELL_IDS_2024);
   assert.equal(EDITOR_DRUID_LAND_CIRCLE_SPELL_IDS_2024, DRUID_LAND_CIRCLE_SPELL_IDS_2024);
+});
+
+test("mapa adicional 2024 concede as magias do Juramento dos Nobres Gênios", () => {
+  assert.equal(
+    EDITOR_ADDITIONAL_PALADIN_OATH_GRANTED_SPELL_IDS_2024,
+    ADDITIONAL_PALADIN_OATH_GRANTED_SPELL_IDS_2024,
+  );
+  assert.deepEqual(
+    collectGrantedSpellIdsByLevel(ADDITIONAL_PALADIN_OATH_GRANTED_SPELL_IDS_2024["paladino-oath-of-the-noble-genies"], 3),
+    ["esfera-cromatica", "elementalismo", "destruicao-trovejante"],
+  );
 });
 
 test("editor 5e consome os mapas compartilhados de Paladino e Druida", () => {

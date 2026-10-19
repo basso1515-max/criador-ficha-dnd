@@ -204,6 +204,18 @@ export const PALADIN_OATH_GRANTED_SPELL_IDS_2024 = {
   },
 };
 
+// Forgotten Realms: Heroes of Faerûn (2025). Kept separate so baseline audits
+// for the Player's Handbook oaths remain scoped to the core 2024 rules.
+export const ADDITIONAL_PALADIN_OATH_GRANTED_SPELL_IDS_2024 = {
+  "paladino-oath-of-the-noble-genies": {
+    3: ["esfera-cromatica", "elementalismo", "destruicao-trovejante"],
+    5: ["reflexos", "forca-fantasmagorica"],
+    9: ["voo", "forma-gasosa"],
+    13: ["conjurar-elementais-menores", "invocar-elemental"],
+    17: ["destruicao-do-banimento", "contatar-outro-plano"],
+  },
+};
+
 // Eberron: Forge of the Artificer (2025). These spells are always prepared
 // by the indicated Artificer specialty and do not count against its limit.
 export const ARTIFICER_SUBCLASS_GRANTED_SPELL_IDS_2024 = {
@@ -241,6 +253,13 @@ export const ARTIFICER_SUBCLASS_GRANTED_SPELL_IDS_2024 = {
     9: ["convocar-relampago", "clarividencia"],
     13: ["banimento", "localizar-criatura"],
     17: ["espionagem", "circulo-de-teletransporte"],
+  },
+  "artifice-reanimator": {
+    3: ["vida-falsa", "poupar-os-moribundos", "disparo-da-bruxa"],
+    5: ["cegueira-surdez", "melhorar-habilidade"],
+    9: ["animar-mortos", "relampago"],
+    13: ["praga", "protecao-contra-morte"],
+    17: ["barreira-antivida", "ressuscitar-os-mortos"],
   },
 };
 

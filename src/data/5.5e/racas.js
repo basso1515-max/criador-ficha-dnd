@@ -1,4 +1,6 @@
-export const DATASET_VERSION = "1.2.0";
+import { ADDITIONAL_RACES_2024, ADDITIONAL_SUBRACES_2024 } from "./official-expansions-2024.js";
+
+export const DATASET_VERSION = "1.3.0";
 
 const ftToM = (ft) => Math.round(ft * 0.3048 * 10) / 10;
 
@@ -6,13 +8,18 @@ export const META_RACAS = {
   dataset: "dnd5e-2024-ptbr",
   version: DATASET_VERSION,
   locale: "pt-BR",
-  builtAt: "2026-04-20",
+  builtAt: "2026-10-19",
   sources: {
     phb2024: "Player's Handbook (2024)",
     efota: "Eberron: Forge of the Artificer (2025)",
+    aboh: "Astarion’s Book of Hungers",
+    rthw: "Ravenloft: The Horrors Within",
+    lfl: "Lorwyn: First Light",
+    drops0926: "D&D Beyond Drop — September 2026",
     referenciaLocal: "src/data/5.5e/DnD 5.5 - Livro do Jogador (2024).pdf",
   },
   changelog: [
+    "1.3.0: Adiciona Dhampir, Hexblood, Lupin, Renascido, linhagens de Lorwyn/Shadowmoor, Duskling e adaptações oficiais de espécies de Lorwyn.",
     "1.2.0: Adiciona Changeling, Kalashtar, Khoravar, Shifter e Warforged de Eberron: Forge of the Artificer.",
     "1.1.0: Ajusta a modelagem do aasimar para a escolha dinâmica de Revelação Celestial e corrige ligações internas de subespécies.",
   ],
@@ -126,7 +133,7 @@ export const RACAS = {
       trait("sentidos-agucados", "Sentidos Aguçados", "Você tem proficiência em Intuição, Percepção ou Sobrevivência."),
       trait("transe", "Transe", "Você completa descanso longo em 4 horas de meditação consciente."),
     ],
-    subracas: ["elfo-alto", "drow", "elfo-silvestre"],
+    subracas: ["elfo-alto", "drow", "elfo-silvestre", "elfo-lorwyn", "elfo-shadowmoor"],
   }),
   gnomo: race({
     id: "gnomo",
@@ -269,6 +276,7 @@ export const RACAS = {
     ],
     extra: { fonte: "EFotA" },
   }),
+  ...ADDITIONAL_RACES_2024,
 };
 
 export const SUBRACAS = {
@@ -327,6 +335,7 @@ export const SUBRACAS = {
       trait("linhagem-elfica", "Linhagem Élfica Alta", "Você conhece Prestidigitação Arcana; no nível 3 aprende Detectar Magia e no 5 aprende Passo Nebuloso."),
     ],
   }),
+  ...ADDITIONAL_SUBRACES_2024,
   drow: subrace({
     id: "drow",
     nome: "Drow",

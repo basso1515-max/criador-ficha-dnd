@@ -24,8 +24,34 @@ export const BARD_GLAMOUR_GRANTED_SPELL_IDS_2024 = {
   3: ["enfeiticar-pessoa", "reflexos"],
   6: ["comando"],
 };
+export const BARD_SUBCLASS_GRANTED_SPELL_IDS_2024 = {
+  "bardo-college-of-the-moon": {
+    6: ["raio-de-lua"],
+  },
+  "bardo-college-of-spirits": {
+    14: ["guardioes-espirituais"],
+  },
+};
 export const CLERIC_CHANNEL_DIVINITY_BY_LEVEL_2024 = [0, 0, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4];
 export const CLERIC_DOMAIN_GRANTED_SPELL_IDS_2024 = {
+  "clerigo-arcana-domain": {
+    3: ["detectar-magia", "misseis-magicos", "arma-magica", "aura-magica"],
+    5: ["contramagica", "dissipar-magia"],
+    7: ["olho-arcano", "bau-secreto-de-leomund"],
+    9: ["mao-de-energia", "circulo-de-teletransporte"],
+  },
+  "clerigo-knowledge-domain": {
+    3: ["comando", "compreender-idiomas", "detectar-magia", "detectar-pensamentos", "identificacao", "espinho-mental"],
+    5: ["dissipar-magia", "antideteccao", "idiomas"],
+    7: ["olho-arcano", "banimento", "confusao"],
+    9: ["conhecimento-da-lenda", "espionagem", "estatica-sinaptica"],
+  },
+  "clerigo-grave-domain": {
+    3: ["detectar-bem-e-mal", "vida-falsa", "descanso-tranquilo", "raio-do-enfraquecimento", "poupar-os-moribundos"],
+    5: ["revificar", "toque-vampirico"],
+    7: ["praga", "protecao-contra-morte"],
+    9: ["dissipar-bem-ou-mal", "ressuscitar-os-mortos"],
+  },
   "clerigo-guerra": {
     3: ["disparo-guia", "arma-magica", "escudo-da-fe", "arma-espiritual"],
     5: ["manto-do-cruzado", "guardioes-espirituais"],

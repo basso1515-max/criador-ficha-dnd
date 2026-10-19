@@ -6,6 +6,7 @@ import {
 } from "../../data/subclass-learned-options.js";
 import {
   ARTIFICER_SUBCLASS_GRANTED_SPELL_IDS_2024,
+  ADDITIONAL_PALADIN_OATH_GRANTED_SPELL_IDS_2024,
   DRUID_CIRCLE_GRANTED_SPELL_IDS_2024,
   DRUID_LAND_CIRCLE_SPELL_IDS_2024,
   PALADIN_OATH_GRANTED_SPELL_IDS_2024,
@@ -13,6 +14,7 @@ import {
 
 export {
   ARTIFICER_SUBCLASS_GRANTED_SPELL_IDS_2024,
+  ADDITIONAL_PALADIN_OATH_GRANTED_SPELL_IDS_2024,
   DRUID_CIRCLE_GRANTED_SPELL_IDS_2024,
   DRUID_LAND_CIRCLE_SPELL_IDS_2024,
   PALADIN_OATH_GRANTED_SPELL_IDS_2024,
@@ -49,6 +51,18 @@ export const SUBCLASS_DETAIL_DEFINITIONS_2024 = {
     label: "Terreno",
     description: "Escolha o terreno do Círculo da Terra. A seleção libera as Magias do Círculo corretas como sempre preparadas no fluxo de magia.",
     options: DRUID_LAND_CIRCLE_TERRAIN_OPTIONS_2024,
+  },
+  "bruxo-vestige-patron": {
+    minClassLevel: 3,
+    detailType: "vestige-domain",
+    label: "Domínio do Vestígio",
+    description: "Escolha um domínio divino; as Magias do Domínio selecionado também contam como magias de Bruxo e ficam sempre preparadas.",
+    options: [
+      { value: "clerigo-vida", label: "Vida", summary: "Magias de cura, restauração e proteção." },
+      { value: "clerigo-luz", label: "Luz", summary: "Magias de fogo, luz e revelação." },
+      { value: "clerigo-enganacao", label: "Enganação", summary: "Magias de disfarce, ilusão e infiltração." },
+      { value: "clerigo-guerra", label: "Guerra", summary: "Magias de combate, defesa e fortalecimento." },
+    ],
   },
 };
 export const COMPANION_CHOICE_DEFINITIONS_2024 = [
@@ -213,6 +227,19 @@ export const SORCERER_SUBCLASS_GRANTED_SPELL_IDS_2024 = {
     7: ["movimento-livre", "invocar-construto"],
     9: ["restauracao-maior", "muralha-de-energia"],
   },
+  "feiticeiro-spellfire-sorcery": {
+    3: ["curar-ferimentos", "disparo-guia", "restauracao-menor", "raio-ardente"],
+    5: ["aura-da-vitalidade", "dissipar-magia"],
+    7: ["escudo-de-fogo", "muralha-de-fogo"],
+    9: ["curar-ferimentos-em-massa", "espionagem"],
+    10: ["contramagica"],
+  },
+  "feiticeiro-shadow-sorcery": {
+    3: ["perdicao", "escuridao", "infligir-ferimentos", "passos-sem-pegadas"],
+    5: ["fome-de-hadar", "antideteccao"],
+    7: ["invisibilidade-maior", "assassino-fantasmagorico"],
+    9: ["contagio", "criacao"],
+  },
 };
 export const WIZARD_SUBCLASS_GRANTED_SPELL_IDS_2024 = {
   "mago-abjuracao": {
@@ -220,6 +247,13 @@ export const WIZARD_SUBCLASS_GRANTED_SPELL_IDS_2024 = {
   },
   "mago-ilusao": {
     6: ["invocar-besta", "invocar-fada"],
+  },
+  "mago-necromancer": {
+    6: ["animar-mortos"],
+  },
+  "mago-transmuter": {
+    3: ["alterar-se"],
+    10: ["metamorfose"],
   },
 };
 export const PALADIN_CHANNEL_DIVINITY_BY_LEVEL_2024 = [0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3];
@@ -229,6 +263,22 @@ export const PALADIN_VENGEANCE_GRANTED_SPELL_IDS_2024 = PALADIN_OATH_GRANTED_SPE
 export const PALADIN_ANCIENTS_GRANTED_SPELL_IDS_2024 = PALADIN_OATH_GRANTED_SPELL_IDS_2024["paladino-ancioes"];
 export const ROGUE_SNEAK_ATTACK_DICE_BY_LEVEL_2024 = [0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10];
 export const RANGER_FAVORED_ENEMY_BY_LEVEL_2024 = [0, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6];
+export const RANGER_SUBCLASS_GRANTED_SPELL_IDS_2024 = {
+  "guardiao-winter-walker": {
+    3: ["faca-de-gelo"],
+    5: ["imobilizar-pessoa"],
+    9: ["remover-maldicao"],
+    13: ["tempestade-de-gelo"],
+    17: ["cone-de-frio"],
+  },
+  "guardiao-hollow-warden": {
+    3: ["destruicao-odiosa"],
+    5: ["alterar-se"],
+    9: ["montaria-fantasmagorica"],
+    13: ["dominar-besta"],
+    17: ["golpe-do-vento-de-aco"],
+  },
+};
 export const WARLOCK_PATRON_GRANTED_SPELL_IDS_2024 = {
   "bruxo-arquifada": {
     3: ["acalmar-emocoes", "fogo-feerico", "passo-da-neblina", "forca-fantasmagorica", "sono"],
@@ -254,6 +304,12 @@ export const WARLOCK_PATRON_GRANTED_SPELL_IDS_2024 = {
     5: ["bola-de-fogo", "nevoa-fetida"],
     7: ["escudo-de-fogo", "muralha-de-fogo"],
     9: ["missao", "praga-de-insetos"],
+  },
+  "bruxo-undead-patron": {
+    3: ["perdicao", "cegueira-surdez", "forca-fantasmagorica", "raio-do-enjoo"],
+    5: ["falar-com-os-mortos", "invocar-morto-vivo"],
+    7: ["invisibilidade-maior", "assassino-fantasmagorico"],
+    9: ["barreira-antivida", "nevoa-mortal"],
   },
 };
 export const FEATURE_CHOICE_SKILL_OPTION_IDS_2024 = ["arcanismo", "historia", "investigacao", "medicina", "natureza", "religiao"];

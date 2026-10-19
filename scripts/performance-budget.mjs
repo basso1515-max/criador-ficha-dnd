@@ -21,7 +21,7 @@ const pageBudgets = [
   {
     name: "5.5e-2024",
     html: "5.5e-2024.html",
-    maxInitialJsBytes: 1_220_000,
+    maxInitialJsBytes: 1_450_000, // Includes the official expansion catalogs loaded by the 2024 editor.
     maxInitialCssBytes: 240_000,
     forbiddenInitialFiles: [
       "assets/vendor/pdf-lib-1.17.1.min.js",

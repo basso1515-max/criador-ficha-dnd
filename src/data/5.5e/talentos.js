@@ -1,16 +1,25 @@
-export const DATASET_VERSION = "1.1.0";
+import { ADDITIONAL_FEATS_2024 } from "./official-expansions-2024.js";
+
+export const DATASET_VERSION = "1.2.0";
 
 export const META_TALENTOS = {
   dataset: "dnd5e-2024-ptbr",
   version: DATASET_VERSION,
   locale: "pt-BR",
-  builtAt: "2026-04-16",
+  builtAt: "2026-10-19",
   sources: {
     phb2024: "Player's Handbook (2024)",
     efota: "Eberron: Forge of the Artificer (2025)",
+    au: "Arcana Unleashed",
+    aboh: "Astarion’s Book of Hungers",
+    frhof: "Forgotten Realms: Heroes of Faerûn",
+    rthw: "Ravenloft: The Horrors Within",
+    lfl: "Lorwyn: First Light",
+    drops2026: "D&D Beyond Drops (2026)",
     referenciaLocal: "src/data/5.5e/DnD 5.5 - Livro do Jogador (2024).pdf",
   },
   changelog: [
+    "1.2.0: Adiciona 105 talentos e dádivas oficiais de Arcana Unleashed, Astarion’s Book of Hungers, Forgotten Realms, Ravenloft, Lorwyn e Drops de 2026.",
     "1.1.0: Adiciona as 28 opções de talentos de Marca Dracônica de Eberron: Forge of the Artificer.",
     "1.0.0: Reescrita do catálogo de talentos para o PHB 2024, incluindo talentos de origem, gerais, estilos de luta e dádivas épicas.",
   ],
@@ -50,6 +59,10 @@ const feat = ({
   repeatable = false,
   source = "PHB24",
   source_full = "Player's Handbook (2024)",
+  bonusAtributo2024 = null,
+  requiresFeatIds = [],
+  prerequisiteAlternatives = [],
+  restricaoCenario = "",
 }) => ({
   id,
   name: name || name_pt,
@@ -63,6 +76,10 @@ const feat = ({
   description_en: "",
   description_pt,
   tags,
+  ...(bonusAtributo2024 ? { bonusAtributo2024 } : {}),
+  ...(requiresFeatIds.length ? { requiresFeatIds } : {}),
+  ...(prerequisiteAlternatives.length ? { prerequisiteAlternatives } : {}),
+  ...(restricaoCenario ? { restricaoCenario } : {}),
 });
 
 const ORIGEM = "origem";
@@ -207,6 +224,13 @@ export const TALENTOS = [
   feat({ id: "dadiva-do-destino", name_pt: "Dádiva do Destino", categoria: EPICO, prerequisites: ["Nível 19 ou superior"], description_pt: "Aumenta um atributo até 30 e permite dobrar a sorte em momentos decisivos.", tags: ["atributo", "utilidade", "epico"] }),
   feat({ id: "dadiva-do-espirito-da-noite", name_pt: "Dádiva do Espírito da Noite", categoria: EPICO, prerequisites: ["Nível 19 ou superior"], description_pt: "Aumenta um atributo até 30 e concede furtividade, voo ou travessia sombria excepcional.", tags: ["atributo", "furtividade", "epico"] }),
 ];
+
+TALENTOS.push(...ADDITIONAL_FEATS_2024.map((entry) => feat({
+  ...entry,
+  bonusAtributo2024: entry.bonusAtributo2024 || null,
+  requiresFeatIds: entry.requiresFeatIds || [],
+  restricaoCenario: entry.restricaoCenario || "",
+})));
 
 export const talentos = TALENTOS;
 export const TALENTOS_POR_ID = Object.fromEntries(TALENTOS.map((talento) => [talento.id, talento]));

@@ -1,6 +1,6 @@
 import { RACAS, SUBRACAS, META_RACAS, ENUMS_RACAS } from "../../data/5.5e/racas.js";
 import { CLASSES as CLASSES_2024, META_CLASSES } from "../../data/5.5e/classes.js";
-import { SUBCLASSES } from "../../data/5.5e/subclasses.js";
+import { SUBCLASSES as CORE_SUBCLASSES, SUBCLASSES_ADDITIONAL_2024 } from "../../data/5.5e/subclasses.js";
 import { ANTECEDENTES, META_ANTECEDENTES } from "../../data/5.5e/antecedentes.js";
 import { TALENTOS, META_TALENTOS } from "../../data/5.5e/talentos.js";
 import { ARMADURAS } from "../../data/5.5e/armaduras.js";
@@ -140,6 +140,7 @@ import {
 } from "./spell-rules.js";
 import {
   ARTIFICER_SUBCLASS_GRANTED_SPELL_IDS_2024,
+  ADDITIONAL_PALADIN_OATH_GRANTED_SPELL_IDS_2024,
   DRUID_WILD_SHAPE_USES_BY_LEVEL_2024,
   DRUID_DRUIDIC_GRANTED_SPELL_IDS_2024,
   DRUID_CIRCLE_GRANTED_SPELL_IDS_2024,
@@ -159,6 +160,7 @@ import {
   PALADIN_OATH_GRANTED_SPELL_IDS_2024,
   ROGUE_SNEAK_ATTACK_DICE_BY_LEVEL_2024,
   RANGER_FAVORED_ENEMY_BY_LEVEL_2024,
+  RANGER_SUBCLASS_GRANTED_SPELL_IDS_2024,
   WARLOCK_PATRON_GRANTED_SPELL_IDS_2024,
   FEATURE_CHOICE_SKILL_OPTION_IDS_2024,
   FEATURE_CHOICE_METAMAGIC_OPTIONS_2024,
@@ -172,6 +174,7 @@ import {
   BARD_MAGICAL_SECRETS_CLASS_IDS_2024,
   BARD_WORDS_OF_CREATION_SPELL_IDS_2024,
   BARD_GLAMOUR_GRANTED_SPELL_IDS_2024,
+  BARD_SUBCLASS_GRANTED_SPELL_IDS_2024,
   CLERIC_CHANNEL_DIVINITY_BY_LEVEL_2024,
   CLERIC_DOMAIN_GRANTED_SPELL_IDS_2024,
 } from "./class-progressions.js";
@@ -196,6 +199,8 @@ import {
 (() => {
   "use strict";
 
+  const SUBCLASSES = Object.freeze({ ...CORE_SUBCLASSES, ...SUBCLASSES_ADDITIONAL_2024 });
+
   const root = document.getElementById("version2024Screen");
   if (!root) return;
 
@@ -209,6 +214,7 @@ import {
   const SUBCLASS_LIST = sortByLocale(Object.values(SUBCLASSES || {}), "nome");
   const FEAT_LIST = sortByLocale([...TALENTOS], "name_pt");
   const ORIGIN_FEATS = FEAT_LIST.filter((feat) => feat?.categoria === "origem");
+  const BACKGROUND_ORIGIN_CHOICE_SLOT_ID_2024 = "background-origin-choice";
   let DIVINITIES_2024 = [];
 
   const RACE_BY_ID = new Map(RACE_LIST.map((item) => [item.id, item]));
@@ -541,10 +547,17 @@ import {
   };
   const FEAT_CATEGORY_ORDER = {
     origem: 0,
-    geral: 1,
-    "estilo-de-luta": 2,
-    "dadiva-epica": 3,
+    "pacto-planar": 1,
+    "dadiva-sombria": 2,
+    geral: 3,
+    "marca-do-dragao": 4,
+    "estilo-de-luta": 5,
+    "dadiva-epica": 6,
   };
+
+  function getFeatAbilityBonusRule2024(featId) {
+    return FEAT_ABILITY_BONUS_RULES_2024[featId] || FEAT_BY_ID.get(featId)?.bonusAtributo2024 || null;
+  }
 
   const DATASET_SOURCE =
     META_CLASSES?.sources?.phb2024
@@ -3608,6 +3621,14 @@ import {
     return collectGrantedSpellIdsByLevel2024(definition, level);
   }
 
+  function collectSubclassDetailSpellIds2024(subclassId, value, level) {
+    if (subclassId === "druida-terra") return collectDruidLandCircleSpellIds2024(value, level);
+    if (subclassId === "bruxo-vestige-patron") {
+      return collectGrantedSpellIdsByLevel2024(CLERIC_DOMAIN_GRANTED_SPELL_IDS_2024[value], level);
+    }
+    return [];
+  }
+
   function buildSubclassDetailSlotKey2024(source, slotIndex) {
     return `${source.key}:slot-${slotIndex}`;
   }
@@ -3695,17 +3716,26 @@ import {
 
   function getSubclassDetailImpactLines2024(source, option = null) {
     const lines = [];
-    if (source?.subclassId === "druida-terra" && source?.detailType === "terrain") {
-      const spellIds = option?.value
-        ? collectDruidLandCircleSpellIds2024(option.value, source.entry?.level || getSelectedLevel())
-        : [];
+    if (["druida-terra", "bruxo-vestige-patron"].includes(source?.subclassId) && option?.value) {
+      const spellIds = collectSubclassDetailSpellIds2024(
+        source.subclassId,
+        option.value,
+        source.entry?.level || getSelectedLevel(),
+      );
       if (spellIds.length) {
-        lines.push(`Magias sempre preparadas: ${formatList(getSpellNamesByIds2024(spellIds))}.`);
+        const label = source.subclassId === "bruxo-vestige-patron"
+          ? "Magias de Bruxo sempre preparadas"
+          : "Magias sempre preparadas";
+        lines.push(`${label}: ${formatList(getSpellNamesByIds2024(spellIds))}.`);
       } else {
-        lines.push("Magias: escolha o terreno para liberar a lista sempre preparada do Círculo da Terra.");
+        lines.push(source.subclassId === "bruxo-vestige-patron"
+          ? "Magias: a lista sempre preparada acompanha a escolha de domínio."
+          : "Magias: escolha o terreno para liberar a lista sempre preparada do Círculo da Terra.");
       }
-      lines.push("Fluxo de magia: as magias do terreno entram marcadas e ficam fora do limite manual.");
-      lines.push("Registro: o terreno escolhido aparece no preview e nas características do PDF.");
+      lines.push(source.subclassId === "bruxo-vestige-patron"
+        ? "Fluxo de magia: as magias do domínio escolhido são adicionadas ao repertório do Bruxo."
+        : "Fluxo de magia: as magias do terreno entram marcadas e ficam fora do limite manual.");
+      lines.push("Registro: a escolha aparece no preview e nas características do PDF.");
       return lines;
     }
 
@@ -3719,9 +3749,11 @@ import {
     const option = (source?.options || []).find((item) => item.value === value) || null;
     if (!option) return { summary: "", lines: [], body: "", search: label || "" };
 
-    const spellIds = source?.subclassId === "druida-terra"
-      ? collectDruidLandCircleSpellIds2024(option.value, source.entry?.level || getSelectedLevel())
-      : [];
+    const spellIds = collectSubclassDetailSpellIds2024(
+      source?.subclassId,
+      option.value,
+      source.entry?.level || getSelectedLevel(),
+    );
     return {
       group: source?.title || "",
       summary: option.summary || source?.description || "",
@@ -3905,9 +3937,11 @@ import {
     return collectSelectedSubclassDetails2024(detailSources)
       .map((detail) => {
         const source = sourcesByKey.get(detail.sourceKey) || detail.source || null;
-        const spellIds = source?.subclassId === "druida-terra"
-          ? collectDruidLandCircleSpellIds2024(detail.value, source.entry?.level || getSelectedLevel())
-          : [];
+        const spellIds = collectSubclassDetailSpellIds2024(
+          source?.subclassId,
+          detail.value,
+          source.entry?.level || getSelectedLevel(),
+        );
         const spellText = spellIds.length
           ? `. Magias sempre preparadas: ${formatList(getSpellNamesByIds2024(spellIds))}`
           : "";
@@ -4985,7 +5019,7 @@ import {
       const normalizedSlotId = String(slotId || "").trim();
       if (!normalizedSlotId || (excludeSlotId && normalizedSlotId === excludeSlotId)) return;
 
-      const rule = FEAT_ABILITY_BONUS_RULES_2024[featId];
+      const rule = getFeatAbilityBonusRule2024(featId);
       const feat = FEAT_BY_ID.get(featId);
       const featLabel = feat?.name_pt || feat?.name || labelFromSlug(featId);
       if (!rule) return;
@@ -5119,7 +5153,7 @@ import {
     if (!blocked.length && !limited.length) return "";
 
     const selectedAbilities = new Set(entries.map((entry) => entry.ability));
-    const rule = FEAT_ABILITY_BONUS_RULES_2024[feat?.id] || {};
+    const rule = getFeatAbilityBonusRule2024(feat?.id) || {};
     const candidateAbilities = rule.type === "choice" ? (rule.options || []) : ABILITY_ORDER;
     const defaultMaxScore = Number.isFinite(entries[0]?.maxScore) ? Number(entries[0].maxScore) : 20;
     const alternatives = candidateAbilities
@@ -5455,6 +5489,17 @@ import {
       });
     }
 
+    if (!isLegacyBackground2024(background) && background?.talentoOrigem?.opcoes?.length) {
+      slots.push({
+        id: BACKGROUND_ORIGIN_CHOICE_SLOT_ID_2024,
+        type: "origin",
+        level: 1,
+        title: `Talento de origem de ${background.nome}`,
+        help: `Escolha uma das opções oficiais concedidas por ${background.nome}.`,
+        allowedFeatIds: [...background.talentoOrigem.opcoes],
+      });
+    }
+
     if (race?.id === "humano") {
       slots.push({
         id: "human-origin",
@@ -5593,6 +5638,27 @@ import {
       return { eligible: context.hasFightingStyle && slotClassId === "guardiao", resolved: true };
     }
 
+    if (text === "caracteristica maestria em arma") {
+      return { eligible: context.hasWeaponMastery, resolved: true };
+    }
+
+    if (text === "nao pode ter outro talento de pacto planar") {
+      const hasPlanarPact = Array.from(context.selectedFeatIds || []).some((featId) => FEAT_BY_ID.get(featId)?.categoria === "pacto-planar");
+      return { eligible: !hasPlanarPact, resolved: true };
+    }
+
+    if (text.startsWith("talento ")) {
+      const requiredName = slugify(text.slice("talento ".length));
+      const requiredFeat = FEAT_LIST.find((candidate) => (
+        slugify(candidate?.name || "") === requiredName
+        || slugify(candidate?.name_pt || "") === requiredName
+      ));
+      return {
+        eligible: Boolean(requiredFeat && context.selectedFeatIds?.has(requiredFeat.id)),
+        resolved: Boolean(requiredFeat),
+      };
+    }
+
     if (text.includes("treinamento com armadura leve")) {
       return { eligible: context.armorTraining.has("leve"), resolved: true };
     }
@@ -5637,6 +5703,22 @@ import {
   }
 
   function isFeatEligibleForChoice(feat, context) {
+    const selectedFeatIds = context.selectedFeatIds || new Set();
+    const requiredFeatIds = Array.isArray(feat?.requiresFeatIds) ? feat.requiresFeatIds : [];
+    if (requiredFeatIds.some((featId) => !selectedFeatIds.has(featId))) {
+      return { eligible: false, resolved: true };
+    }
+
+    const alternatives = Array.isArray(feat?.prerequisiteAlternatives) ? feat.prerequisiteAlternatives : [];
+    if (alternatives.length) {
+      const alternativeSatisfied = alternatives.some((alternative) => (
+        (alternative.featId && selectedFeatIds.has(alternative.featId))
+        || (alternative.feature === "spellcasting" && context.hasSpellcasting)
+        || (alternative.weaponTraining && context.weaponTraining.has(alternative.weaponTraining))
+      ));
+      if (!alternativeSatisfied) return { eligible: false, resolved: true };
+    }
+
     const prerequisites = Array.isArray(feat?.prerequisites) ? feat.prerequisites : [];
     if (!prerequisites.length) return { eligible: true, resolved: true };
 
@@ -5689,6 +5771,7 @@ import {
       lines: [
         `Categoria: ${category}`,
         prerequisites.length ? `Pré-requisitos: ${prerequisites.join(", ")}` : "Sem pré-requisitos adicionais",
+        feat.restricaoCenario ? `Opção de cenário: ${feat.restricaoCenario}.` : "",
         tags.length ? `Temas: ${formatList(tags)}` : "",
         feat.repeatable ? "Pode ser escolhido mais de uma vez." : "",
       ].filter(Boolean),
@@ -5698,6 +5781,7 @@ import {
         feat.name,
         category,
         ...prerequisites,
+        feat.restricaoCenario,
         ...tags,
         feat.description_pt,
         feat.description_en,
@@ -5706,7 +5790,9 @@ import {
   }
 
   function buildFeatChoiceOptions({ slot, background, cls, subclass, level, savedValues, detailValues }) {
-    const fixedBackgroundFeatId = background?.talentoOrigem?.id || "";
+    const fixedBackgroundFeatId = slot.id === BACKGROUND_ORIGIN_CHOICE_SLOT_ID_2024
+      ? ""
+      : getBackgroundFixedFeatEntry2024(background)?.featId || "";
     const chosenElsewhere = new Set(getChosenFeatIds(savedValues, slot.id));
     if (fixedBackgroundFeatId) chosenElsewhere.add(fixedBackgroundFeatId);
     collectSelectedWarlockOriginFeatEntries2024()
@@ -5728,16 +5814,28 @@ import {
       abilityScoresReady,
       hasSpellcasting: hasSpellcastingFeature(classEntries),
       hasFightingStyle: hasFightingStyleFeature(classEntries),
+      hasWeaponMastery: classEntries.some((entry) => (
+        Number(entry?.level || 0) >= 1
+        && isExplicitWeaponMasteryClass2024(entry?.classId || entry?.classData?.id)
+      )),
+      selectedFeatIds: new Set([
+        ...chosenElsewhere,
+        ...(fixedBackgroundFeatId ? [fixedBackgroundFeatId] : []),
+      ]),
       armorTraining: collectArmorTrainingTags(classEntries, savedValues, slot.id),
       weaponTraining: collectWeaponTrainingTags(classEntries, savedValues, slot.id),
     };
 
     const pool = FEAT_LIST.filter((feat) => {
       if (!feat?.id) return false;
-      if (slot.type === "origin" && feat.categoria !== "origem") return false;
+      if (Array.isArray(slot.allowedFeatIds)) {
+        if (!slot.allowedFeatIds.includes(feat.id)) return false;
+      } else if (slot.type === "origin" && feat.categoria !== "origem") return false;
       if (slot.type === "style" && feat.categoria !== "estilo-de-luta") return false;
+      if (slot.type === "feat" && ["origem", "estilo-de-luta", "dadiva-epica", "dadiva-sombria", "pacto-planar"].includes(feat.categoria)) return false;
+      if (slot.type === "epic" && ["origem", "estilo-de-luta", "dadiva-sombria", "pacto-planar"].includes(feat.categoria)) return false;
       if (!REPEATABLE_FEAT_IDS.has(feat.id) && chosenElsewhere.has(feat.id)) return false;
-      if (slot.type === "origin" && feat.id === fixedBackgroundFeatId) return false;
+      if (slot.type === "origin" && !Array.isArray(slot.allowedFeatIds) && feat.id === fixedBackgroundFeatId) return false;
       return true;
     });
 
@@ -5811,7 +5909,7 @@ import {
   }
 
   function buildFeatAbilityBonusControls2024({ slotId, feat, detailValues }) {
-    const rule = FEAT_ABILITY_BONUS_RULES_2024[feat?.id];
+    const rule = getFeatAbilityBonusRule2024(feat?.id);
     if (!rule || !slotId) return null;
 
     const wrapper = document.createElement("div");
@@ -5940,8 +6038,12 @@ import {
   }
 
   function getBackgroundFixedFeatEntry2024(background = getSelectedBackground()) {
-    const featId = String(background?.talentoOrigem?.id || "").trim();
+    const featOptions = background?.talentoOrigem?.opcoes;
+    const featId = String(Array.isArray(featOptions) && featOptions.length
+      ? getDynamicSelectValue(el.featChoices, "data-feat-choice-id", BACKGROUND_ORIGIN_CHOICE_SLOT_ID_2024)
+      : background?.talentoOrigem?.id || "").trim();
     if (!featId) return null;
+    if (Array.isArray(featOptions) && featOptions.length && !featOptions.includes(featId)) return null;
     const feat = FEAT_BY_ID.get(featId);
     if (!feat) return null;
     return {
@@ -7996,9 +8098,13 @@ import {
       if (selected) return;
 
       if (slot.type === "origin") {
-        pending.push(slot.id === LEGACY_BACKGROUND_ORIGIN_FEAT_SLOT_ID_2024
-          ? "Escolha o talento de origem do antecedente legado."
-          : "Escolha o talento de origem extra do Humano.");
+        if (slot.id === LEGACY_BACKGROUND_ORIGIN_FEAT_SLOT_ID_2024) {
+          pending.push("Escolha o talento de origem do antecedente legado.");
+        } else if (slot.id === BACKGROUND_ORIGIN_CHOICE_SLOT_ID_2024) {
+          pending.push(`Escolha o talento de origem de ${background?.nome || "seu antecedente"}.`);
+        } else {
+          pending.push("Escolha o talento de origem extra do Humano.");
+        }
         return;
       }
 
@@ -10633,7 +10739,10 @@ import {
 
   function isOfficialSpellFor2024(spell) {
     const source = String(spell?.fonte || "").trim().toUpperCase();
-    return source === "PHB" || source === "PHB24" || source === "EFOTA";
+    return new Set([
+      "PHB", "PHB24", "EFOTA", "AU", "ABOH", "FRHOF", "RTHW", "LFL",
+      "DROP0526", "DROP0626", "DROP0726", "DROP0826", "DROP0926", "DROP1026",
+    ]).has(source);
   }
 
   function flattenMagicDataset2024(dataset) {
@@ -11947,6 +12056,11 @@ import {
           });
         }
         mergeGrantedSpellIdsIntoConfig2024(config, grantedSpellIds, "Magias concedidas de Bardo");
+        mergeGrantedSpellIdsIntoConfig2024(
+          config,
+          collectGrantedSpellIdsByLevel2024(BARD_SUBCLASS_GRANTED_SPELL_IDS_2024[entry.subclassId], entry.level),
+          `Magias da Subclasse (${entry.subclassData?.nome || labelFromSlug(entry.subclassId)})`
+        );
         if (entry.level >= 10) {
           config.allowedClassIds = BARD_MAGICAL_SECRETS_CLASS_IDS_2024;
         }
@@ -11972,13 +12086,22 @@ import {
         if (entry.subclassId) {
           mergeGrantedSpellIdsIntoConfig2024(
             config,
-            collectGrantedSpellIdsByLevel2024(PALADIN_OATH_GRANTED_SPELL_IDS_2024[entry.subclassId], entry.level),
+            collectGrantedSpellIdsByLevel2024(
+              PALADIN_OATH_GRANTED_SPELL_IDS_2024[entry.subclassId]
+                || ADDITIONAL_PALADIN_OATH_GRANTED_SPELL_IDS_2024[entry.subclassId],
+              entry.level
+            ),
             `Magias do Juramento (${entry.subclassData?.nome || labelFromSlug(entry.subclassId)})`
           );
         }
       }
       if (entry.classId === "guardiao") {
         mergeGrantedSpellIdsIntoConfig2024(config, ["marca-do-cacador"], "Classe de Guardião");
+        mergeGrantedSpellIdsIntoConfig2024(
+          config,
+          collectGrantedSpellIdsByLevel2024(RANGER_SUBCLASS_GRANTED_SPELL_IDS_2024[entry.subclassId], entry.level),
+          `Magias da Subclasse (${entry.subclassData?.nome || labelFromSlug(entry.subclassId)})`
+        );
       }
       if (entry.classId === "druida") {
         mergeGrantedSpellIdsIntoConfig2024(config, DRUID_DRUIDIC_GRANTED_SPELL_IDS_2024, "Classe de Druida");
@@ -12018,6 +12141,12 @@ import {
         if (entry.level >= 9) grantedSpellIds.push("contatar-outro-plano");
         if (entry.subclassId) {
           grantedSpellIds.push(...collectGrantedSpellIdsByLevel2024(WARLOCK_PATRON_GRANTED_SPELL_IDS_2024[entry.subclassId], entry.level));
+        }
+        if (entry.subclassId === "bruxo-vestige-patron") {
+          const detailSources = collectSubclassDetailSources2024([entry]);
+          const selectedDetails = collectSelectedSubclassDetails2024(detailSources);
+          const domainId = getSubclassDetailValue2024(selectedDetails, "vestige-domain", entry.subclassId, entry.uid, "");
+          grantedSpellIds.push(...collectSubclassDetailSpellIds2024(entry.subclassId, domainId, entry.level));
         }
         const selectedInvocationIds = new Set(
           collectSelectedWarlockInvocations2024([entry]).map(({ invocation }) => invocation?.id).filter(Boolean)
@@ -14690,6 +14819,9 @@ import {
   }
 
   function formatBackgroundFeat(background) {
+    if (background?.talentoOrigem?.opcoes?.length) {
+      return background.talentoOrigem.nome || "Escolha um talento de origem";
+    }
     if (!background?.talentoOrigem?.id) return "";
     const feat = FEAT_BY_ID.get(background.talentoOrigem.id);
     const featLabel = feat?.name_pt || background.talentoOrigem.nome || labelFromSlug(background.talentoOrigem.id);
@@ -14700,7 +14832,13 @@ import {
 
   function formatBackgroundOriginFeatSummary2024(background = getSelectedBackground()) {
     if (!background) return "Selecione um antecedente";
-    if (!isLegacyBackground2024(background)) return formatBackgroundFeat(background) || "Sem talento registrado";
+    if (!isLegacyBackground2024(background)) {
+      if (background?.talentoOrigem?.opcoes?.length) {
+        const featId = getDynamicSelectValue(el.featChoices, "data-feat-choice-id", BACKGROUND_ORIGIN_CHOICE_SLOT_ID_2024);
+        return featId ? formatFeatLabel(featId) : formatBackgroundFeat(background);
+      }
+      return formatBackgroundFeat(background) || "Sem talento registrado";
+    }
 
     const featId = getDynamicSelectValue(el.featChoices, "data-feat-choice-id", LEGACY_BACKGROUND_ORIGIN_FEAT_SLOT_ID_2024);
     return featId ? formatFeatLabel(featId) : "Escolha um talento de origem";

@@ -1,17 +1,22 @@
 // magias.js
-export const DATASET_VERSION = "0.4.0";
+import { ADDITIONAL_SPELLS_2024 } from "./official-expansions-2024.js";
+export const DATASET_VERSION = "0.5.0";
 export const META_MAGIAS = {
   dataset: "dnd5e-ptbr",
   version: DATASET_VERSION,
   locale: "pt-BR",
-  builtAt: "2026-04-20",
+  builtAt: "2026-10-19",
   sources: {
     srd: "https://media.wizards.com/2023/downloads/dnd/SRD_CC_v5.1.pdf",
     drsMagiasIndice: "https://aventureirosdosreinos.com/lista-de-magias-por-ordem-alfabetica/",
     srdJsonPublic: "https://raw.githubusercontent.com/vorpalhex/srd_spells/master/spells.json",
-    efota: "Eberron: Forge of the Artificer (2025)"
+    efota: "Eberron: Forge of the Artificer (2025)",
+    au: "Arcana Unleashed",
+    frhof: "Forgotten Realms: Heroes of Faerûn",
+    drops2026: "D&D Beyond Drops (2026)",
   },
   changelog: [
+    "0.5.0: Adiciona 64 magias oficiais de Arcana Unleashed, Forgotten Realms e Drops de 2026, unificando reimpressões por nome.",
     "0.4.0: Adiciona Servo Homúnculo e vincula a lista de magias publicada do Artífice ao catálogo 2024.",
     "0.3.1: Alinha a lista 2024 com o D&D Beyond (Player's Handbook), reclassifica reprints oficiais e marca sobras 2014 como PHB14.",
     "0.3.0: Reconcilia magias oficiais do PHB 2024, adiciona ausentes, corrige nomes PT-BR/EN e ajusta smites/summons verificados no PDF oficial.",
@@ -15871,5 +15876,43 @@ ARTIFICER_SPELL_IDS_2024.forEach((spellId) => {
   if (!location?.spell) return;
   patchSpell2024(spellId, {
     classes: Array.from(new Set([...(location.spell.classes || []), "artifice"])),
+  });
+});
+
+const normalizeOfficialSpellName2024 = (value) => String(value || "")
+  .normalize("NFD")
+  .replace(/[\u0300-\u036f]/g, "")
+  .replace(/[’‘`]/g, "'")
+  .toLowerCase()
+  .replace(/[^a-z0-9']/g, "")
+  .trim();
+
+function findOfficialSpellByName2024(spell) {
+  const names = new Set([spell?.nomeEN, spell?.nome].map(normalizeOfficialSpellName2024).filter(Boolean));
+  for (const [levelKey, schools] of Object.entries(MAGIAS)) {
+    for (const [schoolKey, spells] of Object.entries(schools || {})) {
+      for (const candidate of Object.values(spells || {})) {
+        const candidateNames = [candidate?.nomeEN, candidate?.nome].map(normalizeOfficialSpellName2024).filter(Boolean);
+        if (candidateNames.some((name) => names.has(name))) return { levelKey, schoolKey, spell: candidate };
+      }
+    }
+  }
+  return null;
+}
+
+ADDITIONAL_SPELLS_2024.forEach((spell) => {
+  const existing = findOfficialSpellByName2024(spell);
+  if (!existing) {
+    upsertSpell2024(spell);
+    return;
+  }
+
+  patchSpell2024(existing.spell.id, {
+    ...spell,
+    id: existing.spell.id,
+    nome: existing.spell.nome || spell.nome,
+    descricao: existing.spell.descricao || spell.descricao,
+    resumo: existing.spell.resumo || spell.resumo,
+    classes: Array.from(new Set([...(existing.spell.classes || []), ...(spell.classes || [])])),
   });
 });

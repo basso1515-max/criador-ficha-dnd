@@ -255,8 +255,8 @@ test("fontes automaticas de magia desbloqueadas no nivel 5 permanecem alinhadas"
     [DRUID_LAND_CIRCLE_SPELL_IDS_2024, 4, "terrenos 2024"],
     [DRUID_CIRCLE_GRANTED_SPELL_IDS_2024, 2, "circulos 2024 com desbloqueio"],
     [PALADIN_OATH_GRANTED_SPELL_IDS_2024, 4, "juramentos 2024"],
-    [SORCERER_SUBCLASS_GRANTED_SPELL_IDS_2024, 3, "origens de Feiticeiro 2024"],
-    [WARLOCK_PATRON_GRANTED_SPELL_IDS_2024, 4, "patronos de Bruxo 2024"],
+    [SORCERER_SUBCLASS_GRANTED_SPELL_IDS_2024, 5, "origens de Feiticeiro 2024"],
+    [WARLOCK_PATRON_GRANTED_SPELL_IDS_2024, 5, "patronos de Bruxo 2024"],
   ].forEach(([sourceMap, expectedCount, label]) => {
     assert.equal(Object.values(sourceMap).filter((unlocks) => unlocks[LEVEL_5]?.length).length, expectedCount, label);
   });

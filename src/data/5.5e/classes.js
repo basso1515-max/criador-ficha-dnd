@@ -1,16 +1,21 @@
-export const DATASET_VERSION = "1.1.0";
+export const DATASET_VERSION = "1.2.0";
 
 export const META_CLASSES = {
   dataset: "dnd5e-2024-ptbr",
   version: DATASET_VERSION,
   locale: "pt-BR",
-  builtAt: "2026-04-28",
+  builtAt: "2026-10-19",
   sources: {
     phb2024: "Player's Handbook (2024)",
     efota: "Eberron: Forge of the Artificer (2025)",
+    au: "Arcana Unleashed",
+    frhof: "Forgotten Realms: Heroes of Faerûn",
+    rthw: "Ravenloft: The Horrors Within",
+    drops1026: "D&D Beyond Drop — October 2026",
     referenciaLocal: "src/data/5.5e/DnD 5.5 - Livro do Jogador (2024).pdf",
   },
   changelog: [
+    "1.2.0: Expande as listas oficiais de subclasses com opções publicadas em Arcana Unleashed, Forgotten Realms, Ravenloft e Drops de 2026.",
     "1.1.0: Adiciona o Artífice revisado de Eberron: Forge of the Artificer, incluindo progressão, recursos e as cinco subclasses oficiais.",
     "1.0.2: Revisao do Mago 5.5e, corrigindo magias preparadas no nivel 20 para 25 e detalhando Conjuracao, Adepto de Ritual, Recuperacao Arcana, Academico, Memorizar Magia, Maestria de Magias, Magias Assinatura e subclasses de Mago.",
     "1.0.1: Revisao do Feiticeiro 5.5e, corrigindo progressao inicial de magias preparadas e detalhando recursos de Feiticaria Inata, Fonte de Magia, Metamagia, Restauracao Feiticeira, Feiticaria Encarnada e Apoteose Arcana.",
@@ -79,7 +84,7 @@ export const CLASSES = {
       19: [feature("Dádiva Épica", "Recebe uma Dádiva Épica ou outro talento elegível.")],
       20: [feature("Alma do Artífice", "Sua sintonização protege suas salvaguardas; pode desmontar itens replicados para evitar cair a 0 PV e recupera Lampejos de Gênio em descanso curto.")],
     },
-    subclasses: ["artifice-alquimista", "artifice-armeiro", "artifice-artilheiro", "artifice-ferreiro-batalha", "artifice-cartografo"],
+    subclasses: ["artifice-alquimista", "artifice-armeiro", "artifice-artilheiro", "artifice-ferreiro-batalha", "artifice-cartografo", "artifice-reanimator"],
   },
   barbaro: {
     id: "barbaro",
@@ -183,7 +188,7 @@ export const CLASSES = {
       19: [feature("Dádiva Épica", "Recebe uma Dádiva Épica ou outro talento elegível.")],
       20: [feature("Palavras de Criação", "Sempre tem Palavra de Poder: Salvar e Palavra de Poder: Matar preparadas e pode afetar um segundo alvo próximo.")],
     },
-    subclasses: ["bardo-bravura", "bardo-danca", "bardo-conhecimento", "bardo-glamour"],
+    subclasses: ["bardo-bravura", "bardo-danca", "bardo-conhecimento", "bardo-glamour", "bardo-college-of-the-moon", "bardo-college-of-spirits"],
   },
 
   bruxo: {
@@ -226,7 +231,7 @@ export const CLASSES = {
       19: [feature("Dádiva Épica", "Recebe uma Dádiva Épica ou outro talento elegível.")],
       20: [feature("Mestre Místico", "Quando usa Astúcia Mágica, recupera todos os espaços de Magia de Pacto gastos.")],
     },
-    subclasses: ["bruxo-arquifada", "bruxo-celestial", "bruxo-grande-antigo", "bruxo-infernal"],
+    subclasses: ["bruxo-arquifada", "bruxo-celestial", "bruxo-grande-antigo", "bruxo-infernal", "bruxo-vestige-patron", "bruxo-undead-patron"],
   },
 
   clerigo: {
@@ -268,7 +273,7 @@ export const CLASSES = {
       19: [feature("Dádiva Épica", "Recebe uma Dádiva Épica ou outro talento elegível.")],
       20: [feature("Intervenção Divina Maior", "Intervenção Divina pode escolher Desejo; se fizer isso, só retorna após 2d4 descansos longos.")],
     },
-    subclasses: ["clerigo-guerra", "clerigo-luz", "clerigo-enganacao", "clerigo-vida"],
+    subclasses: ["clerigo-guerra", "clerigo-luz", "clerigo-enganacao", "clerigo-vida", "clerigo-arcana-domain", "clerigo-knowledge-domain", "clerigo-grave-domain"],
   },
   druida: {
     id: "druida",
@@ -358,7 +363,7 @@ export const CLASSES = {
       19: [feature("Dádiva Épica", "Recebe uma Dádiva Épica ou outro talento elegível.")],
       20: [feature("Apoteose Arcana", "Enquanto Feitiçaria Inata está ativa, usa uma opção de Metamagia em cada um dos seus turnos sem gastar Pontos de Feitiçaria.")],
     },
-    subclasses: ["feiticeiro-mente-aberrante", "feiticeiro-draconico", "feiticeiro-alma-mecanica", "feiticeiro-magia-selvagem"],
+    subclasses: ["feiticeiro-mente-aberrante", "feiticeiro-draconico", "feiticeiro-alma-mecanica", "feiticeiro-magia-selvagem", "feiticeiro-spellfire-sorcery", "feiticeiro-shadow-sorcery"],
   },
 
   guerreiro: {
@@ -420,7 +425,7 @@ export const CLASSES = {
       19: [feature("Dádiva Épica", "Recebe uma Dádiva Épica ou outro talento elegível.")],
       20: [feature("Três Ataques Extras", "Ataca quatro vezes ao usar a ação Atacar.")],
     },
-    subclasses: ["guerreiro-campeao", "guerreiro-cavaleiro-arcano", "guerreiro-guerreiro-psiquico", "guerreiro-mestre-de-batalha"],
+    subclasses: ["guerreiro-campeao", "guerreiro-cavaleiro-arcano", "guerreiro-guerreiro-psiquico", "guerreiro-mestre-de-batalha", "guerreiro-arcane-archer", "guerreiro-banneret", "guerreiro-sorrow-knight"],
   },
 
   ladino: {
@@ -477,7 +482,7 @@ export const CLASSES = {
       19: [feature("Dádiva Épica", "Recebe uma Dádiva Épica ou outro talento elegível.")],
       20: [feature("Golpe de Sorte", "Ao falhar em um Teste de d20, transforma a jogada em 20; recupera o uso em descanso curto ou longo.")],
     },
-    subclasses: ["ladino-faca-alma", "ladino-assassino", "ladino-ladrao", "ladino-trapaceiro-arcano"],
+    subclasses: ["ladino-faca-alma", "ladino-assassino", "ladino-ladrao", "ladino-trapaceiro-arcano", "ladino-scion-of-the-three", "ladino-phantom"],
   },
 
   mago: {
@@ -518,7 +523,7 @@ export const CLASSES = {
       19: [feature("Dádiva Épica", "Recebe uma Dádiva Épica ou outro talento elegível.")],
       20: [feature("Magias Assinatura", "Escolhe duas magias de 3º círculo do grimório; elas ficam sempre preparadas e cada uma pode ser conjurada uma vez em 3º círculo sem espaço por descanso curto ou longo.")],
     },
-    subclasses: ["mago-abjuracao", "mago-adivinhacao", "mago-evocacao", "mago-ilusao"],
+    subclasses: ["mago-abjuracao", "mago-adivinhacao", "mago-evocacao", "mago-ilusao", "mago-conjurer", "mago-enchanter", "mago-necromancer", "mago-transmuter", "mago-bladesinger"],
   },
 
   monge: {
@@ -581,7 +586,7 @@ export const CLASSES = {
       19: [feature("Dádiva Épica", "Recebe uma Dádiva Épica ou outro talento elegível.")],
       20: [feature("Corpo e Mente", "Destreza e Sabedoria aumentam em 4, até o máximo de 25.")],
     },
-    subclasses: ["monge-palma-aberta", "monge-misericordia", "monge-sombras", "monge-quatro-elementos"],
+    subclasses: ["monge-palma-aberta", "monge-misericordia", "monge-sombras", "monge-quatro-elementos", "monge-warrior-of-the-mystic-arts"],
   },
 
   paladino: {
@@ -635,7 +640,7 @@ export const CLASSES = {
       18: [feature("Aura Expandida", "Sua Aura de Proteção aumenta para emanação de 9 m.")],
       19: [feature("Dádiva Épica", "Recebe uma Dádiva Épica ou outro talento elegível.")],
     },
-    subclasses: ["paladino-devocao", "paladino-gloria", "paladino-vinganca", "paladino-ancioes"],
+    subclasses: ["paladino-devocao", "paladino-gloria", "paladino-vinganca", "paladino-ancioes", "paladino-oath-of-the-noble-genies"],
   },
 
   guardiao: {
@@ -685,6 +690,6 @@ export const CLASSES = {
       19: [feature("Dádiva Épica", "Recebe uma Dádiva Épica ou outro talento elegível.")],
       20: [feature("Matador de Inimigos Favoritos", "O dado de dano de Marca do Predador se torna d10 em vez de d6.")],
     },
-    subclasses: ["guardiao-andarilho-feerico", "guardiao-cacador", "guardiao-mestre-feras", "guardiao-perseguidor"],
+    subclasses: ["guardiao-andarilho-feerico", "guardiao-cacador", "guardiao-mestre-feras", "guardiao-perseguidor", "guardiao-winter-walker", "guardiao-hollow-warden"],
   },
 };

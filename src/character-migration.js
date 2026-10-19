@@ -3,7 +3,7 @@
 import { CLASSES as CLASSES_2024 } from "./data/5.5e/classes.js";
 import { RACAS as RACES_2024, SUBRACAS as SUBRACES_2024 } from "./data/5.5e/racas.js";
 import { ANTECEDENTES as BACKGROUNDS_2024 } from "./data/5.5e/antecedentes.js";
-import { SUBCLASSES as SUBCLASSES_2024 } from "./data/5.5e/subclasses.js";
+import { SUBCLASSES as CORE_SUBCLASSES_2024, SUBCLASSES_ADDITIONAL_2024 } from "./data/5.5e/subclasses.js";
 import { ANTECEDENTES as BACKGROUNDS_2014 } from "./data/5e/antecedentes.js";
 import { migrateCharacterSnapshot } from "./shared/character-schema.js";
 
@@ -86,6 +86,7 @@ const RACE_BY_LABEL = makeNormalizedMap(Object.values(RACES_2024));
 const BACKGROUND_BY_LABEL = makeNormalizedMap(Object.values(BACKGROUNDS_2024));
 const LEGACY_BACKGROUND_BY_LABEL = makeNormalizedMap(Object.values(BACKGROUNDS_2014));
 const SUBRACE_BY_LABEL = makeNormalizedMap(Object.values(SUBRACES_2024));
+const SUBCLASSES_2024 = { ...CORE_SUBCLASSES_2024, ...SUBCLASSES_ADDITIONAL_2024 };
 const SUBCLASS_BY_LABEL = makeNormalizedMap(Object.values(SUBCLASSES_2024));
 const CLASS_BY_ID = new Map(Object.values(CLASSES_2024).map((entry) => [entry.id, entry]));
 const RACE_BY_ID = new Map(Object.values(RACES_2024).map((entry) => [entry.id, entry]));
