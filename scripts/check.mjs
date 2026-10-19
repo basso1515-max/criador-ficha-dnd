@@ -1335,7 +1335,7 @@ function validatePaladinOathSpellData() {
       errors.push(`2024: subclasse adicional ausente (${subclassId}).`);
     } else {
       const hasFeature = getFeaturesAtLevel(subclass, 3)
-        .some((feature) => normalizeFeatureName(feature?.nome) === "genie spells");
+        .some((feature) => normalizeFeatureName(feature?.nomeEN || feature?.nome) === "genie spells");
       if (!hasFeature) errors.push(`2024: ${subclassId} sem feature Genie Spells no nivel 3.`);
     }
     validateGrantedSpellDefinitionRefs("2024", `${subclassId}/Genie Spells`, definition, spellIds2024, errors);

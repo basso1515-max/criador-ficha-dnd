@@ -1,6 +1,6 @@
 import { ADDITIONAL_FEATS_2024 } from "./official-expansions-2024.js";
 
-export const DATASET_VERSION = "1.2.0";
+export const DATASET_VERSION = "1.2.1";
 
 export const META_TALENTOS = {
   dataset: "dnd5e-2024-ptbr",
@@ -19,6 +19,7 @@ export const META_TALENTOS = {
     referenciaLocal: "src/data/5.5e/DnD 5.5 - Livro do Jogador (2024).pdf",
   },
   changelog: [
+    "1.2.1: Localiza os nomes de talentos adicionais que ainda estavam em inglês.",
     "1.2.0: Adiciona 105 talentos e dádivas oficiais de Arcana Unleashed, Astarion’s Book of Hungers, Forgotten Realms, Ravenloft, Lorwyn e Drops de 2026.",
     "1.1.0: Adiciona as 28 opções de talentos de Marca Dracônica de Eberron: Forge of the Artificer.",
     "1.0.0: Reescrita do catálogo de talentos para o PHB 2024, incluindo talentos de origem, gerais, estilos de luta e dádivas épicas.",
@@ -191,7 +192,7 @@ export const TALENTOS = [
   feat({ id: "sentinela", name_pt: "Sentinela", categoria: GERAL, prerequisites: ["Nível 4 ou superior"], description_pt: "Trava o movimento inimigo, pune deslocamentos e protege aliados próximos.", tags: ["combate", "controle", "defesa"] }),
   feat({ id: "sorrateiro", name_pt: "Sorrateiro", categoria: GERAL, prerequisites: ["Nível 4 ou superior", "Destreza 13 ou superior"], description_pt: "Aumenta Destreza e melhora ocultação, mira a partir de esconderijos e ataques discretos.", tags: ["atributo", "furtividade"] }),
   feat({ id: "talhador", name_pt: "Talhador", categoria: GERAL, prerequisites: ["Nível 4 ou superior"], description_pt: "Aumenta Força ou Destreza e aplica redução de deslocamento e críticos reforçados com dano cortante.", tags: ["atributo", "dano", "controle"] }),
-  feat({ id: "telecinetico", name_pt: "Telecinético", categoria: GERAL, prerequisites: ["Nível 4 ou superior", "Característica Conjuração ou Magia de Pacto"], description_pt: "Aumenta um atributo mental, fortalece Mage Hand e empurra criaturas com a mente.", tags: ["psionico", "controle", "magia"] }),
+  feat({ id: "telecinetico", name_pt: "Telecinético", categoria: GERAL, prerequisites: ["Nível 4 ou superior", "Característica Conjuração ou Magia de Pacto"], description_pt: "Aumenta um atributo mental, fortalece Mãos Mágicas e empurra criaturas com a mente.", tags: ["psionico", "controle", "magia"] }),
   feat({ id: "telepatico", name_pt: "Telepático", categoria: GERAL, prerequisites: ["Nível 4 ou superior", "Característica Conjuração ou Magia de Pacto"], description_pt: "Aumenta um atributo mental, permite comunicação telepática e acesso a leitura mental.", tags: ["psionico", "social", "magia"] }),
   feat({ id: "toque-das-sombras", name_pt: "Tocado Pelas Sombras", categoria: GERAL, prerequisites: ["Nível 4 ou superior", "Característica Conjuração ou Magia de Pacto"], description_pt: "Aumenta atributo mental e concede magia sombria sempre preparada, incluindo invisibilidade.", tags: ["magia", "furtividade"] }),
   feat({ id: "toque-feerico", name_pt: "Tocado Por Fadas", categoria: GERAL, prerequisites: ["Nível 4 ou superior", "Característica Conjuração ou Magia de Pacto"], description_pt: "Aumenta atributo mental e concede magia feérica, incluindo Passo Nebuloso.", tags: ["magia", "movimento", "utilidade"] }),

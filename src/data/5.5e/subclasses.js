@@ -1,11 +1,12 @@
 import { ADDITIONAL_SUBCLASSES_2024 } from "./official-expansions-2024.js";
 
-const feature = (nome, descricao = "") => ({ nome, descricao });
+const feature = (nome, descricao = "", extra = {}) => ({ nome, descricao, ...extra });
 
-const subclass = (id, classeBase, nome, nivel, descricao, features, fonte = "PHB24") => ({
+const subclass = (id, classeBase, nome, nivel, descricao, features, fonte = "PHB24", nomeEN = "") => ({
   id,
   classeBase,
   nome,
+  ...(nomeEN ? { nomeEN } : {}),
   fonte,
   nivel,
   descricao,
@@ -810,8 +811,9 @@ export const SUBCLASSES_ADDITIONAL_2024 = Object.fromEntries(ADDITIONAL_SUBCLASS
       || `Especialização oficial publicada em ${entry.source}; recursos nos níveis ${Object.keys(entry.features).join(", ")}.`,
     Object.fromEntries(Object.entries(entry.features).map(([level, features]) => [
       level,
-      features.map((item) => feature(item.nome, item.descricao || "")),
+      features.map((item) => feature(item.nome, item.descricao || "", item.nomeEN ? { nomeEN: item.nomeEN } : {})),
     ])),
     entry.source,
+    entry.originalTitle,
   ),
 ]));

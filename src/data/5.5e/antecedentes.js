@@ -1,6 +1,6 @@
 import { ADDITIONAL_BACKGROUNDS_2024 } from "./official-expansions-2024.js";
 
-export const DATASET_VERSION = "1.2.0";
+export const DATASET_VERSION = "1.2.1";
 
 export const META_ANTECEDENTES = {
   dataset: "dnd5e-2024-ptbr",
@@ -19,6 +19,7 @@ export const META_ANTECEDENTES = {
     referenciaLocal: "src/data/5.5e/DnD 5.5 - Livro do Jogador (2024).pdf",
   },
   changelog: [
+    "1.2.1: Traduz o equipamento inicial dos antecedentes adicionais para PT-BR.",
     "1.2.0: Adiciona 38 antecedentes de Arcana Unleashed, Astarion’s Book of Hungers, Forgotten Realms: Heroes of Faerûn, Ravenloft, Lorwyn e Drops de 2026.",
     "1.1.0: Adiciona os 17 antecedentes de Eberron: Forge of the Artificer, com seus talentos de Marca Dracônica, perícias, ferramentas e opções de atributo.",
     "1.0.0: Reescrita dos antecedentes para o PHB 2024, usando os 16 pacotes oficiais de origem com talentos de origem, perícias, ferramentas, escolhas de atributos e equipamento A/B.",

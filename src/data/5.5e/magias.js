@@ -1,6 +1,6 @@
 // magias.js
 import { ADDITIONAL_SPELLS_2024 } from "./official-expansions-2024.js";
-export const DATASET_VERSION = "0.5.0";
+export const DATASET_VERSION = "0.5.1";
 export const META_MAGIAS = {
   dataset: "dnd5e-ptbr",
   version: DATASET_VERSION,
@@ -16,6 +16,7 @@ export const META_MAGIAS = {
     drops2026: "D&D Beyond Drops (2026)",
   },
   changelog: [
+    "0.5.1: Localiza nomes, componentes e durações das magias adicionais em PT-BR, preservando os títulos originais.",
     "0.5.0: Adiciona 64 magias oficiais de Arcana Unleashed, Forgotten Realms e Drops de 2026, unificando reimpressões por nome.",
     "0.4.0: Adiciona Servo Homúnculo e vincula a lista de magias publicada do Artífice ao catálogo 2024.",
     "0.3.1: Alinha a lista 2024 com o D&D Beyond (Player's Handbook), reclassifica reprints oficiais e marca sobras 2014 como PHB14.",
@@ -1396,7 +1397,7 @@ export const MAGIAS = {
       },
       "shillelagh": {
         "id": "shillelagh",
-        "nome": "Shillelagh",
+        "nome": "Bordão Místico",
         "nomeEN": "Shillelagh",
         "nivel": 0,
         "escola": "transmutação",
@@ -15910,7 +15911,7 @@ ADDITIONAL_SPELLS_2024.forEach((spell) => {
   patchSpell2024(existing.spell.id, {
     ...spell,
     id: existing.spell.id,
-    nome: existing.spell.nome || spell.nome,
+    nome: spell.nome || existing.spell.nome,
     descricao: existing.spell.descricao || spell.descricao,
     resumo: existing.spell.resumo || spell.resumo,
     classes: Array.from(new Set([...(existing.spell.classes || []), ...(spell.classes || [])])),

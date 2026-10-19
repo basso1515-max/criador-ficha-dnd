@@ -1,5 +1,5 @@
 // magias.js
-export const DATASET_VERSION = "0.1.0";
+export const DATASET_VERSION = "0.1.1";
 export const META_MAGIAS = {
   dataset: "dnd5e-ptbr",
   version: DATASET_VERSION,
@@ -11,6 +11,7 @@ export const META_MAGIAS = {
     srdJsonPublic: "https://raw.githubusercontent.com/vorpalhex/srd_spells/master/spells.json"
   },
   changelog: [
+    "0.1.1: Localiza Shillelagh como Bordão Místico, preservando o nome original para busca.",
     "0.1.0: Loader SRD JSON + cache localStorage; stub offline para UI e testes."
   ]
 };
@@ -979,7 +980,7 @@ export const MAGIAS = {
       },
       "shillelagh": {
         id: "shillelagh",
-        nome: "Shillelagh",
+        nome: "Bordão Místico",
         nomeEN: "Shillelagh",
         nivel: 0,
         escola: "transmutação",

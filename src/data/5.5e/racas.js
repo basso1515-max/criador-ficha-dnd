@@ -1,6 +1,6 @@
 import { ADDITIONAL_RACES_2024, ADDITIONAL_SUBRACES_2024 } from "./official-expansions-2024.js";
 
-export const DATASET_VERSION = "1.3.0";
+export const DATASET_VERSION = "1.3.1";
 
 const ftToM = (ft) => Math.round(ft * 0.3048 * 10) / 10;
 
@@ -19,6 +19,7 @@ export const META_RACAS = {
     referenciaLocal: "src/data/5.5e/DnD 5.5 - Livro do Jogador (2024).pdf",
   },
   changelog: [
+    "1.3.1: Localiza em PT-BR nomes de espécies adicionais e preserva os nomes originais para referência.",
     "1.3.0: Adiciona Dhampir, Hexblood, Lupin, Renascido, linhagens de Lorwyn/Shadowmoor, Duskling e adaptações oficiais de espécies de Lorwyn.",
     "1.2.0: Adiciona Changeling, Kalashtar, Khoravar, Shifter e Warforged de Eberron: Forge of the Artificer.",
     "1.1.0: Ajusta a modelagem do aasimar para a escolha dinâmica de Revelação Celestial e corrige ligações internas de subespécies.",
@@ -57,6 +58,7 @@ const trait = (id, nome, resumo, extra = {}) => ({ id, nome, resumo, ...extra })
 const race = ({
   id,
   nome,
+  nomeEN = "",
   tamanho = "M",
   velocidadeFt = 30,
   descricao,
@@ -67,6 +69,7 @@ const race = ({
 }) => ({
   id,
   nome,
+  ...(nomeEN ? { nomeEN } : {}),
   tamanho,
   velocidade: { ft: velocidadeFt, m: ftToM(velocidadeFt) },
   descricao,
@@ -76,9 +79,10 @@ const race = ({
   ...extra,
 });
 
-const subrace = ({ id, nome, race, descricao, tracos, tamanho = null, velocidadeFt = null }) => ({
+const subrace = ({ id, nome, nomeEN = "", race, descricao, tracos, tamanho = null, velocidadeFt = null }) => ({
   id,
   nome,
+  ...(nomeEN ? { nomeEN } : {}),
   race,
   descricao,
   tracos,
@@ -215,11 +219,12 @@ export const RACAS = {
   }),
   changeling: race({
     id: "changeling",
-    nome: "Changeling",
+    nome: "Metamorfo",
+    nomeEN: "Changeling",
     descricao: "Metamorfo de natureza feérica que assume identidades e se adapta a qualquer ambiente social.",
     tracos: [
       trait("fey", "Feérico", "Você também é considerado Feérico para efeitos que dependem do seu tipo de criatura."),
-      trait("instintos-de-changeling", "Instintos de Changeling", "Você ganha proficiência em duas perícias entre Enganação, Intuição, Intimidação, Atuação e Persuasão."),
+      trait("instintos-de-changeling", "Instintos de Metamorfo", "Você ganha proficiência em duas perícias entre Enganação, Intuição, Intimidação, Atuação e Persuasão."),
       trait("metamorfo", "Metamorfo", "Você pode alterar sua aparência e voz para imitar outra pessoa, sem mudar seu equipamento."),
     ],
     extra: { fonte: "EFotA" },
@@ -227,6 +232,7 @@ export const RACAS = {
   kalashtar: race({
     id: "kalashtar",
     nome: "Kalashtar",
+    nomeEN: "Kalashtar",
     descricao: "Humanoide ligado espiritualmente a um quori, com disciplina mental e comunicação telepática.",
     tracos: [
       trait("aberracao", "Aberração", "Você também é considerado uma Aberração para efeitos que dependem do seu tipo de criatura."),
@@ -240,6 +246,7 @@ export const RACAS = {
   khoravar: race({
     id: "khoravar",
     nome: "Khoravar",
+    nomeEN: "Khoravar",
     descricao: "Povo de herança humana e élfica, unido por tradições familiares, versatilidade e afinidade feérica.",
     tracos: [
       trait("visao-no-escuro", "Visão no Escuro", "Você enxerga no escuro até 18 metros."),
@@ -252,7 +259,8 @@ export const RACAS = {
   }),
   shifter: race({
     id: "shifter",
-    nome: "Shifter",
+    nome: "Transmorfo",
+    nomeEN: "Shifter",
     descricao: "Humanoide de instinto bestial que manifesta uma forma híbrida temporária conforme sua linhagem animal.",
     tracos: [
       trait("instintos-bestiais", "Instintos Bestiais", "Você ganha proficiência em uma perícia ligada à agilidade, presença ou sobrevivência animal."),
@@ -264,7 +272,8 @@ export const RACAS = {
   }),
   warforged: race({
     id: "warforged",
-    nome: "Warforged",
+    nome: "Forjado Bélico",
+    nomeEN: "Warforged",
     descricao: "Constructo senciente criado para a guerra, resistente, incansável e capaz de integrar proteção ao próprio corpo.",
     tracos: [
       trait("constructo", "Constructo", "Você também é considerado um Constructo para efeitos que dependem do seu tipo de criatura."),
@@ -284,28 +293,32 @@ export const SUBRACAS = {
     id: "shifter-presa-feroz",
     race: "shifter",
     nome: "Presa Feroz",
-    descricao: "Linhagem Longtooth que manifesta uma mordida agressiva durante a transformação.",
+    nomeEN: "Longtooth Shifter",
+    descricao: "Linhagem Presas Longas, que manifesta uma mordida agressiva durante a transformação.",
     tracos: [trait("mordida-feroz", "Mordida Feroz", "Enquanto transformado, você pode atacar com uma mordida bestial como ação bônus.")],
   }),
   "shifter-pele-de-fera": subrace({
     id: "shifter-pele-de-fera",
     race: "shifter",
     nome: "Pele de Fera",
-    descricao: "Linhagem Beasthide de constituição densa e proteção natural.",
+    nomeEN: "Beasthide Shifter",
+    descricao: "Linhagem de constituição densa e proteção natural.",
     tracos: [trait("pele-de-fera", "Pele de Fera", "Sua transformação concede maior proteção física e Pontos de Vida temporários adicionais.")],
   }),
   "shifter-passos-rapidos": subrace({
     id: "shifter-passos-rapidos",
     race: "shifter",
     nome: "Passos Rápidos",
-    descricao: "Linhagem Swiftstride, veloz e difícil de encurralar.",
+    nomeEN: "Swiftstride Shifter",
+    descricao: "Linhagem veloz e difícil de encurralar.",
     tracos: [trait("passos-rapidos", "Passos Rápidos", "Sua transformação aumenta o deslocamento e permite escapar com rapidez de ameaças próximas.")],
   }),
   "shifter-cacador-selvagem": subrace({
     id: "shifter-cacador-selvagem",
     race: "shifter",
     nome: "Caçador Selvagem",
-    descricao: "Linhagem Wildhunt que combina sentidos atentos e defesa contra emboscadas.",
+    nomeEN: "Wildhunt Shifter",
+    descricao: "Linhagem que combina sentidos atentos e defesa contra emboscadas.",
     tracos: [trait("instinto-de-caca", "Instinto de Caça", "Enquanto transformado, você reforça seus sentidos e impede que inimigos tirem proveito fácil contra você.")],
   }),
     "draconato-azul": subrace({

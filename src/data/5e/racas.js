@@ -1,5 +1,5 @@
 // racas.js
-export const DATASET_VERSION = "0.4.0";
+export const DATASET_VERSION = "0.4.1";
 export const META_RACAS = {
   dataset: "dnd5e-ptbr",
   version: DATASET_VERSION,
@@ -11,6 +11,7 @@ export const META_RACAS = {
     oficial: "PHB, EEPC, SCAG, VGM, MTF, ERLW, EGW, GGR, MOT, TTP, LR, OGA, AI, VRGR, WBtW, SCC, AAG, FTD e DSotDQ"
   },
   changelog: [
+    "0.4.1: Localiza Changeling, Shifter e Warforged em PT-BR e preserva os nomes originais.",
     "0.1.0: Raças SRD (base), sub-raças e traços em resumo mecânico.",
     "0.2.0: Perfis físicos médios por raça/sub-raça para idade, altura, peso e aparência.",
     "0.3.0: Faixas físicas explícitas por raça/sub-raça para alertas de idade, altura e peso fora do padrão.",
@@ -1124,7 +1125,7 @@ Object.assign(RACAS, {
   },
   "changeling": {
     id: "changeling",
-    nome: "Changeling",
+    nome: "Metamorfo",
     nomeEN: "Changeling",
     tamanho: "M",
     velocidade: { ft: 30, m: ftToM(30) },
@@ -1133,7 +1134,7 @@ Object.assign(RACAS, {
     atributosEscolha: { picks: 1, bonus: 1, from: ["for", "des", "con", "int", "sab"] },
     tracos: [
       traco("metamorfo", "Metamorfo", "Como ação, altera aparência e voz sem mudar estatísticas de jogo."),
-      traco("instintos-changeling", "Instintos de Changeling", "Escolha 2 perícias entre Enganação, Intuição, Intimidação e Persuasão."),
+      traco("instintos-changeling", "Instintos de Metamorfo", "Escolha 2 perícias entre Enganação, Intuição, Intimidação e Persuasão."),
       traco("idiomas-adicionais", "Idiomas Adicionais", "Escolha 2 idiomas adicionais.")
     ]
   },
@@ -1287,7 +1288,7 @@ Object.assign(RACAS, {
   },
   "shifter": {
     id: "shifter",
-    nome: "Shifter",
+    nome: "Transmorfo",
     nomeEN: "Shifter",
     tamanho: "M",
     velocidade: { ft: 30, m: ftToM(30) },
@@ -1352,7 +1353,7 @@ Object.assign(RACAS, {
   },
   "warforged": {
     id: "warforged",
-    nome: "Warforged",
+    nome: "Forjado Bélico",
     nomeEN: "Warforged",
     tamanho: "M",
     velocidade: { ft: 30, m: ftToM(30) },
@@ -1905,7 +1906,7 @@ Object.assign(SUBRACAS, {
     atributos: { sab: 2 },
     tracos: [
       traco("disciplina-mental-githzerai", "Disciplina Mental", "Vantagem contra as condições enfeitiçado e amedrontado."),
-      traco("psionica-githzerai", "Psiônica Githzerai", "Conhece Mage Hand invisível; no 3º nível conjura Escudo; no 5º, Detectar Pensamentos, 1/descanso longo. Sabedoria é o atributo de conjuração.")
+      traco("psionica-githzerai", "Psiônica Githzerai", "Conhece Mãos Mágicas invisíveis; no 3º nível conjura Escudo; no 5º, Detectar Pensamentos, 1/descanso longo. Sabedoria é o atributo de conjuração.")
     ]
   }
 });
@@ -1914,7 +1915,7 @@ Object.assign(SUBRACAS, {
   "shifter-pelopeludo": {
     id: "shifter-pelopeludo",
     base: "shifter",
-    nome: "Shifter Pelo-Peludo",
+    nome: "Transmorfo Pele de Fera",
     nomeEN: "Beasthide Shifter",
     atributos: { con: 2, for: 1 },
     tracos: [
@@ -1925,7 +1926,7 @@ Object.assign(SUBRACAS, {
   "shifter-presas-longas": {
     id: "shifter-presas-longas",
     base: "shifter",
-    nome: "Shifter Presas-Longas",
+    nome: "Transmorfo Presas Longas",
     nomeEN: "Longtooth Shifter",
     atributos: { for: 2, des: 1 },
     tracos: [
@@ -1936,7 +1937,7 @@ Object.assign(SUBRACAS, {
   "shifter-passos-rapidos": {
     id: "shifter-passos-rapidos",
     base: "shifter",
-    nome: "Shifter Passos-Rápidos",
+    nome: "Transmorfo Passos Ligeiros",
     nomeEN: "Swiftstride Shifter",
     atributos: { des: 2, car: 1 },
     tracos: [
@@ -1947,7 +1948,7 @@ Object.assign(SUBRACAS, {
   "shifter-cacador": {
     id: "shifter-cacador",
     base: "shifter",
-    nome: "Shifter Caçador",
+    nome: "Transmorfo Caçador Selvagem",
     nomeEN: "Wildhunt Shifter",
     atributos: { sab: 2, des: 1 },
     tracos: [

@@ -2457,13 +2457,16 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
   function describeSubclassOption(value) {
     const subclass = SUBCLASS_BY_ID.get(value);
     if (!subclass) return { summary: "", lines: [], body: "", search: "" };
+    const featureNames = Object.values(subclass.features || {})
+      .flatMap((features) => (features || []).flatMap((feature) => [feature?.nome, feature?.nomeEN]))
+      .filter(Boolean);
     return {
       summary: subclass.classeBase ? `Classe base: ${labelFromSlug(subclass.classeBase)}` : "",
       lines: [
         subclass.classeBase ? `Classe base: ${labelFromSlug(subclass.classeBase)}` : "",
       ].filter(Boolean),
       body: subclass.descricao || "",
-      search: `${subclass.nome} ${subclass.descricao || ""} ${subclass.classeBase || ""}`,
+      search: [subclass.nome, subclass.nomeEN, subclass.descricao, subclass.classeBase, ...featureNames].filter(Boolean).join(" "),
     };
   }
 
@@ -4742,7 +4745,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
         race.tracos?.length ? `Traços: ${race.tracos.map((trait) => trait.nome).join(", ")}` : "",
       ].filter(Boolean),
       body: race.descricao || "",
-      search: `${race.nome} ${race.descricao || ""} ${(race.tracos || []).map((trait) => trait.nome).join(" ")}`,
+      search: [race.nome, race.nomeEN, race.descricao, ...(race.tracos || []).map((trait) => trait.nome)].filter(Boolean).join(" "),
     };
   }
 
@@ -4762,7 +4765,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
         subrace.descricaoFisica ? `Físico: ${subrace.descricaoFisica}` : ""
       ].filter(Boolean),
       body: subrace.descricao || "",
-      search: `${subrace.nome} ${subrace.descricao || ""} ${subrace.origem || ""} ${subrace.descricaoFisica || ""} ${(subrace.tracos || []).map((trait) => trait.nome).join(" ")}`,
+      search: [subrace.nome, subrace.nomeEN, subrace.descricao, subrace.origem, subrace.descricaoFisica, ...(subrace.tracos || []).map((trait) => trait.nome)].filter(Boolean).join(" "),
     };
   }
 

@@ -2160,7 +2160,7 @@ export const ADDITIONAL_FEATS_2024 = [
     "name_pt": "Filho do Sol",
     "categoria": "origem",
     "prerequisites": [],
-    "description_pt": "Protege aliados da cegueira e aprende Faerie Fire com concentração reforçada.",
+    "description_pt": "Protege aliados da cegueira e aprende Fogo das Fadas com concentração reforçada.",
     "tags": [
       "lfl",
       "origem"
@@ -2175,7 +2175,7 @@ export const ADDITIONAL_FEATS_2024 = [
     "name_pt": "Bruxo de Shadowmoor",
     "categoria": "origem",
     "prerequisites": [],
-    "description_pt": "Aprende Hex e fere quem o ataca sob a maldição.",
+    "description_pt": "Aprende Bruxaria e fere quem o ataca sob a maldição.",
     "tags": [
       "lfl",
       "origem"
@@ -6840,9 +6840,10 @@ const expansionTrait2024 = (id, nome, resumo, escolhas = undefined) => ({
   resumo,
   ...(escolhas?.length ? { escolhas } : {}),
 });
-const expansionRace2024 = ({ id, nome, tipo = "Humanoide", tamanho = "M", velocidadeFt = 30, descricao, tracos, subracas = [], extra = {} }) => ({
+const expansionRace2024 = ({ id, nome, nomeEN = "", tipo = "Humanoide", tamanho = "M", velocidadeFt = 30, descricao, tracos, subracas = [], extra = {} }) => ({
   id,
   nome,
+  ...(nomeEN ? { nomeEN } : {}),
   tipo,
   tamanho,
   velocidade: { ft: velocidadeFt, m: Math.round(velocidadeFt * 0.3048 * 10) / 10 },
@@ -6855,7 +6856,7 @@ const expansionRace2024 = ({ id, nome, tipo = "Humanoide", tamanho = "M", veloci
 
 export const ADDITIONAL_RACES_2024 = {
   dhampir: expansionRace2024({
-    id: "dhampir", nome: "Dhampir", velocidadeFt: 35, descricao: "Humanoide marcado por uma fome sobrenatural e dons vampíricos.",
+    id: "dhampir", nome: "Dampiro", nomeEN: "Dhampir", velocidadeFt: 35, descricao: "Humanoide marcado por uma fome sobrenatural e dons vampíricos.",
     tracos: [
       expansionTrait2024("visao-no-escuro", "Visão no Escuro", "Enxerga no escuro até 18 metros."),
       expansionTrait2024("escalada-aranha", "Escalada de Aranha", "Recebe deslocamento de escalada igual ao seu deslocamento; a partir do nível 3, move-se por paredes e tetos sem usar as mãos."),
@@ -6865,16 +6866,16 @@ export const ADDITIONAL_RACES_2024 = {
     extra: { fontes: ["ABOH", "RTHW"], tamanhoEscolha: ["P", "M"] },
   }),
   hexblood: expansionRace2024({
-    id: "hexblood", nome: "Hexblood", tipo: "Feérico", descricao: "Pessoa infundida por magia feérica e marcada por pactos ou bruxaria sobrenatural.",
+    id: "hexblood", nome: "Sangue de Bruxa", nomeEN: "Hexblood", tipo: "Feérico", descricao: "Pessoa infundida por magia feérica e marcada por pactos ou bruxaria sobrenatural.",
     tracos: [
       expansionTrait2024("visao-no-escuro", "Visão no Escuro", "Enxerga no escuro até 18 metros."),
       expansionTrait2024("token-estranho", "Token Estranho", "Cria um token mágico para enviar mensagens ou observar à distância de até 16 km; uma vez por descanso longo."),
-      expansionTrait2024("magia-hex", "Magia Hex", "Sempre tem Disfarçar-se e Hex preparados, com uma conjuração gratuita de cada por descanso longo; escolha Int, Sab ou Carisma." , ["int", "sab", "car"]),
+      expansionTrait2024("magia-hex", "Magia Bruxa", "Sempre tem Disfarçar-se e Bruxaria preparados, com uma conjuração gratuita de cada por descanso longo; escolha Int, Sab ou Carisma." , ["int", "sab", "car"]),
     ],
     extra: { fonte: "RTHW", tamanhoEscolha: ["P", "M"] },
   }),
   lupin: expansionRace2024({
-    id: "lupin", nome: "Lupin", descricao: "Humanoide lupino com instintos predatórios, garras e um uivo sobrenatural.",
+    id: "lupin", nome: "Lupino", nomeEN: "Lupin", descricao: "Humanoide lupino com instintos predatórios, garras e um uivo sobrenatural.",
     tracos: [
       expansionTrait2024("visao-no-escuro", "Visão no Escuro", "Enxerga no escuro até 18 metros."),
       expansionTrait2024("bote-feral", "Bote Feral", "Ataques desarmados causam dano cortante; uma vez por turno, combina as opções Dano e Empurrão."),
@@ -6884,7 +6885,7 @@ export const ADDITIONAL_RACES_2024 = {
     extra: { fonte: "RTHW", tamanhoEscolha: ["P", "M"] },
   }),
   reborn: expansionRace2024({
-    id: "reborn", nome: "Renascido", descricao: "Criatura que morreu, mas voltou à vida por meios misteriosos.",
+    id: "reborn", nome: "Renascido", nomeEN: "Reborn", descricao: "Criatura que morreu, mas voltou à vida por meios misteriosos.",
     tracos: [
       expansionTrait2024("escapou-da-morte", "Escapou da Morte", "Tem vantagem em salvaguardas contra a morte."),
       expansionTrait2024("eterno", "Eterno", "Não sofre exaustão por desidratação, fome ou sufocamento; não dorme e completa descanso longo em quatro horas de inatividade consciente."),
@@ -6894,7 +6895,7 @@ export const ADDITIONAL_RACES_2024 = {
     extra: { fonte: "RTHW", tamanhoEscolha: ["P", "M"] },
   }),
   boggart: expansionRace2024({
-    id: "boggart", nome: "Boggart", tipo: "Humanoide (goblinoide)", tamanho: "P", descricao: "Povo pequeno e goblinoide de Lorwyn-Shadowmoor; usa as regras oficiais de Goblin de Mordenkainen Presents: Monsters of the Multiverse.",
+    id: "boggart", nome: "Boggart", nomeEN: "Boggart", tipo: "Humanoide (goblinoide)", tamanho: "P", descricao: "Povo pequeno e goblinoide de Lorwyn-Shadowmoor; usa as regras oficiais de Goblin de Mordenkainen Presents: Monsters of the Multiverse.",
     tracos: [
       expansionTrait2024("visao-no-escuro", "Visão no Escuro", "Enxerga no escuro até 18 metros."),
       expansionTrait2024("ancestralidade-feerica", "Ancestralidade Feérica", "Tem vantagem em salvaguardas para evitar ou encerrar Enfeitiçado."),
@@ -6903,7 +6904,7 @@ export const ADDITIONAL_RACES_2024 = {
     ],
   }),
   faerie: expansionRace2024({
-    id: "faerie", nome: "Faerie", tipo: "Feérico", tamanho: "P", descricao: "Ser feérico alado de Lorwyn-Shadowmoor; usa as regras oficiais de Fairy de Mordenkainen Presents: Monsters of the Multiverse.",
+    id: "faerie", nome: "Fada", nomeEN: "Faerie", tipo: "Feérico", tamanho: "P", descricao: "Ser feérico alado de Lorwyn-Shadowmoor; usa as regras oficiais de Fada de Mordenkainen Presents: Monsters of the Multiverse.",
     tracos: [
       expansionTrait2024("magia-feerica", "Magia Feérica", "Conhece Arte Druídica; aprende Fogo das Fadas no nível 3 e Aumentar/Reduzir no nível 5, com conjuração gratuita por descanso longo; escolha Int, Sab ou Carisma.", ["int", "sab", "car"]),
       expansionTrait2024("voo", "Voo", "Tem deslocamento de voo igual ao deslocamento de caminhada; não pode voar com armadura média ou pesada."),
@@ -6911,7 +6912,7 @@ export const ADDITIONAL_RACES_2024 = {
     subracas: ["faerie-lorwyn", "faerie-shadowmoor"],
   }),
   flamekin: expansionRace2024({
-    id: "flamekin", nome: "Flamekin", descricao: "Povo de fogo e pedra de Lorwyn-Shadowmoor; usa as regras oficiais de Genasi do Fogo de Mordenkainen Presents: Monsters of the Multiverse.",
+    id: "flamekin", nome: "Povo Ígneo", nomeEN: "Flamekin", descricao: "Povo de fogo e pedra de Lorwyn-Shadowmoor; usa as regras oficiais de Genasi do Fogo de Mordenkainen Presents: Monsters of the Multiverse.",
     tracos: [
       expansionTrait2024("visao-no-escuro", "Visão no Escuro", "Enxerga no escuro até 18 metros."),
       expansionTrait2024("resistencia-fogo", "Resistência ao Fogo", "Tem resistência a dano ígneo."),
@@ -6920,7 +6921,7 @@ export const ADDITIONAL_RACES_2024 = {
     extra: { tamanhoEscolha: ["P", "M"] },
   }),
   kithkin: expansionRace2024({
-    id: "kithkin", nome: "Kithkin", tamanho: "P", descricao: "Povo pequeno de Lorwyn-Shadowmoor; usa as regras oficiais de Halfling do Player’s Handbook (2024).",
+    id: "kithkin", nome: "Kithkin", nomeEN: "Kithkin", tamanho: "P", descricao: "Povo pequeno de Lorwyn-Shadowmoor; usa as regras oficiais de Pequenino do Player’s Handbook (2024).",
     tracos: [
       expansionTrait2024("corajoso", "Corajoso", "Tem vantagem em salvaguardas contra Amedrontado."),
       expansionTrait2024("agilidade-pequenina", "Agilidade Pequenina", "Pode atravessar o espaço de criaturas maiores."),
@@ -6930,7 +6931,7 @@ export const ADDITIONAL_RACES_2024 = {
     subracas: ["kithkin-lorwyn", "kithkin-shadowmoor"],
   }),
   "lorwyn-changeling": expansionRace2024({
-    id: "lorwyn-changeling", nome: "Metamorfo de Lorwyn", tipo: "Feérico", descricao: "Metamorfo feérico cuja mudança de forma altera apenas a superfície do corpo.",
+    id: "lorwyn-changeling", nome: "Metamorfo de Lorwyn", nomeEN: "Lorwyn Changeling", tipo: "Feérico", descricao: "Metamorfo feérico cuja mudança de forma altera apenas a superfície do corpo.",
     tracos: [
       expansionTrait2024("moldar-forma", "Moldar Forma", "Como ação, assume forma bípede humanoide ou quadrúpede bestial; a mudança é apenas superficial."),
       expansionTrait2024("visao-no-escuro", "Visão no Escuro", "Enxerga no escuro até 36 metros."),
@@ -6940,7 +6941,7 @@ export const ADDITIONAL_RACES_2024 = {
     extra: { fontes: ["LFL"] , tamanhoEscolha: ["P", "M"] },
   }),
   rimekin: expansionRace2024({
-    id: "rimekin", nome: "Rimekin", descricao: "Descendente dos flamekin cujas chamas arcanas se tornaram gélidas.",
+    id: "rimekin", nome: "Povo da Geada", nomeEN: "Rimekin", descricao: "Descendente do Povo Ígneo cujas chamas arcanas se tornaram gélidas.",
     tracos: [
       expansionTrait2024("magia-de-fogo-frio", "Magia de Fogo Frio", "Conhece Raio de Gelo; aprende Faca de Gelo no nível 3 e Lâmina Flamejante no 5. A Lâmina causa dano frio; escolha Int, Sab ou Carisma.", ["int", "sab", "car"]),
       expansionTrait2024("resistencia-frio", "Resistência ao Frio", "Tem resistência a dano frio."),
@@ -6949,7 +6950,7 @@ export const ADDITIONAL_RACES_2024 = {
     extra: { tamanhoEscolha: ["P", "M"] },
   }),
   duskling: expansionRace2024({
-    id: "duskling", nome: "Duskling", tipo: "Feérico", descricao: "Povo feérico errante que alterna entre vigor, mobilidade e presença marcante.",
+    id: "duskling", nome: "Povo do Crepúsculo", nomeEN: "Duskling", tipo: "Feérico", descricao: "Povo feérico errante que alterna entre vigor, mobilidade e presença marcante.",
     tracos: [
       expansionTrait2024("visao-no-escuro", "Visão no Escuro", "Enxerga no escuro até 18 metros."),
       expansionTrait2024("salto-ampliado", "Salto Ampliado", "Aumenta em 60 cm o salto em altura e em 3 metros o salto em distância após corrida."),
@@ -6968,14 +6969,321 @@ export const ADDITIONAL_SUBRACES_2024 = {
     id: "elfo-shadowmoor", race: "elfo", nome: "Elfo de Shadowmoor", descricao: "Linhagem élfica sombria com sentidos ampliados e magia de proteção e repouso.",
     tracos: [expansionTrait2024("linhagem-shadowmoor", "Linhagem de Shadowmoor", "Aumenta Visão no Escuro para 36 metros, conhece Centelha Estelar e aprende Heroísmo no nível 3 e Repouso Tranquilo no nível 5.")],
   },
-  "faerie-lorwyn": { id: "faerie-lorwyn", race: "faerie", nome: "Faerie de Lorwyn", tracos: [] },
+  "faerie-lorwyn": { id: "faerie-lorwyn", race: "faerie", nome: "Fada de Lorwyn", nomeEN: "Faerie of Lorwyn", tracos: [] },
   "faerie-shadowmoor": {
-    id: "faerie-shadowmoor", race: "faerie", nome: "Faerie de Shadowmoor", descricao: "Faerie sombria, adaptada à penumbra de Shadowmoor.",
+    id: "faerie-shadowmoor", race: "faerie", nome: "Fada de Shadowmoor", nomeEN: "Faerie of Shadowmoor", descricao: "Fada sombria, adaptada à penumbra de Shadowmoor.",
     tracos: [expansionTrait2024("visao-no-escuro-120", "Visão no Escuro", "Enxerga no escuro até 36 metros.")],
   },
-  "kithkin-lorwyn": { id: "kithkin-lorwyn", race: "kithkin", nome: "Kithkin de Lorwyn", tracos: [] },
+  "kithkin-lorwyn": { id: "kithkin-lorwyn", race: "kithkin", nome: "Kithkin de Lorwyn", nomeEN: "Kithkin of Lorwyn", tracos: [] },
   "kithkin-shadowmoor": {
-    id: "kithkin-shadowmoor", race: "kithkin", nome: "Kithkin de Shadowmoor", descricao: "Kithkin de Shadowmoor, habituado à escuridão do reino.",
+    id: "kithkin-shadowmoor", race: "kithkin", nome: "Kithkin de Shadowmoor", nomeEN: "Kithkin of Shadowmoor", descricao: "Kithkin de Shadowmoor, habituado à escuridão do reino.",
     tracos: [expansionTrait2024("visao-no-escuro-120", "Visão no Escuro", "Enxerga no escuro até 36 metros.")],
   },
 };
+
+// Rótulos em PT-BR para os campos exibidos ao jogador. Os campos originais
+// permanecem disponíveis para busca, comparação com a fonte e identificação.
+export const ADDITIONAL_FEAT_NAMES_PT_2024 = {
+  "Conjuration Adept": "Adepto de Conjuração",
+  "Divination Adept": "Adepto de Adivinhação",
+  "Elemental Familiar": "Familiar Elemental",
+  "Enchantment Adept": "Adepto de Encantamento",
+  "Evocation Adept": "Adepto de Evocação",
+  "Illusion Adept": "Adepto de Ilusão",
+  "Magic Connoisseur": "Conhecedor de Magia",
+  "Necromancy Adept": "Adepto de Necromancia",
+  "Otherworldly Familiar": "Familiar Extraplanar",
+  "Soothing Familiar": "Familiar Tranquilizador",
+  "Spell Resistant": "Resistente a Magias",
+  "Spell Subterfuge": "Artimanha Mágica",
+  "Transmutation Adept": "Adepto de Transmutação",
+  "Warlike Familiar": "Familiar Belicoso",
+};
+
+export const ADDITIONAL_SPELL_NAMES_PT_2024 = {
+  "Aura of Evasion": "Aura de Evasão",
+  "Battle Familiar": "Familiar de Batalha",
+  "Catnap": "Soneca",
+  "Detonate": "Detonar",
+  "Disruptive Tune": "Melodia Disruptiva",
+  "Distorted Distance": "Distância Distorcida",
+  "Dueling Ground": "Campo de Duelo",
+  "Enervation": "Enervação",
+  "Entrancing Mirrors": "Espelhos Fascinantes",
+  "Festering Blast": "Explosão Putrefata",
+  "Fractured Awareness": "Consciência Fragmentada",
+  "Grave Ground": "Solo Sepulcral",
+  "Hindsight": "Visão Retrospectiva",
+  "Illusory Dragon": "Dragão Ilusório",
+  "Inflict Doubt": "Infligir Dúvida",
+  "Invulnerability": "Invulnerabilidade",
+  "Iron Body": "Corpo de Ferro",
+  "Lightning Ring": "Anel de Relâmpagos",
+  "Moment of Prescience": "Momento de Presciência",
+  "Mordenkainen's Lucubration": "Lucubração de Mordenkainen",
+  "Negative Energy Flood": "Enxurrada de Energia Negativa",
+  "Power Word Pain": "Palavra do Poder: Dor",
+  "Reweave Fate": "Retece o Destino",
+  "Spirit Lantern": "Lanterna Espiritual",
+  "Summon Dinosaur": "Invocar Dinossauro",
+  "Summon Plant": "Invocar Planta",
+  "Transfix": "Transfixar",
+  "Uncertain Footing": "Passo Incerto",
+  "Vision of Elapsing Eons": "Visão dos Éons Fugidios",
+  "Wail of the Banshee": "Lamento da Banshee",
+  "Waves of Exhaustion": "Ondas de Exaustão",
+  "Wither and Bloom": "Definhar e Florescer",
+  "Zone of Amicability": "Zona de Cordialidade",
+  "Alustriel's Mooncloak": "Manto Lunar de Alustriel",
+  "Backlash": "Retaliação",
+  "Blade of Disaster": "Lâmina do Desastre",
+  "Cacophonic Shield": "Escudo Cacofônico",
+  "Conjure Constructs": "Conjurar Construtos",
+  "Death Armor": "Armadura da Morte",
+  "Deryan's Helpful Homunculi": "Homúnculos Prestativos de Deryan",
+  "Dirge": "Canto Fúnebre",
+  "Doomtide": "Maré da Ruína",
+  "Elminster's Effulgent Spheres": "Esferas Resplandecentes de Elminster",
+  "Elminster's Elusion": "Escapada de Elminster",
+  "Holy Star of Mystra": "Estrela Sagrada de Mystra",
+  "Laeral's Silver Lance": "Lança Prateada de Laeral",
+  "Simbul's Synostodweomer": "Sinostodweômero de Simbul",
+  "Songal's Elemental Suffusion": "Infusão Elemental de Songal",
+  "Spellfire Flare": "Clarão de Fogo Mágico",
+  "Spellfire Storm": "Tempestade de Fogo Mágico",
+  "Sylune's Viper": "Víbora de Sylune",
+  "Wardaway": "Repulsão Protetora",
+  "Astral Flood": "Enxurrada Astral",
+  "Buzzing Bee": "Abelha Zumbidora",
+  "Insidious Rhythm": "Ritmo Insidioso",
+  "Leomund's Lamentable Belaborment": "Arenga Lamentável de Leomund",
+  "Sticks to Snakes": "Gravetos em Serpentes",
+  "Searing Orb": "Orbe Abrasador",
+  "Tortoise Shell": "Casco de Tartaruga",
+  "Void Star": "Estrela do Vazio",
+  "Conjure Tools": "Conjurar Ferramentas",
+  "Feign Interest": "Fingir Interesse",
+  "Pinky Swear": "Promessa do Mindinho",
+  "Quick Clothier": "Alfaiataria Rápida",
+};
+
+export const ADDITIONAL_SUBCLASS_FEATURE_NAMES_PT_2024 = {
+  "Arcana Domain Spells": "Magias do Domínio da Arcana",
+  "Modify Magic": "Modificar Magia",
+  "Student of Arcana": "Estudioso da Arcana",
+  "Dispelling Recovery": "Recuperação por Dissipação",
+  "Magical Mastery": "Maestria Mágica",
+  "Arcane Archer Lore": "Tradição do Arqueiro Arcano",
+  "Arcane Shot": "Disparo Arcano",
+  "Curving Shot": "Disparo Curvo",
+  "Magical Ammunition": "Munição Mágica",
+  "Ever-Ready Shot": "Disparo Sempre Pronto",
+  "Indomitable Teleport": "Teletransporte Indomável",
+  "Masterful Shots": "Disparos Perfeitos",
+  "Benign Transposition": "Transposição Benigna",
+  "Conjuration Savant": "Especialista em Conjuração",
+  "Distant Transposition": "Transposição Distante",
+  "Durable Summons": "Conjurações Duradouras",
+  "Focused Conjuration": "Conjuração Concentrada",
+  "Splintered Summons": "Conjurações Fragmentadas",
+  "Enchanting Conversationalist": "Conversador Encantador",
+  "Enchantment Savant": "Especialista em Encantamento",
+  "Hypnotic Presence": "Presença Hipnótica",
+  "Split Enchantment": "Encantamento Dividido",
+  "Instinctive Charm": "Encanto Instintivo",
+  "Alter Memories": "Alterar Memórias",
+  "Necromancy Savant": "Especialista em Necromancia",
+  "Necromancy Spellbook": "Grimório de Necromancia",
+  "Grave Power": "Poder Sepulcral",
+  "Undead Thralls": "Servos Mortos-Vivos",
+  "Harvest Undead": "Ceifar Mortos-Vivos",
+  "Death's Master": "Mestre da Morte",
+  "Transmutation Savant": "Especialista em Transmutação",
+  "Transmuter's Stone": "Pedra do Transmutador",
+  "Wondrous Alteration": "Alteração Maravilhosa",
+  "Empowered Transmutation": "Transmutação Potencializada",
+  "Potent Stone": "Pedra Potente",
+  "Shape-Shifter": "Metamorfo",
+  "Master Transmuter": "Mestre Transmutador",
+  "Vestige Companion": "Companheiro Vestígio",
+  "Vestige Spells": "Magias do Vestígio",
+  "Vestige Power": "Poder do Vestígio",
+  "Vestige Recovery": "Recuperação do Vestígio",
+  "Semblance of Life": "Semblante da Vida",
+  "Spellcasting": "Conjuração",
+  "Mystic Fighting Style": "Estilo de Luta Místico",
+  "Mystic Focus": "Foco Místico",
+  "Focused Strike": "Golpe Concentrado",
+  "Improved Mystic Fighting Style": "Estilo de Luta Místico Aprimorado",
+  "Knightly Envoy": "Emissário Cavaleiresco",
+  "Group Recovery": "Recuperação em Grupo",
+  "Team Tactics": "Táticas de Equipe",
+  "Rallying Surge": "Surto de Reagrupamento",
+  "Shared Resilience": "Resiliência Compartilhada",
+  "Inspiring Commander": "Comandante Inspirador",
+  "Bladesong": "Canção das Lâminas",
+  "Training in War and Song": "Treinamento em Guerra e Canção",
+  "Extra Attack": "Ataque Extra",
+  "Song of Defense": "Canção de Defesa",
+  "Song of Victory": "Canção da Vitória",
+  "Moon's Inspiration": "Inspiração da Lua",
+  "Primal Lore": "Conhecimento Primal",
+  "Blessing of Moonlight": "Bênção do Luar",
+  "Eventide's Splendor": "Esplendor do Crepúsculo",
+  "Blessings of Knowledge": "Bênçãos do Conhecimento",
+  "Knowledge Domain Spells": "Magias do Domínio do Conhecimento",
+  "Mind Magic": "Magia Mental",
+  "Unfettered Mind": "Mente Livre",
+  "Divine Foreknowledge": "Presciência Divina",
+  "Elemental Smite": "Golpe Elemental",
+  "Genie Spells": "Magias do Gênio",
+  "Genie's Splendor": "Esplendor do Gênio",
+  "Aura of Elemental Shielding": "Aura de Proteção Elemental",
+  "Elemental Rebuke": "Repreensão Elemental",
+  "Noble Scion": "Herdeiro Nobre",
+  "Bloodthirst": "Sede de Sangue",
+  "Dread Allegiance": "Lealdade Aterradora",
+  "Strike Fear": "Incutir Medo",
+  "Aura of Malevolence": "Aura de Malevolência",
+  "Dread Incarnate": "Pavor Encarnado",
+  "Spellfire Burst": "Explosão de Fogo Mágico",
+  "Spellfire Spells": "Magias de Fogo Mágico",
+  "Absorb Spells": "Absorver Magias",
+  "Honed Spellfire": "Fogo Mágico Aprimorado",
+  "Crown of Spellfire": "Coroa do Fogo Mágico",
+  "Frigid Explorer": "Explorador Glacial",
+  "Hunter's Rime": "Geada do Caçador",
+  "Winter Walker Spells": "Magias do Andarilho do Inverno",
+  "Fortifying Soul": "Alma Fortificante",
+  "Chilling Retribution": "Retaliação Gélida",
+  "Frozen Haunt": "Assombração Congelada",
+  "Channeler": "Canalizador",
+  "Spirits from Beyond": "Espíritos do Além",
+  "Empowered Channeling": "Canalização Potencializada",
+  "Mystical Connection": "Conexão Mística",
+  "Grave Domain Spells": "Magias do Domínio da Sepultura",
+  "Circle of Mortality": "Círculo da Mortalidade",
+  "Path to the Grave": "Caminho para a Sepultura",
+  "Sentinel at Death’s Door": "Sentinela à Porta da Morte",
+  "Divine Reaper": "Ceifador Divino",
+  "Hollow Warden Spells": "Magias do Guardião Oco",
+  "Wrath of the Wild": "Fúria Selvagem",
+  "Hungering Might": "Poder Faminto",
+  "Rot and Violence": "Podridão e Violência",
+  "Ancient Might": "Poder Ancestral",
+  "Wails from the Grave": "Lamentos da Sepultura",
+  "Whispers of the Dead": "Sussurros dos Mortos",
+  "Tokens of the Departed": "Lembranças dos Falecidos",
+  "Voice of Death": "Voz da Morte",
+  "Ghost Walk": "Caminhada Fantasmagórica",
+  "Death’s Friend": "Amigo da Morte",
+  "Reanimator Spells": "Magias do Reanimador",
+  "Reanimator’s Skill Set": "Conjunto de Perícias do Reanimador",
+  "Reanimated Companion": "Companheiro Reanimado",
+  "Strange Modifications": "Modificações Estranhas",
+  "Improved Reanimation": "Reanimação Aprimorada",
+  "Macabre Modifications": "Modificações Macabras",
+  "Refined Reanimation": "Reanimação Refinada",
+  "Shadow Spells": "Magias das Sombras",
+  "Power of Shadow": "Poder da Sombra",
+  "Beasts of Ill Omen": "Bestas de Mau Agouro",
+  "Shadow Walk": "Caminhada Sombria",
+  "Umbral Form": "Forma Umbral",
+  "Form of Dread": "Forma do Pavor",
+  "Undead Spells": "Magias de Mortos-Vivos",
+  "Grave Touched": "Tocado pela Sepultura",
+  "Necrotic Husk": "Carcaça Necrótica",
+  "Superior Dread": "Pavor Superior",
+  "Despairing Strikes": "Golpes Desesperados",
+  "Solemn Gaze": "Olhar Solene",
+  "Dreaded Appearance": "Aparência Aterradora",
+  "Unsettled Strikes": "Golpes Perturbadores",
+  "Grim Constitution": "Constituição Macabra",
+  "Grieving Mantle": "Manto do Luto",
+};
+
+const BACKGROUND_EQUIPMENT_NAMES_PT_2024 = {
+  "Artisan’s Tools": "Ferramentas de artesão",
+  "Artisan's Tools": "Ferramentas de artesão",
+  "Gaming Set (any)": "1 jogo à escolha",
+  "Ball Bearings": "Esferas de metal",
+  "Signal Whistle": "Apito de sinalização",
+  "Block Tackle": "Talha",
+  "Oil(2 flasks)": "Óleo (2 frascos)",
+  "Paper (5 sheets)": "Papel (5 folhas)",
+  "Mason’s Tools": "Ferramentas de pedreiro",
+  "Mason's Tools": "Ferramentas de pedreiro",
+  "Jeweler’s Tools": "Ferramentas de joalheiro",
+  "Jeweler's Tools": "Ferramentas de joalheiro",
+  "Painter’s Supplies": "Suprimentos de pintor",
+  "Painter's Supplies": "Suprimentos de pintor",
+};
+
+const SPELL_COMPONENTS_PT_2024 = {
+  "a diamond worth 25+ GP": "um diamante no valor de 25 ou mais PO",
+  "a pinch of sand": "uma pitada de areia",
+  "a piece of tinder": "um pedaço de material inflamável",
+  "a silk flag worth 100+ GP": "uma bandeira de seda no valor de 100 ou mais PO",
+  "a mirror shard": "um caco de espelho",
+  "a handful of grave dirt": "um punhado de terra de sepultura",
+  "a tiny hourglass worth 500+ GP, which the spell consumes": "uma pequena ampulheta no valor de 500 ou mais PO, que a magia consome",
+  "a piece of adamantine worth 500+ GP, which the spell consumes": "um pedaço de adamante no valor de 500 ou mais PO, que a magia consome",
+  "diamond dust worth 250+ GP, which the spell consumes": "pó de diamante no valor de 250 ou mais PO, que a magia consome",
+  "a bit of fur and a glass ring": "um pouco de pelo e um anel de vidro",
+  "a broken bone and a square of black silk": "um osso quebrado e um quadrado de seda negra",
+  "a black lantern": "uma lanterna negra",
+  "polished scale worth 600+ GP": "uma escama polida no valor de 600 ou mais PO",
+  "herbs worth 500+ GP": "ervas no valor de 500 ou mais PO",
+  "a distorted lens": "uma lente distorcida",
+  "a piece of dried meat": "um pedaço de carne seca",
+  "a withered vine twisted into a loop": "uma trepadeira ressequida torcida em forma de laço",
+  "a moonstone worth 50+ GP": "uma pedra da lua no valor de 50 ou mais PO",
+  "a brass cog": "uma engrenagem de latão",
+  "an onyx worth 50+ GP, which the spell consumes": "uma ônix no valor de 50 ou mais PO, que a magia consome",
+  "powdered gemstones worth 100+ GP, which the spell consumes, and one set of Artisan’s Tools with which you have proficiency": "gemas em pó no valor de 100 ou mais PO, que a magia consome, e um conjunto de ferramentas de artesão com as quais você tenha proficiência",
+  "soot and a dried eel": "fuligem e uma enguia seca",
+  "an opal worth 1,000 GP+": "uma opala no valor de 1.000 ou mais PO",
+  "a silver pin worth 250+ GP": "um broche de prata no valor de 250 ou mais PO",
+  "a pearl worth 100+ GP": "uma pérola no valor de 100 ou mais PO",
+  "a snake fang": "uma presa de cobra",
+  "a miniature clay hand": "uma mão de argila em miniatura",
+  "a mixture of water and powdered silver": "uma mistura de água e prata em pó",
+  "a dab of honey": "uma gota de mel",
+  "a small piece of bark and several snake scales": "um pequeno pedaço de casca de árvore e algumas escamas de cobra",
+  "Metallic flakes and a pinch of phosphorus": "lascas metálicas e uma pitada de fósforo",
+  "a fragment of a meteor": "um fragmento de meteoro",
+  "a set of clothing": "um conjunto de roupas",
+};
+
+for (const feat of ADDITIONAL_FEATS_2024) {
+  feat.name_pt = ADDITIONAL_FEAT_NAMES_PT_2024[feat.name] || feat.name_pt;
+}
+
+for (const spell of ADDITIONAL_SPELLS_2024) {
+  const originalName = spell.nomeEN || spell.nome;
+  spell.nomeEN = originalName;
+  spell.nome = ADDITIONAL_SPELL_NAMES_PT_2024[originalName] || spell.nome;
+  spell.componentesDetalhe = SPELL_COMPONENTS_PT_2024[spell.componentesDetalhe] || spell.componentesDetalhe;
+  if (spell.duracao === "1 Hour") spell.duracao = "1 hora";
+  if (spell.duracao === "24 Hours") spell.duracao = "24 horas";
+}
+
+for (const subclass of ADDITIONAL_SUBCLASSES_2024) {
+  for (const features of Object.values(subclass.features || {})) {
+    for (const feature of features) {
+      const originalName = feature.nome;
+      const localizedName = ADDITIONAL_SUBCLASS_FEATURE_NAMES_PT_2024[originalName];
+      if (localizedName) {
+        feature.nomeEN = originalName;
+        feature.nome = localizedName;
+      }
+    }
+  }
+}
+
+for (const background of ADDITIONAL_BACKGROUNDS_2024) {
+  background.equipment = (background.equipment || []).map((item) => {
+    const localizedItem = BACKGROUND_EQUIPMENT_NAMES_PT_2024[item] || item;
+    return localizedItem.replace(/^and\s+/i, "e ");
+  });
+}

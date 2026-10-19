@@ -4274,6 +4274,9 @@ import {
     const baseClass = CLASS_BY_ID.get(subclass.classeBase);
     const baseClassLabel = baseClass?.nome || labelFromSlug(subclass.classeBase);
     const entryFeatures = (subclass.features?.[subclass.nivel] || []).map((feature) => feature?.nome).filter(Boolean);
+    const entryFeatureSearchTerms = (subclass.features?.[subclass.nivel] || [])
+      .flatMap((feature) => [feature?.nome, feature?.nomeEN])
+      .filter(Boolean);
 
     return {
       summary: [
@@ -4288,9 +4291,10 @@ import {
       body: subclass.descricao || "",
       search: [
         subclass.nome,
+        subclass.nomeEN,
         subclass.descricao,
         baseClassLabel,
-        ...entryFeatures,
+        ...entryFeatureSearchTerms,
       ].filter(Boolean).join(" "),
     };
   }
@@ -4369,6 +4373,7 @@ import {
       body: race.descricao || "",
       search: [
         race.nome,
+        race.nomeEN,
         race.descricao,
         size,
         speed,
@@ -4402,8 +4407,10 @@ import {
       body: subrace.descricao || "",
       search: [
         subrace.nome,
+        subrace.nomeEN,
         subrace.descricao,
         baseRaceLabel,
+        race?.nomeEN,
         size,
         speed,
         traits,
