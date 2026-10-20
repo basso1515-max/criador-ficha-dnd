@@ -207,7 +207,14 @@ import {
 
 
 
-  const RACE_LIST = sortByLocale(Object.values(RACAS || {}), "nome");
+  const COMPENDIUM_SOURCE_LABELS_2024 = new Map(
+    Object.entries({ ...META_RACAS?.sources, ...META_CLASSES?.sources })
+      .map(([source, label]) => [normalizeCompendiumSourceKey2024(source), label])
+  );
+  const CORE_COMPENDIUM_2024 = META_RACAS?.sources?.phb2024
+    || META_CLASSES?.sources?.phb2024
+    || "Player's Handbook (2024)";
+  const RACE_LIST = sortByCompendiumAndName2024(Object.values(RACAS || {}), getRaceCompendiumLabel2024, "nome");
   const SUBRACE_LIST = sortByLocale(Object.values(SUBRACAS || {}), "nome");
   const CLASS_LIST = sortByLocale(Object.values(CLASSES_2024 || {}), "nome");
   const BACKGROUND_LIST = sortByLocale([...Object.values(ANTECEDENTES || {}), LEGACY_BACKGROUND_2024], "nome");
@@ -1778,11 +1785,19 @@ import {
 
     const cls = CLASS_BY_ID.get(classSelect.value) || null;
     const classLevel = clampInt(levelInput.value, 1, maxForRow);
-    const availableSubclasses = getEligibleSubclassesForClass2024(cls, classLevel);
+    const availableSubclasses = sortByCompendiumAndName2024(
+      getEligibleSubclassesForClass2024(cls, classLevel),
+      getSubclassCompendiumLabel2024,
+      "nome"
+    );
     const previousValue = subclassSelect.value;
     populateSelect(
       subclassSelect,
-      availableSubclasses.map((subclass) => ({ value: subclass.id, label: subclass.nome })),
+      availableSubclasses.map((subclass) => ({
+        value: subclass.id,
+        label: subclass.nome,
+        group: getSubclassCompendiumLabel2024(subclass),
+      })),
       buildSubclassPlaceholder2024(cls, classLevel, availableSubclasses)
     );
     if (previousValue && availableSubclasses.some((subclass) => subclass.id === previousValue)) {
@@ -2182,13 +2197,21 @@ import {
   function updateSubclassOptions() {
     const cls = getSelectedClass();
     const classLevel = getPrimaryAssignedLevel2024();
-    const available = getEligibleSubclassesForClass2024(cls, classLevel);
+    const available = sortByCompendiumAndName2024(
+      getEligibleSubclassesForClass2024(cls, classLevel),
+      getSubclassCompendiumLabel2024,
+      "nome"
+    );
     const currentValue = el.subclasse.value;
     const placeholder = buildSubclassPlaceholder2024(cls, classLevel, available);
 
     populateSelect(
       el.subclasse,
-      available.map((subclass) => ({ value: subclass.id, label: subclass.nome })),
+      available.map((subclass) => ({
+        value: subclass.id,
+        label: subclass.nome,
+        group: getSubclassCompendiumLabel2024(subclass),
+      })),
       placeholder
     );
 
@@ -4283,6 +4306,7 @@ import {
         baseClassLabel ? `Classe base: ${baseClassLabel}` : "",
         subclass.nivel ? `Nível ${subclass.nivel}` : "",
       ].filter(Boolean).join(" • "),
+      group: getSubclassCompendiumLabel2024(subclass),
       lines: [
         baseClassLabel ? `Classe base: ${baseClassLabel}` : "",
         subclass.nivel ? `Disponível no nível ${subclass.nivel}` : "",
@@ -4364,6 +4388,7 @@ import {
         speed && speed !== "—" ? speed : "",
         languages ? `Idiomas: ${languages}` : "",
       ].filter(Boolean).join(" • "),
+      group: getRaceCompendiumLabel2024(race),
       lines: [
         size ? `Tamanho: ${size}` : "",
         speed && speed !== "—" ? `Deslocamento: ${speed}` : "",
@@ -15057,12 +15082,26 @@ import {
     placeholderOption.selected = true;
     select.appendChild(placeholderOption);
 
+    let currentGroup = "";
+    let optionParent = select;
     (options || []).forEach((optionConfig) => {
+      const group = String(optionConfig?.group || "").trim();
+      if (group && group !== currentGroup) {
+        const optgroup = document.createElement("optgroup");
+        optgroup.label = group;
+        select.appendChild(optgroup);
+        currentGroup = group;
+        optionParent = optgroup;
+      } else if (!group) {
+        currentGroup = "";
+        optionParent = select;
+      }
+
       const option = document.createElement("option");
       option.value = optionConfig?.value ?? "";
       option.textContent = optionConfig?.label ?? "";
       if (optionConfig?.disabled) option.disabled = true;
-      select.appendChild(option);
+      optionParent.appendChild(option);
     });
 
     if (currentValue && Array.from(select.options).some((option) => option.value === currentValue && !option.disabled)) {
@@ -15100,6 +15139,47 @@ import {
     return [...(list || [])].sort((a, b) =>
       String(a?.[key] || "").localeCompare(String(b?.[key] || ""), "pt-BR")
     );
+  }
+
+  function normalizeCompendiumSourceKey2024(value) {
+    return String(value || "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]/gi, "")
+      .toLowerCase();
+  }
+
+  function getCompendiumLabel2024(sourceCode) {
+    const rawSource = String(sourceCode || "PHB24").trim();
+    const sourceKey = normalizeCompendiumSourceKey2024(rawSource);
+    const canonicalKey = sourceKey === "phb24"
+      ? "phb2024"
+      : sourceKey.startsWith("drop") && !sourceKey.startsWith("drops")
+        ? sourceKey.replace(/^drop/, "drops")
+        : sourceKey;
+    return COMPENDIUM_SOURCE_LABELS_2024.get(canonicalKey) || rawSource;
+  }
+
+  function getRaceCompendiumLabel2024(race) {
+    return getCompendiumLabel2024(race?.fonte || race?.source || race?.extra?.fonte);
+  }
+
+  function getSubclassCompendiumLabel2024(subclass) {
+    return getCompendiumLabel2024(subclass?.fonte);
+  }
+
+  function sortByCompendiumAndName2024(list, getCompendiumLabel, nameKey) {
+    return [...(list || [])].sort((a, b) => {
+      const compendiumA = getCompendiumLabel(a);
+      const compendiumB = getCompendiumLabel(b);
+      const isCoreA = compendiumA === CORE_COMPENDIUM_2024;
+      const isCoreB = compendiumB === CORE_COMPENDIUM_2024;
+      if (isCoreA !== isCoreB) return isCoreA ? -1 : 1;
+
+      const compendiumOrder = compendiumA.localeCompare(compendiumB, "pt-BR", { sensitivity: "base" });
+      if (compendiumOrder) return compendiumOrder;
+      return String(a?.[nameKey] || "").localeCompare(String(b?.[nameKey] || ""), "pt-BR", { sensitivity: "base" });
+    });
   }
 
   function formatList(values) {
