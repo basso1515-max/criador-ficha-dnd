@@ -82,6 +82,11 @@ const SOLDIER_GAMING_OPTIONS = [
   { id: "baralho", label: "Baralho", proficiencyLabel: "Baralho" },
 ];
 
+const NAVIGATOR_TOOL_OPTIONS = [{ id: "ferramentas-de-navegador", label: "Ferramentas de navegador" }];
+const CARTOGRAPHER_TOOL_OPTIONS = [{ id: "ferramentas-de-cartografo", label: "Ferramentas de cartógrafo" }];
+const THIEVES_TOOL_OPTIONS = [{ id: "ferramentas-de-ladrao", label: "Ferramentas de ladrão" }];
+const DISGUISE_KIT_OPTIONS = [{ id: "kit-de-disfarce", label: "Kit de disfarce" }];
+
 export const EQUIPMENT_OPTION_LISTS = {
   arcaneFoci: ARCANE_FOCUS_OPTIONS,
   druidicFoci: DRUIDIC_FOCUS_OPTIONS,
@@ -93,6 +98,12 @@ export const EQUIPMENT_OPTION_LISTS = {
   charlatanConItems: CHARLATAN_CON_OPTIONS,
   entertainerFavors: ENTERTAINER_FAVOR_OPTIONS,
   soldierGamingSets: SOLDIER_GAMING_OPTIONS,
+  navigationOrCartographerTools: [...NAVIGATOR_TOOL_OPTIONS, ...CARTOGRAPHER_TOOL_OPTIONS],
+  artisanOrNavigatorTools: [...ARTISAN_TOOL_OPTIONS, ...NAVIGATOR_TOOL_OPTIONS],
+  instrumentOrGamingSet: [...MUSICAL_INSTRUMENT_OPTIONS, ...GAMING_SET_OPTIONS],
+  artisanOrMusicalInstrument: [...ARTISAN_TOOL_OPTIONS, ...MUSICAL_INSTRUMENT_OPTIONS],
+  disguiseOrMusicalInstrument: [...DISGUISE_KIT_OPTIONS, ...MUSICAL_INSTRUMENT_OPTIONS],
+  urbanBountyTools: [...GAMING_SET_OPTIONS, ...MUSICAL_INSTRUMENT_OPTIONS, ...THIEVES_TOOL_OPTIONS],
 };
 
 export const CLASS_EQUIPMENT_RULES = {

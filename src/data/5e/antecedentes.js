@@ -1,15 +1,19 @@
 // antecedentes.js
-export const DATASET_VERSION = "0.1.0";
+
+export const DATASET_VERSION = "0.2.0";
 export const META_ANTECEDENTES = {
   dataset: "dnd5e-ptbr",
   version: DATASET_VERSION,
   locale: "pt-BR",
-  builtAt: "2026-03-28",
+  builtAt: "2026-10-21",
   sources: {
     srd: "https://media.wizards.com/2023/downloads/dnd/SRD_CC_v5.1.pdf",
-    drs: "https://aventureirosdosreinos.com/antecedentes-drs/"
+    drs: "https://aventureirosdosreinos.com/antecedentes-drs/",
+    catalogoCore2014: "https://www.dndbeyond.com/backgrounds?filter-source-category=26&filter-partnered-content=f",
+    catalogoExpandido2014: "https://www.dndbeyond.com/backgrounds?filter-source-category=1&filter-partnered-content=f"
   },
   changelog: [
+    "0.2.0: Completa o catálogo 2014 com opções oficiais expandidas e variantes publicadas, sem converter antecedentes para 2024.",
     "0.1.0: 13 antecedentes SRD (resumo) com listas de ideais/vínculos/defeitos."
   ]
 };
@@ -170,6 +174,7 @@ export const ANTECEDENTES = {
       nome: "Contato Criminal", 
       resumo: "Possui contato confiável no submundo para recados/boatos." 
     },
+    variantes: ["Espião (variante oficial do antecedente Criminal)."],
     personalidade: [
       "Eu sempre tenho um plano para quando as coisas dão errado.",
       "Eu estou sempre calmo, não importa a situação. Eu nunca levanto minha voz ou deixo minhas emoções me controlarem.",
@@ -845,5 +850,5 @@ export const ANTECEDENTES = {
       "Não é roubo se eu preciso mais que outra pessoa.",
       "As pessoas que não podem se virar sozinhas, tem o que merecem."
     ]
-  }
+  },
 };

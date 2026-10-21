@@ -1,12 +1,12 @@
 import { ADDITIONAL_BACKGROUNDS_2024 } from "./official-expansions-2024.js";
 
-export const DATASET_VERSION = "1.2.1";
+export const DATASET_VERSION = "1.3.0";
 
 export const META_ANTECEDENTES = {
   dataset: "dnd5e-2024-ptbr",
   version: DATASET_VERSION,
   locale: "pt-BR",
-  builtAt: "2026-10-19",
+  builtAt: "2026-10-21",
   sources: {
     phb2024: "Player's Handbook (2024)",
     efota: "Eberron: Forge of the Artificer (2025)",
@@ -16,9 +16,13 @@ export const META_ANTECEDENTES = {
     rthw: "Ravenloft: The Horrors Within",
     lfl: "Lorwyn: First Light",
     drops2026: "D&D Beyond Drops (2026)",
+    projectLamordia: "https://marketplace.dndbeyond.com/category/DB66W3ADY?pid=DB66W3ADY",
+    catalogoCore2024: "https://www.dndbeyond.com/backgrounds?filter-source-category=24&filter-partnered-content=f",
+    catalogoExpandido2024: "https://www.dndbeyond.com/backgrounds?filter-source-category=38&filter-partnered-content=f",
     referenciaLocal: "src/data/5.5e/DnD 5.5 - Livro do Jogador (2024).pdf",
   },
   changelog: [
+    "1.3.0: Adiciona os quatro antecedentes oficiais de Project_Lamordia ao catálogo 2024/5.5e.",
     "1.2.1: Traduz o equipamento inicial dos antecedentes adicionais para PT-BR.",
     "1.2.0: Adiciona 38 antecedentes de Arcana Unleashed, Astarion’s Book of Hungers, Forgotten Realms: Heroes of Faerûn, Ravenloft, Lorwyn e Drops de 2026.",
     "1.1.0: Adiciona os 17 antecedentes de Eberron: Forge of the Artificer, com seus talentos de Marca Dracônica, perícias, ferramentas e opções de atributo.",

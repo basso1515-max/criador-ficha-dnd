@@ -175,7 +175,7 @@ const escapeHtml = (value) => escapeHtmlBase(value, "&#039;");
   const RACES = Object.values(RACAS);
   const SUBRACES = Object.values(RACE_SUBRACAS);
   const CLASS_LIST = Object.values(CLASSES);
-  const BACKGROUNDS = Object.values(ANTECEDENTES);
+  let BACKGROUNDS = Object.values(ANTECEDENTES);
   let DIVINITIES = [];
   const FEAT_LIST = [...TALENTOS].sort((a, b) => String(a.name_pt || a.name || "").localeCompare(String(b.name_pt || b.name || ""), "pt-BR"));
   const LANGUAGE_OPTIONS = Object.entries(ENUMS_RACAS?.idiomas || {})
@@ -190,7 +190,7 @@ const SUBCLASS_BY_ID = new Map(Object.values(SUBCLASSES).map((subclass) => [subc
 const SUBCLASS_BY_NORMALIZED_NAME = new Map(
   Object.values(SUBCLASSES).map((subclass) => [normalizePt(subclass.nome), subclass])
 );
-const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.nome, background]));
+let BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.nome, background]));
   let DIVINITY_BY_NAME = new Map();
   const FEAT_BY_ID = new Map(FEAT_LIST.map((feat) => [feat.id, feat]));
   const LANGUAGE_LABEL_BY_ID = new Map(LANGUAGE_OPTIONS.map((language) => [language.id, language.label]));
@@ -224,6 +224,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
   let SPELL_BY_ID = new Map();
   let spellCatalogLoadPromise = null;
   let spellCatalogLoadError = null;
+  let expandedBackgroundCatalogLoadPromise = null;
   let WARLOCK_INVOCATIONS_5E = [];
   let WARLOCK_INVOCATIONS_BY_LEVEL_5E = [];
   let WARLOCK_PACT_BOONS_5E = [];
@@ -262,6 +263,24 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
 
   function isSpellCatalogLoaded() {
     return SPELL_BY_ID.size > 0;
+  }
+
+  function loadExpandedBackgroundCatalog() {
+    if (!expandedBackgroundCatalogLoadPromise) {
+      expandedBackgroundCatalogLoadPromise = import("../../data/5e/antecedentes-expandidos.js")
+        .then(({ ANTECEDENTES_EXPANDIDOS, BACKGROUND_EQUIPMENT_RULES_EXPANDIDAS }) => {
+          Object.assign(ANTECEDENTES, ANTECEDENTES_EXPANDIDOS);
+          Object.assign(BACKGROUND_EQUIPMENT_RULES, BACKGROUND_EQUIPMENT_RULES_EXPANDIDAS);
+          BACKGROUNDS = Object.values(ANTECEDENTES);
+          BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.nome, background]));
+        })
+        .catch((error) => {
+          expandedBackgroundCatalogLoadPromise = null;
+          throw error;
+        });
+    }
+
+    return expandedBackgroundCatalogLoadPromise;
   }
 
   function loadSpellCatalog() {
@@ -875,7 +894,8 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     syncAllCustomSelectFields();
   }
 
-  document.addEventListener("DOMContentLoaded", () => {
+  document.addEventListener("DOMContentLoaded", async () => {
+    await loadExpandedBackgroundCatalog();
     populateSelect(el.raca, RACES.map((race) => race.nome), "Selecione...");
     populateSelect(el.classe, CLASS_LIST.map((cls) => cls.nome), "Selecione...");
     populateSelect(el.antecedente, BACKGROUNDS.map((bg) => bg.nome), "Selecione...");
@@ -2101,6 +2121,11 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     if (cls?.proficiencias?.periciasEscolha) {
       const classRule = cls.proficiencias.periciasEscolha;
       choiceSources.push(buildSkillChoiceSource(`Classe ${cls.nome}`, classRule.picks, classRule.from, "classe"));
+    }
+
+    if (bg?.periciasEscolha) {
+      const backgroundRule = bg.periciasEscolha;
+      choiceSources.push(buildSkillChoiceSource(`Antecedente ${bg.nome}`, backgroundRule.picks, backgroundRule.from, "antecedente"));
     }
 
     choiceSources.push(...extractSkillChoiceSourcesFromTraits(`Raça ${race?.nome || ""}`.trim(), race?.tracos));
@@ -5260,7 +5285,8 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     if (!picks) return null;
 
     const pool = String(config?.pool || "talentos-oficiais-2014").trim();
-    const options = getFeatPoolOptions(pool);
+    const featIds = Array.isArray(config?.featIds) ? new Set(config.featIds.map((id) => String(id || "").trim()).filter(Boolean)) : null;
+    const options = getFeatPoolOptions(pool).filter((feat) => !featIds || featIds.has(feat.id));
     if (!options.length) return null;
 
     const abilityIncreaseConfig = config?.abilityIncrease
@@ -7751,19 +7777,23 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
     (race?.tracos || []).forEach((trait, index) => pushTraitGrant(trait, "raca", race.id || normalizePt(race.nome), race.nome, index));
     (subrace?.tracos || []).forEach((trait, index) => pushTraitGrant(trait, "subraca", subrace.id || normalizePt(subrace.nome), subrace.nome, index));
 
-    if (background?.idiomas?.picks) {
+    const backgroundLanguageChoices = [
+      ...(background?.idiomas?.picks ? [background.idiomas] : []),
+      ...(Array.isArray(background?.idiomasEscolha) ? background.idiomasEscolha : []),
+    ];
+    backgroundLanguageChoices.forEach((choice, index) => {
       const entry = createLanguageGrantEntry({
         sourceType: "antecedente",
         sourceId: background.id || normalizePt(background.nome),
         sourceLabel: background.nome,
-        featureId: "idiomas",
+        featureId: `idiomas-${index + 1}`,
         featureName: "Idiomas",
-        picks: background.idiomas.picks,
-        from: background.idiomas.from,
+        picks: choice.picks,
+        from: choice.from,
         summaryText: "Escolha idiomas adicionais do antecedente.",
       });
       if (entry) grants.push(entry);
-    }
+    });
 
     grants.push(...collectFeatLanguageChoiceSources(selectedFeats));
     grants.push(...collectClassLanguageChoiceSources(classEntries));
@@ -7826,6 +7856,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
 
     (getSelectedRaceData()?.idiomas || []).forEach((languageId) => addAutomaticReason(languageId, "raça"));
     (getSelectedSubraceData()?.idiomas || []).forEach((languageId) => addAutomaticReason(languageId, "sub-raça"));
+    (BACKGROUND_BY_NAME.get(el.antecedente.value)?.idiomasFixos || []).forEach((languageId) => addAutomaticReason(languageId, "antecedente"));
     collectFeatFixedLanguageIds(selectedFeats).forEach((languageId) => addAutomaticReason(languageId, "talento"));
 
     grants.forEach((grant) => {
@@ -7930,6 +7961,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       const knownLanguageIds = new Set([
         ...((getSelectedRaceData()?.idiomas || []).map((value) => normalizePt(value))),
         ...((getSelectedSubraceData()?.idiomas || []).map((value) => normalizePt(value))),
+        ...((BACKGROUND_BY_NAME.get(el.antecedente.value)?.idiomasFixos || []).map((value) => normalizePt(value))),
       ]);
       try {
         const race = getSelectedRaceData();
@@ -9899,6 +9931,7 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
       const knownLanguages = new Set([
         ...((getSelectedRaceData()?.idiomas || []).map((languageId) => normalizePt(languageId))),
         ...((getSelectedSubraceData()?.idiomas || []).map((languageId) => normalizePt(languageId))),
+        ...((BACKGROUND_BY_NAME.get(el.antecedente.value)?.idiomasFixos || []).map((languageId) => normalizePt(languageId))),
         ...Array.from(collectFeatFixedLanguageIds(collectState({ skipAutoTextareaSync: true }).selectedFeats || [])).map((languageId) => normalizePt(languageId)),
       ]);
       const options = listOptionValues(target, {
@@ -11628,15 +11661,18 @@ const BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.n
 
     if (grant.type === "textSelect") {
       const options = getGrantSelectionOptions(grant);
-      const selectionKey = buildEquipmentSelectionKey(scopeKey, groupId, grant.selectionId);
-      const selectedOption = resolveSelectedEquipmentOption(options, selectionMap[selectionKey]);
-      if (!selectedOption) return;
-      applyResolvedTextValue(
-        bucket,
-        grant,
-        getEquipmentOptionDisplayValue(selectedOption),
-        getEquipmentOptionProficiencyValue(selectedOption)
-      );
+      const total = Math.max(1, Number(grant.count) || 1);
+      for (let index = 0; index < total; index += 1) {
+        const selectionKey = buildEquipmentSelectionKey(scopeKey, groupId, grant.selectionId, total > 1 ? index : null);
+        const selectedOption = resolveSelectedEquipmentOption(options, selectionMap[selectionKey], index);
+        if (!selectedOption) continue;
+        applyResolvedTextValue(
+          bucket,
+          grant,
+          getEquipmentOptionDisplayValue(selectedOption),
+          getEquipmentOptionProficiencyValue(selectedOption)
+        );
+      }
       return;
     }
 
@@ -15303,6 +15339,7 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
     return dedupeStringList([
       ...((state?.race?.idiomas || []).map(formatLanguageLabel)),
       ...((state?.subrace?.idiomas || []).map(formatLanguageLabel)),
+      ...((state?.background?.idiomasFixos || []).map(formatLanguageLabel)),
       ...Array.from(collectFeatFixedLanguageIds(state?.selectedFeats)).map(formatLanguageLabel),
       ...((state?.selectedLanguages || []).map((entry) => entry?.label || formatLanguageLabel(entry?.languageId))),
     ]);
