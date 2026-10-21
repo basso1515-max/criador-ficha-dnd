@@ -10459,23 +10459,23 @@ export const MAGIAS = {
   }
 }
 
-const NON_SPELL_VARIANT_NAMES_2014 = new Set([
-  "Air Walk",
-  "Dispel Magic (6º nível)",
-  "Mass Hold Person",
-  "Permanent Image",
-  "Creeping Doom",
-  "Mass Invisibility",
-  "Conjure Elemental (versão estendida)",
-  "Mass Charm Monster",
-  "Mass Hold Monster",
+const NON_SPELL_VARIANT_IDS_2014 = new Set([
+  "andar-no-ar",
+  "dissipar-magia-maior",
+  "imobilizar-pessoa-em-massa",
+  "imagem-permanente",
+  "perdicao-rastejante",
+  "invisibilidade-em-massa",
+  "prender-elemental",
+  "enfeitiçar-monstro-em-massa",
+  "imobilizar-monstro-em-massa",
 ]);
 
 for (const schools of Object.values(MAGIAS)) {
   for (const [schoolName, bucket] of Object.entries(schools || {})) {
     if (!bucket || typeof bucket !== "object") continue;
     for (const [spellId, spell] of Object.entries(bucket)) {
-      if (NON_SPELL_VARIANT_NAMES_2014.has(spell?.nomeEN)) delete bucket[spellId];
+      if (NON_SPELL_VARIANT_IDS_2014.has(spellId)) delete bucket[spellId];
     }
     if (!Object.keys(bucket).length) delete schools[schoolName];
   }
