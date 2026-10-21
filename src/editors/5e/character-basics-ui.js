@@ -47,6 +47,8 @@ export function bindCharacterBasicsEvents5e(el, handlers = {}) {
   on(el.multiclassRows, "change", handlers.onMulticlassRowsChanged);
   on(el.multiclassRows, "click", handlers.onMulticlassRowClicked);
 
+  on(el.asi2, "change", handlers.onAsiMethodChanged);
+  on(el.asi11, "change", handlers.onAsiMethodChanged);
   on(el.asi21, "change", handlers.onAsiMethodChanged);
   on(el.asi111, "change", handlers.onAsiMethodChanged);
   on(el.asiPlus2, "change", handlers.updatePreview);

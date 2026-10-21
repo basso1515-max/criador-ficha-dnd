@@ -1,16 +1,20 @@
 // racas.js
-export const DATASET_VERSION = "0.4.1";
+export const DATASET_VERSION = "0.4.5";
 export const META_RACAS = {
   dataset: "dnd5e-ptbr",
   version: DATASET_VERSION,
   locale: "pt-BR",
-  builtAt: "2026-04-08",
+  builtAt: "2026-10-21",
   sources: {
     srd: "https://media.wizards.com/2023/downloads/dnd/SRD_CC_v5.1.pdf",
     drs: "https://aventureirosdosreinos.com/documento-de-referencia-de-sistema-drs/",
-    oficial: "PHB, EEPC, SCAG, VGM, MTF, ERLW, EGW, GGR, MOT, TTP, LR, OGA, AI, VRGR, WBtW, SCC, AAG, FTD e DSotDQ"
+    oficial: "PHB, EEPC, SCAG, VGM, MTF, ERLW, EGW, GGR, MOT, TTP, LR, OGA, AI, TCE, Mordenkainen Apresenta: Monstros do Multiverso, VRGR, WBtW, SCC, AAG, FTD e DSotDQ"
   },
   changelog: [
+    "0.4.5: Corrige escolhas de perícias e detalhes mecânicos de espécies de Monstros do Multiverso; registra a proficiência em instrumento do sátiro e os níveis oficiais das magias raciais.",
+    "0.4.4: Inclui as 33 espécies de Mordenkainen Apresenta: Monstros do Multiverso como opções separadas e registra escolhas raciais de tamanho e características sem substituir versões anteriores.",
+    "0.4.3: Corrige nomes e regras de variantes de tiferinos, meio-elfos e Sinais do Dragão; inclui as duas distribuições de atributos da Linhagem Personalizada.",
+    "0.4.2: Inclui Povo-Lagarto, Linhagem Personalizada, variantes de meio-elfo e tiferino e as Marcas do Dragão de Eberron na edição legada, com fontes e nomes em português.",
     "0.4.1: Localiza Changeling, Shifter e Warforged em PT-BR e preserva os nomes originais.",
     "0.1.0: Raças SRD (base), sub-raças e traços em resumo mecânico.",
     "0.2.0: Perfis físicos médios por raça/sub-raça para idade, altura, peso e aparência.",
@@ -457,6 +461,17 @@ export const RACAS = {
     tamanho: "M",
     velocidade: { ft: 30, m: ftToM(30) },
     idiomas: ["comum", "elfico"],
+    subracas: [
+      "meio-elfo-alto-elfo-armas",
+      "meio-elfo-alto-elfo-truque",
+      "meio-elfo-elfo-da-floresta-armas",
+      "meio-elfo-elfo-da-floresta-velocidade",
+      "meio-elfo-elfo-da-floresta-mascara",
+      "meio-elfo-drow-magia",
+      "meio-elfo-elfo-aquatico-nado",
+      "meio-elfo-marca-deteccao",
+      "meio-elfo-marca-tormenta"
+    ],
     atributos: { car: 2 },
     atributosEscolha: { 
       picks: 2, 
@@ -532,6 +547,19 @@ export const RACAS = {
     tamanho: "M",
     velocidade: { ft: 30, m: ftToM(30) },
     idiomas: ["comum", "infernal"],
+    subracas: [
+      "tiferino-lingua-do-diabo",
+      "tiferino-inferno",
+      "tiferino-alado",
+      "tiferino-baalzebul",
+      "tiferino-dispater",
+      "tiferino-fierna",
+      "tiferino-glasya",
+      "tiferino-levistus",
+      "tiferino-mammon",
+      "tiferino-mefistofeles",
+      "tiferino-zariel"
+    ],
     atributos: { int: 1, car: 2 },
     tracos: [
       { 
@@ -1911,6 +1939,162 @@ Object.assign(SUBRACAS, {
   }
 });
 
+Object.assign(RACAS, {
+  "povo-lagarto": {
+    id: "povo-lagarto",
+    nome: "Povo-Lagarto",
+    nomeEN: "Lizardfolk",
+    tamanho: "M",
+    velocidade: { ft: 30, m: ftToM(30) },
+    velocidadeNado: { ft: 30, m: ftToM(30) },
+    idiomas: ["comum", "draconico"],
+    atributos: { con: 2, sab: 1 },
+    caNatural: { base: 13, atributo: "des" },
+    tracos: [
+      traco("mordida-povo-lagarto", "Mordida", "Ataque desarmado com mordida: 1d6 + modificador de Força de dano perfurante."),
+      traco("artesao-habilidoso", "Artesão Habilidoso", "Como parte de um descanso curto, colhe osso e couro de uma besta, constructo, dragão, monstruosidade ou planta morta de tamanho Pequeno ou maior para criar um escudo, clava, azagaia ou 1d4 dardos ou agulhas de zarabatana."),
+      traco("prender-a-respiracao", "Prender a Respiração", "Consegue prender a respiração por até 15 minutos."),
+      traco("deslocamento-natatorio", "Deslocamento de Natação", "Seu deslocamento de natação é de 9 m (30 ft)."),
+      traco("conhecimento-do-cacador", "Conhecimento do Caçador", "Escolha duas perícias entre Lidar com Animais, Natureza, Percepção, Furtividade e Sobrevivência.", {
+        escolhasPericias: ["lidar-com-animais", "natureza", "percepcao", "furtividade", "sobrevivencia"],
+        quantidadeEscolhas: 2,
+      }),
+      traco("armadura-natural-povo-lagarto", "Armadura Natural", "Sem armadura, sua Classe de Armadura é 13 + modificador de Destreza; pode usar escudo."),
+      traco("mandibulas-famintas", "Mandíbulas Famintas", "Uma vez por descanso curto ou longo, como ação bônus, faz um ataque de mordida especial; se acertar, recebe pontos de vida temporários iguais ao modificador de Constituição (mínimo 1).")
+    ],
+    refs: { oficial: "Guia do Volo para Monstros (2016)", dndbeyond: "https://www.dndbeyond.com/sources/dnd/vgtm" }
+  },
+  "linhagem-personalizada": {
+    id: "linhagem-personalizada",
+    nome: "Linhagem Personalizada",
+    nomeEN: "Custom Lineage",
+    tamanho: "M",
+    velocidade: { ft: 30, m: ftToM(30) },
+    idiomas: ["comum"],
+    atributosEscolha: {
+      from: [...ENUMS_RACAS.habilidades],
+      opcao: [{ metodo: "2" }, { metodo: "1+1" }],
+    },
+    tracos: [
+      traco("tipo-humanoide", "Tipo de Criatura", "Você é humanoide."),
+      traco("tamanho-personalizado", "Tamanho", "Escolha Pequeno ou Médio.", { escolhaDetalhada: "tamanho-linhagem" }),
+      traco("caracteristica-personalizada", "Característica Distintiva", "Escolha visão no escuro com alcance de 18 m (60 ft) ou proficiência em uma perícia à sua escolha.", { escolhaDetalhada: "caracteristica-linhagem" }),
+      traco("talento-extra", "Talento", "Escolha um talento para o qual cumpra os pré-requisitos.", {
+        escolhasTalentos: { picks: 1, pool: "talentos-qualificaveis" }
+      }),
+      traco("idioma-extra", "Idioma Extra", "Escolha 1 idioma adicional.")
+    ],
+    refs: { oficial: "O Caldeirão de Todas as Coisas de Tasha (2020)", dndbeyond: "https://www.dndbeyond.com/sources/dnd/tce" }
+  },
+  "tiferino-ferino": {
+    id: "tiferino-ferino",
+    nome: "Tiferino Ferino",
+    nomeEN: "Feral Tiefling",
+    tamanho: "M",
+    velocidade: { ft: 30, m: ftToM(30) },
+    idiomas: ["comum", "infernal"],
+    atributos: { des: 2, int: 1 },
+    tracos: [
+      traco("visao-no-escuro", "Visão no Escuro", "Enxerga no escuro até 18 m (60 ft) como penumbra."),
+      traco("resistencia-ao-fogo", "Resistência Infernal", "Resistência a dano de fogo."),
+      traco("legado-infernal", "Legado Infernal", "Truque: Taumaturgia; no 3º nível: Repreensão Infernal; no 5º: Escuridão, cada magia 1 vez por descanso longo.")
+    ],
+    subracas: ["tiferino-ferino-lingua-do-diabo", "tiferino-ferino-inferno", "tiferino-ferino-alado"],
+    refs: { oficial: "Guia do Aventureiro para a Costa da Espada (2015)", dndbeyond: "https://www.dndbeyond.com/sources/dnd/scag" }
+  }
+});
+
+Object.assign(SUBRACAS, {
+  "tiferino-lingua-do-diabo": {
+    id: "tiferino-lingua-do-diabo", base: "tiferino", nome: "Língua do Diabo", nomeEN: "Devil's Tongue",
+    substituiTracos: ["legado-infernal"],
+    tracos: [traco("legado-infernal-lingua-do-diabo", "Legado Infernal: Língua do Diabo", "Substitui as magias do Legado Infernal: conhece Zombaria Perversa; a partir do 3º nível, pode conjurar Enfeitiçar Pessoa como magia de 2º círculo; a partir do 5º, Cativar. Cada magia é conjurada uma vez por descanso longo.")]
+  },
+  "tiferino-inferno": {
+    id: "tiferino-inferno", base: "tiferino", nome: "Fogo Infernal", nomeEN: "Hellfire",
+    substituiTracos: ["legado-infernal"],
+    tracos: [traco("legado-infernal-inferno", "Legado Infernal: Fogo Infernal", "Mantém Taumaturgia e Escuridão do Legado Infernal; substitui Repreensão Infernal por Mãos Flamejantes conjurada como magia de 2º círculo a partir do 3º nível. Cada magia é conjurada uma vez por descanso longo.")]
+  },
+  "tiferino-alado": {
+    id: "tiferino-alado", base: "tiferino", nome: "Tiferino Alado", nomeEN: "Winged",
+    substituiTracos: ["legado-infernal"],
+    tracos: [traco("asas-tiferinas", "Asas", "Você tem deslocamento de voo de 9 m (30 ft) enquanto não estiver usando armadura pesada.")]
+  },
+  "tiferino-ferino-lingua-do-diabo": {
+    id: "tiferino-ferino-lingua-do-diabo", base: "tiferino-ferino", nome: "Língua do Diabo", nomeEN: "Devil's Tongue", substituiTracos: ["legado-infernal"],
+    tracos: [traco("legado-infernal-lingua-do-diabo", "Legado Infernal: Língua do Diabo", "Substitui as magias do Legado Infernal: conhece Zombaria Perversa; a partir do 3º nível, pode conjurar Enfeitiçar Pessoa como magia de 2º círculo; a partir do 5º, Cativar. Cada magia é conjurada uma vez por descanso longo.")]
+  },
+  "tiferino-ferino-inferno": {
+    id: "tiferino-ferino-inferno", base: "tiferino-ferino", nome: "Fogo Infernal", nomeEN: "Hellfire", substituiTracos: ["legado-infernal"],
+    tracos: [traco("legado-infernal-inferno", "Legado Infernal: Fogo Infernal", "Mantém Taumaturgia e Escuridão do Legado Infernal; substitui Repreensão Infernal por Mãos Flamejantes conjurada como magia de 2º círculo a partir do 3º nível. Cada magia é conjurada uma vez por descanso longo.")]
+  },
+  "tiferino-ferino-alado": {
+    id: "tiferino-ferino-alado", base: "tiferino-ferino", nome: "Tiferino Alado", nomeEN: "Winged", substituiTracos: ["legado-infernal"],
+    tracos: [traco("asas-tiferinas", "Asas", "Você tem deslocamento de voo de 9 m (30 ft) enquanto não estiver usando armadura pesada.")]
+  },
+  "tiferino-baalzebul": { id: "tiferino-baalzebul", base: "tiferino", nome: "Baalzebul", nomeEN: "Baalzebul Tiefling", atributosSubstitui: true, atributos: { car: 2, int: 1 }, substituiTracos: ["legado-infernal"], tracos: [traco("legado-infernal-baalzebul", "Legado de Maladomini", "Você conhece Taumaturgia; no 3º nível, Raio do Enjôo; no 5º, Coroa de Loucura. Cada magia é conjurada uma vez por descanso longo.")] },
+  "tiferino-dispater": { id: "tiferino-dispater", base: "tiferino", nome: "Dispater", nomeEN: "Dispater Tiefling", atributosSubstitui: true, atributos: { car: 2, des: 1 }, substituiTracos: ["legado-infernal"], tracos: [traco("legado-infernal-dispater", "Legado de Dis", "Você conhece Taumaturgia; no 3º nível, Disfarçar-se; no 5º, Detectar Pensamentos. Cada magia é conjurada uma vez por descanso longo.")] },
+  "tiferino-fierna": { id: "tiferino-fierna", base: "tiferino", nome: "Fierna", nomeEN: "Fierna Tiefling", atributosSubstitui: true, atributos: { car: 2, sab: 1 }, substituiTracos: ["legado-infernal"], tracos: [traco("legado-infernal-fierna", "Legado de Phlegethos", "Você conhece Amigos; no 3º nível, Enfeitiçar Pessoa; no 5º, Sugestão. Cada magia é conjurada uma vez por descanso longo.")] },
+  "tiferino-glasya": { id: "tiferino-glasya", base: "tiferino", nome: "Glasya", nomeEN: "Glasya Tiefling", atributosSubstitui: true, atributos: { car: 2, des: 1 }, substituiTracos: ["legado-infernal"], tracos: [traco("legado-infernal-glasya", "Legado de Malbolge", "Você conhece Ilusão Menor; no 3º nível, Disfarçar-se; no 5º, Invisibilidade. Cada magia é conjurada uma vez por descanso longo.")] },
+  "tiferino-levistus": { id: "tiferino-levistus", base: "tiferino", nome: "Levistus", nomeEN: "Levistus Tiefling", atributosSubstitui: true, atributos: { car: 2, con: 1 }, substituiTracos: ["legado-infernal"], tracos: [traco("legado-infernal-levistus", "Legado de Stygia", "Você conhece Raio de Gelo; no 3º nível, Armadura de Agathys; no 5º, Escuridão. Cada magia é conjurada uma vez por descanso longo.")] },
+  "tiferino-mammon": { id: "tiferino-mammon", base: "tiferino", nome: "Mammon", nomeEN: "Mammon Tiefling", atributosSubstitui: true, atributos: { car: 2, int: 1 }, substituiTracos: ["legado-infernal"], tracos: [traco("legado-infernal-mammon", "Legado de Minauros", "Você conhece Mãos Mágicas; a partir do 3º nível, pode conjurar Disco Flutuante de Tenser uma vez por descanso longo; a partir do 5º, pode conjurar Tranca Arcana da mesma forma. Carisma é seu atributo de conjuração.")] },
+  "tiferino-mefistofeles": { id: "tiferino-mefistofeles", base: "tiferino", nome: "Mefistófeles", nomeEN: "Mephistopheles Tiefling", atributosSubstitui: true, atributos: { car: 2, int: 1 }, substituiTracos: ["legado-infernal"], tracos: [traco("legado-infernal-mefistofeles", "Legado de Cania", "Você conhece Mãos Mágicas; no 3º nível, Mãos Flamejantes; no 5º, Espada de Chamas. Cada magia é conjurada uma vez por descanso longo.")] },
+  "tiferino-zariel": { id: "tiferino-zariel", base: "tiferino", nome: "Zariel", nomeEN: "Zariel Tiefling", atributosSubstitui: true, atributos: { car: 2, for: 1 }, substituiTracos: ["legado-infernal"], tracos: [traco("legado-infernal-zariel", "Legado de Avernus", "Você conhece Taumaturgia; no 3º nível, Destruição Ardente; no 5º, Destruição Marcante. Cada magia é conjurada uma vez por descanso longo.")] },
+
+  "meio-elfo-alto-elfo-armas": { id: "meio-elfo-alto-elfo-armas", base: "meio-elfo", nome: "Treinamento Élfico com Armas", nomeEN: "High Elf Descent: Elf Weapon Training", substituiTracos: ["versatilidade-em-pericias"], tracos: [traco("treino-armas-elfico", "Treinamento Élfico com Armas", "Proficiência com espada longa, espada curta, arco curto e arco longo.")] },
+  "meio-elfo-alto-elfo-truque": { id: "meio-elfo-alto-elfo-truque", base: "meio-elfo", nome: "Truque", nomeEN: "High Elf Descent: Cantrip", substituiTracos: ["versatilidade-em-pericias"], tracos: [traco("truque-elfo-alto", "Truque", "Aprende um truque da lista de mago; Inteligência é o atributo de conjuração.")] },
+  "meio-elfo-elfo-da-floresta-armas": { id: "meio-elfo-elfo-da-floresta-armas", base: "meio-elfo", nome: "Treinamento Élfico com Armas", nomeEN: "Wood Elf Descent: Elf Weapon Training", substituiTracos: ["versatilidade-em-pericias"], tracos: [traco("treino-armas-elfico", "Treinamento Élfico com Armas", "Proficiência com espada longa, espada curta, arco curto e arco longo.")] },
+  "meio-elfo-elfo-da-floresta-velocidade": { id: "meio-elfo-elfo-da-floresta-velocidade", base: "meio-elfo", nome: "Pés Velozes", nomeEN: "Wood Elf Descent: Fleet of Foot", substituiTracos: ["versatilidade-em-pericias"], velocidade: { ft: 35, m: ftToM(35) }, tracos: [traco("passos-rapidos", "Pés Velozes", "Seu deslocamento de caminhada aumenta em 1,5 m (5 ft).") ] },
+  "meio-elfo-elfo-da-floresta-mascara": { id: "meio-elfo-elfo-da-floresta-mascara", base: "meio-elfo", nome: "Máscara da Natureza", nomeEN: "Wood Elf Descent: Mask of the Wild", substituiTracos: ["versatilidade-em-pericias"], tracos: [traco("mascara-dos-ermos", "Máscara da Natureza", "Pode tentar se esconder quando estiver levemente obscurecido por folhagem, chuva forte, neve, névoa ou outro fenômeno natural.")] },
+  "meio-elfo-drow-magia": { id: "meio-elfo-drow-magia", base: "meio-elfo", nome: "Magia Drow", nomeEN: "Drow Descent: Drow Magic", substituiTracos: ["versatilidade-em-pericias"], tracos: [traco("magia-drow", "Magia Drow", "Aprende Globos de Luz; no 3º nível pode conjurar Fogo das Fadas e, no 5º, Escuridão, cada magia uma vez por descanso longo. Carisma é o atributo de conjuração.")] },
+  "meio-elfo-elfo-aquatico-nado": { id: "meio-elfo-elfo-aquatico-nado", base: "meio-elfo", nome: "Deslocamento de Natação", nomeEN: "Aquatic Elf Descent: Swim Speed", substituiTracos: ["versatilidade-em-pericias"], velocidadeNado: { ft: 30, m: ftToM(30) }, tracos: [traco("nado-elfo-aquatico", "Deslocamento de Natação", "Seu deslocamento de natação é de 9 m (30 ft).") ] },
+
+  "elfo-marca-sombra": { id: "elfo-marca-sombra", base: "elfo", nome: "Elfo: Sinal da Sombra", nomeEN: "Mark of Shadow Elf", atributosSubstitui: true, atributos: { des: 2, car: 1 }, tracos: [traco("intuicao-artista", "Intuição Astuta", "Quando fizer um teste de Destreza (Furtividade) ou de Carisma (Atuação), some 1d4 ao resultado."), traco("magia-da-sombra", "Moldar Sombras", "Conhece Ilusão Menor; a partir do 3º nível, pode conjurar Invisibilidade uma vez por descanso longo. Carisma é o atributo de conjuração.")] },
+  "anao-marca-protecao": { id: "anao-marca-protecao", base: "anao", nome: "Anão: Sinal da Proteção", nomeEN: "Mark of Warding Dwarf", atributosSubstitui: true, atributos: { con: 2, int: 1 }, tracos: [traco("intuicao-guardiao", "Intuição do Protetor", "Quando fizer um teste de Inteligência (Investigação) ou um teste usando ferramentas de ladrão, some 1d4 ao resultado."), traco("selos-e-protecoes", "Proteções e Selos", "Pode conjurar Alarme e Armadura Arcana; a partir do 3º nível, também pode conjurar Tranca Arcana uma vez por descanso longo, sem componentes materiais.")] },
+  "gnomo-marca-escrita": { id: "gnomo-marca-escrita", base: "gnomo", nome: "Gnomo: Sinal da Escritura", nomeEN: "Mark of Scribing Gnome", atributosSubstitui: true, atributos: { int: 2, car: 1 }, tracos: [traco("intuicao-escriba", "Intuição do Escriba", "Quando fizer um teste de Inteligência (História) ou um teste usando ferramentas de calígrafo, some 1d4 ao resultado."), traco("escriba-talentoso", "Escriba Talentoso", "Proficiência: ferramentas de calígrafo."), traco("dom-do-escriba", "Dom do Escriba", "Conhece Mensagem e pode conjurar Compreender Idiomas uma vez por descanso curto ou longo. A partir do 3º nível, também pode conjurar Boca Mágica uma vez por descanso longo. Inteligência é o atributo de conjuração.")] },
+  "pequenino-marca-cura": { id: "pequenino-marca-cura", base: "pequenino", nome: "Pequenino: Sinal da Cura", nomeEN: "Mark of Healing Halfling", atributosSubstitui: true, atributos: { des: 2, sab: 1 }, tracos: [traco("intuicao-medica", "Intuição Médica", "Quando fizer um teste de Sabedoria (Medicina) ou um teste usando um kit de herbalismo, some 1d4 ao resultado."), traco("toque-curativo", "Toque Curativo", "Pode conjurar Curar Ferimentos; a partir do 3º nível, também pode conjurar Restauração Menor. Cada magia pode ser conjurada uma vez por descanso longo; Sabedoria é o atributo de conjuração.")] },
+  "pequenino-marca-hospitalidade": { id: "pequenino-marca-hospitalidade", base: "pequenino", nome: "Pequenino: Sinal da Hospitalidade", nomeEN: "Mark of Hospitality Halfling", atributosSubstitui: true, atributos: { des: 2, car: 1 }, tracos: [traco("intuicao-hospitaleira", "Sempre Hospitaleiro", "Quando fizer um teste de Carisma (Persuasão) ou um teste usando suprimentos de cervejeiro ou utensílios de cozinheiro, some 1d4 ao resultado."), traco("magia-hospitaleira", "Magia do Estalajadeiro", "Conhece Prestidigitação e pode conjurar Purificar Alimentos e Bebidas e Servo Invisível uma vez cada por descanso longo. Carisma é o atributo de conjuração.")] },
+  "humano-marca-treinamento": { id: "humano-marca-treinamento", base: "humano", nome: "Humano Alternativo: Sinal da Lida", nomeEN: "Mark of Handling Human", atributosSubstitui: true, atributos: { sab: 2 }, atributosEscolha: { picks: 1, bonus: 1, from: ["for", "des", "con", "int", "car"], origemCategoria: "Sinal", origemNome: "Lida", origemDetalhe: "Sinal do Dragão" }, tracos: [traco("intuicao-animal", "Intuição Selvagem", "Quando fizer um teste de Inteligência (Natureza) ou Sabedoria (Lidar com Animais), some 1d4 ao resultado."), traco("magia-de-treinamento", "Conexão Primitiva", "Pode conjurar Amizade Animal e Falar com Animais uma vez cada por descanso curto ou longo. A partir do 3º nível, ambas as magias também podem ter como alvo bestas e monstruosidades com Inteligência 3 ou inferior. Sabedoria é o atributo de conjuração dessas magias.")] },
+  "humano-marca-procura": { id: "humano-marca-procura", base: "humano", nome: "Humano Alternativo: Sinal da Busca", nomeEN: "Mark of Finding Human", atributosSubstitui: true, atributos: { sab: 2, con: 1 }, substituiTracos: ["idioma-extra"], substituiIdiomasBase: true, idiomas: ["comum", "goblin"], tracos: [traco("visao-no-escuro-busca", "Visão no Escuro", "Enxerga no escuro até 18 m (60 ft) como penumbra."), traco("intuicao-cacador", "Intuição do Caçador", "Quando fizer um teste de Sabedoria (Percepção ou Sobrevivência), some 1d4 ao resultado."), traco("magia-da-descoberta", "Descoberta Mágica", "Pode conjurar Marca do Caçador; a partir do 3º nível, também pode conjurar Localizar Objeto. Cada magia pode ser conjurada uma vez por descanso longo; Sabedoria é o atributo de conjuração.")] },
+  "humano-marca-criacao": { id: "humano-marca-criacao", base: "humano", nome: "Humano Alternativo: Sinal da Criação", nomeEN: "Mark of Making Human", atributosSubstitui: true, atributos: { int: 2 }, atributosEscolha: { picks: 1, bonus: 1, from: ["for", "des", "con", "sab", "car"], origemCategoria: "Sinal", origemNome: "Criação", origemDetalhe: "Sinal do Dragão" }, tracos: [traco("intuicao-artesao", "Intuição do Artesão", "Quando fizer um teste de Inteligência (Arcanismo) ou um teste usando ferramentas de artesão, some 1d4 ao resultado."), traco("presente-do-artifice", "Presente do Criador", "Ganha proficiência com uma ferramenta de artesão à sua escolha."), traco("magia-da-criacao", "Ferreiro Mágico", "Conhece Consertar; pode conjurar Arma Mágica uma vez por descanso longo, sem componentes materiais nem concentração, com duração de 1 hora. Inteligência é o atributo de conjuração dessas magias.")] },
+  "meio-orc-marca-procura": { id: "meio-orc-marca-procura", base: "meio-orc", nome: "Meio-Orc: Sinal da Busca", nomeEN: "Mark of Finding Half-Orc", atributosSubstitui: true, atributos: { sab: 2, con: 1 }, substituiTracos: ["visao-no-escuro", "ameacador", "resistencia-implacavel", "ataques-selvagens"], substituiIdiomasBase: true, idiomas: ["comum", "goblin"], tracos: [traco("visao-no-escuro-busca", "Visão no Escuro", "Enxerga no escuro até 18 m (60 ft) como penumbra."), traco("intuicao-cacador", "Intuição do Caçador", "Quando fizer um teste de Sabedoria (Percepção ou Sobrevivência), some 1d4 ao resultado."), traco("magia-da-descoberta", "Descoberta Mágica", "Pode conjurar Marca do Caçador; a partir do 3º nível, também pode conjurar Localizar Objeto. Cada magia pode ser conjurada uma vez por descanso longo; Sabedoria é o atributo de conjuração.")] },
+  "humano-marca-passagem": { id: "humano-marca-passagem", base: "humano", nome: "Humano Alternativo: Sinal da Travessia", nomeEN: "Mark of Passage Human", atributosSubstitui: true, atributos: { des: 2 }, atributosEscolha: { picks: 1, bonus: 1, from: ["for", "con", "int", "sab", "car"], origemCategoria: "Sinal", origemNome: "Travessia", origemDetalhe: "Sinal do Dragão" }, velocidade: { ft: 35, m: ftToM(35) }, tracos: [traco("velocidade-do-correio", "Velocidade do Mensageiro", "Seu deslocamento de caminhada é de 10,5 m (35 ft)."), traco("movimento-intuitivo", "Movimentação Intuitiva", "Quando fizer um teste de Destreza (Acrobacia) ou um teste para operar ou manter um veículo terrestre, some 1d4 ao resultado."), traco("passagem-magica", "Travessia Mágica", "Pode conjurar Passo Nebuloso uma vez por descanso longo; Destreza é o atributo de conjuração.")] },
+  "humano-marca-sentinela": { id: "humano-marca-sentinela", base: "humano", nome: "Humano Alternativo: Sinal da Sentinela", nomeEN: "Mark of Sentinel Human", atributosSubstitui: true, atributos: { con: 2, sab: 1 }, tracos: [traco("intuicao-sentinela", "Intuição do Sentinela", "Quando fizer um teste de Sabedoria (Intuição ou Percepção), some 1d4 ao resultado."), traco("escudo-sentinela", "Escudo Guardião", "Pode conjurar Escudo uma vez por descanso longo; Sabedoria é o atributo de conjuração."), traco("elo-protetor", "Guardião Vigilante", "A partir do 3º nível, quando uma criatura que você vê a até 1,5 m for atingida por um ataque, pode usar sua reação para trocar de lugar com ela e receber o ataque. Recupera o uso após descanso longo.")] },
+  "meio-elfo-marca-deteccao": { id: "meio-elfo-marca-deteccao", base: "meio-elfo", nome: "Meio-Elfo Alternativo: Sinal da Detecção", nomeEN: "Mark of Detection Half-Elf", atributosSubstitui: true, atributos: { sab: 2 }, atributosEscolha: { picks: 1, bonus: 1, from: ["for", "des", "con", "int", "car"], origemCategoria: "Sinal", origemNome: "Detecção", origemDetalhe: "Sinal do Dragão" }, substituiTracos: ["versatilidade-em-pericias"], tracos: [traco("intuicao-dedutiva", "Intuição Dedutiva", "Quando fizer um teste de Inteligência (Investigação) ou Sabedoria (Intuição), some 1d4 ao resultado."), traco("deteccao-magica", "Detecção Mágica", "Pode conjurar Detectar Magia e Detectar Veneno e Doença; a partir do 3º nível, também pode conjurar Ver Invisibilidade. Cada magia pode ser conjurada uma vez por descanso longo; Inteligência é o atributo de conjuração.")] },
+  "meio-elfo-marca-tormenta": { id: "meio-elfo-marca-tormenta", base: "meio-elfo", nome: "Meio-Elfo Alternativo: Sinal da Tormenta", nomeEN: "Mark of Storm Half-Elf", atributosSubstitui: true, atributos: { car: 2, des: 1 }, substituiTracos: ["versatilidade-em-pericias"], tracos: [traco("intuicao-tempestuosa", "Intuição do Eoliurgo", "Quando fizer um teste de Destreza (Acrobacia) ou um teste usando ferramentas de navegador, some 1d4 ao resultado."), traco("bencao-da-tormenta", "Favor da Tormenta", "Você tem resistência a dano elétrico."), traco("magia-da-tormenta", "Ventos de Proa", "Conhece o truque Lufada; a partir do 3º nível, pode conjurar Lufada de Vento uma vez por descanso longo. Carisma é o atributo de conjuração.")] }
+});
+
+RACAS["tiferino-ferino"].subracas.forEach((id) => {
+  SUBRACAS[id].refs = { oficial: "Guia do Aventureiro para a Costa da Espada (2015)", variantesCombinaveis: true };
+});
+RACAS.anao.subracas.push("anao-marca-protecao");
+RACAS.elfo.subracas.push("elfo-marca-sombra");
+RACAS.gnomo.subracas.push("gnomo-marca-escrita");
+RACAS.pequenino.subracas.push("pequenino-marca-cura", "pequenino-marca-hospitalidade");
+RACAS.humano.subracas.push("humano-marca-treinamento", "humano-marca-procura", "humano-marca-criacao", "humano-marca-passagem", "humano-marca-sentinela");
+RACAS["meio-orc"].subracas = ["meio-orc-marca-procura"];
+
+[
+  "tiferino-baalzebul", "tiferino-dispater", "tiferino-fierna", "tiferino-glasya",
+  "tiferino-levistus", "tiferino-mammon", "tiferino-mefistofeles", "tiferino-zariel",
+].forEach((id) => { SUBRACAS[id].refs = { oficial: "Tomo de Mordenkainen para Inimigos (2018)" }; });
+[
+  "anao-marca-protecao", "elfo-marca-sombra", "gnomo-marca-escrita", "pequenino-marca-cura",
+  "pequenino-marca-hospitalidade", "humano-marca-treinamento", "humano-marca-procura",
+  "humano-marca-criacao", "humano-marca-passagem", "humano-marca-sentinela",
+  "meio-orc-marca-procura", "meio-elfo-marca-deteccao", "meio-elfo-marca-tormenta",
+].forEach((id) => { SUBRACAS[id].refs = { oficial: "Eberron: Rising from the Last War (2019)" }; });
+[
+  "meio-elfo-alto-elfo-armas", "meio-elfo-alto-elfo-truque", "meio-elfo-elfo-da-floresta-velocidade",
+  "meio-elfo-elfo-da-floresta-mascara", "meio-elfo-drow-magia", "meio-elfo-elfo-aquatico-nado",
+  "tiferino-lingua-do-diabo", "tiferino-inferno", "tiferino-alado",
+  "tiferino-ferino-lingua-do-diabo", "tiferino-ferino-inferno", "tiferino-ferino-alado",
+].forEach((id) => { SUBRACAS[id].refs = { oficial: "Guia do Aventureiro para a Costa da Espada (2015)" }; });
+[
+  "tiferino-baalzebul", "tiferino-dispater", "tiferino-fierna", "tiferino-glasya",
+  "tiferino-levistus", "tiferino-mammon", "tiferino-mefistofeles", "tiferino-zariel",
+].forEach((id) => { SUBRACAS[id].refs = { oficial: "Tomo de Mordenkainen para Inimigos (2018)" }; });
+
 Object.assign(SUBRACAS, {
   "shifter-pelopeludo": {
     id: "shifter-pelopeludo",
@@ -2547,3 +2731,252 @@ function aplicarPerfisFisicos(destino, perfis) {
 
 aplicarPerfisFisicos(RACAS, PERFIS_FISICOS_RACIAIS);
 aplicarPerfisFisicos(SUBRACAS, PERFIS_FISICOS_SUBRACIAIS);
+
+const criarVersaoMonstrosDoMultiverso = ({
+  id,
+  nome,
+  nomeEN = nome,
+  tamanho = "M",
+  velocidade = 30,
+  velocidadeNado = null,
+  velocidadeVoo = null,
+  tipoCriatura = "humanoide",
+  tracos = [],
+  idiomas = ["comum"],
+  opcoesTamanho = null,
+  velocidadeEscalada = null,
+}) => ({
+  id: `${id}-motm`,
+  nome: `${nome} (Monstros do Multiverso)`,
+  nomeEspecie: nome,
+  nomeEN,
+  versao: "Mordenkainen Apresenta: Monstros do Multiverso",
+  tipoCriatura,
+  tamanho,
+  ...(opcoesTamanho ? { opcoesTamanho } : {}),
+  velocidade: { ft: velocidade, m: ftToM(velocidade) },
+  ...(velocidadeNado ? { velocidadeNado: { ft: velocidadeNado, m: ftToM(velocidadeNado) } } : {}),
+  ...(velocidadeVoo ? { velocidadeVoo: { ft: velocidadeVoo, m: ftToM(velocidadeVoo) } } : {}),
+  ...(velocidadeEscalada ? { velocidadeEscalada: { ft: velocidadeEscalada, m: ftToM(velocidadeEscalada) } } : {}),
+  idiomas,
+  atributosEscolha: criarAsiFlexivelPadrao(),
+  tracos: [
+    ...tracos,
+    traco("idioma-extra", "Idiomas", "Você fala, lê e escreve Comum e um idioma adicional à sua escolha.")
+  ],
+  ...(RACAS[id]?.fisico ? { fisico: RACAS[id].fisico } : {}),
+  refs: {
+    oficial: "Mordenkainen Apresenta: Monstros do Multiverso (2022)",
+    dndbeyond: "https://www.dndbeyond.com/sources/dnd/motm",
+  },
+});
+
+Object.assign(RACAS, {
+  "aarakocra-motm": criarVersaoMonstrosDoMultiverso({ id: "aarakocra", nome: "Aarakocra", nomeEN: "Aarakocra", velocidade: 30, velocidadeVoo: 30, tracos: [
+    traco("voo-aarakocra-motm", "Voo", "Seu deslocamento de voo é igual ao seu deslocamento de caminhada; você não pode voar usando armadura média ou pesada."),
+    traco("garras-aarakocra-motm", "Garras", "Seus ataques desarmados com garras causam 1d6 + seu modificador de Força de dano cortante."),
+    traco("chamador-do-vento", "Chamador do Vento", "A partir do 3º nível, pode conjurar Lufada de Vento uma vez por descanso longo, sem componentes materiais; também pode conjurá-la usando espaços de magia de 2º círculo ou superior.")
+  ] }),
+  "aasimar-motm": criarVersaoMonstrosDoMultiverso({ id: "aasimar", nome: "Aasimar", nomeEN: "Aasimar", opcoesTamanho: ["P", "M"], tracos: [
+    traco("resistencia-celestial-motm", "Resistência Celestial", "Você tem resistência a dano necrótico e radiante."),
+    traco("visao-no-escuro-aasimar-motm", "Visão no Escuro", "Enxerga no escuro até 18 m (60 ft) como penumbra."),
+    traco("maos-curativas-motm", "Mãos Curativas", "Como ação, toca uma criatura e restaura pontos de vida iguais à rolagem de um número de d4 igual ao seu bônus de proficiência. Pode usar uma vez por descanso longo."),
+    traco("portador-da-luz-motm", "Portador da Luz", "Você conhece o truque Luz."),
+    traco("revelacao-celestial", "Revelação Celestial", "A partir do 3º nível, como ação bônus, revela sua natureza divina por 1 minuto, uma vez por descanso longo. Escolha Consumação Radiante, Espírito Radiante ou Manto Necrótico; o benefício escolhido consta nas escolhas raciais.", { escolhaDetalhada: "revelacao-celestial" })
+  ] }),
+  "genasi-do-ar-motm": criarVersaoMonstrosDoMultiverso({ id: "genasi-do-ar", nome: "Genasi do Ar", nomeEN: "Air Genasi", velocidade: 35, opcoesTamanho: ["P", "M"], tracos: [
+    traco("visao-no-escuro-genasi-ar-motm", "Visão no Escuro", "Enxerga no escuro até 18 m (60 ft) como penumbra."),
+    traco("respiracao-interminavel-motm", "Respiração Interminável", "Pode prender a respiração indefinidamente enquanto não estiver incapacitado."),
+    traco("resistencia-eletrica-genasi-ar", "Resistência Elétrica", "Você tem resistência a dano elétrico."),
+    traco("misturar-se-ao-vento-motm", "Misturar-se ao Vento", "Conhece o truque Toque Chocante; a partir do 3º nível, pode conjurar Queda Suave e, a partir do 5º nível, Levitação, sem componentes materiais. Cada magia é recuperada após um descanso longo; também pode usar espaços de magia.")
+  ] }),
+  "bugbear-motm": criarVersaoMonstrosDoMultiverso({ id: "bugbear", nome: "Bugurso", nomeEN: "Bugbear", opcoesTamanho: null, tracos: [
+    traco("linhagem-goblinoide-bugbear", "Linhagem Goblinoide", "Você é humanoide, mas também é considerado goblinoide para qualquer pré-requisito ou efeito que exija que você seja goblinoide."),
+    traco("visao-no-escuro-bugbear-motm", "Visão no Escuro", "Enxerga no escuro até 18 m (60 ft) como penumbra."),
+    traco("ancestral-feerico-bugbear", "Ancestralidade Feérica", "Você tem vantagem em testes de resistência para evitar ou encerrar a condição enfeitiçado."),
+    traco("membros-longos-motm", "Membros Longos", "Seu alcance aumenta em 1,5 m (5 ft) ao fazer ataques corpo a corpo no seu turno."),
+    traco("porte-poderoso-bugbear-motm", "Porte Poderoso", "Conta como uma categoria de tamanho maior para determinar sua capacidade de carga e o peso que pode empurrar, arrastar ou levantar."),
+    traco("furtivo-bugbear-motm", "Sorrateiro", "Você tem proficiência em Furtividade. Também pode se mover por um espaço grande o bastante para uma criatura Pequena e terminar seu turno nele sem precisar se espremer."),
+    traco("ataque-surpresa-motm", "Ataque Surpresa", "Quando acerta uma criatura que ainda não realizou um turno no combate, causa 2d6 de dano extra.")
+  ] }),
+  "centauro-motm": criarVersaoMonstrosDoMultiverso({ id: "centauro", nome: "Centauro", nomeEN: "Centaur", velocidade: 40, tipoCriatura: "feérico", tracos: [
+    traco("tipo-feerico-centauro-motm", "Feérico", "Seu tipo de criatura é feérico, em vez de humanoide."),
+    traco("carga-centauro-motm", "Carga", "Imediatamente após acertar uma criatura com um ataque corpo a corpo como parte da ação Atacar, pode usar uma ação bônus para fazer um ataque de cascos contra ela."),
+    traco("cascos-centauro-motm", "Cascos", "Seus ataques desarmados com cascos causam 1d6 + seu modificador de Força de dano de concussão."),
+    traco("constituicao-equina-motm", "Constituição Equina", "Conta como uma categoria de tamanho maior para carga e para empurrar ou arrastar. Ao escalar usando mãos e pés, cada pé de movimento custa 4 pés adicionais, em vez de 1 pé adicional."),
+    traco("afinidade-natural-centauro", "Afinidade Natural", "Escolha proficiência em Natureza ou Sobrevivência.", { escolhasPericias: ["natureza", "sobrevivencia"], quantidadeEscolhas: 1 })
+  ] }),
+  "changeling-motm": criarVersaoMonstrosDoMultiverso({ id: "changeling", nome: "Duplicante", nomeEN: "Changeling", opcoesTamanho: ["P", "M"], tipoCriatura: "feérico", tracos: [
+    traco("tipo-feerico-metamorfo-motm", "Feérico", "Seu tipo de criatura é feérico, em vez de humanoide."),
+    traco("instintos-metamorfo-motm", "Instintos de Metamorfo", "Escolha duas perícias entre Enganação, Intuição, Intimidação, Atuação e Persuasão.", { escolhasPericias: ["enganacao", "intuicao", "intimidacao", "atuacao", "persuasao"], quantidadeEscolhas: 2 }),
+    traco("metamorfo-motm", "Metamorfo", "Como ação, altera sua aparência e voz, podendo mudar entre os tamanhos Pequeno e Médio; não muda suas estatísticas de jogo, não pode duplicar a aparência de alguém que nunca viu e mantém o arranjo básico dos membros. Roupas e equipamentos não mudam. Permanece na forma até usar uma ação para revertê-la ou morrer.")
+  ] }),
+  "gnomo-das-profundezas-motm": criarVersaoMonstrosDoMultiverso({ id: "gnomo-das-profundezas", nome: "Gnomo das Profundezas", nomeEN: "Deep Gnome", tamanho: "P", opcoesTamanho: null, tracos: [
+    traco("linhagem-gnomica-profunda", "Linhagem Gnômica", "Você é humanoide, mas também é considerado um gnomo para qualquer pré-requisito ou efeito que exija que você seja um gnomo."),
+    traco("visao-no-escuro-profunda", "Visão no Escuro", "Enxerga no escuro até 36 m (120 ft) como penumbra."),
+    traco("astucia-gnomica-profunda", "Astúcia Gnômica", "Você tem vantagem em testes de resistência de Inteligência, Sabedoria e Carisma contra magia."),
+    traco("dom-svirfneblin", "Dádiva dos Svirfneblin", "A partir do 3º nível, pode conjurar Disfarçar-se; a partir do 5º, também Não Detecção. Cada magia pode ser conjurada uma vez por descanso longo e também pode usar espaços de magia do círculo apropriado. Não Detecção não exige componentes materiais quando conjurada com este traço."),
+    traco("camuflagem-svirfneblin", "Camuflagem Svirfneblin", "Pode fazer testes de Destreza (Furtividade) com vantagem. Pode usar esse benefício um número de vezes igual ao seu bônus de proficiência por descanso longo.")
+  ] }),
+  "duergar-motm": criarVersaoMonstrosDoMultiverso({ id: "duergar", nome: "Duergar", nomeEN: "Duergar", tracos: [
+    traco("linhagem-ana-duergar", "Linhagem Anã", "Você é humanoide, mas também é considerado anão para qualquer pré-requisito ou efeito que exija que você seja anão."),
+    traco("visao-no-escuro-duergar-motm", "Visão no Escuro", "Enxerga no escuro até 36 m (120 ft) como penumbra."),
+    traco("resiliencia-anao-duergar-motm", "Resiliência Anã", "Você tem resistência a dano de veneno e vantagem em testes de resistência para evitar ou encerrar a condição envenenado."),
+    traco("fortitude-psionica-duergar", "Fortitude Psíquica", "Você tem vantagem em testes de resistência para evitar ou encerrar as condições enfeitiçado e atordoado."),
+    traco("magia-duergar-motm", "Magia Duergar", "A partir do 3º nível, pode conjurar Aumentar/Reduzir; a partir do 5º, Invisibilidade em si mesmo. Cada magia pode ser conjurada uma vez por descanso longo, sem componentes materiais, e também pode usar espaços de magia do círculo apropriado.")
+  ] }),
+  "genasi-da-terra-motm": criarVersaoMonstrosDoMultiverso({ id: "genasi-da-terra", nome: "Genasi da Terra", nomeEN: "Earth Genasi", opcoesTamanho: ["P", "M"], tracos: [
+    traco("visao-no-escuro-genasi-terra-motm", "Visão no Escuro", "Enxerga no escuro até 18 m (60 ft) como penumbra."),
+    traco("caminhada-terrestre", "Caminhada Terrestre", "Mover-se sobre terreno difícil feito de terra ou pedra não custa movimento extra."),
+    traco("fundir-se-a-pedra-motm", "Fundir-se à Pedra", "Conhece o truque Proteção contra Lâminas; a partir do 3º nível, pode conjurar Passos sem Pegadas sem componentes materiais uma vez por descanso longo, ou usando espaços de magia.")
+  ] }),
+  "eladrin-motm": criarVersaoMonstrosDoMultiverso({ id: "eladrin", nome: "Eladrin", nomeEN: "Eladrin", opcoesTamanho: null, tracos: [
+    traco("linhagem-elfica-eladrin-motm", "Linhagem Élfica", "Você é considerado um elfo para qualquer pré-requisito ou efeito que exija que você seja um elfo."),
+    traco("visao-no-escuro-eladrin-motm", "Visão no Escuro", "Enxerga no escuro até 18 m (60 ft) como penumbra."),
+    traco("ancestral-feerico-eladrin-motm", "Ancestral Feérico", "Você tem vantagem em testes de resistência para evitar ou encerrar a condição enfeitiçado."),
+    traco("sentidos-aguçados-eladrin-motm", "Sentidos Aguçados", "Proficiência em Percepção."),
+    traco("transe-eladrin-motm", "Transe", "Não precisa dormir, e magia não pode fazê-lo dormir. Pode concluir um descanso longo em 4 horas de meditação profunda, permanecendo consciente; ao concluí-lo, pode mudar de estação e ganhar proficiência em duas armas ou ferramentas à sua escolha do Livro do Jogador."),
+    traco("passo-feerico-eladrin", "Passo Feérico", "Como ação bônus, teletransporta-se até 9 m (30 ft) para um espaço desocupado que possa ver. Pode usar um número de vezes igual ao bônus de proficiência por descanso longo. A partir do 3º nível, a estação escolhida determina um efeito adicional; pode trocar de estação ao concluir o Transe.", { escolhaDetalhada: "estacao-eladrin" })
+  ] }),
+  "fada-motm": criarVersaoMonstrosDoMultiverso({ id: "fada", nome: "Fada", nomeEN: "Fairy", tamanho: "P", opcoesTamanho: null, tipoCriatura: "feérico", velocidadeVoo: 30, tracos: [
+    traco("tipo-feerico-fada-motm", "Feérico", "Seu tipo de criatura é feérico, em vez de humanoide."),
+    traco("magia-das-fadas-motm", "Magia das Fadas", "Conhece o truque Druidismo; a partir do 3º nível, pode conjurar Fogo das Fadas; a partir do 5º, Aumentar/Reduzir, uma vez cada por descanso longo. Também pode usar espaços de magia do círculo apropriado. Escolha Inteligência, Sabedoria ou Carisma como atributo de conjuração."),
+    traco("voo-fada-motm", "Voo", "Seu deslocamento de voo é igual ao seu deslocamento de caminhada; não pode voar usando armadura média ou pesada.")
+  ] }),
+  "firbolg-motm": criarVersaoMonstrosDoMultiverso({ id: "firbolg", nome: "Firbolg", nomeEN: "Firbolg", tracos: [
+    traco("magia-firbolg-motm", "Magia Firbolg", "Pode conjurar Detectar Magia e Disfarçar-se uma vez cada por descanso longo; também pode usar espaços de magia. Ao conjurar Disfarçar-se com essa característica, pode parecer até 90 cm mais alto ou mais baixo."),
+    traco("passo-oculto-motm", "Passo Oculto", "Como ação bônus, fica invisível até o começo do próximo turno ou até atacar, causar dano ou forçar um teste de resistência; usos iguais ao bônus de proficiência por descanso longo."),
+    traco("porte-poderoso-firbolg-motm", "Porte Poderoso", "Conta como uma categoria de tamanho maior para carga e para empurrar ou arrastar."),
+    traco("fala-da-besta-e-folha-motm", "Fala da Besta e da Folha", "Comunica ideias simples a bestas e plantas; tem vantagem em testes de Carisma para influenciá-las.")
+  ] }),
+  "genasi-do-fogo-motm": criarVersaoMonstrosDoMultiverso({ id: "genasi-do-fogo", nome: "Genasi do Fogo", nomeEN: "Fire Genasi", opcoesTamanho: ["P", "M"], tracos: [
+    traco("visao-no-escuro-genasi-fogo-motm", "Visão no Escuro", "Enxerga no escuro até 18 m (60 ft) como penumbra."),
+    traco("resistencia-fogo-genasi-motm", "Resistência ao Fogo", "Você tem resistência a dano de fogo."),
+    traco("alcance-da-chama-motm", "Alcance da Chama", "Conhece o truque Produzir Chamas; a partir do 3º nível, pode conjurar Mãos Flamejantes uma vez por descanso longo, sem componentes materiais, ou usando espaços de magia.")
+  ] }),
+  "githyanki-motm": criarVersaoMonstrosDoMultiverso({ id: "githyanki", nome: "Githyanki", nomeEN: "Githyanki", tracos: [
+    traco("conhecimento-astral", "Conhecimento Astral", "Ao concluir um descanso longo, escolha proficiência em uma perícia e em uma arma ou ferramenta; mantém essas proficiências até o próximo descanso longo."),
+    traco("psionica-githyanki-motm", "Psiônica Githyanki", "Conhece o truque Mãos Mágicas, cuja mão espectral fica invisível quando conjurada com esta característica; a partir do 3º nível, pode conjurar Salto; a partir do 5º, Passo Nebuloso. As magias de 1º círculo ou superior não exigem componentes materiais, podem ser conjuradas uma vez cada por descanso longo e também podem usar espaços de magia do círculo apropriado. Escolha Inteligência, Sabedoria ou Carisma como atributo de conjuração."),
+    traco("resiliencia-psiquica-gith", "Resiliência Psíquica", "Você tem resistência a dano psíquico.")
+  ] }),
+  "githzerai-motm": criarVersaoMonstrosDoMultiverso({ id: "githzerai", nome: "Githzerai", nomeEN: "Githzerai", tracos: [
+    traco("psionica-githzerai-motm", "Psiônica Githzerai", "Conhece o truque Mãos Mágicas, cuja mão espectral fica invisível quando conjurada com esta característica; a partir do 3º nível, pode conjurar Escudo; a partir do 5º, Detectar Pensamentos. As magias de 1º círculo ou superior não exigem componentes materiais, podem ser conjuradas uma vez cada por descanso longo e também podem usar espaços de magia do círculo apropriado. Escolha Inteligência, Sabedoria ou Carisma como atributo de conjuração."),
+    traco("disciplina-mental-githzerai", "Disciplina Mental", "Você tem vantagem em testes de resistência para evitar ou encerrar as condições enfeitiçado e amedrontado."),
+    traco("resiliencia-psiquica-githzerai", "Resiliência Psíquica", "Você tem resistência a dano psíquico.")
+  ] }),
+  "goblin-motm": criarVersaoMonstrosDoMultiverso({ id: "goblin", nome: "Goblin", nomeEN: "Goblin", tamanho: "P", opcoesTamanho: null, tracos: [
+    traco("tipo-goblinoide-goblin-motm", "Linhagem Goblinoide", "Você é humanoide, mas também é considerado goblinoide para qualquer pré-requisito ou efeito que exija que você seja goblinoide."),
+    traco("visao-no-escuro-goblin-motm", "Visão no Escuro", "Enxerga no escuro até 18 m (60 ft) como penumbra."),
+    traco("ancestral-feerico-goblin", "Ancestral Feérico", "Você tem vantagem em testes de resistência para evitar ou encerrar a condição enfeitiçado."),
+    traco("furia-dos-pequenos-motm", "Fúria dos Pequenos", "Quando causa dano a uma criatura maior que você com um ataque ou magia, pode causar dano extra igual ao seu bônus de proficiência; usos iguais ao bônus de proficiência por descanso longo."),
+    traco("escapada-agil-goblin-motm", "Escapada Ágil", "Você pode executar as ações Desengajar ou Esconder-se como ação bônus em cada um dos seus turnos.")
+  ] }),
+  "goliath-motm": criarVersaoMonstrosDoMultiverso({ id: "goliath", nome: "Golias", nomeEN: "Goliath", velocidade: 35, tracos: [
+    traco("pequeno-gigante", "Pequeno Gigante", "Você tem proficiência em Atletismo e conta como uma categoria de tamanho maior para carga e para empurrar, arrastar ou levantar."),
+    traco("nascido-na-montanha-goliath-motm", "Nascido nas Montanhas", "Você tem resistência a dano gélido e está aclimatado a grandes altitudes, inclusive acima de 6.100 m (20.000 ft)."),
+    traco("resistencia-de-pedra-motm", "Duro como Pedra", "Quando sofre dano, pode usar sua reação para rolar 1d12, somar seu modificador de Constituição e reduzir o dano por esse total. Usos iguais ao bônus de proficiência; recupera-os ao terminar um descanso longo.")
+  ] }),
+  "harengon-motm": criarVersaoMonstrosDoMultiverso({ id: "harengon", nome: "Laparlonj", nomeEN: "Harengon", opcoesTamanho: ["P", "M"], tracos: [
+    traco("gatilho-leporino-motm", "Disparo da Lebre", "Some seu bônus de proficiência às jogadas de iniciativa."),
+    traco("sentidos-leporinos-motm", "Orelhas Compridas", "Você tem proficiência em Percepção."),
+    traco("passos-sortudos-motm", "Sorte nos Pés", "Ao falhar em uma salvaguarda de Destreza, pode usar sua reação para rolar 1d4 e somá-lo ao resultado, possivelmente transformando a falha em sucesso. Não pode usar se estiver caído ou com deslocamento 0."),
+    traco("salto-do-coelho-motm", "Salto do Coelho", "Se seu deslocamento de caminhada for maior que 0, como ação bônus pode saltar um número de pés igual a 5 vezes seu bônus de proficiência, sem provocar ataques de oportunidade; usos iguais ao bônus de proficiência por descanso longo.")
+  ] }),
+  "hobgoblin-motm": criarVersaoMonstrosDoMultiverso({ id: "hobgoblin", nome: "Hobgoblin", nomeEN: "Hobgoblin", tracos: [
+    traco("tipo-goblinoide-hobgoblin-motm", "Linhagem Goblinoide", "Você é humanoide, mas também é considerado goblinoide para qualquer pré-requisito ou efeito que exija que você seja goblinoide."),
+    traco("visao-no-escuro-hobgoblin-motm", "Visão no Escuro", "Enxerga no escuro até 18 m (60 ft) como penumbra."),
+    traco("ancestral-feerico-hobgoblin", "Ancestral Feérico", "Você tem vantagem em testes de resistência para evitar ou encerrar a condição enfeitiçado."),
+    traco("dadiva-feerica", "Dádiva Feérica", "Pode usar a ação Ajuda como ação bônus um número de vezes igual ao bônus de proficiência por descanso longo. A partir do 3º nível, ao usar a ação Ajuda com este traço, escolha um benefício adicional: Hospitalidade (você e a criatura ajudada recebem 1d6 + bônus de proficiência em pontos de vida temporários), Passagem (vocês dois aumentam o deslocamento de caminhada em 3 m (10 ft) até o início do seu próximo turno) ou Despeito (até o início do próximo turno, na primeira vez que a criatura ajudada acerta um alvo com um ataque, esse alvo tem desvantagem na próxima jogada de ataque que fizer no próximo minuto)."),
+    traco("fortuna-dos-muitos", "Fortuna dos Muitos", "Quando falhar em uma jogada de ataque, teste de atributo ou teste de resistência, pode receber bônus igual ao número de aliados a até 9 m (30 ft) que você possa ver, até o máximo de +3; usos iguais ao bônus de proficiência por descanso longo.")
+  ] }),
+  "kenku-motm": criarVersaoMonstrosDoMultiverso({ id: "kenku", nome: "Kenku", nomeEN: "Kenku", opcoesTamanho: ["P", "M"], tracos: [
+    traco("duplicacao-especialista", "Duplicação Especialista", "Tem vantagem em testes de atributo para criar uma cópia exata de escrita ou trabalho artesanal feito por você ou por outra criatura."),
+    traco("recordacao-kenku", "Recordação Kenku", "Escolha proficiência em duas perícias. Antes de fazer um teste de atributo usando uma perícia na qual tenha proficiência, pode dar a si mesmo vantagem no teste. Pode fazer isso um número de vezes igual ao bônus de proficiência por descanso longo.", { escolhasPericias: ["acrobacia", "lidar-com-animais", "arcanismo", "atletismo", "enganacao", "historia", "intuicao", "intimidacao", "investigacao", "medicina", "natureza", "percepcao", "atuacao", "persuasao", "religiao", "prestidigitacao", "furtividade", "sobrevivencia"], quantidadeEscolhas: 2 }),
+    traco("mimetismo-kenku-motm", "Mimetismo", "Imita sons e vozes que ouviu. A CD para perceber que os sons são imitações é 8 + seu bônus de proficiência + seu modificador de Carisma.")
+  ] }),
+  "kobold-motm": criarVersaoMonstrosDoMultiverso({ id: "kobold", nome: "Kobold", nomeEN: "Kobold", tamanho: "P", opcoesTamanho: null, tracos: [
+    traco("visao-no-escuro-kobold-motm", "Visão no Escuro", "Enxerga no escuro até 18 m (60 ft) como penumbra."),
+    traco("grito-draconico", "Grito Dracônico", "Como ação bônus, ruge para conceder vantagem em ataques contra inimigos a até 3 m (10 ft) até o início do seu próximo turno; usos iguais ao bônus de proficiência por descanso longo."),
+    traco("legado-kobold", "Legado Kobold", "Escolha uma opção: Astúcia (proficiência em uma perícia), Desafio (vantagem em testes de resistência para evitar ou encerrar a condição amedrontado) ou Feitiçaria Dracônica (um truque da lista de feiticeiro e um atributo de conjuração entre Inteligência, Sabedoria ou Carisma). A opção e o truque são registrados nas escolhas raciais.", { escolhaDetalhada: "legado-kobold" })
+  ] }),
+  "povo-lagarto-motm": criarVersaoMonstrosDoMultiverso({ id: "povo-lagarto", nome: "Reptante", nomeEN: "Lizardfolk", velocidadeNado: 30, tracos: [
+    traco("mordida-povo-lagarto-motm", "Mordida", "Ataque desarmado com mordida: 1d6 + modificador de Força de dano perfurante."),
+    traco("prender-a-respiracao-povo-lagarto-motm", "Prender a Respiração", "Consegue prender a respiração por até 15 minutos."),
+    traco("mandibulas-famintas-motm", "Mandíbulas Famintas", "Como ação bônus, faz um ataque de mordida especial; se acertar, recebe pontos de vida temporários iguais ao bônus de proficiência. Usos iguais ao bônus de proficiência por descanso longo."),
+    traco("armadura-natural-povo-lagarto-motm", "Armadura Natural", "Sem armadura, sua Classe de Armadura é 13 + modificador de Destreza; pode usar escudo."),
+    traco("intuicao-da-natureza", "Intuição da Natureza", "Escolha duas perícias entre Lidar com Animais, Medicina, Natureza, Percepção, Furtividade e Sobrevivência.", { escolhasPericias: ["lidar-com-animais", "medicina", "natureza", "percepcao", "furtividade", "sobrevivencia"], quantidadeEscolhas: 2 })
+  ] }),
+  "minotauro-motm": criarVersaoMonstrosDoMultiverso({ id: "minotauro", nome: "Minotauro", nomeEN: "Minotaur", opcoesTamanho: null, tracos: [
+    traco("chifres-minotauro-motm", "Chifres", "Seus chifres são armas naturais que causam 1d6 + modificador de Força de dano perfurante."),
+    traco("investida-penetrante", "Investida Penetrante", "Se usar a ação Disparada no seu turno e se mover pelo menos 6 m (20 ft), pode fazer um ataque corpo a corpo com os chifres como ação bônus."),
+    traco("chifres-empurradores", "Chifres Empurradores", "Imediatamente após acertar uma criatura com um ataque corpo a corpo como parte da ação Atacar, pode tentar empurrar como ação bônus um alvo a até 1,5 m que não seja mais de uma categoria de tamanho maior. O alvo deve passar em um teste de resistência de Força (CD 8 + seu bônus de proficiência + seu modificador de Força) ou será empurrado até 3 m (10 ft)."),
+    traco("memoria-labirintica", "Memória Labiríntica", "Você sempre sabe a direção do norte e tem vantagem em testes de Sabedoria (Sobrevivência) para navegar ou rastrear.")
+  ] }),
+  "orc-motm": criarVersaoMonstrosDoMultiverso({ id: "orc", nome: "Orc", nomeEN: "Orc", tracos: [
+    traco("adrenalina-orc", "Adrenalina", "Como ação bônus, pode Disparar; recebe pontos de vida temporários iguais ao bônus de proficiência. Usos iguais ao bônus de proficiência por descanso longo."),
+    traco("visao-no-escuro-orc-motm", "Visão no Escuro", "Enxerga no escuro até 18 m (60 ft) como penumbra."),
+    traco("porte-poderoso-orc-motm", "Porte Poderoso", "Conta como uma categoria de tamanho maior para carga e para empurrar ou arrastar."),
+    traco("resistencia-implacavel-orc-motm", "Resistência Implacável", "Uma vez por descanso longo, quando seria reduzido a 0 pontos de vida, mas não morreria instantaneamente, pode ficar com 1 ponto de vida em vez disso.")
+  ] }),
+  "genasi-da-agua-motm": criarVersaoMonstrosDoMultiverso({ id: "genasi-da-agua", nome: "Genasi da Água", nomeEN: "Water Genasi", velocidadeNado: 30, opcoesTamanho: ["P", "M"], tracos: [
+    traco("resistencia-acida-genasi-agua", "Resistência Ácida", "Você tem resistência a dano ácido."),
+    traco("anfibio-genasi-agua-motm", "Anfíbio", "Você pode respirar ar e água."),
+    traco("chamado-da-onda-motm", "Chamado da Onda", "Conhece o truque Moldar Água; a partir do 3º nível, pode conjurar Criar ou Destruir Água uma vez por descanso longo, sem componentes materiais, ou usando espaços de magia.")
+  ] }),
+  "satiro-motm": criarVersaoMonstrosDoMultiverso({ id: "satiro", nome: "Sátiro", nomeEN: "Satyr", velocidade: 35, tipoCriatura: "feérico", tracos: [
+    traco("tipo-feerico-satiro-motm", "Feérico", "Seu tipo de criatura é feérico, em vez de humanoide."),
+    traco("chifrada-satiro-motm", "Chifrada", "Seus chifres são armas naturais que causam 1d6 + modificador de Força de dano contundente."),
+    traco("resistencia-magica-satiro-motm", "Resistência à Magia", "Você tem vantagem em testes de resistência contra magias e outros efeitos mágicos."),
+    traco("saltos-alegres", "Saltos Alegres", "Ao realizar um salto em distância ou altura, pode rolar 1d8 e somar o resultado aos pés percorridos, inclusive em um salto iniciado parado. Essa distância adicional custa movimento normalmente."),
+    traco("festeiro", "Festeiro", "Você tem proficiência em Atuação e Persuasão.")
+  ] }),
+  "elfo-do-mar-motm": criarVersaoMonstrosDoMultiverso({ id: "elfo-do-mar", nome: "Elfo Marinho", nomeEN: "Sea Elf", velocidadeNado: 30, tracos: [
+    traco("linhagem-elfica-elfo-mar-motm", "Linhagem Élfica", "Você é considerado um elfo para qualquer pré-requisito ou efeito que exija que você seja um elfo."),
+    traco("filho-do-mar-motm", "Filho do Mar", "Pode respirar ar e água."),
+    traco("visao-no-escuro-elfo-mar-motm", "Visão no Escuro", "Enxerga no escuro até 18 m (60 ft) como penumbra."),
+    traco("ancestral-feerico-elfo-mar", "Ancestral Feérico", "Você tem vantagem em testes de resistência para evitar ou encerrar a condição enfeitiçado."),
+    traco("amigo-do-mar-motm", "Amigo do Mar", "Pode comunicar ideias simples a qualquer besta que tenha deslocamento de natação."),
+    traco("sentidos-aguçados-elfo-mar-motm", "Sentidos Aguçados", "Proficiência em Percepção."),
+    traco("transe-elfo-mar-motm", "Transe", "Não precisa dormir, e magia não pode fazê-lo dormir. Pode concluir um descanso longo em 4 horas de meditação profunda, permanecendo consciente. Ao terminar o transe, ganha proficiência em duas armas ou ferramentas à sua escolha do Livro do Jogador, até concluir o próximo descanso longo.")
+  ] }),
+  "shadar-kai-motm": criarVersaoMonstrosDoMultiverso({ id: "shadar-kai", nome: "Shadar-kai", nomeEN: "Shadar-kai", tracos: [
+    traco("linhagem-elfica-shadar-kai-motm", "Linhagem Élfica", "Você é considerado um elfo para qualquer pré-requisito ou efeito que exija que você seja um elfo."),
+    traco("bencao-rainha-corvo", "Bênção da Rainha Corvo", "Como ação bônus, teletransporta-se magicamente até 9 m (30 ft) para um espaço desocupado que possa ver; usos iguais ao bônus de proficiência por descanso longo. A partir do 3º nível, após o teletransporte, ganha resistência a todo dano até o início do próximo turno."),
+    traco("visao-no-escuro-shadar-kai-motm", "Visão no Escuro", "Enxerga no escuro até 18 m (60 ft) como penumbra."),
+    traco("ancestral-feerico-shadar-kai", "Ancestral Feérico", "Você tem vantagem em testes de resistência para evitar ou encerrar a condição enfeitiçado."),
+    traco("sentidos-aguçados-shadar-kai-motm", "Sentidos Aguçados", "Proficiência em Percepção."),
+    traco("resistencia-necrotica-shadar-kai", "Resistência Necrótica", "Você tem resistência a dano necrótico."),
+    traco("transe-shadar-kai-motm", "Transe", "Não precisa dormir, e magia não pode fazê-lo dormir. Pode concluir um descanso longo em 4 horas de meditação profunda, permanecendo consciente. Ao terminar o transe, ganha proficiência em duas armas ou ferramentas à sua escolha do Livro do Jogador, até concluir o próximo descanso longo.")
+  ] }),
+  "shifter-motm": criarVersaoMonstrosDoMultiverso({ id: "shifter", nome: "Morfo", nomeEN: "Shifter", tracos: [
+    traco("instinto-bestial", "Instinto Bestial", "Escolha proficiência em uma destas perícias: Acrobacia, Atletismo, Intimidação ou Sobrevivência.", { escolhasPericias: ["acrobacia", "atletismo", "intimidacao", "sobrevivencia"], quantidadeEscolhas: 1 }),
+    traco("visao-no-escuro-transmorfo-motm", "Visão no Escuro", "Enxerga no escuro até 18 m (60 ft) como penumbra."),
+    traco("transmutacao", "Morfismo", "Como ação bônus, assume uma aparência mais bestial por 1 minuto ou até morrer ou retornar à aparência normal como ação bônus. Ao morfar, recebe pontos de vida temporários iguais a 2 vezes seu bônus de proficiência. Usos iguais ao bônus de proficiência por descanso longo. Ao morfar, escolha um benefício: Pele de Fera (+1 na CA e 1d6 pontos de vida temporários adicionais), Presa Longa (ao morfar e como ação bônus nos turnos seguintes enquanto morfado, faz um ataque desarmado com presas que causa 1d6 + modificador de Força de dano perfurante), Passo Ágil (deslocamento de caminhada +3 m; quando uma criatura hostil que você possa ver termina o turno a até 1,5 m, pode usar sua reação para mover-se até 3 m sem provocar ataques de oportunidade), ou Caçada Selvagem (vantagem em testes de Sabedoria; criaturas a até 9 m não têm vantagem nas jogadas de ataque contra você, a menos que você esteja incapacitado).")
+  ] }),
+  "tabaxi-motm": criarVersaoMonstrosDoMultiverso({ id: "tabaxi", nome: "Tabaxi", nomeEN: "Tabaxi", opcoesTamanho: ["P", "M"], velocidadeEscalada: 30, tracos: [
+    traco("garras-felinas-tabaxi-motm", "Garras Felinas", "Ataques desarmados com garras causam 1d6 + modificador de Força de dano cortante; pode escalar com deslocamento igual à caminhada."),
+    traco("talentos-felinos", "Talentos Felinos", "Proficiência em Percepção e Furtividade."),
+    traco("visao-no-escuro-tabaxi-motm", "Visão no Escuro", "Enxerga no escuro até 18 m (60 ft) como penumbra."),
+    traco("agilidade-felina-tabaxi-motm", "Agilidade Felina", "Quando se move no seu turno em combate, pode dobrar seu deslocamento até o fim do turno. Depois de usar este traço, só pode usá-lo de novo após mover-se 0 pés em um dos seus turnos.")
+  ] }),
+  "tortle-motm": criarVersaoMonstrosDoMultiverso({ id: "tortle", nome: "Tortuga", nomeEN: "Tortle", opcoesTamanho: ["P", "M"], tracos: [
+    traco("garras-tortle-motm", "Garras", "Ataques desarmados com garras causam 1d6 + modificador de Força de dano cortante."),
+    traco("prender-respiracao-tortle-motm", "Prender a Respiração", "Pode prender a respiração por até 1 hora."),
+    traco("armadura-natural-tortle-motm", "Armadura Natural", "Sua CA base é 17, que não é afetada pela Destreza. Não pode usar armaduras, mas pode usar escudo."),
+    traco("intuicao-natureza-tortle", "Intuição da Natureza", "Escolha proficiência em uma perícia entre Adestrar Animais, Natureza, Medicina, Percepção, Furtividade ou Sobrevivência.", { escolhasPericias: ["lidar-com-animais", "natureza", "medicina", "percepcao", "furtividade", "sobrevivencia"], quantidadeEscolhas: 1 }),
+    traco("defesa-concha-tortle-motm", "Casco Defensivo", "Como ação, recolhe-se no casco; recebe +4 na CA e vantagem em salvaguardas de Força e Constituição, mas fica caído, tem deslocamento 0, não pode aumentá-lo, tem desvantagem em salvaguardas de Destreza e não pode realizar reações. A única ação que pode realizar é uma ação bônus para sair do casco." )
+  ] }),
+  "tritao-motm": criarVersaoMonstrosDoMultiverso({ id: "tritao", nome: "Tritão", nomeEN: "Triton", velocidadeNado: 30, tracos: [
+    traco("anfibio-tritao-motm", "Anfíbio", "Pode respirar ar e água."),
+    traco("controlar-ar-agua", "Controlar Ar e Água", "Pode conjurar Névoa Obscurecente; a partir do 3º nível, também pode conjurar Lufada de Vento; a partir do 5º, Muralha de Água. Cada magia é recuperada após um descanso longo. Também pode usar espaços de magia apropriados. Seu atributo de conjuração é Carisma."),
+    traco("visao-no-escuro-tritao-motm", "Visão no Escuro", "Enxerga no escuro até 18 m (60 ft) como penumbra."),
+    traco("emissario-do-mar", "Emissário do Mar", "Pode comunicar ideias simples a bestas aquáticas."),
+    traco("guardiao-profundezas", "Guardião das Profundezas", "Você tem resistência a dano de frio e está adaptado à pressão das profundezas oceânicas.")
+  ] }),
+  "yuan-ti-motm": criarVersaoMonstrosDoMultiverso({ id: "yuan-ti", nome: "Yuan-ti", nomeEN: "Yuan-ti", opcoesTamanho: ["P", "M"], tracos: [
+    traco("visao-no-escuro-yuan-ti-motm", "Visão no Escuro", "Enxerga no escuro até 18 m (60 ft) como penumbra."),
+    traco("resistencia-magica-yuan-ti-motm", "Resistência à Magia", "Você tem vantagem em testes de resistência contra magias e outros efeitos mágicos."),
+    traco("resiliencia-venenosa", "Resiliência Venenosa", "Você tem resistência a dano de veneno e vantagem em testes de resistência para evitar ou encerrar a condição envenenado."),
+    traco("conjuracao-serpentina", "Conjuração Serpentina", "Conhece o truque Jato Venenoso; pode conjurar Amizade Animal sem limite com esta característica, mas somente tendo serpentes como alvo. A partir do 3º nível, pode conjurar Sugestão uma vez por descanso longo e também usar espaços de magia. Escolha Inteligência, Sabedoria ou Carisma como atributo de conjuração.")
+  ] }),
+});

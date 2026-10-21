@@ -17,6 +17,8 @@ import {
   DRUID_SUBCLASS_GRANTED_SPELL_IDS_5E,
   PALADIN_OATH_GRANTED_SPELL_IDS_5E,
 } from "../../data/granted-spell-sources.js";
+import { ARTISAN_TOOL_CHOICE_OPTIONS } from "./static-options.js";
+import { EQUIPMENT_OPTION_LISTS } from "../../data/5e/equipamento-inicial.js";
 
 export const RUNE_KNIGHT_RUNES_BY_LEVEL_5E = [
   0, 0, 0, 2, 2, 2, 2, 3, 3, 3,
@@ -890,6 +892,10 @@ export const RACIAL_SPELLCASTING_ABILITY_OPTIONS = ["int", "sab", "car"].map((ab
   value: abilityKey,
   label: RACIAL_SPELLCASTING_ABILITY_LABELS[abilityKey] || abilityKey.toUpperCase(),
 }));
+const MUSICAL_INSTRUMENT_CHOICE_OPTIONS = (EQUIPMENT_OPTION_LISTS.musicalInstruments || []).map(({ id, label }) => ({
+  value: id,
+  label,
+}));
 export const RACIAL_DETAIL_DEFINITIONS = {
   fada: {
     detailType: "spellAbility",
@@ -897,6 +903,132 @@ export const RACIAL_DETAIL_DEFINITIONS = {
     description: "Escolha qual atributo racial governa as magias da sua Magia das Fadas.",
     options: RACIAL_SPELLCASTING_ABILITY_OPTIONS,
   },
+  "aarakocra-motm": {
+    detailType: "spellAbility",
+    label: "Atributo de Conjuração",
+    description: "Escolha Inteligência, Sabedoria ou Carisma para a característica Chamador do Vento.",
+    options: RACIAL_SPELLCASTING_ABILITY_OPTIONS,
+  },
+  "fada-motm": {
+    detailType: "spellAbility",
+    label: "Atributo de Conjuração",
+    description: "Escolha Inteligência, Sabedoria ou Carisma para as magias da característica Magia das Fadas.",
+    options: RACIAL_SPELLCASTING_ABILITY_OPTIONS,
+  },
+  "gnomo-das-profundezas-motm": {
+    detailType: "spellAbility",
+    label: "Atributo de Conjuração",
+    description: "Escolha Inteligência, Sabedoria ou Carisma para as magias da Dádiva dos Svirfneblin.",
+    options: RACIAL_SPELLCASTING_ABILITY_OPTIONS,
+  },
+  "duergar-motm": {
+    detailType: "spellAbility",
+    label: "Atributo de Conjuração",
+    description: "Escolha Inteligência, Sabedoria ou Carisma para as magias de Magia Duergar.",
+    options: RACIAL_SPELLCASTING_ABILITY_OPTIONS,
+  },
+  "firbolg-motm": {
+    detailType: "spellAbility",
+    label: "Atributo de Conjuração",
+    description: "Escolha Inteligência, Sabedoria ou Carisma para as magias de Magia Firbolg.",
+    options: RACIAL_SPELLCASTING_ABILITY_OPTIONS,
+  },
+  "githyanki-motm": {
+    detailType: "spellAbility",
+    label: "Atributo de Conjuração",
+    description: "Escolha Inteligência, Sabedoria ou Carisma para as magias da Psiônica Githyanki.",
+    options: RACIAL_SPELLCASTING_ABILITY_OPTIONS,
+  },
+  "githzerai-motm": {
+    detailType: "spellAbility",
+    label: "Atributo de Conjuração",
+    description: "Escolha Inteligência, Sabedoria ou Carisma para as magias da Psiônica Githzerai.",
+    options: RACIAL_SPELLCASTING_ABILITY_OPTIONS,
+  },
+  "satiro-motm": {
+    detailType: "musicalInstrument",
+    label: "Instrumento Musical",
+    description: "Escolha o instrumento musical para a proficiência concedida por Festeiro.",
+    options: MUSICAL_INSTRUMENT_CHOICE_OPTIONS,
+  },
+  "genasi-do-ar-motm": {
+    detailType: "spellAbility",
+    label: "Atributo de Conjuração",
+    description: "Escolha Inteligência, Sabedoria ou Carisma para as magias de Misturar-se ao Vento.",
+    options: RACIAL_SPELLCASTING_ABILITY_OPTIONS,
+  },
+  "genasi-da-terra-motm": {
+    detailType: "spellAbility",
+    label: "Atributo de Conjuração",
+    description: "Escolha Inteligência, Sabedoria ou Carisma para as magias de Fundir-se à Pedra.",
+    options: RACIAL_SPELLCASTING_ABILITY_OPTIONS,
+  },
+  "genasi-do-fogo-motm": {
+    detailType: "spellAbility",
+    label: "Atributo de Conjuração",
+    description: "Escolha Inteligência, Sabedoria ou Carisma para as magias de Alcance da Chama.",
+    options: RACIAL_SPELLCASTING_ABILITY_OPTIONS,
+  },
+  "genasi-da-agua-motm": {
+    detailType: "spellAbility",
+    label: "Atributo de Conjuração",
+    description: "Escolha Inteligência, Sabedoria ou Carisma para as magias de Chamado da Onda.",
+    options: RACIAL_SPELLCASTING_ABILITY_OPTIONS,
+  },
+  "yuan-ti-motm": {
+    detailType: "spellAbility",
+    label: "Atributo de Conjuração",
+    description: "Escolha Inteligência, Sabedoria ou Carisma para as magias da característica Conjuração Serpentina.",
+    options: RACIAL_SPELLCASTING_ABILITY_OPTIONS,
+  },
+  "kobold-motm": [
+    {
+      detailType: "koboldLegacy",
+      label: "Legado Kobold",
+      description: "Escolha uma das três opções do Legado Kobold.",
+      options: [
+        { value: "craftiness", label: "Astúcia", summary: "Ganha proficiência em uma perícia à sua escolha." },
+        { value: "defiance", label: "Desafio", summary: "Tem vantagem em testes de resistência para evitar ou encerrar a condição amedrontado." },
+        { value: "draconicSorcery", label: "Feitiçaria Dracônica", summary: "Conhece um truque à sua escolha da lista de magias de feiticeiro." },
+      ],
+    },
+    {
+      detailType: "spellAbility",
+      label: "Atributo de Conjuração",
+      description: "Escolha Inteligência, Sabedoria ou Carisma para o truque de Feitiçaria Dracônica.",
+      options: RACIAL_SPELLCASTING_ABILITY_OPTIONS,
+      requiresDetail: { detailType: "koboldLegacy", value: "draconicSorcery" },
+    },
+  ],
+  "aasimar-motm": {
+    detailType: "celestialRevelation",
+    label: "Revelação Celestial",
+    description: "Escolha a revelação que manifesta sua natureza celestial. O efeito dura 1 minuto e pode ser encerrado como ação bônus.",
+    options: [
+      { value: "necroticShroud", label: "Manto Necrótico", summary: "Criaturas à sua escolha a até 3 m (10 ft) que possam vê-lo devem passar em um teste de resistência de Carisma (CD 8 + bônus de proficiência + modificador de Carisma) ou ficam amedrontadas até o fim do seu próximo turno. Uma vez em cada turno, quando causar dano com um ataque ou magia, pode causar dano necrótico adicional igual ao bônus de proficiência." },
+      { value: "radiantConsumption", label: "Consumação Radiante", summary: "Você emite luz plena em um raio de 3 m (10 ft) e penumbra por mais 3 m (10 ft). No fim de cada um dos seus turnos, você e cada criatura a até 3 m sofrem dano radiante igual ao bônus de proficiência. Uma vez em cada turno, quando causar dano com um ataque ou magia, pode causar dano radiante adicional igual ao bônus de proficiência." },
+      { value: "radiantSoul", label: "Espírito Radiante", summary: "Você ganha deslocamento de voo igual ao seu deslocamento de caminhada. Uma vez em cada turno, quando causar dano a uma criatura com um ataque ou magia, pode causar dano radiante adicional igual ao bônus de proficiência." },
+    ],
+  },
+  "eladrin-motm": [
+    {
+      detailType: "spellAbility",
+      label: "Atributo da CD",
+      description: "Escolha Inteligência, Sabedoria ou Carisma como atributo para a CD dos efeitos do Passo Feérico.",
+      options: RACIAL_SPELLCASTING_ABILITY_OPTIONS,
+    },
+    {
+      detailType: "eladrinSeason",
+      label: "Estação Élfica",
+      description: "Escolha a estação atual. Você pode mudar de estação ao concluir o Transe.",
+      options: [
+        { value: "autumn", label: "Outono", summary: "Imediatamente após se teleportar, até duas criaturas à sua escolha que possa ver a até 3 m (10 ft) fazem uma salvaguarda de Sabedoria (CD 8 + bônus de proficiência + modificador do atributo escolhido) ou ficam enfeitiçadas por 1 minuto, até você ou seus companheiros causarem dano a elas, ou até você encerrar o efeito como ação bônus." },
+        { value: "winter", label: "Inverno", summary: "Antes de se teleportar, uma criatura à sua escolha que possa ver a até 1,5 m (5 ft) deve ser bem-sucedida em uma salvaguarda de Sabedoria (CD 8 + bônus de proficiência + modificador do atributo escolhido) ou fica amedrontada até o fim do seu próximo turno." },
+        { value: "spring", label: "Primavera", summary: "Ao usar Passo Feérico, pode tocar uma criatura voluntária a até 1,5 m (5 ft) antes de se teleportar; essa criatura teleporta em seu lugar para um espaço desocupado que você possa ver a até 9 m (30 ft)." },
+        { value: "summer", label: "Verão", summary: "Imediatamente após se teleportar, cada criatura à sua escolha que possa ver a até 1,5 m (5 ft) de você sofre dano ígneo igual ao seu bônus de proficiência." },
+      ],
+    },
+  ],
   hexblood: {
     detailType: "spellAbility",
     label: "Atributo de Conjuração",
@@ -909,10 +1041,202 @@ export const RACIAL_DETAIL_DEFINITIONS = {
     description: "Escolha o atributo usado no truque concedido por Fogo Astral.",
     options: RACIAL_SPELLCASTING_ABILITY_OPTIONS,
   },
+  "humano-marca-criacao": {
+    detailType: "dragonmarkTool",
+    label: "Ferramenta de Artesão",
+    description: "Escolha a ferramenta de artesão concedida pelo Sinal da Criação.",
+    options: ARTISAN_TOOL_CHOICE_OPTIONS,
+  },
+  "linhagem-personalizada": [
+    {
+      detailType: "lineageSize",
+      label: "Tamanho",
+      description: "A Linhagem Personalizada pode ser Pequena ou Média.",
+      options: [
+        { value: "P", label: "Pequeno" },
+        { value: "M", label: "Médio" },
+      ],
+    },
+    {
+      detailType: "lineageFeature",
+      label: "Característica Distintiva",
+      description: "Escolha visão no escuro de 18 m (60 ft) ou proficiência em uma perícia.",
+      options: [
+        { value: "darkvision", label: "Visão no Escuro (18 m / 60 ft)" },
+        { value: "skill:acrobacia", label: "Proficiência: Acrobacia" },
+        { value: "skill:adestrarAnimais", label: "Proficiência: Adestrar Animais" },
+        { value: "skill:arcanismo", label: "Proficiência: Arcanismo" },
+        { value: "skill:atletismo", label: "Proficiência: Atletismo" },
+        { value: "skill:enganacao", label: "Proficiência: Enganação" },
+        { value: "skill:historia", label: "Proficiência: História" },
+        { value: "skill:intuicao", label: "Proficiência: Intuição" },
+        { value: "skill:intimidacao", label: "Proficiência: Intimidação" },
+        { value: "skill:investigacao", label: "Proficiência: Investigação" },
+        { value: "skill:medicina", label: "Proficiência: Medicina" },
+        { value: "skill:natureza", label: "Proficiência: Natureza" },
+        { value: "skill:percepcao", label: "Proficiência: Percepção" },
+        { value: "skill:atuacao", label: "Proficiência: Atuação" },
+        { value: "skill:persuasao", label: "Proficiência: Persuasão" },
+        { value: "skill:religiao", label: "Proficiência: Religião" },
+        { value: "skill:prestidigitacao", label: "Proficiência: Prestidigitação" },
+        { value: "skill:furtividade", label: "Proficiência: Furtividade" },
+        { value: "skill:sobrevivencia", label: "Proficiência: Sobrevivência" },
+      ],
+    },
+  ],
 };
 export const RACIAL_SPELL_SOURCE_DEFINITIONS = {
   race: {
+    "aarakocra-motm": [
+      {
+        sourceKeySuffix: "chamador-do-vento",
+        featureLabel: "Chamador do Vento",
+        abilityDetailTarget: "aarakocra-motm",
+        defaultAbility: "int",
+        unlocks: { 3: ["lufada-de-vento"] },
+      },
+    ],
+    "aasimar-motm": [
+      {
+        sourceKeySuffix: "portador-da-luz",
+        featureLabel: "Portador da Luz",
+        ability: "car",
+        grantedSpellIds: ["luz"],
+      },
+    ],
+    "genasi-do-ar-motm": [
+      {
+        sourceKeySuffix: "misturar-se-ao-vento",
+        featureLabel: "Misturar-se ao Vento",
+        abilityDetailTarget: "genasi-do-ar-motm",
+        defaultAbility: "int",
+        unlocks: { 1: ["toque-chocante"], 3: ["queda-suave"], 5: ["levitacao"] },
+      },
+    ],
+    "genasi-da-terra-motm": [
+      {
+        sourceKeySuffix: "fundir-se-a-pedra",
+        featureLabel: "Fundir-se à Pedra",
+        abilityDetailTarget: "genasi-da-terra-motm",
+        defaultAbility: "int",
+        unlocks: { 1: ["protecao-contra-laminas"], 3: ["passos-sem-pegadas"] },
+      },
+    ],
+    "genasi-do-fogo-motm": [
+      {
+        sourceKeySuffix: "alcance-da-chama",
+        featureLabel: "Alcance da Chama",
+        abilityDetailTarget: "genasi-do-fogo-motm",
+        defaultAbility: "int",
+        unlocks: { 1: ["produzir-chama"], 3: ["maos-flamejantes"] },
+      },
+    ],
+    "genasi-da-agua-motm": [
+      {
+        sourceKeySuffix: "chamado-da-onda",
+        featureLabel: "Chamado da Onda",
+        abilityDetailTarget: "genasi-da-agua-motm",
+        defaultAbility: "int",
+        unlocks: { 1: ["moldar-agua"], 3: ["criar-ou-destruir-agua"] },
+      },
+    ],
+    "gnomo-das-profundezas-motm": [
+      {
+        sourceKeySuffix: "dadiva-svirfneblin",
+        featureLabel: "Dádiva dos Svirfneblin",
+        abilityDetailTarget: "gnomo-das-profundezas-motm",
+        defaultAbility: "int",
+        unlocks: { 3: ["disfarçar-se"], 5: ["antideteccao"] },
+      },
+    ],
+    "duergar-motm": [
+      {
+        sourceKeySuffix: "magia-duergar",
+        featureLabel: "Magia Duergar",
+        abilityDetailTarget: "duergar-motm",
+        defaultAbility: "int",
+        unlocks: { 3: ["aumentar-reduzir"], 5: ["invisibilidade"] },
+      },
+    ],
+    "fada-motm": [
+      {
+        sourceKeySuffix: "magia-das-fadas",
+        featureLabel: "Magia das Fadas",
+        abilityDetailTarget: "fada-motm",
+        defaultAbility: "int",
+        unlocks: { 1: ["oficio-druidico"], 3: ["fogo-feerico"], 5: ["aumentar-reduzir"] },
+      },
+    ],
+    "firbolg-motm": [
+      {
+        sourceKeySuffix: "magia-firbolg",
+        featureLabel: "Magia Firbolg",
+        abilityDetailTarget: "firbolg-motm",
+        defaultAbility: "sab",
+        grantedSpellIds: ["detectar-magia", "disfarçar-se"],
+      },
+    ],
+    "githyanki-motm": [
+      {
+        sourceKeySuffix: "psionica-githyanki",
+        featureLabel: "Psiônica Githyanki",
+        abilityDetailTarget: "githyanki-motm",
+        defaultAbility: "int",
+        unlocks: { 1: ["maos-magicas"], 3: ["salto"], 5: ["passo-da-neblina"] },
+      },
+    ],
+    "githzerai-motm": [
+      {
+        sourceKeySuffix: "psionica-githzerai",
+        featureLabel: "Psiônica Githzerai",
+        abilityDetailTarget: "githzerai-motm",
+        defaultAbility: "sab",
+        unlocks: { 1: ["maos-magicas"], 3: ["escudo"], 5: ["detectar-pensamentos"] },
+      },
+    ],
+    "kobold-motm": [
+      {
+        sourceKeySuffix: "feiticaria-draconica",
+        featureLabel: "Feitiçaria Dracônica",
+        abilityDetailTarget: "kobold-motm",
+        defaultAbility: "car",
+        requiredDetail: { detailType: "koboldLegacy", value: "draconicSorcery" },
+        sourceClassId: "feiticeiro",
+        cantripLimit: 1,
+        maxSpellLevel: 0,
+        selectionLabel: "Truque de feiticeiro",
+      },
+    ],
+    "tritao-motm": [
+      {
+        sourceKeySuffix: "controlar-ar-agua",
+        featureLabel: "Controlar Ar e Água",
+        ability: "car",
+        unlocks: { 1: ["neblina"], 3: ["lufada-de-vento"], 5: ["muralha-de-agua"] },
+      },
+    ],
+    "yuan-ti-motm": [
+      {
+        sourceKeySuffix: "conjuracao-serpentina",
+        featureLabel: "Conjuração Serpentina",
+        abilityDetailTarget: "yuan-ti-motm",
+        defaultAbility: "int",
+        unlocks: { 1: ["spray-venenoso"], 3: ["sugestao"] },
+      },
+    ],
     tiferino: [
+      {
+        sourceKeySuffix: "legado-infernal",
+        featureLabel: "Legado Infernal",
+        ability: "car",
+        unlocks: {
+          1: ["taumaturgia"],
+          3: ["repreensao-infernal"],
+          5: ["escuridao"],
+        },
+      },
+    ],
+    "tiferino-ferino": [
       {
         sourceKeySuffix: "legado-infernal",
         featureLabel: "Legado Infernal",
@@ -1019,10 +1343,193 @@ export const RACIAL_SPELL_SOURCE_DEFINITIONS = {
         featureLabel: "Magia Drow",
         ability: "car",
         unlocks: {
-          1: ["luz"],
+          1: ["globos-de-luz"],
           3: ["fogo-feerico"],
           5: ["escuridao"],
         },
+      },
+    ],
+    "meio-elfo-alto-elfo-truque": [
+      {
+        sourceKeySuffix: "truque-elfo-alto",
+        featureLabel: "Truque",
+        sourceClassId: "mago",
+        ability: "int",
+        cantripLimit: 1,
+        maxSpellLevel: 0,
+        selectionLabel: "Truque de mago",
+      },
+    ],
+    "meio-elfo-drow-magia": [
+      {
+        sourceKeySuffix: "magia-drow",
+        featureLabel: "Magia Drow",
+        ability: "car",
+        unlocks: {
+          1: ["globos-de-luz"],
+          3: ["fogo-feerico"],
+          5: ["escuridao"],
+        },
+      },
+    ],
+    "tiferino-lingua-do-diabo": [
+      {
+        sourceKeySuffix: "legado-infernal-lingua-do-diabo",
+        featureLabel: "Legado Infernal: Língua do Diabo",
+        ability: "car",
+        unlocks: { 1: ["escarneo-terrivel"], 3: ["enfeiticar-pessoa"], 5: ["cativar"] },
+      },
+    ],
+    "tiferino-inferno": [
+      {
+        sourceKeySuffix: "legado-infernal-inferno",
+        featureLabel: "Legado Infernal: Fogo Infernal",
+        ability: "car",
+        unlocks: { 1: ["taumaturgia"], 3: ["maos-flamejantes"], 5: ["escuridao"] },
+      },
+    ],
+    "tiferino-ferino-lingua-do-diabo": [
+      {
+        sourceKeySuffix: "legado-infernal-lingua-do-diabo",
+        featureLabel: "Legado Infernal: Língua do Diabo",
+        ability: "car",
+        unlocks: { 1: ["escarneo-terrivel"], 3: ["enfeiticar-pessoa"], 5: ["cativar"] },
+      },
+    ],
+    "tiferino-ferino-inferno": [
+      {
+        sourceKeySuffix: "legado-infernal-inferno",
+        featureLabel: "Legado Infernal: Fogo Infernal",
+        ability: "car",
+        unlocks: { 1: ["taumaturgia"], 3: ["maos-flamejantes"], 5: ["escuridao"] },
+      },
+    ],
+    "tiferino-baalzebul": [
+      { sourceKeySuffix: "legado-baalzebul", featureLabel: "Legado de Maladomini", ability: "car", unlocks: { 1: ["taumaturgia"], 3: ["raio-do-enjoo"], 5: ["coroa-de-loucura"] } },
+    ],
+    "tiferino-dispater": [
+      { sourceKeySuffix: "legado-dispater", featureLabel: "Legado de Dis", ability: "car", unlocks: { 1: ["taumaturgia"], 3: ["disfarçar-se"], 5: ["detectar-pensamentos"] } },
+    ],
+    "tiferino-fierna": [
+      { sourceKeySuffix: "legado-fierna", featureLabel: "Legado de Phlegethos", ability: "car", unlocks: { 1: ["amigos"], 3: ["enfeiticar-pessoa"], 5: ["sugestao"] } },
+    ],
+    "tiferino-glasya": [
+      { sourceKeySuffix: "legado-glasya", featureLabel: "Legado de Malbolge", ability: "car", unlocks: { 1: ["ilusao-menor"], 3: ["disfarçar-se"], 5: ["invisibilidade"] } },
+    ],
+    "tiferino-levistus": [
+      { sourceKeySuffix: "legado-levistus", featureLabel: "Legado de Stygia", ability: "car", unlocks: { 1: ["raio-de-gelo"], 3: ["armadura-de-agathys"], 5: ["escuridao"] } },
+    ],
+    "tiferino-mammon": [
+      { sourceKeySuffix: "legado-mammon", featureLabel: "Legado de Minauros", ability: "car", unlocks: { 1: ["maos-magicas"], 3: ["disco-flutuante"], 5: ["tranca-arcana"] } },
+    ],
+    "tiferino-mefistofeles": [
+      { sourceKeySuffix: "legado-mefistofeles", featureLabel: "Legado de Cania", ability: "car", unlocks: { 1: ["maos-magicas"], 3: ["maos-flamejantes"], 5: ["espada-de-chamas"] } },
+    ],
+    "tiferino-zariel": [
+      { sourceKeySuffix: "legado-zariel", featureLabel: "Legado de Avernus", ability: "car", unlocks: { 1: ["taumaturgia"], 3: ["destruicao-ardente"], 5: ["destruicao-marcante"] } },
+    ],
+    "elfo-marca-sombra": [
+      {
+        sourceKeySuffix: "dom-da-sombra",
+        featureLabel: "Moldar Sombras",
+        ability: "car",
+        unlocks: { 1: ["ilusao-menor"], 3: ["invisibilidade"] },
+      },
+    ],
+    "anao-marca-protecao": [
+      {
+        sourceKeySuffix: "magia-de-protecao",
+        featureLabel: "Proteções e Selos",
+        ability: "int",
+        unlocks: { 1: ["alarme", "armadura-arcana"], 3: ["tranca-arcana"] },
+      },
+    ],
+    "gnomo-marca-escrita": [
+      {
+        sourceKeySuffix: "dom-do-escriba",
+        featureLabel: "Dom do Escriba",
+        ability: "int",
+        unlocks: { 1: ["mensagem", "compreender-idiomas"], 3: ["boca-magica"] },
+      },
+    ],
+    "pequenino-marca-cura": [
+      {
+        sourceKeySuffix: "toque-curativo",
+        featureLabel: "Toque Curativo",
+        ability: "sab",
+        unlocks: { 1: ["curar-ferimentos"], 3: ["restauracao-menor"] },
+      },
+    ],
+    "pequenino-marca-hospitalidade": [
+      {
+        sourceKeySuffix: "magia-hospitaleira",
+        featureLabel: "Magia do Estalajadeiro",
+        ability: "car",
+        unlocks: { 1: ["prestidigitacao", "purificar-alimentos-e-bebidas", "servo-invisivel"] },
+      },
+    ],
+    "humano-marca-treinamento": [
+      {
+        sourceKeySuffix: "conexao-primitiva",
+        featureLabel: "Conexão Primitiva",
+        ability: "sab",
+        unlocks: { 1: ["amizade-animal", "falar-com-animais"] },
+      },
+    ],
+    "humano-marca-procura": [
+      {
+        sourceKeySuffix: "magia-da-busca",
+        featureLabel: "Descoberta Mágica",
+        ability: "sab",
+        unlocks: { 1: ["marca-do-cacador"], 3: ["localizar-objeto"] },
+      },
+    ],
+    "humano-marca-criacao": [
+      {
+        sourceKeySuffix: "ferreiro-magico",
+        featureLabel: "Ferreiro Mágico",
+        ability: "int",
+        unlocks: { 1: ["consertar", "arma-magica"] },
+      },
+    ],
+    "meio-orc-marca-procura": [
+      {
+        sourceKeySuffix: "magia-da-busca",
+        featureLabel: "Descoberta Mágica",
+        ability: "sab",
+        unlocks: { 1: ["marca-do-cacador"], 3: ["localizar-objeto"] },
+      },
+    ],
+    "humano-marca-passagem": [
+      {
+        sourceKeySuffix: "travessia-magica",
+        featureLabel: "Travessia Mágica",
+        ability: "des",
+        unlocks: { 1: ["passo-da-neblina"] },
+      },
+    ],
+    "humano-marca-sentinela": [
+      {
+        sourceKeySuffix: "escudo-guardiao",
+        featureLabel: "Escudo Guardião",
+        ability: "sab",
+        unlocks: { 1: ["escudo"] },
+      },
+    ],
+    "meio-elfo-marca-deteccao": [
+      {
+        sourceKeySuffix: "deteccao-magica",
+        featureLabel: "Detecção Mágica",
+        ability: "int",
+        unlocks: { 1: ["detectar-magia", "detectar-veneno-e-doenca"], 3: ["ver-invisibilidade"] },
+      },
+    ],
+    "meio-elfo-marca-tormenta": [
+      {
+        sourceKeySuffix: "ventos-contrarios",
+        featureLabel: "Ventos de Proa",
+        ability: "car",
+        unlocks: { 1: ["lufada"], 3: ["lufada-de-vento"] },
       },
     ],
     "gnomo-da-floresta": [
@@ -1133,6 +1640,48 @@ export const RACIAL_SPELL_SOURCE_DEFINITIONS = {
     ],
   },
 };
+export const RACIAL_SPELL_LIST_AUGMENTS = {
+  "meio-elfo-marca-deteccao": {
+    bonusSpellIds: ["detectar-bem-e-mal", "detectar-veneno-e-doenca", "detectar-pensamentos", "encontrar-armadilhas", "clarividencia", "antideteccao", "olho-arcano", "adivinhacao", "conhecimento-da-lenda"],
+  },
+  "meio-orc-marca-procura": {
+    bonusSpellIds: ["fogo-feerico", "passolargo", "localizar-animais-e-plantas", "localizar-objeto", "clarividencia", "falar-com-plantas", "adivinhacao", "localizar-criatura", "comunhao-com-a-natureza"],
+  },
+  "humano-marca-procura": {
+    bonusSpellIds: ["fogo-feerico", "passolargo", "localizar-animais-e-plantas", "localizar-objeto", "clarividencia", "falar-com-plantas", "adivinhacao", "localizar-criatura", "comunhao-com-a-natureza"],
+  },
+  "humano-marca-treinamento": {
+    bonusSpellIds: ["amizade-animal", "falar-com-animais", "sentido-da-besta", "acalmar-emocoes", "farol-de-esperanca", "conjurar-animais", "aura-da-vida", "dominar-besta", "despertar"],
+  },
+  "pequenino-marca-cura": {
+    bonusSpellIds: ["curar-ferimentos", "palavra-da-cura", "restauracao-menor", "oracao-de-cura", "aura-da-vitalidade", "palavra-de-cura-em-massa", "aura-da-vida", "aura-da-pureza", "restauracao-maior"],
+  },
+  "pequenino-marca-hospitalidade": {
+    bonusSpellIds: ["bom-fruto", "sono", "ajuda", "acalmar-emocoes", "criar-alimentos", "pequena-cabana", "aura-da-pureza", "santuario-privativo", "consagrar"],
+  },
+  "humano-marca-criacao": {
+    bonusSpellIds: ["identificacao", "disco-flutuante", "chama-continua", "arma-magica", "conjurar-barragem", "arma-elemental", "fabricar", "moldar-pedra", "criacao"],
+  },
+  "humano-marca-passagem": {
+    bonusSpellIds: ["recuo-acelerado", "salto", "passos-sem-pegadas", "encontrar-montaria", "piscar", "montaria-fantasmagorica", "porta-dimensional", "movimento-livre", "circulo-de-teletransporte"],
+  },
+  "gnomo-marca-escrita": {
+    bonusSpellIds: ["compreender-idiomas", "escrita-ilusoria", "mensageiro-animal", "silencio", "enviar-mensagem", "idiomas", "olho-arcano", "confusao", "sonho"],
+  },
+  "humano-marca-sentinela": {
+    bonusSpellIds: ["compelir-duelo", "escudo-da-fe", "elo-protetor", "zona-da-verdade", "contramagica", "protecao-contra-energia", "protecao-contra-morte", "guardiao-da-fe", "mao-de-energia"],
+  },
+  "elfo-marca-sombra": {
+    bonusSpellIds: ["disfarçar-se", "imagem-silenciosa", "escuridao", "passos-sem-pegadas", "clarividencia", "imagem-maior", "invisibilidade-maior", "terreno-alucinatorio", "enganar"],
+  },
+  "meio-elfo-marca-tormenta": {
+    bonusSpellIds: ["queda-suave", "neblina", "lufada-de-vento", "levitacao", "tempestade-de-granizo", "muralha-de-vento", "conjurar-elementais-menores", "controlar-agua", "invocar-elemental"],
+  },
+  "anao-marca-protecao": {
+    bonusSpellIds: ["alarme", "armadura-de-agathys", "tranca-arcana", "arrombar", "glifo-de-protecao", "circulo-magico", "bau-secreto-de-leomund", "mordenkainens-faithful-hound", "barreira-antivida"],
+  },
+};
+
 export const SUBCLASS_SPELL_LIST_AUGMENTS = {
   "bruxo-arquifada": {
     bonusSpellIds: ["fogo-feerico", "sono", "acalmar-emocoes", "forca-fantasmagorica", "piscar", "crescer-plantas", "dominar-besta", "invisibilidade-maior", "dominar-pessoa", "aparencia"],

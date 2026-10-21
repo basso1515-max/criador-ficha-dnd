@@ -2,7 +2,7 @@
 import { ADDITIONAL_OFFICIAL_SPELLS_2014 } from "./official-expansion-spells.js";
 import { OFFICIAL_CLASS_OVERRIDES_2014 } from "./official-class-list-overrides.js";
 
-export const DATASET_VERSION = "0.2.0";
+export const DATASET_VERSION = "0.2.3";
 export const META_MAGIAS = {
   dataset: "dnd5e-ptbr",
   version: DATASET_VERSION,
@@ -26,6 +26,9 @@ export const META_MAGIAS = {
     }
   },
   changelog: [
+    "0.2.3: Corrige o nome oficial em português de Névoa Obscurecente.",
+    "0.2.2: Corrige os nomes oficiais de Zombaria Perversa e Fogo das Fadas.",
+    "0.2.1: Ajusta os nomes em português de Disco Flutuante de Tenser e Santuário Particular de Mordenkainen.",
     "0.2.0: Completa o catálogo estático com 34 magias oficiais ausentes, remove 9 variantes que não são magias distintas e corrige listas de classe conforme as listas oficiais da edição 2014.",
     "0.1.1: Localiza Shillelagh como Bordão Místico, preservando o nome original para busca.",
     "0.1.0: Loader SRD JSON + cache localStorage; stub offline para UI e testes."
@@ -358,7 +361,7 @@ export const MAGIAS = {
       },
       "escarneo-terrivel": {
         id: "escarneo-terrivel",
-        nome: "Escárnio Terrível",
+        nome: "Zombaria Perversa",
         nomeEN: "Vicious Mockery",
         nivel: 0,
         escola: "encantamento",
@@ -1487,8 +1490,8 @@ export const MAGIAS = {
       },
       "disco-flutuante": {
         id: "disco-flutuante",
-        nome: "Disco Flutuante",
-        nomeEN: "Floating Disk",
+        nome: "Disco Flutuante de Tenser",
+        nomeEN: "Tenser's Floating Disk",
         nivel: 1,
         escola: "conjuração",
         ritual: true,
@@ -1571,7 +1574,7 @@ export const MAGIAS = {
       },
       "neblina": {
         id: "neblina",
-        nome: "Neblina",
+        nome: "Névoa Obscurecente",
         nomeEN: "Fog Cloud",
         nivel: 1,
         escola: "conjuração",
@@ -2058,7 +2061,7 @@ export const MAGIAS = {
       },
       "fogo-feerico": {
         id: "fogo-feerico",
-        nome: "Fogo Feérico",
+        nome: "Fogo das Fadas",
         nomeEN: "Faerie Fire",
         nivel: 1,
         escola: "evocação",
@@ -5695,8 +5698,8 @@ export const MAGIAS = {
       },
       "santuario-privativo": {
         id: "santuario-privativo",
-        nome: "Santuário Privativo",
-        nomeEN: "Private Sanctum",
+        nome: "Santuário Particular de Mordenkainen",
+        nomeEN: "Mordenkainen's Private Sanctum",
         nivel: 4,
         escola: "abjuração",
         ritual: false,
