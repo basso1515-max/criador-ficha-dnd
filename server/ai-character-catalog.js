@@ -40,7 +40,7 @@ export function analyzePromptCatalogIntent(prompt = "", config) {
     divinities: findCatalogMatches(config.divinities, "divinity", promptText),
   };
   const narrative = inferNarrativeCatalogMatches(promptText, config, explicit);
-  const resolved = resolveCatalogIntentFromMatches(explicit, narrative);
+  const resolved = resolveCatalogIntentFromMatches(explicit, narrative, promptText);
 
   return { explicit, narrative, resolved };
 }
@@ -176,9 +176,19 @@ function inferNarrativeCatalogMatches(promptText = "", config, explicit) {
   return suggestions;
 }
 
-function resolveCatalogIntentFromMatches(explicit, narrative) {
+function resolveCatalogIntentFromMatches(explicit, narrative, promptText = "") {
   const explicitRace = pickBestCatalogMatch(explicit.races);
-  const explicitSubrace = pickBestCatalogMatch(explicit.subraces, explicitRace?.id, readSubraceParentId);
+  const matchingParentSubrace = pickBestCatalogMatch(explicit.subraces, explicitRace?.id, readSubraceParentId);
+  const raceBaseName = normalizeSearchText(
+    explicitRace?.nomeEspecie
+      || String(explicitRace?.nome || "").replace(/\s*\([^)]*\)\s*$/, "")
+  );
+  const sameNameSubrace = raceBaseName
+    ? explicit.subraces.find((match) => normalizeSearchText(match.item?.nome) === raceBaseName)?.item || null
+    : null;
+  const explicitlySelectsMotM = ["monstros do multiverso", "mordenkainen presents monsters of the multiverse", "motm", "mpmm"]
+    .some((term) => containsNormalizedPhrase(promptText, term));
+  const explicitSubrace = matchingParentSubrace || (!explicitlySelectsMotM ? sameNameSubrace : null);
   const narrativeSubrace = explicitSubrace
     ? null
     : pickBestCatalogMatch(narrative.filter((match) => match.kind === "subrace"), explicitRace?.id, readSubraceParentId);
