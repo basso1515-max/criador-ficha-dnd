@@ -1,15 +1,16 @@
 // talentos.js
-export const DATASET_VERSION = "0.2.0";
+export const DATASET_VERSION = "0.3.0";
 export const META_TALENTOS = {
   dataset: "dnd5e-ptbr",
   version: DATASET_VERSION,
   locale: "pt-BR",
-  builtAt: "2026-04-09",
+  builtAt: "2026-10-21",
   sources: {
     featsIndex: "https://www.dndbeyond.com/feats",
-    variantHuman: "https://www.dndbeyond.com/sources/dnd/basic-rules-2014/races"
+    variantHuman: "https://www.dndbeyond.com/sources/dnd/basic-rules-2014/races",
   },
   changelog: [
+    "0.3.0: Inclui 24 talentos oficiais no catálogo 5e legado.",
     "0.2.0: Sincronização dos talentos oficiais legacy/pre-2024 a partir do D&D Beyond, com fontes padronizadas, pré-requisitos corrigidos, remoção de entrada incorreta e inclusão de Slasher.",
     "0.1.0: Esqueleto inicial de talentos."
   ]
@@ -24,7 +25,7 @@ const slugifyTalentId = (text) => text
   .replace(/[^a-z0-9]+/g, "-")
   .replace(/^-+|-+$/g, "");
 
-const feat = ({
+export const feat = ({
   name,
   name_pt,
   source,
@@ -920,5 +921,8 @@ export const TALENTOS = [
 ];
 
 export const talentos = TALENTOS;
-export const TALENTOS_POR_ID = Object.fromEntries(TALENTOS.map((talento) => [talento.id, talento]));
-export const TALENTOS_POR_NOME = Object.fromEntries(TALENTOS.map((talento) => [talento.name, talento]));
+
+export async function loadOfficialTalentCatalog() {
+  const { TALENTOS_ADICIONAIS } = await import("./talentos-expandidos.js");
+  return [...TALENTOS, ...TALENTOS_ADICIONAIS];
+}

@@ -1,0 +1,268 @@
+import { feat } from "./talentos.js";
+
+export const TALENTOS_ADICIONAIS = [
+  feat({
+    name: "Ember of the Fire Giant",
+    name_pt: "Ember of the Fire Giant",
+    source: "GOTG",
+    source_full: "Bigby Presents: Glory of the Giants",
+    prerequisites: ["4º nível", "Talento Strike of the Giants"],
+    official_url: "https://www.dndbeyond.com/feats/1405417-ember-of-the-fire-giant",
+    description_en: "+1 Strength, Constitution, or Wisdom; fire resistance and a fiery area attack that can blind foes",
+    description_pt: "Aumente Força, Constituição ou Sabedoria em 1, ganhe resistência a fogo e troque um ataque por uma explosão flamejante que pode cegar criaturas próximas.",
+    tags: ["atributo", "combate", "dano", "defesa"]
+  }),
+  feat({
+    name: "Fury of the Frost Giant",
+    name_pt: "Fury of the Frost Giant",
+    source: "GOTG",
+    source_full: "Bigby Presents: Glory of the Giants",
+    prerequisites: ["4º nível", "Talento Strike of the Giants"],
+    official_url: "https://www.dndbeyond.com/feats/1405418-fury-of-the-frost-giant",
+    description_en: "+1 Strength, Constitution, or Wisdom; manifest frost giant power to hinder attackers",
+    description_pt: "Aumente Força, Constituição ou Sabedoria em 1 e use o poder do gigante do gelo para retaliar e dificultar o avanço de um agressor.",
+    tags: ["atributo", "combate", "controle", "defesa"]
+  }),
+  feat({
+    name: "Guile of the Cloud Giant",
+    name_pt: "Guile of the Cloud Giant",
+    source: "GOTG",
+    source_full: "Bigby Presents: Glory of the Giants",
+    prerequisites: ["4º nível", "Talento Strike of the Giants"],
+    official_url: "https://www.dndbeyond.com/feats/1405419-guile-of-the-cloud-giant",
+    description_en: "+1 Strength, Constitution, or Charisma; cloud giant magic helps you evade an attack",
+    description_pt: "Aumente Força, Constituição ou Carisma em 1 e use magia de gigante das nuvens para se esquivar de um ataque e reposicionar-se.",
+    tags: ["atributo", "combate", "defesa", "movimento"]
+  }),
+  feat({
+    name: "Keenness of the Stone Giant",
+    name_pt: "Keenness of the Stone Giant",
+    source: "GOTG",
+    source_full: "Bigby Presents: Glory of the Giants",
+    prerequisites: ["4º nível", "Talento Strike of the Giants"],
+    official_url: "https://www.dndbeyond.com/feats/1405420-keenness-of-the-stone-giant",
+    description_en: "+1 Strength, Constitution, or Wisdom; create and hurl a magical stone to damage and topple a foe",
+    description_pt: "Aumente Força, Constituição ou Sabedoria em 1 e arremesse uma pedra mágica para ferir e possivelmente derrubar uma criatura à distância.",
+    tags: ["atributo", "combate", "controle", "dano"]
+  }),
+  feat({
+    name: "Rune Shaper",
+    name_pt: "Rune Shaper",
+    source: "GOTG",
+    source_full: "Bigby Presents: Glory of the Giants",
+    prerequisites: ["Característica Conjuração ou antecedente Rune Carver"],
+    official_url: "https://www.dndbeyond.com/feats/1405421-rune-shaper",
+    description_en: "Learn comprehend languages and inscribe Giant runes that grant access to magic",
+    description_pt: "Aprenda Compreender Idiomas e inscreva runas gigantes em objetos para acessar magias escolhidas após um descanso longo.",
+    tags: ["magia", "utilidade"]
+  }),
+  feat({
+    name: "Soul of the Storm Giant",
+    name_pt: "Soul of the Storm Giant",
+    source: "GOTG",
+    source_full: "Bigby Presents: Glory of the Giants",
+    prerequisites: ["4º nível", "Talento Strike of the Giants"],
+    official_url: "https://www.dndbeyond.com/feats/1405422-soul-of-the-storm-giant",
+    description_en: "+1 Strength, Wisdom, or Charisma; project a storm aura that hinders nearby foes",
+    description_pt: "Aumente Força, Sabedoria ou Carisma em 1 e manifeste uma aura tempestuosa que prejudica inimigos próximos.",
+    tags: ["atributo", "combate", "controle", "defesa"]
+  }),
+  feat({
+    name: "Strike of the Giants",
+    name_pt: "Strike of the Giants",
+    source: "GOTG",
+    source_full: "Bigby Presents: Glory of the Giants",
+    prerequisites: ["Proficiência com armas marciais ou antecedente Giant Foundling"],
+    official_url: "https://www.dndbeyond.com/feats/1405429-strike-of-the-giants",
+    description_en: "Choose a giant type and empower weapon hits with its elemental power",
+    description_pt: "Escolha um tipo de gigante e fortaleça ataques com arma corpo a corpo ou arremessada; os golpes podem causar dano elemental e um efeito próprio do tipo escolhido.",
+    tags: ["combate", "dano", "controle"]
+  }),
+  feat({
+    name: "Vigor of the Hill Giant",
+    name_pt: "Vigor of the Hill Giant",
+    source: "GOTG",
+    source_full: "Bigby Presents: Glory of the Giants",
+    prerequisites: ["4º nível", "Talento Strike of the Giants"],
+    official_url: "https://www.dndbeyond.com/feats/1405430-vigor-of-the-hill-giant",
+    description_en: "+1 Strength, Constitution, or Wisdom; gain resilience and recover from harm",
+    description_pt: "Aumente Força, Constituição ou Sabedoria em 1 e manifeste a resistência do gigante das colinas para suportar e recuperar-se de ferimentos.",
+    tags: ["atributo", "combate", "cura", "defesa"]
+  }),
+  feat({
+    name: "Adept of the Black Robes",
+    name_pt: "Adepto dos Mantos Negros",
+    source: "SOTDQ",
+    source_full: "Dragonlance: Shadow of the Dragon Queen",
+    prerequisites: ["4º nível", "Talento Iniciado em Alta Feitiçaria (Nuitari)"],
+    official_url: "https://www.dndbeyond.com/feats/1158422-adept-of-the-black-robes",
+    description_en: "Learn an enchantment or necromancy spell and spend Hit Dice to increase spell damage",
+    description_pt: "Aprenda uma magia de encantamento ou necromancia de 2º círculo e gaste Dados de Vida para ampliar o dano de uma magia que faça uma criatura falhar na resistência.",
+    tags: ["combate", "dano", "magia"]
+  }),
+  feat({
+    name: "Adept of the Red Robes",
+    name_pt: "Adepto dos Mantos Vermelhos",
+    source: "SOTDQ",
+    source_full: "Dragonlance: Shadow of the Dragon Queen",
+    prerequisites: ["4º nível", "Talento Iniciado em Alta Feitiçaria (Lunitari)"],
+    official_url: "https://www.dndbeyond.com/feats/1158423-adept-of-the-red-robes",
+    description_en: "Learn a divination spell and bend chance through Lunitari's influence",
+    description_pt: "Aprenda uma magia de adivinhação de 2º círculo e use a influência de Lunitari para alterar resultados decisivos.",
+    tags: ["magia", "suporte", "utilidade"]
+  }),
+  feat({
+    name: "Adept of the White Robes",
+    name_pt: "Adepto dos Mantos Brancos",
+    source: "SOTDQ",
+    source_full: "Dragonlance: Shadow of the Dragon Queen",
+    prerequisites: ["4º nível", "Talento Iniciado em Alta Feitiçaria (Solinari)"],
+    official_url: "https://www.dndbeyond.com/feats/1158424-adept-of-the-white-robes",
+    description_en: "Learn a protective spell and shield a creature from damage as a reaction",
+    description_pt: "Aprenda uma magia defensiva de 2º círculo e use uma reação para envolver uma criatura em magia protetora e reduzir o dano sofrido.",
+    tags: ["defesa", "magia", "suporte"]
+  }),
+  feat({
+    name: "Initiate of High Sorcery",
+    name_pt: "Iniciado em Alta Feitiçaria",
+    source: "SOTDQ",
+    source_full: "Dragonlance: Shadow of the Dragon Queen",
+    prerequisites: ["Campanha de Dragonlance", "Classe feiticeiro ou mago, ou antecedente Mago da Alta Feitiçaria"],
+    official_url: "https://www.dndbeyond.com/feats/1158429-initiate-of-high-sorcery",
+    description_en: "Choose one of Krynn's moons to learn a wizard cantrip and two related spells",
+    description_pt: "Escolha uma das luas de Krynn, aprenda um truque de mago e duas magias de 1º círculo da ordem correspondente; escolha o atributo de conjuração.",
+    tags: ["magia", "utilidade"]
+  }),
+  feat({
+    name: "Knight of the Crown",
+    name_pt: "Cavaleiro da Coroa",
+    source: "SOTDQ",
+    source_full: "Dragonlance: Shadow of the Dragon Queen",
+    prerequisites: ["4º nível", "Talento Escudeiro de Solamnia"],
+    official_url: "https://www.dndbeyond.com/feats/1158430-knight-of-the-crown",
+    description_en: "+1 Strength, Dexterity, or Constitution; command an ally to make a weapon attack",
+    description_pt: "Aumente Força, Destreza ou Constituição em 1 e comande um aliado próximo a atacar como reação, com dano adicional se acertar.",
+    tags: ["atributo", "combate", "dano", "suporte"]
+  }),
+  feat({
+    name: "Knight of the Rose",
+    name_pt: "Cavaleiro da Rosa",
+    source: "SOTDQ",
+    source_full: "Dragonlance: Shadow of the Dragon Queen",
+    prerequisites: ["4º nível", "Talento Escudeiro de Solamnia"],
+    official_url: "https://www.dndbeyond.com/feats/1158431-knight-of-the-rose",
+    description_en: "+1 Constitution, Wisdom, or Charisma; encourage a nearby creature",
+    description_pt: "Aumente Constituição, Sabedoria ou Carisma em 1 e encoraje um aliado próximo, concedendo-lhe pontos de vida temporários.",
+    tags: ["atributo", "defesa", "suporte"]
+  }),
+  feat({
+    name: "Knight of the Sword",
+    name_pt: "Cavaleiro da Espada",
+    source: "SOTDQ",
+    source_full: "Dragonlance: Shadow of the Dragon Queen",
+    prerequisites: ["4º nível", "Talento Escudeiro de Solamnia"],
+    official_url: "https://www.dndbeyond.com/feats/1158432-knight-of-the-sword",
+    description_en: "+1 Intelligence, Wisdom, or Charisma; demoralize an enemy",
+    description_pt: "Aumente Inteligência, Sabedoria ou Carisma em 1 e desmoralize um adversário, impondo desvantagem ao próximo ataque dele.",
+    tags: ["atributo", "combate", "controle"]
+  }),
+  feat({
+    name: "Squire of Solamnia",
+    name_pt: "Escudeiro de Solamnia",
+    source: "SOTDQ",
+    source_full: "Dragonlance: Shadow of the Dragon Queen",
+    prerequisites: ["Campanha de Dragonlance", "Classe guerreiro ou paladino, ou antecedente Cavaleiro de Solamnia"],
+    official_url: "https://www.dndbeyond.com/feats/1158433-squire-of-solamnia",
+    description_en: "Mount quickly and gain limited-use advantage on weapon attacks with extra damage",
+    description_pt: "Monte ou desmonte gastando só 1,5 m de deslocamento e, algumas vezes por descanso longo, ganhe vantagem em um ataque com arma que também causa dano extra se acertar.",
+    tags: ["combate", "dano", "movimento"]
+  }),
+  feat({
+    name: "Agent of Order",
+    name_pt: "Agent of Order",
+    source: "PAITM",
+    source_full: "Planescape: Adventures in the Multiverse",
+    prerequisites: ["4º nível", "Talento Scion of the Outer Planes (Lawful Outer Plane)"],
+    official_url: "https://www.dndbeyond.com/feats/1464720-agent-of-order",
+    description_en: "+1 to an ability score; restrain foes with spectral bindings",
+    description_pt: "Aumente um atributo em 1 e use vínculos espectrais para restringir um inimigo e facilitar ataques contra ele.",
+    tags: ["atributo", "combate", "controle"]
+  }),
+  feat({
+    name: "Baleful Scion",
+    name_pt: "Baleful Scion",
+    source: "PAITM",
+    source_full: "Planescape: Adventures in the Multiverse",
+    prerequisites: ["4º nível", "Talento Scion of the Outer Planes (Evil Outer Plane)"],
+    official_url: "https://www.dndbeyond.com/feats/1464721-baleful-scion",
+    description_en: "+1 to an ability score; siphon hit points from enemies with cosmic power",
+    description_pt: "Aumente um atributo em 1 e drene a vitalidade de um inimigo ao feri-lo com a força de um plano maligno.",
+    tags: ["atributo", "combate", "cura", "dano"]
+  }),
+  feat({
+    name: "Cohort of Chaos",
+    name_pt: "Cohort of Chaos",
+    source: "PAITM",
+    source_full: "Planescape: Adventures in the Multiverse",
+    prerequisites: ["4º nível", "Talento Scion of the Outer Planes (Chaotic Outer Plane)"],
+    official_url: "https://www.dndbeyond.com/feats/1464722-cohort-of-chaos",
+    description_en: "+1 to an ability score; unleash a random flare of chaotic planar magic",
+    description_pt: "Aumente um atributo em 1 e provoque efeitos aleatórios de magia caótica quando obtiver 1 ou 20 em ataques ou salvaguardas.",
+    tags: ["atributo", "combate", "magia", "utilidade"]
+  }),
+  feat({
+    name: "Outlands Envoy",
+    name_pt: "Outlands Envoy",
+    source: "PAITM",
+    source_full: "Planescape: Adventures in the Multiverse",
+    prerequisites: ["4º nível", "Talento Scion of the Outer Planes (The Outlands)"],
+    official_url: "https://www.dndbeyond.com/feats/1464723-outlands-envoy",
+    description_en: "+1 to an ability score; learn misty step and tongues",
+    description_pt: "Aumente um atributo em 1 e aprenda Passo Nebuloso e Idiomas para atravessar portais e se comunicar nos planos.",
+    tags: ["atributo", "magia", "movimento", "social"]
+  }),
+  feat({
+    name: "Planar Wanderer",
+    name_pt: "Planar Wanderer",
+    source: "PAITM",
+    source_full: "Planescape: Adventures in the Multiverse",
+    prerequisites: ["4º nível", "Talento Scion of the Outer Planes"],
+    official_url: "https://www.dndbeyond.com/feats/1464724-planar-wanderer",
+    description_en: "Gain adaptable elemental resistance and sense, open, or close planar portals",
+    description_pt: "Escolha resistência a ácido, frio ou fogo após um descanso longo e perceba, abra ou feche portais planares sem a chave adequada.",
+    tags: ["defesa", "exploracao", "utilidade"]
+  }),
+  feat({
+    name: "Righteous Heritor",
+    name_pt: "Righteous Heritor",
+    source: "PAITM",
+    source_full: "Planescape: Adventures in the Multiverse",
+    prerequisites: ["4º nível", "Talento Scion of the Outer Planes (Good Outer Plane)"],
+    official_url: "https://www.dndbeyond.com/feats/1464725-righteous-heritor",
+    description_en: "+1 to an ability score; channel planar power to reduce damage to a creature",
+    description_pt: "Aumente um atributo em 1 e use sua reação para canalizar energia benigna e reduzir o dano sofrido por uma criatura próxima.",
+    tags: ["atributo", "defesa", "suporte"]
+  }),
+  feat({
+    name: "Scion of the Outer Planes",
+    name_pt: "Scion of the Outer Planes",
+    source: "PAITM",
+    source_full: "Planescape: Adventures in the Multiverse",
+    prerequisites: ["Campanha de Planescape"],
+    official_url: "https://www.dndbeyond.com/feats/1464731-scion-of-the-outer-planes",
+    description_en: "Choose an Outer Plane whose influence grants a resistance and a cantrip",
+    description_pt: "Escolha um dos planos exteriores: sua influência concede resistência a um tipo de dano e um truque associado, além de habilitar talentos planares posteriores.",
+    tags: ["defesa", "magia", "utilidade"]
+  }),
+  feat({
+    name: "Cartomancer",
+    name_pt: "Cartomancer",
+    source: "TBOMT",
+    source_full: "The Book of Many Things",
+    prerequisites: ["4º nível", "Característica Conjuração"],
+    official_url: "https://www.dndbeyond.com/feats/1491728-cartomancer",
+    description_en: "Use cards as a spellcasting focus, disguise spell components, and cast a stored spell",
+    description_pt: "Use um baralho como foco, disfarce componentes de Prestidigitação como truques de cartas e armazene uma magia da sua lista de classe para conjurá-la com uma ação bônus.",
+    tags: ["magia", "utilidade"]
+  }),
+];

@@ -6,7 +6,7 @@ import { ARMAS, PROPRIEDADES_ARMA } from "../../data/5e/armas.js";
 import { ARMADURAS } from "../../data/5e/armaduras.js";
 import { EQUIPMENT_OPTION_LISTS, CLASS_EQUIPMENT_RULES, BACKGROUND_EQUIPMENT_RULES } from "../../data/5e/equipamento-inicial.js";
 import { EXTRA_EQUIPMENT_CATALOG_2024, EXTRA_EQUIPMENT_GROUP_LABELS_2024 } from "../../data/5.5e/equipment-compendium.js";
-import { TALENTOS } from "../../data/5e/talentos.js";
+import { TALENTOS, loadOfficialTalentCatalog } from "../../data/5e/talentos.js";
 import {
   ARCANE_SHOT_OPTIONS_5E,
   ARCANE_SHOT_OPTIONS_BY_LEVEL_5E,
@@ -181,7 +181,7 @@ const escapeHtml = (value) => escapeHtmlBase(value, "&#039;");
   let RACE_COMPENDIUMS_5E = {};
   let SUBRACE_COMPENDIUMS_5E = {};
   let DIVINITIES = [];
-  const FEAT_LIST = [...TALENTOS].sort((a, b) => String(a.name_pt || a.name || "").localeCompare(String(b.name_pt || b.name || ""), "pt-BR"));
+  let FEAT_LIST = [...TALENTOS].sort((a, b) => String(a.name_pt || a.name || "").localeCompare(String(b.name_pt || b.name || ""), "pt-BR"));
   const LANGUAGE_OPTIONS = Object.entries(ENUMS_RACAS?.idiomas || {})
     .map(([id, label]) => ({ id, label }))
     .sort((a, b) => a.label.localeCompare(b.label, "pt-BR"));
@@ -196,7 +196,7 @@ const SUBCLASS_BY_NORMALIZED_NAME = new Map(
 );
 let BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.nome, background]));
   let DIVINITY_BY_NAME = new Map();
-  const FEAT_BY_ID = new Map(FEAT_LIST.map((feat) => [feat.id, feat]));
+  let FEAT_BY_ID = new Map(FEAT_LIST.map((feat) => [feat.id, feat]));
   const LANGUAGE_LABEL_BY_ID = new Map(LANGUAGE_OPTIONS.map((language) => [language.id, language.label]));
   const LANGUAGE_ID_BY_LABEL = new Map(LANGUAGE_OPTIONS.map((language) => [normalizePt(language.label), language.id]));
   const ALIGNMENT_BY_NAME = new Map(alinhamento.map((item) => [normalizePt(item.nome), item]));
@@ -899,10 +899,13 @@ let BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.nom
   }
 
   document.addEventListener("DOMContentLoaded", async () => {
-    const [compendiumMetadata] = await Promise.all([
+    const [compendiumMetadata, , officialTalents] = await Promise.all([
       import("../../data/5e/compendium-metadata.js"),
       loadExpandedBackgroundCatalog(),
+      loadOfficialTalentCatalog(),
     ]);
+    FEAT_LIST = [...officialTalents].sort((a, b) => String(a.name_pt || a.name || "").localeCompare(String(b.name_pt || b.name || ""), "pt-BR"));
+    FEAT_BY_ID = new Map(FEAT_LIST.map((feat) => [feat.id, feat]));
     CORE_COMPENDIUM_5E = compendiumMetadata.CORE_COMPENDIUM_5E;
     COMPENDIUM_SOURCE_LABELS_5E = compendiumMetadata.COMPENDIUM_SOURCE_LABELS_5E;
     RACE_COMPENDIUMS_5E = compendiumMetadata.RACE_COMPENDIUMS_5E;
