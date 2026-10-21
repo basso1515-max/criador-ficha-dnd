@@ -1,4 +1,3 @@
-import { RACAS, SUBRACAS as RACE_SUBRACAS, ENUMS_RACAS } from "../../data/5e/racas.js";
 import { CLASSES } from "../../data/5e/classes.js";
 import { SUBCLASSES } from "../../data/5e/subclasses.js";
 import { ANTECEDENTES } from "../../data/5e/antecedentes.js";
@@ -165,6 +164,10 @@ import {
 } from "../pending-choice-diagnostics.js";
 import { ensureSpellCatalogLoaded } from "../spell-catalog-loader.js";
 
+let RACAS = {};
+let RACE_SUBRACAS = {};
+let ENUMS_RACAS = {};
+
 const DEFAULT_TEMPLATE_URL = "./assets/pdf/5e/ficha5e.pdf";
 const PDF_MAP_URL = "./assets/pdf/5e/pdf-map.json";
 const escapeHtml = (value) => escapeHtmlBase(value, "&#039;");
@@ -173,8 +176,8 @@ const escapeHtml = (value) => escapeHtmlBase(value, "&#039;");
   "use strict";
 
 
-  const RACES = Object.values(RACAS);
-  const SUBRACES = Object.values(RACE_SUBRACAS);
+  const RACES = [];
+  const SUBRACES = [];
   const CLASS_LIST = Object.values(CLASSES);
   let BACKGROUNDS = Object.values(ANTECEDENTES);
   let CORE_COMPENDIUM_5E = "Player's Handbook (2014)";
@@ -183,9 +186,7 @@ const escapeHtml = (value) => escapeHtmlBase(value, "&#039;");
   let SUBRACE_COMPENDIUMS_5E = {};
   let DIVINITIES = [];
   let FEAT_LIST = [...TALENTOS].sort((a, b) => String(a.name_pt || a.name || "").localeCompare(String(b.name_pt || b.name || ""), "pt-BR"));
-  const LANGUAGE_OPTIONS = Object.entries(ENUMS_RACAS?.idiomas || {})
-    .map(([id, label]) => ({ id, label }))
-    .sort((a, b) => a.label.localeCompare(b.label, "pt-BR"));
+  const LANGUAGE_OPTIONS = [];
 
 const RACE_BY_NAME = new Map(RACES.map((race) => [race.nome, race]));
 const SUBRACE_BY_ID = new Map(SUBRACES.map((subrace) => [subrace.id, subrace]));
@@ -200,6 +201,31 @@ let BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.nom
   let FEAT_BY_ID = new Map(FEAT_LIST.map((feat) => [feat.id, feat]));
   const LANGUAGE_LABEL_BY_ID = new Map(LANGUAGE_OPTIONS.map((language) => [language.id, language.label]));
   const LANGUAGE_ID_BY_LABEL = new Map(LANGUAGE_OPTIONS.map((language) => [normalizePt(language.label), language.id]));
+
+function hydrateRaceCatalog(catalog = {}) {
+  RACAS = catalog.RACAS || {};
+  RACE_SUBRACAS = catalog.SUBRACAS || {};
+  ENUMS_RACAS = catalog.ENUMS_RACAS || {};
+
+  RACES.splice(0, RACES.length, ...Object.values(RACAS));
+  SUBRACES.splice(0, SUBRACES.length, ...Object.values(RACE_SUBRACAS));
+  LANGUAGE_OPTIONS.splice(
+    0,
+    LANGUAGE_OPTIONS.length,
+    ...Object.entries(ENUMS_RACAS.idiomas || {})
+      .map(([id, label]) => ({ id, label }))
+      .sort((a, b) => a.label.localeCompare(b.label, "pt-BR"))
+  );
+
+  RACE_BY_NAME.clear();
+  RACES.forEach((race) => RACE_BY_NAME.set(race.nome, race));
+  SUBRACE_BY_ID.clear();
+  SUBRACES.forEach((subrace) => SUBRACE_BY_ID.set(subrace.id, subrace));
+  LANGUAGE_LABEL_BY_ID.clear();
+  LANGUAGE_OPTIONS.forEach((language) => LANGUAGE_LABEL_BY_ID.set(language.id, language.label));
+  LANGUAGE_ID_BY_LABEL.clear();
+  LANGUAGE_OPTIONS.forEach((language) => LANGUAGE_ID_BY_LABEL.set(normalizePt(language.label), language.id));
+}
   const ALIGNMENT_BY_NAME = new Map(alinhamento.map((item) => [normalizePt(item.nome), item]));
   const RANDOM_NAME_PREFIXES = [
     "Aelar", "Bryn", "Caelan", "Darian", "Elaith", "Faelyn", "Garrik", "Ilyana",
@@ -903,11 +929,13 @@ let BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.nom
   }
 
   document.addEventListener("DOMContentLoaded", async () => {
-    const [compendiumMetadata, , officialTalents] = await Promise.all([
+    const [raceCatalog, compendiumMetadata, , officialTalents] = await Promise.all([
+      import("../../data/5e/racas.js"),
       import("../../data/5e/compendium-metadata.js"),
       loadExpandedBackgroundCatalog(),
       loadOfficialTalentCatalog(),
     ]);
+    hydrateRaceCatalog(raceCatalog);
     FEAT_LIST = [...officialTalents].sort((a, b) => String(a.name_pt || a.name || "").localeCompare(String(b.name_pt || b.name || ""), "pt-BR"));
     FEAT_BY_ID = new Map(FEAT_LIST.map((feat) => [feat.id, feat]));
     CORE_COMPENDIUM_5E = compendiumMetadata.CORE_COMPENDIUM_5E;
