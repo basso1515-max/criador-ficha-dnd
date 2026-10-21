@@ -1,12 +1,14 @@
 // magias.js
 import { ADDITIONAL_SPELLS_2024 } from "./official-expansions-2024.js";
-export const DATASET_VERSION = "0.5.1";
+import { OFFICIAL_CLASS_OVERRIDES_2024 } from "./official-class-list-overrides.js";
+export const DATASET_VERSION = "0.5.2";
 export const META_MAGIAS = {
   dataset: "dnd5e-ptbr",
   version: DATASET_VERSION,
   locale: "pt-BR",
-  builtAt: "2026-10-19",
+  builtAt: "2026-10-21",
   sources: {
+    dndBeyondSpells2024: "https://www.dndbeyond.com/spells?filter-source-category=24&filter-source-category=38&filter-source-category=46",
     srd: "https://media.wizards.com/2023/downloads/dnd/SRD_CC_v5.1.pdf",
     drsMagiasIndice: "https://aventureirosdosreinos.com/lista-de-magias-por-ordem-alfabetica/",
     srdJsonPublic: "https://raw.githubusercontent.com/vorpalhex/srd_spells/master/spells.json",
@@ -16,6 +18,7 @@ export const META_MAGIAS = {
     drops2026: "D&D Beyond Drops (2026)",
   },
   changelog: [
+    "0.5.2: Corrige a disponibilidade das magias nas listas de classe oficiais 2024; preserva a lista própria publicada para o Artífice.",
     "0.5.1: Localiza nomes, componentes e durações das magias adicionais em PT-BR, preservando os títulos originais.",
     "0.5.0: Adiciona 64 magias oficiais de Arcana Unleashed, Forgotten Realms e Drops de 2026, unificando reimpressões por nome.",
     "0.4.0: Adiciona Servo Homúnculo e vincula a lista de magias publicada do Artífice ao catálogo 2024.",
@@ -15917,3 +15920,18 @@ ADDITIONAL_SPELLS_2024.forEach((spell) => {
     classes: Array.from(new Set([...(existing.spell.classes || []), ...(spell.classes || [])])),
   });
 });
+
+for (const schools of Object.values(MAGIAS)) {
+  for (const bucket of Object.values(schools || {})) {
+    for (const spell of Object.values(bucket || {})) {
+      const officialClasses = OFFICIAL_CLASS_OVERRIDES_2024[spell?.id];
+      if (officialClasses) {
+        const artificerHasSpell = (spell.classes || []).includes("artifice");
+        spell.classes = [
+          ...officialClasses,
+          ...(artificerHasSpell ? ["artifice"] : []),
+        ];
+      }
+    }
+  }
+}

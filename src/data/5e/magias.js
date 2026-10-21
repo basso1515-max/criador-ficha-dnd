@@ -1,16 +1,32 @@
 // magias.js
-export const DATASET_VERSION = "0.1.1";
+import { ADDITIONAL_OFFICIAL_SPELLS_2014 } from "./official-expansion-spells.js";
+import { OFFICIAL_CLASS_OVERRIDES_2014 } from "./official-class-list-overrides.js";
+
+export const DATASET_VERSION = "0.2.0";
 export const META_MAGIAS = {
   dataset: "dnd5e-ptbr",
   version: DATASET_VERSION,
   locale: "pt-BR",
-  builtAt: "2026-03-28",
+  builtAt: "2026-10-21",
   sources: {
+    dndBeyondSpells2014: "https://www.dndbeyond.com/spells?filter-source-category=26&filter-source-category=1&filter-source-category=23",
     srd: "https://media.wizards.com/2023/downloads/dnd/SRD_CC_v5.1.pdf",
     drsMagiasIndice: "https://aventureirosdosreinos.com/lista-de-magias-por-ordem-alfabetica/",
-    srdJsonPublic: "https://raw.githubusercontent.com/vorpalhex/srd_spells/master/spells.json"
+    srdJsonPublic: "https://raw.githubusercontent.com/vorpalhex/srd_spells/master/spells.json",
+    supplements: {
+      AAG: "Astral Adventurer's Guide",
+      AI: "Acquisitions Incorporated",
+      BMT: "The Book of Many Things",
+      FTD: "Fizban's Treasury of Dragons",
+      GGR: "Guildmasters' Guide to Ravnica",
+      IDROTF: "Icewind Dale: Rime of the Frostmaiden",
+      LLK: "Lost Laboratory of Kwalish",
+      PAITM: "Planescape: Adventures in the Multiverse",
+      SCC: "Strixhaven: A Curriculum of Chaos"
+    }
   },
   changelog: [
+    "0.2.0: Completa o catálogo estático com 34 magias oficiais ausentes, remove 9 variantes que não são magias distintas e corrige listas de classe conforme as listas oficiais da edição 2014.",
     "0.1.1: Localiza Shillelagh como Bordão Místico, preservando o nome original para busca.",
     "0.1.0: Loader SRD JSON + cache localStorage; stub offline para UI e testes."
   ]
@@ -78,7 +94,7 @@ const slugify = (s) => String(s || "")
 
 const LS_KEY = `dnd5e.magias.cache.${DATASET_VERSION}`;
 
-// Stub offline (mínimo para UI; o loader entrega lista completa via fetch)
+// Catálogo estático da edição 2014, usado diretamente pelo criador de ficha.
 export const MAGIAS = {  
   "TRUQUES": {
     "Abjuração": {
@@ -10443,6 +10459,54 @@ export const MAGIAS = {
   }
 }
 
+const NON_SPELL_VARIANT_NAMES_2014 = new Set([
+  "Air Walk",
+  "Dispel Magic (6º nível)",
+  "Mass Hold Person",
+  "Permanent Image",
+  "Creeping Doom",
+  "Mass Invisibility",
+  "Conjure Elemental (versão estendida)",
+  "Mass Charm Monster",
+  "Mass Hold Monster",
+]);
+
+for (const schools of Object.values(MAGIAS)) {
+  for (const [schoolName, bucket] of Object.entries(schools || {})) {
+    if (!bucket || typeof bucket !== "object") continue;
+    for (const [spellId, spell] of Object.entries(bucket)) {
+      if (NON_SPELL_VARIANT_NAMES_2014.has(spell?.nomeEN)) delete bucket[spellId];
+    }
+    if (!Object.keys(bucket).length) delete schools[schoolName];
+  }
+}
+
+for (const spell of ADDITIONAL_OFFICIAL_SPELLS_2014) {
+  const levelKey = spell.nivel === 0 ? "TRUQUES" : `NÍVEL ${spell.nivel}`;
+  const schoolName = ESCOLAS[spell.escola];
+  if (!schoolName || !MAGIAS[levelKey]) {
+    throw new Error(`Magia oficial sem grupo de nível/escola: ${spell.nomeEN}`);
+  }
+
+  const schoolBucket = MAGIAS[levelKey][schoolName] ||= {};
+  if (schoolBucket[spell.id]) throw new Error(`ID de magia 2014 duplicado: ${spell.id}`);
+  schoolBucket[spell.id] = spell;
+  MAGIAS[levelKey][schoolName] = Object.fromEntries(
+    Object.entries(schoolBucket).sort(([, left], [, right]) =>
+      String(left?.nome || "").localeCompare(String(right?.nome || ""), "pt-BR")
+    )
+  );
+}
+
+for (const schools of Object.values(MAGIAS)) {
+  for (const bucket of Object.values(schools || {})) {
+    for (const spell of Object.values(bucket || {})) {
+      const officialClasses = OFFICIAL_CLASS_OVERRIDES_2014[spell?.id];
+      if (officialClasses) spell.classes = [...officialClasses];
+    }
+  }
+}
+
 function buildDescricaoCurtaFallback(s) {
   const parts = [];
   if (s?.ritual) parts.push("ritual");
@@ -10493,8 +10557,8 @@ export function normalizeSpellFromSrd(raw) {
 }
 
 /**
- * Carrega magias completas via fetch (SRD JSON público) e faz cache em localStorage.
- * Útil para manter o repo leve e ainda ter lista completa.
+ * Carrega o subconjunto do SRD JSON público para compatibilidade com integrações antigas.
+ * O criador usa o catálogo oficial estático exportado em MAGIAS; este loader não o substitui.
  */
 export async function loadMagias({ force = false, cache = true, url = META_MAGIAS.sources.srdJsonPublic } = {}) {
   if (!force && cache) {
