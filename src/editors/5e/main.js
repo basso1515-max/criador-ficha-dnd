@@ -176,6 +176,10 @@ const escapeHtml = (value) => escapeHtmlBase(value, "&#039;");
   const SUBRACES = Object.values(RACE_SUBRACAS);
   const CLASS_LIST = Object.values(CLASSES);
   let BACKGROUNDS = Object.values(ANTECEDENTES);
+  let CORE_COMPENDIUM_5E = "Player's Handbook (2014)";
+  let COMPENDIUM_SOURCE_LABELS_5E = {};
+  let RACE_COMPENDIUMS_5E = {};
+  let SUBRACE_COMPENDIUMS_5E = {};
   let DIVINITIES = [];
   const FEAT_LIST = [...TALENTOS].sort((a, b) => String(a.name_pt || a.name || "").localeCompare(String(b.name_pt || b.name || ""), "pt-BR"));
   const LANGUAGE_OPTIONS = Object.entries(ENUMS_RACAS?.idiomas || {})
@@ -895,10 +899,27 @@ let BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.nom
   }
 
   document.addEventListener("DOMContentLoaded", async () => {
-    await loadExpandedBackgroundCatalog();
-    populateSelect(el.raca, RACES.map((race) => race.nome), "Selecione...");
+    const [compendiumMetadata] = await Promise.all([
+      import("../../data/5e/compendium-metadata.js"),
+      loadExpandedBackgroundCatalog(),
+    ]);
+    CORE_COMPENDIUM_5E = compendiumMetadata.CORE_COMPENDIUM_5E;
+    COMPENDIUM_SOURCE_LABELS_5E = compendiumMetadata.COMPENDIUM_SOURCE_LABELS_5E;
+    RACE_COMPENDIUMS_5E = compendiumMetadata.RACE_COMPENDIUMS_5E;
+    SUBRACE_COMPENDIUMS_5E = compendiumMetadata.SUBRACE_COMPENDIUMS_5E;
+    populateObjectSelect(el.raca, sortByCompendiumAndName5e(RACES, getRaceCompendiumLabel5e, "nome"), {
+      placeholder: "Selecione...",
+      valueKey: "nome",
+      labelKey: "nome",
+      getGroup: getRaceCompendiumLabel5e,
+    });
     populateSelect(el.classe, CLASS_LIST.map((cls) => cls.nome), "Selecione...");
-    populateSelect(el.antecedente, BACKGROUNDS.map((bg) => bg.nome), "Selecione...");
+    populateObjectSelect(el.antecedente, sortByCompendiumAndName5e(BACKGROUNDS, getBackgroundCompendiumLabel5e, "nome"), {
+      placeholder: "Selecione...",
+      valueKey: "nome",
+      labelKey: "nome",
+      getGroup: getBackgroundCompendiumLabel5e,
+    });
     initializeCustomSelectFields();
     editorA11y = initializeEditorA11y(document, {
       idPrefix: "editor-5e",
@@ -1114,20 +1135,66 @@ let BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.nom
     syncCustomSelectField(select.id);
   }
 
-  function populateObjectSelect(select, items, { placeholder, valueKey = "id", labelKey = "nome" } = {}) {
+  function populateObjectSelect(select, items, { placeholder, valueKey = "id", labelKey = "nome", getGroup = null } = {}) {
     const options = [];
     if (placeholder) {
       options.push(`<option value="" selected disabled>${escapeHtml(placeholder)}</option>`);
     }
 
+    let currentGroup = "";
     for (const item of items) {
+      const group = String(getGroup?.(item) || "").trim();
+      if (group !== currentGroup) {
+        if (currentGroup) options.push("</optgroup>");
+        if (group) options.push(`<optgroup label="${escapeHtml(group)}">`);
+        currentGroup = group;
+      }
       options.push(
         `<option value="${escapeHtml(item[valueKey])}">${escapeHtml(item[labelKey])}</option>`
       );
     }
+    if (currentGroup) options.push("</optgroup>");
 
     select.innerHTML = options.join("");
     syncCustomSelectField(select.id);
+  }
+
+  function getCompendiumLabel5e(sourceCode = "PHB") {
+    const source = String(sourceCode || "PHB").trim();
+    return COMPENDIUM_SOURCE_LABELS_5E[source.toUpperCase()] || source;
+  }
+
+  function getBackgroundCompendiumLabel5e(background) {
+    return getCompendiumLabel5e(background?.fonte || "PHB");
+  }
+
+  function getRaceCompendiumLabel5e(race) {
+    return getCompendiumLabel5e(RACE_COMPENDIUMS_5E[race?.id] || "PHB");
+  }
+
+  function getSubraceCompendiumLabel5e(subrace) {
+    const explicitSource = SUBRACE_COMPENDIUMS_5E[subrace?.id];
+    if (explicitSource) return getCompendiumLabel5e(explicitSource);
+    const parentRace = RACES.find((race) => race.subracas?.includes(subrace?.id));
+    return getRaceCompendiumLabel5e(parentRace);
+  }
+
+  function getSubclassCompendiumLabel5e(subclass) {
+    return getCompendiumLabel5e(subclass?.fonte || "PHB");
+  }
+
+  function sortByCompendiumAndName5e(items, getCompendiumLabel, nameKey) {
+    return [...(items || [])].sort((a, b) => {
+      const compendiumA = getCompendiumLabel(a);
+      const compendiumB = getCompendiumLabel(b);
+      const isCoreA = compendiumA === CORE_COMPENDIUM_5E;
+      const isCoreB = compendiumB === CORE_COMPENDIUM_5E;
+      if (isCoreA !== isCoreB) return isCoreA ? -1 : 1;
+
+      const compendiumOrder = compendiumA.localeCompare(compendiumB, "pt-BR", { sensitivity: "base" });
+      if (compendiumOrder) return compendiumOrder;
+      return String(a?.[nameKey] || "").localeCompare(String(b?.[nameKey] || ""), "pt-BR", { sensitivity: "base" });
+    });
   }
 
   function initializeMulticlassUi() {
@@ -1326,7 +1393,11 @@ let BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.nom
 
     const cls = CLASS_BY_NAME.get(classSelect.value) || null;
     const classLevel = clampInt(levelInput.value, 1, maxForRow);
-    const availableSubclasses = getEligibleSubclassesForClass(cls, classLevel);
+    const availableSubclasses = sortByCompendiumAndName5e(
+      getEligibleSubclassesForClass(cls, classLevel),
+      getSubclassCompendiumLabel5e,
+      "nome"
+    );
     const previousValue = subclassSelect.value;
     const prereqText = cls ? getMulticlassRequirementText(cls.id) : "";
     const prereqValidation = cls ? validateMulticlassPrerequisites(cls.id) : null;
@@ -1335,6 +1406,7 @@ let BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.nom
       placeholder: buildSubclassPlaceholder(cls, classLevel, availableSubclasses),
       valueKey: "id",
       labelKey: "nome",
+      getGroup: getSubclassCompendiumLabel5e,
     });
 
     if (previousValue && availableSubclasses.some((subclass) => subclass.id === previousValue)) {
@@ -1355,13 +1427,18 @@ let BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.nom
   function updatePrimarySubclassOptions() {
     const cls = CLASS_BY_NAME.get(el.classe.value) || null;
     const classLevel = getPrimaryAssignedLevel();
-    const subclasses = getEligibleSubclassesForClass(cls, classLevel);
+    const subclasses = sortByCompendiumAndName5e(
+      getEligibleSubclassesForClass(cls, classLevel),
+      getSubclassCompendiumLabel5e,
+      "nome"
+    );
     const previousValue = el.arquetipo.value;
 
     populateObjectSelect(el.arquetipo, subclasses, {
       placeholder: buildSubclassPlaceholder(cls, classLevel, subclasses),
       valueKey: "id",
       labelKey: "nome",
+      getGroup: getSubclassCompendiumLabel5e,
     });
     el.arquetipo.disabled = subclasses.length === 0;
 
@@ -2262,14 +2339,15 @@ let BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.nom
 
   function onRaceChanged() {
     const race = RACE_BY_NAME.get(el.raca.value);
-    const subraces = (race?.subracas || [])
+    const subraces = sortByCompendiumAndName5e((race?.subracas || [])
       .map((subraceId) => SUBRACE_BY_ID.get(subraceId))
-      .filter(Boolean);
+      .filter(Boolean), getSubraceCompendiumLabel5e, "nome");
 
     populateObjectSelect(el.subraca, subraces, {
       placeholder: subraces.length ? "Selecione..." : "(sem sub-raça)",
       valueKey: "id",
       labelKey: "nome",
+      getGroup: getSubraceCompendiumLabel5e,
     });
     el.subraca.disabled = subraces.length === 0;
     syncCustomSelectField("subraca");
@@ -2487,6 +2565,7 @@ let BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.nom
       .filter(Boolean);
     return {
       summary: subclass.classeBase ? `Classe base: ${labelFromSlug(subclass.classeBase)}` : "",
+      group: getSubclassCompendiumLabel5e(subclass),
       lines: [
         subclass.classeBase ? `Classe base: ${labelFromSlug(subclass.classeBase)}` : "",
       ].filter(Boolean),
@@ -2500,6 +2579,7 @@ let BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.nom
     if (!bg) return { summary: "", lines: [], body: "", search: "" };
     return {
       summary: [bg.pericias?.length ? `Perícias: ${bg.pericias.map(skillKeyToLabel).join(", ")}` : "", bg.recurso?.nome || ""].filter(Boolean).join(" • "),
+      group: getBackgroundCompendiumLabel5e(bg),
       lines: [
         bg.pericias?.length ? `Perícias: ${bg.pericias.map(skillKeyToLabel).join(", ")}` : "",
         bg.ferramentas?.length ? `Ferramentas: ${bg.ferramentas.map(labelFromSlug).join(", ")}` : "",
@@ -4764,6 +4844,7 @@ let BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.nom
     if (!race) return { summary: "", lines: [], body: "", search: "" };
     return {
       summary: [race.velocidade?.ft ? formatDistanceFromFeet(race.velocidade.ft) : "", race.idiomas?.length ? `Idiomas: ${race.idiomas.map(labelFromSlug).join(", ")}` : ""].filter(Boolean).join(" • "),
+      group: getRaceCompendiumLabel5e(race),
       lines: [
         race.velocidade?.ft ? `Deslocamento base: ${formatDistanceFromFeet(race.velocidade.ft)}` : "",
         race.idiomas?.length ? `Idiomas: ${race.idiomas.map(labelFromSlug).join(", ")}` : "",
@@ -4783,6 +4864,7 @@ let BACKGROUND_BY_NAME = new Map(BACKGROUNDS.map((background) => [background.nom
         subrace.tracos?.length ? `Traços: ${subrace.tracos.map((trait) => trait.nome).join(", ")}` : "",
         subrace.origem ? `Origem: ${subrace.origem}` : ""
       ].filter(Boolean).join(" • "),
+      group: getSubraceCompendiumLabel5e(subrace),
       lines: [
         subrace.atributos ? `Bônus: ${Object.entries(subrace.atributos).map(([key, amount]) => `${key.toUpperCase()} ${fmtSigned(amount)}`).join(", ")}` : "",
         subrace.tracos?.length ? `Traços: ${subrace.tracos.map((trait) => trait.nome).join(", ")}` : "",

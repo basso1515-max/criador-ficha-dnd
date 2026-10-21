@@ -2,6 +2,7 @@ import { RACAS, SUBRACAS, META_RACAS, ENUMS_RACAS } from "../../data/5.5e/racas.
 import { CLASSES as CLASSES_2024, META_CLASSES } from "../../data/5.5e/classes.js";
 import { SUBCLASSES as CORE_SUBCLASSES, SUBCLASSES_ADDITIONAL_2024 } from "../../data/5.5e/subclasses.js";
 import { ANTECEDENTES, META_ANTECEDENTES } from "../../data/5.5e/antecedentes.js";
+import { OFFICIAL_EXPANSION_SOURCES_2024 } from "../../data/5.5e/official-expansions-2024.js";
 import { TALENTOS, META_TALENTOS } from "../../data/5.5e/talentos.js";
 import { ARMADURAS } from "../../data/5.5e/armaduras.js";
 import { ARMAS, PROPRIEDADES_ARMA, PROPRIEDADES_MAESTRIA_ARMA } from "../../data/5.5e/armas.js";
@@ -208,16 +209,26 @@ import {
 
 
   const COMPENDIUM_SOURCE_LABELS_2024 = new Map(
-    Object.entries({ ...META_RACAS?.sources, ...META_CLASSES?.sources })
+    Object.entries({
+      ...META_RACAS?.sources,
+      ...META_CLASSES?.sources,
+      ...META_ANTECEDENTES?.sources,
+      ...OFFICIAL_EXPANSION_SOURCES_2024,
+    })
       .map(([source, label]) => [normalizeCompendiumSourceKey2024(source), label])
   );
+  COMPENDIUM_SOURCE_LABELS_2024.set("pl", "Project Lamordia");
   const CORE_COMPENDIUM_2024 = META_RACAS?.sources?.phb2024
     || META_CLASSES?.sources?.phb2024
     || "Player's Handbook (2024)";
   const RACE_LIST = sortByCompendiumAndName2024(Object.values(RACAS || {}), getRaceCompendiumLabel2024, "nome");
   const SUBRACE_LIST = sortByLocale(Object.values(SUBRACAS || {}), "nome");
   const CLASS_LIST = sortByLocale(Object.values(CLASSES_2024 || {}), "nome");
-  const BACKGROUND_LIST = sortByLocale([...Object.values(ANTECEDENTES || {}), LEGACY_BACKGROUND_2024], "nome");
+  const BACKGROUND_LIST = sortByCompendiumAndName2024(
+    [...Object.values(ANTECEDENTES || {}), LEGACY_BACKGROUND_2024],
+    getBackgroundCompendiumLabel2024,
+    "nome"
+  );
   const SUBCLASS_LIST = sortByLocale(Object.values(SUBCLASSES || {}), "nome");
   const FEAT_LIST = sortByLocale([...TALENTOS], "name_pt");
   const ORIGIN_FEATS = FEAT_LIST.filter((feat) => feat?.categoria === "origem");
@@ -1106,12 +1117,20 @@ import {
     );
     populateSelect(
       el.antecedente,
-      BACKGROUND_LIST.map((item) => ({ value: item.id, label: item.nome })),
+      BACKGROUND_LIST.map((item) => ({
+        value: item.id,
+        label: item.nome,
+        group: getBackgroundCompendiumLabel2024(item),
+      })),
       "Selecione o antecedente..."
     );
     populateSelect(
       el.raca,
-      RACE_LIST.map((item) => ({ value: item.id, label: item.nome })),
+      RACE_LIST.map((item) => ({
+        value: item.id,
+        label: item.nome,
+        group: getRaceCompendiumLabel2024(item),
+      })),
       "Selecione a espécie..."
     );
     populateSelect(
@@ -1390,16 +1409,21 @@ import {
   function updateSubraceOptions() {
     const race = getSelectedRace();
     const currentValue = el.subraca.value;
-    const subraces = sortByLocale(
+    const subraces = sortByCompendiumAndName2024(
       (race?.subracas || [])
         .map((id) => SUBRACE_BY_ID.get(id))
         .filter(Boolean),
+      getSubraceCompendiumLabel2024,
       "nome"
     );
 
     populateSelect(
       el.subraca,
-      subraces.map((item) => ({ value: item.id, label: item.nome })),
+      subraces.map((item) => ({
+        value: item.id,
+        label: item.nome,
+        group: getSubraceCompendiumLabel2024(item),
+      })),
       subraces.length ? "Selecione a linhagem..." : "(sem linhagem adicional)"
     );
 
@@ -4331,6 +4355,7 @@ import {
       const attributes = formatList(ABILITY_ORDER.map(formatAbilityLabel));
       return {
         summary: "Antecedente de livro antigo • talento de origem à escolha",
+        group: getBackgroundCompendiumLabel2024(background),
         lines: [
           `Atributos possíveis: ${attributes}`,
           "Talento de origem: escolha livre se o antecedente antigo não trouxer talento.",
@@ -4355,6 +4380,7 @@ import {
         skills ? `Perícias: ${skills}` : "",
         originFeat ? `Talento: ${originFeat}` : "",
       ].filter(Boolean).join(" • "),
+      group: getBackgroundCompendiumLabel2024(background),
       lines: [
         attributes ? `Atributos possíveis: ${attributes}` : "",
         skills ? `Perícias: ${skills}` : "",
@@ -4423,6 +4449,7 @@ import {
         baseRaceLabel ? `Base: ${baseRaceLabel}` : "",
         traits ? `Traços: ${traits}` : "",
       ].filter(Boolean).join(" • "),
+      group: getSubraceCompendiumLabel2024(subrace),
       lines: [
         baseRaceLabel ? `Espécie base: ${baseRaceLabel}` : "",
         size ? `Tamanho: ${size}` : "",
@@ -15162,6 +15189,18 @@ import {
 
   function getRaceCompendiumLabel2024(race) {
     return getCompendiumLabel2024(race?.fonte || race?.source || race?.extra?.fonte);
+  }
+
+  function getBackgroundCompendiumLabel2024(background) {
+    if (isLegacyBackground2024(background)) return "Compatibilidade 2014";
+    return getCompendiumLabel2024(background?.fonte || "PHB24");
+  }
+
+  function getSubraceCompendiumLabel2024(subrace) {
+    const source = subrace?.fonte || subrace?.source || subrace?.extra?.fonte;
+    if (source) return getCompendiumLabel2024(source);
+    const baseRace = RACE_BY_ID.get(subrace?.race || subrace?.base);
+    return getRaceCompendiumLabel2024(baseRace);
   }
 
   function getSubclassCompendiumLabel2024(subclass) {
