@@ -1,128 +1,2908 @@
-const anyLanguage = [{ picks: 1, from: ["qualquer"] }];
-const twoLanguages = [{ picks: 2, from: ["qualquer"] }];
-const b = (id, nome, fonte, pericias, equipamento, recurso, resumo, options = {}) => ({
-  id,
-  nome,
-  fonte,
-  pericias,
-  ...(options.periciasEscolha ? { periciasEscolha: options.periciasEscolha } : {}),
-  ferramentas: options.ferramentas || [],
-  idiomas: options.idiomas?.[0] || { picks: 0, from: [] },
-  ...(options.idiomasFixos?.length ? { idiomasFixos: options.idiomasFixos } : {}),
-  ...(options.idiomas?.length > 1 ? { idiomasEscolha: options.idiomas.slice(1) } : {}),
-  equipamento,
-  ouro: { gp: options.ouro || 0 },
-  recurso: { nome: recurso, resumo },
-  personalidade: [],
-  ideais: [],
-  vinculos: [],
-  defeitos: [],
-  ...(options.escolhasEquipamento?.length ? { escolhasEquipamento: options.escolhasEquipamento } : {}),
-  ...(options.escolhasTalentos ? { escolhasTalentos: options.escolhasTalentos } : {}),
-  ...(options.variantes?.length ? { variantes: options.variantes } : {}),
-});
+import { ANTECEDENTES as ANTECEDENTES_BASE } from "./antecedentes.js";
 
-const pick = (selectionId, label, optionsList, placeholderKey, targets = ["proficiency"], count = 1) => ({
-  selectionId,
-  label,
-  optionsList,
-  placeholderKey,
-  targets,
-  count,
-});
+const escolhasEquipamentoExpandidas = {
+  arqueologo: [
+    {
+      selectionId: "ferramenta-navegacao-cartografia",
+      label: "Ferramenta de navegação ou cartografia",
+      optionsList: "navigationOrCartographerTools",
+      placeholderKey: "ferramentas-de-cartografo-um",
+      targets: [
+        "proficiency"
+      ],
+      count: 1
+    }
+  ],
+  atleta: [
+    {
+      selectionId: "item-esportivo",
+      label: "Item esportivo",
+      options: [
+        {
+          id: "disco-bronze",
+          label: "Disco de bronze"
+        },
+        {
+          id: "bola-couro",
+          label: "Bola de couro"
+        }
+      ],
+      targets: [
+        "equipment"
+      ]
+    },
+    {
+      selectionId: "lembranca",
+      label: "Lembrança",
+      options: [
+        {
+          id: "amuleto-sorte",
+          label: "Amuleto da sorte"
+        },
+        {
+          id: "trofeu-vitoria-passada",
+          label: "Troféu de vitória passada"
+        }
+      ],
+      targets: [
+        "equipment"
+      ]
+    }
+  ],
+  "legionario-boros": [
+    {
+      selectionId: "conjunto-jogos",
+      label: "Conjunto de jogos",
+      optionsList: "gamingSets",
+      placeholderKey: "conjunto-de-jogos-um",
+      targets: [
+        "proficiency"
+      ],
+      count: 1
+    }
+  ],
+  "mercador-fracassado": [
+    {
+      selectionId: "ferramenta",
+      label: "Ferramentas de artesão",
+      optionsList: "artisanTools",
+      placeholderKey: "ferramentas-de-artesao-um",
+      targets: [
+        "equipment",
+        "proficiency"
+      ],
+      count: 1
+    }
+  ],
+  apostador: [
+    {
+      selectionId: "conjunto-jogos",
+      label: "Conjunto de jogos",
+      optionsList: "gamingSets",
+      placeholderKey: "conjunto-de-jogos-um",
+      targets: [
+        "equipment",
+        "proficiency"
+      ],
+      count: 1
+    }
+  ],
+  "engenheiro-izzet": [
+    {
+      selectionId: "ferramenta",
+      label: "Ferramentas de artesão",
+      optionsList: "artisanTools",
+      placeholderKey: "ferramentas-de-artesao-um",
+      targets: [
+        "equipment",
+        "proficiency"
+      ],
+      count: 1
+    }
+  ],
+  demandante: [
+    {
+      selectionId: "ferramenta",
+      label: "Ferramentas de artesão",
+      optionsList: "artisanTools",
+      placeholderKey: "ferramentas-de-artesao-um",
+      targets: [
+        "equipment",
+        "proficiency"
+      ],
+      count: 1
+    }
+  ],
+  "cultista-rakdos": [
+    {
+      selectionId: "instrumento",
+      label: "Instrumento musical",
+      optionsList: "musicalInstruments",
+      placeholderKey: "instrumento-musical-um",
+      targets: [
+        "equipment",
+        "proficiency"
+      ],
+      count: 1
+    }
+  ],
+  "estagiario-rival": [
+    {
+      selectionId: "ferramenta",
+      label: "Ferramentas de artesão",
+      optionsList: "artisanTools",
+      placeholderKey: "ferramentas-de-artesao-um",
+      targets: [
+        "equipment",
+        "proficiency"
+      ],
+      count: 1
+    }
+  ],
+  "iniciado-selesnya": [
+    {
+      selectionId: "ferramenta",
+      label: "Ferramenta de artesão ou instrumento musical",
+      optionsList: "artisanOrMusicalInstrument",
+      placeholderKey: "ferramentas-de-artesao-ou-instrumento",
+      targets: [
+        "proficiency"
+      ],
+      count: 1
+    }
+  ],
+  "artifice-clan-crafter": [
+    {
+      selectionId: "ferramenta",
+      label: "Ferramentas de artesão",
+      optionsList: "artisanTools",
+      placeholderKey: "ferramentas-de-artesao-um",
+      targets: [
+        "equipment",
+        "proficiency"
+      ],
+      count: 1
+    }
+  ],
+  "viajante-distante": [
+    {
+      selectionId: "ferramenta",
+      label: "Instrumento musical ou conjunto de jogos",
+      optionsList: "instrumentOrGamingSet",
+      placeholderKey: "instrumento-musical-ou-conjunto-de-jogos",
+      targets: [
+        "equipment",
+        "proficiency"
+      ],
+      count: 1
+    }
+  ],
+  herdeiro: [
+    {
+      selectionId: "ferramenta",
+      label: "Instrumento musical ou conjunto de jogos",
+      optionsList: "instrumentOrGamingSet",
+      placeholderKey: "instrumento-musical-ou-conjunto-de-jogos",
+      targets: [
+        "equipment",
+        "proficiency"
+      ],
+      count: 1
+    }
+  ],
+  "perdido-feerico": [
+    {
+      selectionId: "instrumento",
+      label: "Instrumento musical",
+      optionsList: "musicalInstruments",
+      placeholderKey: "instrumento-musical-um",
+      targets: [
+        "equipment",
+        "proficiency"
+      ],
+      count: 1
+    }
+  ],
+  pescador: [
+    {
+      selectionId: "preferencia",
+      label: "Isca ou botas",
+      options: [
+        {
+          id: "isca",
+          label: "Isca favorita"
+        },
+        {
+          id: "botas",
+          label: "Botas impermeáveis oleadas"
+        }
+      ],
+      targets: [
+        "equipment"
+      ]
+    }
+  ],
+  "cavaleiro-ordem": [
+    {
+      selectionId: "ferramenta",
+      label: "Instrumento musical ou conjunto de jogos",
+      optionsList: "instrumentOrGamingSet",
+      placeholderKey: "instrumento-musical-ou-conjunto-de-jogos",
+      targets: [
+        "proficiency"
+      ],
+      count: 1
+    }
+  ],
+  "veterano-mercenario": [
+    {
+      selectionId: "conjunto-jogos",
+      label: "Conjunto de jogos",
+      optionsList: "gamingSets",
+      placeholderKey: "conjunto-de-jogos-um",
+      targets: [
+        "equipment",
+        "proficiency"
+      ],
+      count: 1
+    }
+  ],
+  "estudante-prismari": [
+    {
+      selectionId: "ferramenta",
+      label: "Ferramenta de artesão ou instrumento musical",
+      optionsList: "artisanOrMusicalInstrument",
+      placeholderKey: "ferramentas-de-artesao-ou-instrumento",
+      targets: [
+        "equipment",
+        "proficiency"
+      ],
+      count: 1
+    }
+  ],
+  "estudante-quandrix": [
+    {
+      selectionId: "ferramenta",
+      label: "Ferramentas de artesão",
+      optionsList: "artisanTools",
+      placeholderKey: "ferramentas-de-artesao-um",
+      targets: [
+        "proficiency"
+      ],
+      count: 1
+    }
+  ],
+  recompensado: [
+    {
+      selectionId: "conjunto-jogos",
+      label: "Conjunto de jogos",
+      optionsList: "gamingSets",
+      placeholderKey: "conjunto-de-jogos-um",
+      targets: [
+        "equipment",
+        "proficiency"
+      ],
+      count: 1
+    }
+  ],
+  arruinado: [
+    {
+      selectionId: "conjunto-jogos",
+      label: "Conjunto de jogos",
+      optionsList: "gamingSets",
+      placeholderKey: "conjunto-de-jogos-um",
+      targets: [
+        "equipment",
+        "proficiency"
+      ],
+      count: 1
+    }
+  ],
+  "entalhador-runico": [
+    {
+      selectionId: "ferramenta",
+      label: "Ferramentas de artesão",
+      optionsList: "artisanTools",
+      placeholderKey: "ferramentas-de-artesao-um",
+      targets: [
+        "equipment",
+        "proficiency"
+      ],
+      count: 1
+    }
+  ],
+  contrabandista: [
+    {
+      selectionId: "item",
+      label: "Item de couro",
+      options: [
+        {
+          id: "colete",
+          label: "Colete de couro vistoso"
+        },
+        {
+          id: "botas",
+          label: "Botas de couro"
+        }
+      ],
+      targets: [
+        "equipment"
+      ]
+    }
+  ],
+  "cacador-recompensas-urbano": [
+    {
+      selectionId: "ferramenta",
+      label: "Duas ferramentas",
+      optionsList: "urbanBountyTools",
+      placeholderKey: "ferramenta-urbana-um",
+      targets: [
+        "proficiency"
+      ],
+      count: 2
+    }
+  ],
+  "membro-tribo-uthgardt": [
+    {
+      selectionId: "ferramenta",
+      label: "Ferramenta de artesão ou instrumento musical",
+      optionsList: "artisanOrMusicalInstrument",
+      placeholderKey: "ferramentas-de-artesao-ou-instrumento",
+      targets: [
+        "proficiency"
+      ],
+      count: 1
+    }
+  ],
+  "nobre-waterdeep": [
+    {
+      selectionId: "ferramenta",
+      label: "Conjunto de jogos ou instrumento musical",
+      optionsList: "instrumentOrGamingSet",
+      placeholderKey: "instrumento-musical-ou-conjunto-de-jogos",
+      targets: [
+        "proficiency"
+      ],
+      count: 1
+    }
+  ],
+  "mao-do-carnaval": [
+    {
+      selectionId: "ferramenta",
+      label: "Kit de disfarce ou instrumento musical",
+      optionsList: "disguiseOrMusicalInstrument",
+      placeholderKey: "kit-de-disfarce-ou-instrumento",
+      targets: [
+        "equipment",
+        "proficiency"
+      ],
+      count: 1
+    }
+  ],
+  "mercador-guilda": [
+    {
+      selectionId: "ferramenta",
+      label: "Ferramentas de artesão ou de navegador",
+      optionsList: "artisanOrNavigatorTools",
+      placeholderKey: "ferramentas-de-artesao-ou-navegador",
+      targets: [
+        "equipment",
+        "proficiency"
+      ],
+      count: 1
+    }
+  ],
+  gladiador: [
+    {
+      selectionId: "ferramenta",
+      label: "Kit de disfarce ou instrumento musical",
+      optionsList: "disguiseOrMusicalInstrument",
+      placeholderKey: "kit-de-disfarce-ou-instrumento",
+      targets: [
+        "proficiency"
+      ],
+      count: 1
+    }
+  ],
+  "cavaleiro-nobre": [
+    {
+      selectionId: "conjunto-jogos",
+      label: "Conjunto de jogos",
+      optionsList: "gamingSets",
+      placeholderKey: "conjunto-de-jogos-um",
+      targets: [
+        "proficiency"
+      ],
+      count: 1
+    }
+  ],
+  "agente-casa-deneith": [
+    {
+      selectionId: "conjunto-jogos",
+      label: "Conjunto de jogos",
+      optionsList: "gamingSets",
+      placeholderKey: "conjunto-de-jogos-um",
+      targets: [
+        "proficiency"
+      ],
+      count: 1
+    }
+  ],
+  "agente-casa-orien": [
+    {
+      selectionId: "conjunto-jogos",
+      label: "Conjunto de jogos",
+      optionsList: "gamingSets",
+      placeholderKey: "conjunto-de-jogos-um",
+      targets: [
+        "proficiency"
+      ],
+      count: 1
+    }
+  ],
+  "agente-casa-phiarlan": [
+    {
+      selectionId: "instrumento",
+      label: "Instrumento musical",
+      optionsList: "musicalInstruments",
+      placeholderKey: "instrumento-musical-um",
+      targets: [
+        "proficiency"
+      ],
+      count: 1
+    }
+  ],
+  "agente-casa-tharashk": [
+    {
+      selectionId: "conjunto-jogos",
+      label: "Conjunto de jogos",
+      optionsList: "gamingSets",
+      placeholderKey: "conjunto-de-jogos-um",
+      targets: [
+        "proficiency"
+      ],
+      count: 1
+    }
+  ],
+  "agente-casa-thuranni": [
+    {
+      selectionId: "instrumento",
+      label: "Instrumento musical",
+      optionsList: "musicalInstruments",
+      placeholderKey: "instrumento-musical-um",
+      targets: [
+        "proficiency"
+      ],
+      count: 1
+    }
+  ]
+};
 
-const data = [
-  b("antropologo", "Antropólogo", "ToA", ["intuicao", "religiao"], ["Diário encadernado em couro", "Frasco de tinta", "Caneta", "Roupas de viajante", "Lembrança de especial significado", "Bolsa (10 PO)"], "Linguista Especialista", "Após observar humanoides por um dia, consegue comunicar ideias simples a quem fale um idioma desconhecido.", { idiomas: twoLanguages, ouro: 10 }),
-  b("arqueologo", "Arqueólogo", "ToA", ["historia", "sobrevivencia"], ["Estojo de madeira com mapa de ruína ou masmorra", "Lanterna furta-fogo", "Picareta de mineração", "Roupas de viajante", "Pá", "Barraca para duas pessoas", "Lembrança de escavação", "Bolsa (25 PO)"], "Conhecimento Histórico", "Identifica a finalidade e os construtores de ruínas e estima o valor de objetos de arte antigos.", { ferramentas: ["ferramentas-de-cartografo-um"], idiomas: anyLanguage, ouro: 25, escolhasEquipamento: [pick("ferramenta", "Ferramenta de navegação ou cartografia", "navigationOrCartographerTools", "ferramentas-de-cartografo-um")] }),
-  b("andarilho-astral", "Andarilho Astral", "AAG", ["intuicao", "religiao"], ["Roupas de viajante", "Diário", "Caneta", "Frasco de tinta", "Bolsa (10 PO)"], "Contato Divino", "Recebe o talento Iniciado Mágico (Clérigo), fruto de um encontro com uma divindade no Mar Astral.", { idiomas: twoLanguages, ouro: 10, escolhasTalentos: { picks: 1, pool: "talentos-oficiais-2014", featIds: ["iniciado-magico"] } }),
-  b("atleta", "Atleta", "MOT", ["acrobacia", "atletismo"], ["Roupas de viajante", "Bolsa (10 PO)"], "Ecos da Vitória", "Conquista reconhecimento regional; em assentamentos próximos ao local de suas vitórias, admiradores podem oferecer hospitalidade e notícias.", { ferramentas: ["Veículos (terrestres)"], idiomas: anyLanguage, ouro: 10, escolhasEquipamento: [
-    { selectionId: "item-esportivo", label: "Item esportivo", options: [{ id: "disco", label: "Disco de bronze" }, { id: "bola", label: "Bola de couro" }], targets: ["equipment"] },
-    { selectionId: "lembranca", label: "Lembrança", options: [{ id: "amuleto", label: "Amuleto da sorte" }, { id: "trofeu", label: "Troféu de vitória passada" }], targets: ["equipment"] },
-  ] }),
-  b("funcionario-azorius", "Funcionário Azorius", "GGR", ["intuicao", "intimidacao"], ["Insígnia Azorius", "Pergaminho com uma lei importante", "Frasco de tinta azul", "Caneta", "Roupas finas", "Bolsa (10 PO em zinos)"], "Autoridade Legal", "Seu cargo inspira respeito e permite consultar agentes e registros da lei de Ravnica.", { idiomas: twoLanguages, ouro: 10 }),
-  b("legionario-boros", "Legionário Boros", "GGR", ["atletismo", "intimidacao"], ["Insígnia Boros", "Pena de asa de anjo", "Fragmento de estandarte de batalha", "Roupas comuns", "Bolsa (2 PO em zinos)"], "Posto da Legião", "Pode requisitar equipamento simples temporário e obter abrigo em guarnições Boros.", { ferramentas: ["conjunto-de-jogos-um"], idiomas: [{ picks: 1, from: ["qualquer"] }], ouro: 2, escolhasEquipamento: [pick("jogo", "Conjunto de jogos", "gamingSets", "conjunto-de-jogos-um")] }),
-  b("descendente-celebridade", "Herdeiro de Celebridade", "AI", ["percepcao", "atuacao"], ["Kit de disfarce", "Roupas finas", "Bolsa (30 PO)"], "Fazer Nome", "Conhece figuras influentes e pode conseguir ajuda modesta ou uma audiência, conforme sua reputação.", { ferramentas: ["kit-de-disfarce"], idiomas: twoLanguages, ouro: 30 }),
-  b("operativo-dimir", "Operativo Dimir", "GGR", ["enganacao", "furtividade"], ["Insígnia Dimir", "Três facas pequenas", "Roupas comuns escuras", "Equipamento inicial do antecedente de sua guilda secundária"], "Identidade Falsa", "Mantém identidades e documentação de cobertura que dificultam descobrir sua ligação com a Casa Dimir.", { ferramentas: ["kit-de-disfarce"], idiomas: anyLanguage }),
-  b("faceless", "Sem Rosto", "BGDIA", ["enganacao", "intimidacao"], ["Kit de disfarce", "Fantasia", "Bolsa (10 PO)"], "Personalidades Duplas", "Sua persona pública oculta sua história e dificulta que outros descubram quem você é.", { ferramentas: ["kit-de-disfarce"], idiomas: anyLanguage, ouro: 10 }),
-  b("mercador-fracassado", "Mercador Fracassado", "AI", ["investigacao", "persuasao"], ["Balança comercial", "Roupas finas", "Bolsa (10 PO)"], "Rede de Fornecimento", "Mantém contatos com fornecedores e comerciantes que podem ajudar a localizar mercadorias ou informações.", { ferramentas: ["ferramentas-de-artesao-um"], idiomas: anyLanguage, ouro: 10, escolhasEquipamento: [pick("ferramenta", "Ferramentas de artesão", "artisanTools", "ferramentas-de-artesao-um", ["equipment", "proficiency"])] }),
-  b("apostador", "Apostador", "AI", ["enganacao", "intuicao"], ["Amuleto da sorte", "Roupas finas", "Bolsa (15 PO)"], "Nunca Me Diga as Probabilidades", "Reconhece tendências e probabilidades em jogos de azar e em planos de ação.", { ferramentas: ["conjunto-de-jogos-um"], idiomas: anyLanguage, ouro: 15, escolhasEquipamento: [pick("jogo", "Conjunto de jogos", "gamingSets", "conjunto-de-jogos-um", ["equipment", "proficiency"])] }),
-  b("agente-golgari", "Agente Golgari", "GGR", ["natureza", "sobrevivencia"], ["Insígnia Golgari", "Kit de venenos", "Besouro ou aranha de estimação", "Roupas comuns", "Bolsa (10 PO em moedas diversas)"], "Caminhos Subterrâneos", "Conhece rotas subterrâneas que permitem cruzar Ravnica evitando multidões e vigilância.", { ferramentas: ["Kit de venenos"], idiomas: anyLanguage, ouro: 10 }),
-  b("anarquista-gruul", "Anarquista Gruul", "GGR", ["adestrarAnimais", "atletismo"], ["Insígnia Gruul", "Armadilha de caça", "Kit de herbalismo", "Crânio de javali", "Manto de pele", "Roupas de viajante", "Bolsa (10 PO)"], "Refúgio da Zona em Ruínas", "Conhece áreas abandonadas de Ravnica onde pode encontrar abrigo e esconderijos.", { ferramentas: ["kit-de-herborismo"], idiomas: [{ picks: 1, from: ["draconico", "gigante", "goblin", "silvestre"] }], ouro: 10 }),
-  b("engenheiro-izzet", "Engenheiro Izzet", "GGR", ["arcanismo", "investigacao"], ["Insígnia Izzet", "Restos de experimento chamuscado", "Martelo", "Polia e talha", "Roupas comuns", "Bolsa (5 PO)"], "Infraestrutura Urbana", "Sabe localizar e interpretar sistemas de infraestrutura e instalações técnicas da cidade.", { ferramentas: ["ferramentas-de-artesao-um"], idiomas: anyLanguage, ouro: 5, escolhasEquipamento: [pick("ferramenta", "Ferramentas de artesão", "artisanTools", "ferramentas-de-artesao-um", ["equipment", "proficiency"])] }),
-  b("representante-orzhov", "Representante Orzhov", "GGR", ["intimidacao", "religiao"], ["Insígnia Orzhov", "Corrente de dez moedas de ouro", "Vestes cerimoniais", "Roupas finas", "Bolsa (1 PP em zino)"], "Influência", "Pode recorrer a subordinados da guilda para pequenos serviços e favores.", { idiomas: twoLanguages, ouro: 10 }),
-  b("demandante", "Demandante", "AI", ["medicina", "persuasao"], ["Roupas finas", "20 PO"], "Juridiquês", "Conhece os procedimentos e termos do sistema legal local e pode encontrar apoio jurídico.", { ferramentas: ["ferramentas-de-artesao-um"], idiomas: anyLanguage, ouro: 20, escolhasEquipamento: [pick("ferramenta", "Ferramentas de artesão", "artisanTools", "ferramentas-de-artesao-um", ["equipment", "proficiency"])] }),
-  b("cultista-rakdos", "Cultista Rakdos", "GGR", ["acrobacia", "atuacao"], ["Insígnia Rakdos", "Fantasia", "Lanterna furta-fogo de ferro", "Corrente com espinhos (3 m)", "Caixa de fogo", "10 tochas", "Roupas comuns", "Bolsa (10 PO)", "Garrafa de suco vermelho"], "Talento para o Dramático", "Consegue entreter multidões com o estilo extravagante e perigoso dos espetáculos Rakdos.", { ferramentas: ["instrumento-musical-um"], idiomas: [{ picks: 1, from: ["abissal", "gigante"] }], ouro: 10, escolhasEquipamento: [pick("instrumento", "Instrumento musical", "musicalInstruments", "instrumento-musical-um", ["equipment", "proficiency"])] }),
-  b("estagiario-rival", "Estagiário Rival", "AI", ["historia", "investigacao"], ["Livro-caixa do empregador anterior com informação útil", "Roupas finas", "Bolsa (10 PO)"], "Informante Interno", "Conserva contatos em organizações anteriores e pode obter informações por meio deles.", { ferramentas: ["ferramentas-de-artesao-um"], idiomas: anyLanguage, ouro: 10, escolhasEquipamento: [pick("ferramenta", "Ferramentas de artesão", "artisanTools", "ferramentas-de-artesao-um", ["equipment", "proficiency"])] }),
-  b("iniciado-selesnya", "Iniciado Selesnya", "GGR", ["natureza", "persuasao"], ["Insígnia Selesnya", "Kit de curandeiro", "Túnicas", "Roupas comuns", "Bolsa (5 PO)"], "Abrigo do Conclave", "Pode obter abrigo e ajuda em enclaves Selesnya, junto de membros simpáticos à causa.", { ferramentas: ["ferramentas-de-artesao-ou-instrumento"], idiomas: anyLanguage, ouro: 5, escolhasEquipamento: [pick("ferramenta", "Ferramenta de artesão ou instrumento musical", "artisanOrMusicalInstrument", "ferramentas-de-artesao-ou-instrumento")] }),
-  b("cientista-simic", "Cientista Simic", "GGR", ["arcanismo", "medicina"], ["Insígnia Simic", "Roupas comuns", "Caderno de pesquisa", "Caneta", "Frasco de tinta de lula", "Frasco de óleo de gordura animal", "Amostras de ácido, escamas, algas e ferrões", "Frasco de limo desconhecido", "Bolsa (10 PO)"], "Pesquisador", "Sabe onde procurar especialistas e informações sobre fatos mágicos ou científicos desconhecidos.", { idiomas: twoLanguages, ouro: 10 }),
-  b("espacista", "Espacista", "AAG", ["atletismo", "sobrevivencia"], ["Pino de amarração (clava)", "Roupas de viajante", "Gancho", "Corda de cânhamo (15 m)", "Bolsa (10 PO)"], "Adaptação ao Espaço Selvagem", "Recebe o talento Durão e não sofre desvantagem em ataques corpo a corpo por estar sem peso.", { ferramentas: ["ferramentas-de-navegador", "Veículos (espaço)"], ouro: 10, escolhasTalentos: { picks: 1, pool: "talentos-oficiais-2014", featIds: ["durao"] } }),
-  b("guarda-da-cidade", "Guarda da Cidade", "SCAG", ["atletismo", "intuicao"], ["Uniforme da guarda", "Buzina para chamar ajuda", "Algemas", "Bolsa (10 PO)"], "Olhar do Vigilante", "Conhece as leis e os criminosos locais e sabe encontrar o posto da guarda ou autoridade equivalente.", { idiomas: twoLanguages, ouro: 10 }),
-  b("artifice-clan-crafter", "Artífice do Clã", "SCAG", ["historia", "intuicao"], ["Cinzel de marca do clã", "Roupas de viajante", "Bolsa (5 PO)", "Gema (10 PO)"], "Respeito do Povo Robusto", "Obtém hospedagem e refeições simples entre comunidades anãs que respeitam artífices de clã.", { ferramentas: ["ferramentas-de-artesao-um"], idiomasFixos: ["anao"], idiomas: anyLanguage, ouro: 15, escolhasEquipamento: [pick("ferramenta", "Ferramentas de artesão", "artisanTools", "ferramentas-de-artesao-um", ["equipment", "proficiency"])] }),
-  b("estudioso-clausurado", "Estudioso Recluso", "SCAG", ["historia"], ["Veste acadêmica do claustro", "Estojo de escrita", "Livro emprestado sobre seu estudo", "Bolsa (10 PO)"], "Acesso à Biblioteca", "Tem acesso fácil à maioria dos arquivos da biblioteca ou instituição onde estudou.", { periciasEscolha: { picks: 1, from: ["arcanismo", "natureza", "religiao"] }, idiomas: twoLanguages, ouro: 10 }),
-  b("cortesao", "Cortesão", "SCAG", ["intuicao", "persuasao"], ["Roupas finas", "Bolsa (5 PO)"], "Funcionário da Corte", "Conhece a burocracia de cortes e governos e sabe encontrar quem controla decisões e registros.", { idiomas: twoLanguages, ouro: 5 }),
-  b("agente-faccao", "Agente de Facção", "SCAG", ["intuicao"], ["Insígnia ou emblema da facção", "Texto central ou código da facção", "Roupas comuns", "Bolsa (15 PO)"], "Refúgio Seguro", "Tem acesso a uma rede de apoiadores que oferece abrigo, orientação e ajuda limitada.", { periciasEscolha: { picks: 1, from: ["arcanismo", "adestrarAnimais", "enganacao", "historia", "intimidacao", "investigacao", "medicina", "natureza", "percepcao", "atuacao", "persuasao", "religiao", "sobrevivencia"] }, idiomas: twoLanguages, ouro: 15 }),
-  b("viajante-distante", "Viajante Distante", "SCAG", ["intuicao", "percepcao"], ["Roupas de viajante", "Mapas rudimentares de sua terra natal", "Joia de sua cultura (10 PO)", "Bolsa (5 PO)"], "Todos os Olhos em Você", "Seu sotaque e costumes chamam atenção; pessoas curiosas podem se aproximar e buscar conversa.", { ferramentas: ["instrumento-musical-ou-conjunto-de-jogos"], idiomas: anyLanguage, ouro: 5, escolhasEquipamento: [pick("ferramenta", "Instrumento musical ou conjunto de jogos", "instrumentOrGamingSet", "instrumento-musical-ou-conjunto-de-jogos", ["equipment", "proficiency"])] }),
-  b("herdeiro", "Herdeiro", "SCAG", ["sobrevivencia"], ["Herança singular", "Roupas de viajante", "Bolsa (15 PO)"], "Herança", "Sua herança incomum pode abrir caminho para uma fortuna, um segredo ou uma responsabilidade.", { periciasEscolha: { picks: 1, from: ["arcanismo", "historia", "religiao"] }, ferramentas: ["instrumento-musical-ou-conjunto-de-jogos"], idiomas: anyLanguage, ouro: 15, escolhasEquipamento: [pick("ferramenta", "Instrumento musical ou conjunto de jogos", "instrumentOrGamingSet", "instrumento-musical-ou-conjunto-de-jogos", ["equipment", "proficiency"])] }),
-  b("perdido-feerico", "Perdido no Reino das Fadas", "WBtW", ["enganacao", "sobrevivencia"], ["Roupas de viajante", "Três lembranças do Reino das Fadas", "Bolsa (8 PO)"], "Conexão Feérica", "Seu conhecimento dos costumes feéricos faz criaturas feéricas amistosas inclinarem-se a ajudá-lo.", { ferramentas: ["instrumento-musical-um"], idiomas: [{ picks: 1, from: ["qualquer"] }, { picks: 1, from: ["elfico", "gnomico", "goblin", "silvestre"] }], ouro: 8, escolhasEquipamento: [pick("instrumento", "Instrumento musical", "musicalInstruments", "instrumento-musical-um", ["equipment", "proficiency"])] }),
-  b("pescador", "Pescador", "GoS", ["historia", "sobrevivencia"], ["Equipamento de pesca", "Rede", "Roupas de viajante", "Bolsa (10 PO)"], "Colheita das Águas", "Tem vantagem em testes de pesca e pode manter um estilo de vida modesto pescando em águas produtivas.", { idiomas: anyLanguage, ouro: 10, escolhasEquipamento: [{ selectionId: "preferencia", label: "Isca ou botas", options: [{ id: "isca", label: "Isca favorita" }, { id: "botas", label: "Botas impermeáveis oleadas" }], targets: ["equipment"] }] }),
-  b("guardiao-da-porta", "Guardião do Portal", "SatO", ["persuasao", "sobrevivencia"], ["Chaveiro de fechaduras desconhecidas", "Livro em branco", "Caneta ou pena", "Frasco de tinta preta", "Roupas de viajante", "Bolsa (10 PO)"], "Infusão Planar", "Recebe o talento Dádiva dos Planos Exteriores e encontra abrigo modesto em comunidades ligadas a portais.", { idiomas: twoLanguages, ouro: 10 }),
-  b("protegido-gigante", "Protegido dos Gigantes", "BGG", ["intimidacao", "sobrevivencia"], ["Mochila", "Roupas de viajante", "Pedra ou ramo que lembra seu lar", "Bolsa (10 PO)"], "Golpe dos Gigantes", "Recebe o talento Golpe dos Gigantes.", { ferramentas: [], idiomas: [{ picks: 1, from: ["qualquer"] }], idiomasFixos: ["gigante"], ouro: 10 }),
-  b("assombrado", "Assombrado", "CoS", [], ["Kit de caçador de monstros", "Roupas comuns", "Lembrança macabra", "1 PP"], "Coração das Trevas", "Sobreviventes e pessoas comuns tendem a oferecer ajuda e podem até lutar ao seu lado diante de uma ameaça.", { periciasEscolha: { picks: 2, from: ["arcanismo", "investigacao", "religiao", "sobrevivencia"] }, idiomas: [{ picks: 1, from: ["qualquer"] }, { picks: 1, from: ["abissal", "celestial", "falaProfunda", "draconico", "infernal", "primordial", "silvestre", "subcomum"] }], ouro: 0.1 }),
-  b("investigador", "Investigador", "VRGR", [], ["Lupa", "Prova de um caso passado", "Roupas comuns", "10 PO"], "Investigação Oficial", "Consegue acesso a pessoas e lugares usando contatos, persistência e documentação convincente.", { periciasEscolha: { picks: 2, from: ["intuicao", "investigacao", "percepcao"] }, ferramentas: ["kit-de-disfarce", "ferramentas-de-ladrao"], ouro: 10 }),
-  b("cavaleiro-solamnia", "Cavaleiro de Solamnia", "DSotDQ", ["atletismo", "sobrevivencia"], ["Insígnia de patente", "Baralho", "Roupas comuns", "Bolsa (10 PO)"], "Escudeiro de Solamnia", "Recebe o talento Escudeiro de Solamnia e encontra abrigo em fortalezas e acampamentos da ordem.", { idiomas: twoLanguages, ouro: 10 }),
-  b("cavaleiro-ordem", "Cavaleiro da Ordem", "SCAG", ["persuasao"], ["Roupas de viajante", "Sinete, estandarte ou selo da ordem", "Bolsa (10 PO)"], "Consideração Cavalheiresca", "Membros da ordem e simpatizantes oferecem abrigo, auxílio e contatos locais.", { periciasEscolha: { picks: 1, from: ["arcanismo", "historia", "natureza", "religiao"] }, ferramentas: ["instrumento-musical-ou-conjunto-de-jogos"], idiomas: anyLanguage, ouro: 10, escolhasEquipamento: [pick("ferramenta", "Instrumento musical ou conjunto de jogos", "instrumentOrGamingSet", "instrumento-musical-ou-conjunto-de-jogos")] }),
-  b("estudante-lorehold", "Estudante de Lorehold", "SCC", ["historia", "religiao"], ["Frasco de tinta preta", "Caneta", "Martelo", "Lanterna furta-fogo", "Caixa de fogo", "Tomo de história", "Uniforme escolar", "Bolsa (15 PO)"], "Iniciado de Lorehold", "Recebe o talento Iniciado de Strixhaven e acesso aos recursos acadêmicos de Lorehold.", { idiomas: twoLanguages, ouro: 15, escolhasTalentos: { picks: 1, featIds: ["iniciado-de-strixhaven"] } }),
-  b("mago-alta-feiticaria", "Mago da Alta Feitiçaria", "DSotDQ", ["arcanismo", "historia"], ["Frasco de tinta colorida", "Caneta", "Roupas comuns", "Bolsa (10 PO)"], "Iniciado da Alta Feitiçaria", "Recebe o talento Iniciado da Alta Feitiçaria e encontra abrigo nas Torres da Alta Feitiçaria ocupadas.", { idiomas: twoLanguages, ouro: 10 }),
-  b("fuzileiro", "Fuzileiro", "GoS", ["atletismo", "sobrevivencia"], ["Adaga de um companheiro caído", "Bandeira da embarcação ou companhia", "Roupas de viajante", "Bolsa (10 PO)"], "Firme", "Pode marchar por mais tempo antes de sofrer os efeitos de uma marcha forçada.", { ferramentas: ["Veículos (aquáticos)", "Veículos (terrestres)"], ouro: 10 }),
-  b("veterano-mercenario", "Veterano Mercenário", "SCAG", ["atletismo", "persuasao"], ["Uniforme da companhia", "Insígnia de patente", "Bolsa com o soldo restante (10 PO)"], "Vida Mercenária", "Reconhece companhias mercenárias, seus emblemas e reputações locais.", { ferramentas: ["conjunto-de-jogos-um", "Veículos (terrestres)"], ouro: 10, escolhasEquipamento: [pick("jogo", "Conjunto de jogos", "gamingSets", "conjunto-de-jogos-um", ["equipment", "proficiency"])] }),
-  b("filosofo-planar", "Filósofo Planar", "SatO", ["arcanismo"], ["Chave de portal", "Manifesto de sua filosofia", "Roupas comuns da facção", "Bolsa (10 PO em moedas de vários mundos)"], "Convicção", "Recebe o talento Dádiva dos Planos Exteriores e encontra abrigo em comunidades de sua organização.", { periciasEscolha: { picks: 1, from: ["religiao", "intuicao", "natureza", "intimidacao", "historia", "furtividade", "percepcao", "medicina", "sobrevivencia", "persuasao", "atuacao", "atletismo"] }, idiomas: twoLanguages, ouro: 10 }),
-  b("estudante-prismari", "Estudante de Prismari", "SCC", ["acrobacia", "atuacao"], ["Frasco de tinta preta", "Caneta", "Uniforme escolar", "Bolsa (10 PO)"], "Iniciado de Prismari", "Recebe o talento Iniciado de Strixhaven e acesso aos recursos artísticos de Prismari.", { ferramentas: ["ferramentas-de-artesao-ou-instrumento"], idiomas: anyLanguage, ouro: 10, escolhasEquipamento: [pick("ferramenta", "Ferramenta de artesão ou instrumento musical", "artisanOrMusicalInstrument", "ferramentas-de-artesao-ou-instrumento", ["equipment", "proficiency"])], escolhasTalentos: { picks: 1, featIds: ["iniciado-de-strixhaven"] } }),
-  b("estudante-quandrix", "Estudante de Quandrix", "SCC", ["arcanismo", "natureza"], ["Frasco de tinta preta", "Caneta", "Ábaco", "Livro de teoria arcana", "Uniforme escolar", "Bolsa (15 PO)"], "Iniciado de Quandrix", "Recebe o talento Iniciado de Strixhaven e acesso às pesquisas de Quandrix.", { ferramentas: ["ferramentas-de-artesao-um"], idiomas: anyLanguage, ouro: 15, escolhasEquipamento: [pick("ferramenta", "Ferramentas de artesão", "artisanTools", "ferramentas-de-artesao-um")], escolhasTalentos: { picks: 1, featIds: ["iniciado-de-strixhaven"] } }),
-  b("estudante-silverquill", "Estudante de Silverquill", "SCC", ["intimidacao", "persuasao"], ["Frasco de tinta preta", "Caneta", "Livro de poesia", "Uniforme escolar", "Bolsa (15 PO)"], "Iniciado de Silverquill", "Recebe o talento Iniciado de Strixhaven e acesso às redes e recursos de Silverquill.", { idiomas: twoLanguages, ouro: 15, escolhasTalentos: { picks: 1, featIds: ["iniciado-de-strixhaven"] } }),
-  b("estudante-witherbloom", "Estudante de Witherbloom", "SCC", ["natureza", "sobrevivencia"], ["Frasco de tinta preta", "Caneta", "Livro de identificação de plantas", "Panela de ferro", "Kit de herbalismo", "Uniforme escolar", "Bolsa (15 PO)"], "Iniciado de Witherbloom", "Recebe o talento Iniciado de Strixhaven e acesso aos recursos de Witherbloom.", { ferramentas: ["kit-de-herborismo"], idiomas: anyLanguage, ouro: 15, escolhasTalentos: { picks: 1, featIds: ["iniciado-de-strixhaven"] } }),
-  b("recompensado", "Recompensado", "BMT", ["intuicao", "persuasao"], ["Frasco de tinta preta", "Caneta", "Cinco folhas de papel", "Anel de sinete", "Roupas finas", "Bolsa (18 PO)"], "Favor da Fortuna", "Recebe uma dádiva inesperada na forma de um talento escolhido entre Sortudo, Iniciado Mágico ou Especialista.", { ferramentas: ["conjunto-de-jogos-um"], idiomas: anyLanguage, ouro: 18, escolhasEquipamento: [pick("jogo", "Conjunto de jogos", "gamingSets", "conjunto-de-jogos-um", ["equipment", "proficiency"])], escolhasTalentos: { picks: 1, featIds: ["sortudo", "iniciado-magico", "habilidoso"] } }),
-  b("arruinado", "Arruinado", "BMT", ["furtividade", "sobrevivencia"], ["Ampulheta rachada", "Algemas enferrujadas", "Garrafa quase vazia", "Armadilha de caça", "Roupas de viajante", "Bolsa (13 PO)"], "Ainda de Pé", "Recebe uma dádiva inesperada na forma de um talento escolhido entre Alerta, Especialista ou Durão.", { ferramentas: ["conjunto-de-jogos-um"], idiomas: anyLanguage, ouro: 13, escolhasEquipamento: [pick("jogo", "Conjunto de jogos", "gamingSets", "conjunto-de-jogos-um", ["equipment", "proficiency"])], escolhasTalentos: { picks: 1, featIds: ["alerta", "habilidoso", "durao"] } }),
-  b("entalhador-runico", "Entalhador Rúnico", "BGG", ["historia", "percepcao"], ["Faca pequena", "Pedra de amolar", "Roupas comuns", "Bolsa (10 PO)"], "Moldar Runas", "Recebe o talento Moldar Runas.", { ferramentas: ["ferramentas-de-artesao-um"], idiomasFixos: ["gigante"], ouro: 10, escolhasEquipamento: [pick("ferramenta", "Ferramentas de artesão", "artisanTools", "ferramentas-de-artesao-um", ["equipment", "proficiency"])] }),
-  b("construtor-navios", "Construtor Naval", "GoS", ["historia", "percepcao"], ["Ferramentas de carpinteiro gastas", "Livro em branco", "Tinta", "Caneta", "Roupas de viajante", "Bolsa de couro (10 PO)"], "Eu Conserto!", "Pode reparar o casco de uma embarcação com ferramentas de carpinteiro e madeira.", { ferramentas: ["ferramentas-de-carpinteiro", "Veículos (aquáticos)"], ouro: 10 }),
-  b("contrabandista", "Contrabandista", "GoS", ["atletismo", "enganacao"], ["Roupas comuns", "Bolsa de couro (15 PO)"], "Discrição", "Tem contatos entre contrabandistas que podem ajudar a sair de situações difíceis.", { ferramentas: ["Veículos (aquáticos)"], ouro: 15, escolhasEquipamento: [{ selectionId: "item", label: "Item de couro", options: [{ id: "colete", label: "Colete de couro vistoso" }, { id: "botas", label: "Botas de couro" }], targets: ["equipment"] }] }),
-  b("cacador-recompensas-urbano", "Caçador de Recompensas Urbano", "SCAG", [], ["Roupas adequadas ao seu trabalho", "Bolsa (20 PO)"], "Ouvido no Submundo", "Mantém contato com pessoas ligadas aos grupos por onde circulam suas presas.", { periciasEscolha: { picks: 2, from: ["enganacao", "intuicao", "persuasao", "furtividade"] }, ferramentas: ["ferramenta-urbana-um"], ouro: 20, escolhasEquipamento: [pick("ferramenta", "Duas ferramentas", "urbanBountyTools", "ferramenta-urbana-um", ["proficiency"], 2)] }),
-  b("membro-tribo-uthgardt", "Membro da Tribo Uthgardt", "SCAG", ["atletismo", "sobrevivencia"], ["Armadilha de caça", "Totem ou tatuagens da tribo", "Roupas de viajante", "Bolsa (10 PO)"], "Herança Uthgardt", "Conhece bem o território de sua tribo, o Norte e seus recursos naturais.", { ferramentas: ["ferramentas-de-artesao-ou-instrumento"], idiomas: anyLanguage, ouro: 10, escolhasEquipamento: [pick("ferramenta", "Ferramenta de artesão ou instrumento musical", "artisanOrMusicalInstrument", "ferramentas-de-artesao-ou-instrumento")] }),
-  b("investigador-guarda-cidade", "Investigador da Guarda da Cidade", "SCAG", ["intuicao", "investigacao"], ["Uniforme da guarda", "Buzina para chamar ajuda", "Algemas", "Bolsa (10 PO)"], "Olhar do Vigilante", "Conhece leis e criminosos locais e encontra postos da guarda ou autoridades equivalentes.", { idiomas: twoLanguages, ouro: 10 }),
-  b("nobre-waterdeep", "Nobre de Águas Profundas", "SCAG", ["historia", "persuasao"], ["Roupas finas", "Anel de sinete ou broche", "Pergaminho genealógico", "Odre de vinho ou zzar fino", "Bolsa (20 PO)"], "Mantido em Estilo", "Sua casa cobre despesas cotidianas quando você está em Waterdeep ou no Norte.", { ferramentas: ["instrumento-musical-ou-conjunto-de-jogos"], idiomas: anyLanguage, ouro: 20, escolhasEquipamento: [pick("ferramenta", "Conjunto de jogos ou instrumento musical", "instrumentOrGamingSet", "instrumento-musical-ou-conjunto-de-jogos")] }),
-  b("mao-do-carnaval", "Ajudante do Carnaval", "WBtW", ["atuacao", "prestidigitacao"], ["Baralho", "Uniforme de carnaval ou fantasia", "Lembrança do Reino das Fadas", "Bolsa (8 PO)"], "Presença no Carnaval", "O Carnaval da Bruxa oferece hospedagem e refeições modestas e permite aproveitar as atrações sem custo.", { ferramentas: ["kit-de-disfarce-ou-instrumento"], idiomas: anyLanguage, ouro: 8, escolhasEquipamento: [pick("ferramenta", "Kit de disfarce ou instrumento musical", "disguiseOrMusicalInstrument", "kit-de-disfarce-ou-instrumento", ["equipment", "proficiency"])] }),
-  b("mercador-guilda", "Mercador da Guilda", "PHB", ["intuicao", "persuasao"], ["Mula e carroça", "Carta de apresentação da guilda", "Roupas de viajante", "Bolsa (15 PO)"], "Filiação à Guilda", "Tem acesso a contatos e alojamento ligados à sua guilda mercantil.", { ferramentas: ["ferramentas-de-artesao-ou-navegador"], idiomas: anyLanguage, ouro: 15, escolhasEquipamento: [pick("ferramenta", "Ferramentas de artesão ou de navegador", "artisanOrNavigatorTools", "ferramentas-de-artesao-ou-navegador", ["equipment", "proficiency"])] }),
-  b("gladiador", "Gladiador", "PHB", ["acrobacia", "atuacao"], ["Arma incomum de espetáculo", "Lembrança de admirador", "Fantasia", "Bolsa (15 PO)"], "Pela Demanda Popular", "Consegue apresentações, refeições e hospedagem modesta onde seu espetáculo é conhecido.", { ferramentas: ["kit-de-disfarce-ou-instrumento"], idiomas: anyLanguage, ouro: 15, variantes: ["Variante oficial de Artista; pode substituir o instrumento musical por arma incomum de espetáculo."], escolhasEquipamento: [pick("ferramenta", "Kit de disfarce ou instrumento musical", "disguiseOrMusicalInstrument", "kit-de-disfarce-ou-instrumento")] }),
-  b("cavaleiro-nobre", "Cavaleiro", "PHB", ["historia", "persuasao"], ["Roupas finas", "Anel de sinete", "Pergaminho genealógico", "Bolsa (25 PO)"], "Retentores", "Conta com três retentores leais à sua família, que podem realizar tarefas simples, mas não entram em combate.", { ferramentas: ["conjunto-de-jogos-um"], idiomas: anyLanguage, ouro: 25, variantes: ["Variante oficial de Nobre."], escolhasEquipamento: [pick("jogo", "Conjunto de jogos", "gamingSets", "conjunto-de-jogos-um")] }),
-  b("pirata", "Pirata", "PHB", ["atletismo", "percepcao"], ["Pino de amarração (clava)", "Corda de seda (15 m)", "Amuleto da sorte", "Roupas comuns", "Bolsa (10 PO)"], "Má Reputação", "Sua reputação basta para que a maioria das pessoas hesite antes de denunciá-lo ou se opor a você.", { ferramentas: ["Veículos (aquáticos)"], ouro: 10, variantes: ["Variante oficial de Marinheiro."] }),
-  b("agente-casa-cannith", "Agente da Casa (Cannith)", "ERLW", ["investigacao", "persuasao"], ["Roupas finas", "Anel de sinete da casa", "Documentos de identificação", "Bolsa (20 PO)"], "Conexões da Casa", "Encontra hospedagem, suprimentos e contatos nas instalações de sua casa.", { ferramentas: ["Suprimentos de alquimista", "Ferramentas de funileiro"], ouro: 20 }),
-  b("agente-casa-deneith", "Agente da Casa (Deneith)", "ERLW", ["investigacao", "persuasao"], ["Roupas finas", "Anel de sinete da casa", "Documentos de identificação", "Bolsa (20 PO)"], "Conexões da Casa", "Encontra hospedagem, suprimentos e contatos nas instalações de sua casa.", { ferramentas: ["conjunto-de-jogos-um", "Veículos (terrestres)"], ouro: 20, escolhasEquipamento: [pick("jogo", "Conjunto de jogos", "gamingSets", "conjunto-de-jogos-um")] }),
-  b("agente-casa-ghallanda", "Agente da Casa (Ghallanda)", "ERLW", ["investigacao", "persuasao"], ["Roupas finas", "Anel de sinete da casa", "Documentos de identificação", "Bolsa (20 PO)"], "Conexões da Casa", "Encontra hospedagem, suprimentos e contatos nas instalações de sua casa.", { ferramentas: ["Suprimentos de cervejeiro", "Utensílios de cozinheiro"], ouro: 20 }),
-  b("agente-casa-jorasco", "Agente da Casa (Jorasco)", "ERLW", ["investigacao", "persuasao"], ["Roupas finas", "Anel de sinete da casa", "Documentos de identificação", "Bolsa (20 PO)"], "Conexões da Casa", "Encontra hospedagem, suprimentos e contatos nas instalações de sua casa.", { ferramentas: ["Suprimentos de alquimista", "Kit de herbalismo"], ouro: 20 }),
-  b("agente-casa-kundarak", "Agente da Casa (Kundarak)", "ERLW", ["investigacao", "persuasao"], ["Roupas finas", "Anel de sinete da casa", "Documentos de identificação", "Bolsa (20 PO)"], "Conexões da Casa", "Encontra hospedagem, suprimentos e contatos nas instalações de sua casa.", { ferramentas: ["ferramentas-de-ladrao", "Ferramentas de funileiro"], ouro: 20 }),
-  b("agente-casa-lyrandar", "Agente da Casa (Lyrandar)", "ERLW", ["investigacao", "persuasao"], ["Roupas finas", "Anel de sinete da casa", "Documentos de identificação", "Bolsa (20 PO)"], "Conexões da Casa", "Encontra hospedagem, suprimentos e contatos nas instalações de sua casa.", { ferramentas: ["ferramentas-de-navegador", "Veículos (aquáticos)", "Veículos (aéreos)"], ouro: 20 }),
-  b("agente-casa-medani", "Agente da Casa (Medani)", "ERLW", ["investigacao", "persuasao"], ["Roupas finas", "Anel de sinete da casa", "Documentos de identificação", "Bolsa (20 PO)"], "Conexões da Casa", "Encontra hospedagem, suprimentos e contatos nas instalações de sua casa.", { ferramentas: ["kit-de-disfarce", "ferramentas-de-ladrao"], ouro: 20 }),
-  b("agente-casa-orien", "Agente da Casa (Orien)", "ERLW", ["investigacao", "persuasao"], ["Roupas finas", "Anel de sinete da casa", "Documentos de identificação", "Bolsa (20 PO)"], "Conexões da Casa", "Encontra hospedagem, suprimentos e contatos nas instalações de sua casa.", { ferramentas: ["conjunto-de-jogos-um", "Veículos (terrestres)"], ouro: 20, escolhasEquipamento: [pick("jogo", "Conjunto de jogos", "gamingSets", "conjunto-de-jogos-um")] }),
-  b("agente-casa-phiarlan", "Agente da Casa (Phiarlan)", "ERLW", ["investigacao", "persuasao"], ["Roupas finas", "Anel de sinete da casa", "Documentos de identificação", "Bolsa (20 PO)"], "Conexões da Casa", "Encontra hospedagem, suprimentos e contatos nas instalações de sua casa.", { ferramentas: ["kit-de-disfarce", "instrumento-musical-um"], ouro: 20, escolhasEquipamento: [pick("instrumento", "Instrumento musical", "musicalInstruments", "instrumento-musical-um")] }),
-  b("agente-casa-sivis", "Agente da Casa (Sivis)", "ERLW", ["investigacao", "persuasao"], ["Roupas finas", "Anel de sinete da casa", "Documentos de identificação", "Bolsa (20 PO)"], "Conexões da Casa", "Encontra hospedagem, suprimentos e contatos nas instalações de sua casa.", { ferramentas: ["ferramentas-de-caligrafo", "Kit de falsificação"], ouro: 20 }),
-  b("agente-casa-tharashk", "Agente da Casa (Tharashk)", "ERLW", ["investigacao", "persuasao"], ["Roupas finas", "Anel de sinete da casa", "Documentos de identificação", "Bolsa (20 PO)"], "Conexões da Casa", "Encontra hospedagem, suprimentos e contatos nas instalações de sua casa.", { ferramentas: ["conjunto-de-jogos-um", "ferramentas-de-ladrao"], ouro: 20, escolhasEquipamento: [pick("jogo", "Conjunto de jogos", "gamingSets", "conjunto-de-jogos-um")] }),
-  b("agente-casa-thuranni", "Agente da Casa (Thuranni)", "ERLW", ["investigacao", "persuasao"], ["Roupas finas", "Anel de sinete da casa", "Documentos de identificação", "Bolsa (20 PO)"], "Conexões da Casa", "Encontra hospedagem, suprimentos e contatos nas instalações de sua casa.", { ferramentas: ["instrumento-musical-um", "Kit de venenos"], ouro: 20, escolhasEquipamento: [pick("instrumento", "Instrumento musical", "musicalInstruments", "instrumento-musical-um")] }),
-  b("agente-casa-vadalis", "Agente da Casa (Vadalis)", "ERLW", ["investigacao", "persuasao"], ["Roupas finas", "Anel de sinete da casa", "Documentos de identificação", "Bolsa (20 PO)"], "Conexões da Casa", "Encontra hospedagem, suprimentos e contatos nas instalações de sua casa.", { ferramentas: ["Kit de herbalismo", "Veículos (terrestres)"], ouro: 20 }),
-];
+export const ANTECEDENTES_EXPANDIDOS = {
+  antropologo: {
+    id: "antropologo",
+    nome: "Antropólogo",
+    fonte: "ToA",
+    pericias: [
+      "intuicao",
+      "religiao"
+    ],
+    ferramentas: [],
+    idiomas: {
+      picks: 2,
+      from: [
+        "qualquer"
+      ]
+    },
+    equipamento: [
+      "Diário encadernado em couro",
+      "Frasco de tinta",
+      "Caneta",
+      "Roupas de viajante",
+      "Lembrança de especial significado",
+      "Bolsa (10 PO)"
+    ],
+    ouro: {
+      gp: 10
+    },
+    recurso: {
+      nome: "Linguista Especialista",
+      resumo: "Após observar humanoides por um dia, consegue comunicar ideias simples a quem fale um idioma desconhecido."
+    },
+  },
+  arqueologo: {
+    id: "arqueologo",
+    nome: "Arqueólogo",
+    fonte: "ToA",
+    pericias: [
+      "historia",
+      "sobrevivencia"
+    ],
+    ferramentas: [
+      "ferramentas-de-cartografo-um"
+    ],
+    idiomas: {
+      picks: 1,
+      from: [
+        "qualquer"
+      ]
+    },
+    equipamento: [
+      "Estojo de madeira com mapa de ruína ou masmorra",
+      "Lanterna furta-fogo",
+      "Picareta de mineração",
+      "Roupas de viajante",
+      "Pá",
+      "Barraca para duas pessoas",
+      "Lembrança de escavação",
+      "Bolsa (25 PO)"
+    ],
+    ouro: {
+      gp: 25
+    },
+    recurso: {
+      nome: "Conhecimento Histórico",
+      resumo: "Identifica a finalidade e os construtores de ruínas e estima o valor de objetos de arte antigos."
+    },
+  },
+  "andarilho-astral": {
+    id: "andarilho-astral",
+    nome: "Andarilho Astral",
+    fonte: "AAG",
+    pericias: [
+      "intuicao",
+      "religiao"
+    ],
+    ferramentas: [],
+    idiomas: {
+      picks: 2,
+      from: [
+        "qualquer"
+      ]
+    },
+    equipamento: [
+      "Roupas de viajante",
+      "Diário",
+      "Caneta",
+      "Frasco de tinta",
+      "Bolsa (10 PO)"
+    ],
+    ouro: {
+      gp: 10
+    },
+    recurso: {
+      nome: "Contato Divino",
+      resumo: "Recebe o talento Iniciado Mágico (Clérigo), fruto de um encontro com uma divindade no Mar Astral."
+    },
+    escolhasTalentos: {
+      picks: 1,
+      pool: "talentos-oficiais-2014",
+      featIds: [
+        "iniciado-magico"
+      ]
+    }
+  },
+  atleta: {
+    id: "atleta",
+    nome: "Atleta",
+    fonte: "MOT",
+    pericias: [
+      "acrobacia",
+      "atletismo"
+    ],
+    ferramentas: [
+      "Veículos (terrestres)"
+    ],
+    idiomas: {
+      picks: 1,
+      from: [
+        "qualquer"
+      ]
+    },
+    equipamento: [
+      "Roupas de viajante",
+      "Bolsa (10 PO)"
+    ],
+    ouro: {
+      gp: 10
+    },
+    recurso: {
+      nome: "Ecos da Vitória",
+      resumo: "Conquista reconhecimento regional; em assentamentos próximos ao local de suas vitórias, admiradores podem oferecer hospitalidade e notícias."
+    },
+  },
+  "funcionario-azorius": {
+    id: "funcionario-azorius",
+    nome: "Funcionário Azorius",
+    fonte: "GGR",
+    pericias: [
+      "intuicao",
+      "intimidacao"
+    ],
+    ferramentas: [],
+    idiomas: {
+      picks: 2,
+      from: [
+        "qualquer"
+      ]
+    },
+    equipamento: [
+      "Insígnia Azorius",
+      "Pergaminho com uma lei importante",
+      "Frasco de tinta azul",
+      "Caneta",
+      "Roupas finas",
+      "Bolsa (10 PO em zinos)"
+    ],
+    ouro: {
+      gp: 10
+    },
+    recurso: {
+      nome: "Autoridade Legal",
+      resumo: "Seu cargo inspira respeito e permite consultar agentes e registros da lei de Ravnica."
+    },
+  },
+  "legionario-boros": {
+    id: "legionario-boros",
+    nome: "Legionário Boros",
+    fonte: "GGR",
+    pericias: [
+      "atletismo",
+      "intimidacao"
+    ],
+    ferramentas: [
+      "conjunto-de-jogos-um"
+    ],
+    idiomas: {
+      picks: 1,
+      from: [
+        "qualquer"
+      ]
+    },
+    equipamento: [
+      "Insígnia Boros",
+      "Pena de asa de anjo",
+      "Fragmento de estandarte de batalha",
+      "Roupas comuns",
+      "Bolsa (2 PO em zinos)"
+    ],
+    ouro: {
+      gp: 2
+    },
+    recurso: {
+      nome: "Posto da Legião",
+      resumo: "Pode requisitar equipamento simples temporário e obter abrigo em guarnições Boros."
+    },
+  },
+  "descendente-celebridade": {
+    id: "descendente-celebridade",
+    nome: "Herdeiro de Celebridade",
+    fonte: "AI",
+    pericias: [
+      "percepcao",
+      "atuacao"
+    ],
+    ferramentas: [
+      "kit-de-disfarce"
+    ],
+    idiomas: {
+      picks: 2,
+      from: [
+        "qualquer"
+      ]
+    },
+    equipamento: [
+      "Kit de disfarce",
+      "Roupas finas",
+      "Bolsa (30 PO)"
+    ],
+    ouro: {
+      gp: 30
+    },
+    recurso: {
+      nome: "Fazer Nome",
+      resumo: "Conhece figuras influentes e pode conseguir ajuda modesta ou uma audiência, conforme sua reputação."
+    },
+  },
+  "operativo-dimir": {
+    id: "operativo-dimir",
+    nome: "Operativo Dimir",
+    fonte: "GGR",
+    pericias: [
+      "enganacao",
+      "furtividade"
+    ],
+    ferramentas: [
+      "kit-de-disfarce"
+    ],
+    idiomas: {
+      picks: 1,
+      from: [
+        "qualquer"
+      ]
+    },
+    equipamento: [
+      "Insígnia Dimir",
+      "Três facas pequenas",
+      "Roupas comuns escuras",
+      "Equipamento inicial do antecedente de sua guilda secundária"
+    ],
+    ouro: {
+      gp: 0
+    },
+    recurso: {
+      nome: "Identidade Falsa",
+      resumo: "Mantém identidades e documentação de cobertura que dificultam descobrir sua ligação com a Casa Dimir."
+    },
+  },
+  faceless: {
+    id: "faceless",
+    nome: "Sem Rosto",
+    fonte: "BGDIA",
+    pericias: [
+      "enganacao",
+      "intimidacao"
+    ],
+    ferramentas: [
+      "kit-de-disfarce"
+    ],
+    idiomas: {
+      picks: 1,
+      from: [
+        "qualquer"
+      ]
+    },
+    equipamento: [
+      "Kit de disfarce",
+      "Fantasia",
+      "Bolsa (10 PO)"
+    ],
+    ouro: {
+      gp: 10
+    },
+    recurso: {
+      nome: "Personalidades Duplas",
+      resumo: "Sua persona pública oculta sua história e dificulta que outros descubram quem você é."
+    },
+  },
+  "mercador-fracassado": {
+    id: "mercador-fracassado",
+    nome: "Mercador Fracassado",
+    fonte: "AI",
+    pericias: [
+      "investigacao",
+      "persuasao"
+    ],
+    ferramentas: [
+      "ferramentas-de-artesao-um"
+    ],
+    idiomas: {
+      picks: 1,
+      from: [
+        "qualquer"
+      ]
+    },
+    equipamento: [
+      "Balança comercial",
+      "Roupas finas",
+      "Bolsa (10 PO)"
+    ],
+    ouro: {
+      gp: 10
+    },
+    recurso: {
+      nome: "Rede de Fornecimento",
+      resumo: "Mantém contatos com fornecedores e comerciantes que podem ajudar a localizar mercadorias ou informações."
+    },
+  },
+  apostador: {
+    id: "apostador",
+    nome: "Apostador",
+    fonte: "AI",
+    pericias: [
+      "enganacao",
+      "intuicao"
+    ],
+    ferramentas: [
+      "conjunto-de-jogos-um"
+    ],
+    idiomas: {
+      picks: 1,
+      from: [
+        "qualquer"
+      ]
+    },
+    equipamento: [
+      "Amuleto da sorte",
+      "Roupas finas",
+      "Bolsa (15 PO)"
+    ],
+    ouro: {
+      gp: 15
+    },
+    recurso: {
+      nome: "Nunca Me Diga as Probabilidades",
+      resumo: "Reconhece tendências e probabilidades em jogos de azar e em planos de ação."
+    },
+  },
+  "agente-golgari": {
+    id: "agente-golgari",
+    nome: "Agente Golgari",
+    fonte: "GGR",
+    pericias: [
+      "natureza",
+      "sobrevivencia"
+    ],
+    ferramentas: [
+      "Kit de venenos"
+    ],
+    idiomas: {
+      picks: 1,
+      from: [
+        "qualquer"
+      ]
+    },
+    equipamento: [
+      "Insígnia Golgari",
+      "Kit de venenos",
+      "Besouro ou aranha de estimação",
+      "Roupas comuns",
+      "Bolsa (10 PO em moedas diversas)"
+    ],
+    ouro: {
+      gp: 10
+    },
+    recurso: {
+      nome: "Caminhos Subterrâneos",
+      resumo: "Conhece rotas subterrâneas que permitem cruzar Ravnica evitando multidões e vigilância."
+    },
+  },
+  "anarquista-gruul": {
+    id: "anarquista-gruul",
+    nome: "Anarquista Gruul",
+    fonte: "GGR",
+    pericias: [
+      "adestrarAnimais",
+      "atletismo"
+    ],
+    ferramentas: [
+      "kit-de-herborismo"
+    ],
+    idiomas: {
+      picks: 1,
+      from: [
+        "draconico",
+        "gigante",
+        "goblin",
+        "silvestre"
+      ]
+    },
+    equipamento: [
+      "Insígnia Gruul",
+      "Armadilha de caça",
+      "Kit de herbalismo",
+      "Crânio de javali",
+      "Manto de pele",
+      "Roupas de viajante",
+      "Bolsa (10 PO)"
+    ],
+    ouro: {
+      gp: 10
+    },
+    recurso: {
+      nome: "Refúgio da Zona em Ruínas",
+      resumo: "Conhece áreas abandonadas de Ravnica onde pode encontrar abrigo e esconderijos."
+    },
+  },
+  "engenheiro-izzet": {
+    id: "engenheiro-izzet",
+    nome: "Engenheiro Izzet",
+    fonte: "GGR",
+    pericias: [
+      "arcanismo",
+      "investigacao"
+    ],
+    ferramentas: [
+      "ferramentas-de-artesao-um"
+    ],
+    idiomas: {
+      picks: 1,
+      from: [
+        "qualquer"
+      ]
+    },
+    equipamento: [
+      "Insígnia Izzet",
+      "Restos de experimento chamuscado",
+      "Martelo",
+      "Polia e talha",
+      "Roupas comuns",
+      "Bolsa (5 PO)"
+    ],
+    ouro: {
+      gp: 5
+    },
+    recurso: {
+      nome: "Infraestrutura Urbana",
+      resumo: "Sabe localizar e interpretar sistemas de infraestrutura e instalações técnicas da cidade."
+    },
+  },
+  "representante-orzhov": {
+    id: "representante-orzhov",
+    nome: "Representante Orzhov",
+    fonte: "GGR",
+    pericias: [
+      "intimidacao",
+      "religiao"
+    ],
+    ferramentas: [],
+    idiomas: {
+      picks: 2,
+      from: [
+        "qualquer"
+      ]
+    },
+    equipamento: [
+      "Insígnia Orzhov",
+      "Corrente de dez moedas de ouro",
+      "Vestes cerimoniais",
+      "Roupas finas",
+      "Bolsa (1 PP em zino)"
+    ],
+    ouro: {
+      gp: 10
+    },
+    recurso: {
+      nome: "Influência",
+      resumo: "Pode recorrer a subordinados da guilda para pequenos serviços e favores."
+    },
+  },
+  demandante: {
+    id: "demandante",
+    nome: "Demandante",
+    fonte: "AI",
+    pericias: [
+      "medicina",
+      "persuasao"
+    ],
+    ferramentas: [
+      "ferramentas-de-artesao-um"
+    ],
+    idiomas: {
+      picks: 1,
+      from: [
+        "qualquer"
+      ]
+    },
+    equipamento: [
+      "Roupas finas",
+      "20 PO"
+    ],
+    ouro: {
+      gp: 20
+    },
+    recurso: {
+      nome: "Juridiquês",
+      resumo: "Conhece os procedimentos e termos do sistema legal local e pode encontrar apoio jurídico."
+    },
+  },
+  "cultista-rakdos": {
+    id: "cultista-rakdos",
+    nome: "Cultista Rakdos",
+    fonte: "GGR",
+    pericias: [
+      "acrobacia",
+      "atuacao"
+    ],
+    ferramentas: [
+      "instrumento-musical-um"
+    ],
+    idiomas: {
+      picks: 1,
+      from: [
+        "abissal",
+        "gigante"
+      ]
+    },
+    equipamento: [
+      "Insígnia Rakdos",
+      "Fantasia",
+      "Lanterna furta-fogo de ferro",
+      "Corrente com espinhos (3 m)",
+      "Caixa de fogo",
+      "10 tochas",
+      "Roupas comuns",
+      "Bolsa (10 PO)",
+      "Garrafa de suco vermelho"
+    ],
+    ouro: {
+      gp: 10
+    },
+    recurso: {
+      nome: "Talento para o Dramático",
+      resumo: "Consegue entreter multidões com o estilo extravagante e perigoso dos espetáculos Rakdos."
+    },
+  },
+  "estagiario-rival": {
+    id: "estagiario-rival",
+    nome: "Estagiário Rival",
+    fonte: "AI",
+    pericias: [
+      "historia",
+      "investigacao"
+    ],
+    ferramentas: [
+      "ferramentas-de-artesao-um"
+    ],
+    idiomas: {
+      picks: 1,
+      from: [
+        "qualquer"
+      ]
+    },
+    equipamento: [
+      "Livro-caixa do empregador anterior com informação útil",
+      "Roupas finas",
+      "Bolsa (10 PO)"
+    ],
+    ouro: {
+      gp: 10
+    },
+    recurso: {
+      nome: "Informante Interno",
+      resumo: "Conserva contatos em organizações anteriores e pode obter informações por meio deles."
+    },
+  },
+  "iniciado-selesnya": {
+    id: "iniciado-selesnya",
+    nome: "Iniciado Selesnya",
+    fonte: "GGR",
+    pericias: [
+      "natureza",
+      "persuasao"
+    ],
+    ferramentas: [
+      "ferramentas-de-artesao-ou-instrumento"
+    ],
+    idiomas: {
+      picks: 1,
+      from: [
+        "qualquer"
+      ]
+    },
+    equipamento: [
+      "Insígnia Selesnya",
+      "Kit de curandeiro",
+      "Túnicas",
+      "Roupas comuns",
+      "Bolsa (5 PO)"
+    ],
+    ouro: {
+      gp: 5
+    },
+    recurso: {
+      nome: "Abrigo do Conclave",
+      resumo: "Pode obter abrigo e ajuda em enclaves Selesnya, junto de membros simpáticos à causa."
+    },
+  },
+  "cientista-simic": {
+    id: "cientista-simic",
+    nome: "Cientista Simic",
+    fonte: "GGR",
+    pericias: [
+      "arcanismo",
+      "medicina"
+    ],
+    ferramentas: [],
+    idiomas: {
+      picks: 2,
+      from: [
+        "qualquer"
+      ]
+    },
+    equipamento: [
+      "Insígnia Simic",
+      "Roupas comuns",
+      "Caderno de pesquisa",
+      "Caneta",
+      "Frasco de tinta de lula",
+      "Frasco de óleo de gordura animal",
+      "Amostras de ácido, escamas, algas e ferrões",
+      "Frasco de limo desconhecido",
+      "Bolsa (10 PO)"
+    ],
+    ouro: {
+      gp: 10
+    },
+    recurso: {
+      nome: "Pesquisador",
+      resumo: "Sabe onde procurar especialistas e informações sobre fatos mágicos ou científicos desconhecidos."
+    },
+  },
+  espacista: {
+    id: "espacista",
+    nome: "Espacista",
+    fonte: "AAG",
+    pericias: [
+      "atletismo",
+      "sobrevivencia"
+    ],
+    ferramentas: [
+      "ferramentas-de-navegador",
+      "Veículos (espaço)"
+    ],
+    idiomas: {
+      picks: 0,
+      from: []
+    },
+    equipamento: [
+      "Pino de amarração (clava)",
+      "Roupas de viajante",
+      "Gancho",
+      "Corda de cânhamo (15 m)",
+      "Bolsa (10 PO)"
+    ],
+    ouro: {
+      gp: 10
+    },
+    recurso: {
+      nome: "Adaptação ao Espaço Selvagem",
+      resumo: "Recebe o talento Durão e não sofre desvantagem em ataques corpo a corpo por estar sem peso."
+    },
+    escolhasTalentos: {
+      picks: 1,
+      pool: "talentos-oficiais-2014",
+      featIds: [
+        "durao"
+      ]
+    }
+  },
+  "guarda-da-cidade": {
+    id: "guarda-da-cidade",
+    nome: "Guarda da Cidade",
+    fonte: "SCAG",
+    pericias: [
+      "atletismo",
+      "intuicao"
+    ],
+    ferramentas: [],
+    idiomas: {
+      picks: 2,
+      from: [
+        "qualquer"
+      ]
+    },
+    equipamento: [
+      "Uniforme da guarda",
+      "Buzina para chamar ajuda",
+      "Algemas",
+      "Bolsa (10 PO)"
+    ],
+    ouro: {
+      gp: 10
+    },
+    recurso: {
+      nome: "Olhar do Vigilante",
+      resumo: "Conhece as leis e os criminosos locais e sabe encontrar o posto da guarda ou autoridade equivalente."
+    },
+  },
+  "artifice-clan-crafter": {
+    id: "artifice-clan-crafter",
+    nome: "Artífice do Clã",
+    fonte: "SCAG",
+    pericias: [
+      "historia",
+      "intuicao"
+    ],
+    ferramentas: [
+      "ferramentas-de-artesao-um"
+    ],
+    idiomas: {
+      picks: 1,
+      from: [
+        "qualquer"
+      ]
+    },
+    idiomasFixos: [
+      "anao"
+    ],
+    equipamento: [
+      "Cinzel de marca do clã",
+      "Roupas de viajante",
+      "Bolsa (5 PO)",
+      "Gema (10 PO)"
+    ],
+    ouro: {
+      gp: 15
+    },
+    recurso: {
+      nome: "Respeito do Povo Robusto",
+      resumo: "Obtém hospedagem e refeições simples entre comunidades anãs que respeitam artífices de clã."
+    },
+  },
+  "estudioso-clausurado": {
+    id: "estudioso-clausurado",
+    nome: "Estudioso Recluso",
+    fonte: "SCAG",
+    pericias: [
+      "historia"
+    ],
+    periciasEscolha: {
+      picks: 1,
+      from: [
+        "arcanismo",
+        "natureza",
+        "religiao"
+      ]
+    },
+    ferramentas: [],
+    idiomas: {
+      picks: 2,
+      from: [
+        "qualquer"
+      ]
+    },
+    equipamento: [
+      "Veste acadêmica do claustro",
+      "Estojo de escrita",
+      "Livro emprestado sobre seu estudo",
+      "Bolsa (10 PO)"
+    ],
+    ouro: {
+      gp: 10
+    },
+    recurso: {
+      nome: "Acesso à Biblioteca",
+      resumo: "Tem acesso fácil à maioria dos arquivos da biblioteca ou instituição onde estudou."
+    },
+  },
+  cortesao: {
+    id: "cortesao",
+    nome: "Cortesão",
+    fonte: "SCAG",
+    pericias: [
+      "intuicao",
+      "persuasao"
+    ],
+    ferramentas: [],
+    idiomas: {
+      picks: 2,
+      from: [
+        "qualquer"
+      ]
+    },
+    equipamento: [
+      "Roupas finas",
+      "Bolsa (5 PO)"
+    ],
+    ouro: {
+      gp: 5
+    },
+    recurso: {
+      nome: "Funcionário da Corte",
+      resumo: "Conhece a burocracia de cortes e governos e sabe encontrar quem controla decisões e registros."
+    },
+  },
+  "agente-faccao": {
+    id: "agente-faccao",
+    nome: "Agente de Facção",
+    fonte: "SCAG",
+    pericias: [
+      "intuicao"
+    ],
+    periciasEscolha: {
+      picks: 1,
+      from: [
+        "arcanismo",
+        "adestrarAnimais",
+        "enganacao",
+        "historia",
+        "intimidacao",
+        "investigacao",
+        "medicina",
+        "natureza",
+        "percepcao",
+        "atuacao",
+        "persuasao",
+        "religiao",
+        "sobrevivencia"
+      ]
+    },
+    ferramentas: [],
+    idiomas: {
+      picks: 2,
+      from: [
+        "qualquer"
+      ]
+    },
+    equipamento: [
+      "Insígnia ou emblema da facção",
+      "Texto central ou código da facção",
+      "Roupas comuns",
+      "Bolsa (15 PO)"
+    ],
+    ouro: {
+      gp: 15
+    },
+    recurso: {
+      nome: "Refúgio Seguro",
+      resumo: "Tem acesso a uma rede de apoiadores que oferece abrigo, orientação e ajuda limitada."
+    },
+  },
+  "viajante-distante": {
+    id: "viajante-distante",
+    nome: "Viajante Distante",
+    fonte: "SCAG",
+    pericias: [
+      "intuicao",
+      "percepcao"
+    ],
+    ferramentas: [
+      "instrumento-musical-ou-conjunto-de-jogos"
+    ],
+    idiomas: {
+      picks: 1,
+      from: [
+        "qualquer"
+      ]
+    },
+    equipamento: [
+      "Roupas de viajante",
+      "Mapas rudimentares de sua terra natal",
+      "Joia de sua cultura (10 PO)",
+      "Bolsa (5 PO)"
+    ],
+    ouro: {
+      gp: 5
+    },
+    recurso: {
+      nome: "Todos os Olhos em Você",
+      resumo: "Seu sotaque e costumes chamam atenção; pessoas curiosas podem se aproximar e buscar conversa."
+    },
+  },
+  herdeiro: {
+    id: "herdeiro",
+    nome: "Herdeiro",
+    fonte: "SCAG",
+    pericias: [
+      "sobrevivencia"
+    ],
+    periciasEscolha: {
+      picks: 1,
+      from: [
+        "arcanismo",
+        "historia",
+        "religiao"
+      ]
+    },
+    ferramentas: [
+      "instrumento-musical-ou-conjunto-de-jogos"
+    ],
+    idiomas: {
+      picks: 1,
+      from: [
+        "qualquer"
+      ]
+    },
+    equipamento: [
+      "Herança singular",
+      "Roupas de viajante",
+      "Bolsa (15 PO)"
+    ],
+    ouro: {
+      gp: 15
+    },
+    recurso: {
+      nome: "Herança",
+      resumo: "Sua herança incomum pode abrir caminho para uma fortuna, um segredo ou uma responsabilidade."
+    },
+  },
+  "perdido-feerico": {
+    id: "perdido-feerico",
+    nome: "Perdido no Reino das Fadas",
+    fonte: "WBtW",
+    pericias: [
+      "enganacao",
+      "sobrevivencia"
+    ],
+    ferramentas: [
+      "instrumento-musical-um"
+    ],
+    idiomas: {
+      picks: 1,
+      from: [
+        "qualquer"
+      ]
+    },
+    idiomasEscolha: [
+      {
+        picks: 1,
+        from: [
+          "elfico",
+          "gnomico",
+          "goblin",
+          "silvestre"
+        ]
+      }
+    ],
+    equipamento: [
+      "Roupas de viajante",
+      "Três lembranças do Reino das Fadas",
+      "Bolsa (8 PO)"
+    ],
+    ouro: {
+      gp: 8
+    },
+    recurso: {
+      nome: "Conexão Feérica",
+      resumo: "Seu conhecimento dos costumes feéricos faz criaturas feéricas amistosas inclinarem-se a ajudá-lo."
+    },
+  },
+  pescador: {
+    id: "pescador",
+    nome: "Pescador",
+    fonte: "GoS",
+    pericias: [
+      "historia",
+      "sobrevivencia"
+    ],
+    ferramentas: [],
+    idiomas: {
+      picks: 1,
+      from: [
+        "qualquer"
+      ]
+    },
+    equipamento: [
+      "Equipamento de pesca",
+      "Rede",
+      "Roupas de viajante",
+      "Bolsa (10 PO)"
+    ],
+    ouro: {
+      gp: 10
+    },
+    recurso: {
+      nome: "Colheita das Águas",
+      resumo: "Tem vantagem em testes de pesca e pode manter um estilo de vida modesto pescando em águas produtivas."
+    },
+  },
+  "guardiao-da-porta": {
+    id: "guardiao-da-porta",
+    nome: "Guardião do Portal",
+    fonte: "SatO",
+    pericias: [
+      "persuasao",
+      "sobrevivencia"
+    ],
+    ferramentas: [],
+    idiomas: {
+      picks: 2,
+      from: [
+        "qualquer"
+      ]
+    },
+    equipamento: [
+      "Chaveiro de fechaduras desconhecidas",
+      "Livro em branco",
+      "Caneta ou pena",
+      "Frasco de tinta preta",
+      "Roupas de viajante",
+      "Bolsa (10 PO)"
+    ],
+    ouro: {
+      gp: 10
+    },
+    recurso: {
+      nome: "Infusão Planar",
+      resumo: "Recebe o talento Dádiva dos Planos Exteriores e encontra abrigo modesto em comunidades ligadas a portais."
+    },
+  },
+  "protegido-gigante": {
+    id: "protegido-gigante",
+    nome: "Protegido dos Gigantes",
+    fonte: "BGG",
+    pericias: [
+      "intimidacao",
+      "sobrevivencia"
+    ],
+    ferramentas: [],
+    idiomas: {
+      picks: 1,
+      from: [
+        "qualquer"
+      ]
+    },
+    idiomasFixos: [
+      "gigante"
+    ],
+    equipamento: [
+      "Mochila",
+      "Roupas de viajante",
+      "Pedra ou ramo que lembra seu lar",
+      "Bolsa (10 PO)"
+    ],
+    ouro: {
+      gp: 10
+    },
+    recurso: {
+      nome: "Golpe dos Gigantes",
+      resumo: "Recebe o talento Golpe dos Gigantes."
+    },
+  },
+  assombrado: {
+    id: "assombrado",
+    nome: "Assombrado",
+    fonte: "CoS",
+    pericias: [],
+    periciasEscolha: {
+      picks: 2,
+      from: [
+        "arcanismo",
+        "investigacao",
+        "religiao",
+        "sobrevivencia"
+      ]
+    },
+    ferramentas: [],
+    idiomas: {
+      picks: 1,
+      from: [
+        "qualquer"
+      ]
+    },
+    idiomasEscolha: [
+      {
+        picks: 1,
+        from: [
+          "abissal",
+          "celestial",
+          "falaProfunda",
+          "draconico",
+          "infernal",
+          "primordial",
+          "silvestre",
+          "subcomum"
+        ]
+      }
+    ],
+    equipamento: [
+      "Kit de caçador de monstros",
+      "Roupas comuns",
+      "Lembrança macabra",
+      "1 PP"
+    ],
+    ouro: {
+      gp: 0.1
+    },
+    recurso: {
+      nome: "Coração das Trevas",
+      resumo: "Sobreviventes e pessoas comuns tendem a oferecer ajuda e podem até lutar ao seu lado diante de uma ameaça."
+    },
+  },
+  investigador: {
+    id: "investigador",
+    nome: "Investigador",
+    fonte: "VRGR",
+    pericias: [],
+    periciasEscolha: {
+      picks: 2,
+      from: [
+        "intuicao",
+        "investigacao",
+        "percepcao"
+      ]
+    },
+    ferramentas: [
+      "kit-de-disfarce",
+      "ferramentas-de-ladrao"
+    ],
+    idiomas: {
+      picks: 0,
+      from: []
+    },
+    equipamento: [
+      "Lupa",
+      "Prova de um caso passado",
+      "Roupas comuns",
+      "10 PO"
+    ],
+    ouro: {
+      gp: 10
+    },
+    recurso: {
+      nome: "Investigação Oficial",
+      resumo: "Consegue acesso a pessoas e lugares usando contatos, persistência e documentação convincente."
+    },
+  },
+  "cavaleiro-solamnia": {
+    id: "cavaleiro-solamnia",
+    nome: "Cavaleiro de Solamnia",
+    fonte: "DSotDQ",
+    pericias: [
+      "atletismo",
+      "sobrevivencia"
+    ],
+    ferramentas: [],
+    idiomas: {
+      picks: 2,
+      from: [
+        "qualquer"
+      ]
+    },
+    equipamento: [
+      "Insígnia de patente",
+      "Baralho",
+      "Roupas comuns",
+      "Bolsa (10 PO)"
+    ],
+    ouro: {
+      gp: 10
+    },
+    recurso: {
+      nome: "Escudeiro de Solamnia",
+      resumo: "Recebe o talento Escudeiro de Solamnia e encontra abrigo em fortalezas e acampamentos da ordem."
+    },
+  },
+  "cavaleiro-ordem": {
+    id: "cavaleiro-ordem",
+    nome: "Cavaleiro da Ordem",
+    fonte: "SCAG",
+    pericias: [
+      "persuasao"
+    ],
+    periciasEscolha: {
+      picks: 1,
+      from: [
+        "arcanismo",
+        "historia",
+        "natureza",
+        "religiao"
+      ]
+    },
+    ferramentas: [
+      "instrumento-musical-ou-conjunto-de-jogos"
+    ],
+    idiomas: {
+      picks: 1,
+      from: [
+        "qualquer"
+      ]
+    },
+    equipamento: [
+      "Roupas de viajante",
+      "Sinete, estandarte ou selo da ordem",
+      "Bolsa (10 PO)"
+    ],
+    ouro: {
+      gp: 10
+    },
+    recurso: {
+      nome: "Consideração Cavalheiresca",
+      resumo: "Membros da ordem e simpatizantes oferecem abrigo, auxílio e contatos locais."
+    },
+  },
+  "estudante-lorehold": {
+    id: "estudante-lorehold",
+    nome: "Estudante de Lorehold",
+    fonte: "SCC",
+    pericias: [
+      "historia",
+      "religiao"
+    ],
+    ferramentas: [],
+    idiomas: {
+      picks: 2,
+      from: [
+        "qualquer"
+      ]
+    },
+    equipamento: [
+      "Frasco de tinta preta",
+      "Caneta",
+      "Martelo",
+      "Lanterna furta-fogo",
+      "Caixa de fogo",
+      "Tomo de história",
+      "Uniforme escolar",
+      "Bolsa (15 PO)"
+    ],
+    ouro: {
+      gp: 15
+    },
+    recurso: {
+      nome: "Iniciado de Lorehold",
+      resumo: "Recebe o talento Iniciado de Strixhaven e acesso aos recursos acadêmicos de Lorehold."
+    },
+    escolhasTalentos: {
+      picks: 1,
+      featIds: [
+        "iniciado-de-strixhaven"
+      ]
+    }
+  },
+  "mago-alta-feiticaria": {
+    id: "mago-alta-feiticaria",
+    nome: "Mago da Alta Feitiçaria",
+    fonte: "DSotDQ",
+    pericias: [
+      "arcanismo",
+      "historia"
+    ],
+    ferramentas: [],
+    idiomas: {
+      picks: 2,
+      from: [
+        "qualquer"
+      ]
+    },
+    equipamento: [
+      "Frasco de tinta colorida",
+      "Caneta",
+      "Roupas comuns",
+      "Bolsa (10 PO)"
+    ],
+    ouro: {
+      gp: 10
+    },
+    recurso: {
+      nome: "Iniciado da Alta Feitiçaria",
+      resumo: "Recebe o talento Iniciado da Alta Feitiçaria e encontra abrigo nas Torres da Alta Feitiçaria ocupadas."
+    },
+  },
+  fuzileiro: {
+    id: "fuzileiro",
+    nome: "Fuzileiro",
+    fonte: "GoS",
+    pericias: [
+      "atletismo",
+      "sobrevivencia"
+    ],
+    ferramentas: [
+      "Veículos (aquáticos)",
+      "Veículos (terrestres)"
+    ],
+    idiomas: {
+      picks: 0,
+      from: []
+    },
+    equipamento: [
+      "Adaga de um companheiro caído",
+      "Bandeira da embarcação ou companhia",
+      "Roupas de viajante",
+      "Bolsa (10 PO)"
+    ],
+    ouro: {
+      gp: 10
+    },
+    recurso: {
+      nome: "Firme",
+      resumo: "Pode marchar por mais tempo antes de sofrer os efeitos de uma marcha forçada."
+    },
+  },
+  "veterano-mercenario": {
+    id: "veterano-mercenario",
+    nome: "Veterano Mercenário",
+    fonte: "SCAG",
+    pericias: [
+      "atletismo",
+      "persuasao"
+    ],
+    ferramentas: [
+      "conjunto-de-jogos-um",
+      "Veículos (terrestres)"
+    ],
+    idiomas: {
+      picks: 0,
+      from: []
+    },
+    equipamento: [
+      "Uniforme da companhia",
+      "Insígnia de patente",
+      "Bolsa com o soldo restante (10 PO)"
+    ],
+    ouro: {
+      gp: 10
+    },
+    recurso: {
+      nome: "Vida Mercenária",
+      resumo: "Reconhece companhias mercenárias, seus emblemas e reputações locais."
+    },
+  },
+  "filosofo-planar": {
+    id: "filosofo-planar",
+    nome: "Filósofo Planar",
+    fonte: "SatO",
+    pericias: [
+      "arcanismo"
+    ],
+    periciasEscolha: {
+      picks: 1,
+      from: [
+        "religiao",
+        "intuicao",
+        "natureza",
+        "intimidacao",
+        "historia",
+        "furtividade",
+        "percepcao",
+        "medicina",
+        "sobrevivencia",
+        "persuasao",
+        "atuacao",
+        "atletismo"
+      ]
+    },
+    ferramentas: [],
+    idiomas: {
+      picks: 2,
+      from: [
+        "qualquer"
+      ]
+    },
+    equipamento: [
+      "Chave de portal",
+      "Manifesto de sua filosofia",
+      "Roupas comuns da facção",
+      "Bolsa (10 PO em moedas de vários mundos)"
+    ],
+    ouro: {
+      gp: 10
+    },
+    recurso: {
+      nome: "Convicção",
+      resumo: "Recebe o talento Dádiva dos Planos Exteriores e encontra abrigo em comunidades de sua organização."
+    },
+  },
+  "estudante-prismari": {
+    id: "estudante-prismari",
+    nome: "Estudante de Prismari",
+    fonte: "SCC",
+    pericias: [
+      "acrobacia",
+      "atuacao"
+    ],
+    ferramentas: [
+      "ferramentas-de-artesao-ou-instrumento"
+    ],
+    idiomas: {
+      picks: 1,
+      from: [
+        "qualquer"
+      ]
+    },
+    equipamento: [
+      "Frasco de tinta preta",
+      "Caneta",
+      "Uniforme escolar",
+      "Bolsa (10 PO)"
+    ],
+    ouro: {
+      gp: 10
+    },
+    recurso: {
+      nome: "Iniciado de Prismari",
+      resumo: "Recebe o talento Iniciado de Strixhaven e acesso aos recursos artísticos de Prismari."
+    },
+    escolhasTalentos: {
+      picks: 1,
+      featIds: [
+        "iniciado-de-strixhaven"
+      ]
+    }
+  },
+  "estudante-quandrix": {
+    id: "estudante-quandrix",
+    nome: "Estudante de Quandrix",
+    fonte: "SCC",
+    pericias: [
+      "arcanismo",
+      "natureza"
+    ],
+    ferramentas: [
+      "ferramentas-de-artesao-um"
+    ],
+    idiomas: {
+      picks: 1,
+      from: [
+        "qualquer"
+      ]
+    },
+    equipamento: [
+      "Frasco de tinta preta",
+      "Caneta",
+      "Ábaco",
+      "Livro de teoria arcana",
+      "Uniforme escolar",
+      "Bolsa (15 PO)"
+    ],
+    ouro: {
+      gp: 15
+    },
+    recurso: {
+      nome: "Iniciado de Quandrix",
+      resumo: "Recebe o talento Iniciado de Strixhaven e acesso às pesquisas de Quandrix."
+    },
+    escolhasTalentos: {
+      picks: 1,
+      featIds: [
+        "iniciado-de-strixhaven"
+      ]
+    }
+  },
+  "estudante-silverquill": {
+    id: "estudante-silverquill",
+    nome: "Estudante de Silverquill",
+    fonte: "SCC",
+    pericias: [
+      "intimidacao",
+      "persuasao"
+    ],
+    ferramentas: [],
+    idiomas: {
+      picks: 2,
+      from: [
+        "qualquer"
+      ]
+    },
+    equipamento: [
+      "Frasco de tinta preta",
+      "Caneta",
+      "Livro de poesia",
+      "Uniforme escolar",
+      "Bolsa (15 PO)"
+    ],
+    ouro: {
+      gp: 15
+    },
+    recurso: {
+      nome: "Iniciado de Silverquill",
+      resumo: "Recebe o talento Iniciado de Strixhaven e acesso às redes e recursos de Silverquill."
+    },
+    escolhasTalentos: {
+      picks: 1,
+      featIds: [
+        "iniciado-de-strixhaven"
+      ]
+    }
+  },
+  "estudante-witherbloom": {
+    id: "estudante-witherbloom",
+    nome: "Estudante de Witherbloom",
+    fonte: "SCC",
+    pericias: [
+      "natureza",
+      "sobrevivencia"
+    ],
+    ferramentas: [
+      "kit-de-herborismo"
+    ],
+    idiomas: {
+      picks: 1,
+      from: [
+        "qualquer"
+      ]
+    },
+    equipamento: [
+      "Frasco de tinta preta",
+      "Caneta",
+      "Livro de identificação de plantas",
+      "Panela de ferro",
+      "Kit de herbalismo",
+      "Uniforme escolar",
+      "Bolsa (15 PO)"
+    ],
+    ouro: {
+      gp: 15
+    },
+    recurso: {
+      nome: "Iniciado de Witherbloom",
+      resumo: "Recebe o talento Iniciado de Strixhaven e acesso aos recursos de Witherbloom."
+    },
+    escolhasTalentos: {
+      picks: 1,
+      featIds: [
+        "iniciado-de-strixhaven"
+      ]
+    }
+  },
+  recompensado: {
+    id: "recompensado",
+    nome: "Recompensado",
+    fonte: "BMT",
+    pericias: [
+      "intuicao",
+      "persuasao"
+    ],
+    ferramentas: [
+      "conjunto-de-jogos-um"
+    ],
+    idiomas: {
+      picks: 1,
+      from: [
+        "qualquer"
+      ]
+    },
+    equipamento: [
+      "Frasco de tinta preta",
+      "Caneta",
+      "Cinco folhas de papel",
+      "Anel de sinete",
+      "Roupas finas",
+      "Bolsa (18 PO)"
+    ],
+    ouro: {
+      gp: 18
+    },
+    recurso: {
+      nome: "Favor da Fortuna",
+      resumo: "Recebe uma dádiva inesperada na forma de um talento escolhido entre Sortudo, Iniciado Mágico ou Especialista."
+    },
+    escolhasTalentos: {
+      picks: 1,
+      featIds: [
+        "sortudo",
+        "iniciado-magico",
+        "habilidoso"
+      ]
+    }
+  },
+  arruinado: {
+    id: "arruinado",
+    nome: "Arruinado",
+    fonte: "BMT",
+    pericias: [
+      "furtividade",
+      "sobrevivencia"
+    ],
+    ferramentas: [
+      "conjunto-de-jogos-um"
+    ],
+    idiomas: {
+      picks: 1,
+      from: [
+        "qualquer"
+      ]
+    },
+    equipamento: [
+      "Ampulheta rachada",
+      "Algemas enferrujadas",
+      "Garrafa quase vazia",
+      "Armadilha de caça",
+      "Roupas de viajante",
+      "Bolsa (13 PO)"
+    ],
+    ouro: {
+      gp: 13
+    },
+    recurso: {
+      nome: "Ainda de Pé",
+      resumo: "Recebe uma dádiva inesperada na forma de um talento escolhido entre Alerta, Especialista ou Durão."
+    },
+    escolhasTalentos: {
+      picks: 1,
+      featIds: [
+        "alerta",
+        "habilidoso",
+        "durao"
+      ]
+    }
+  },
+  "entalhador-runico": {
+    id: "entalhador-runico",
+    nome: "Entalhador Rúnico",
+    fonte: "BGG",
+    pericias: [
+      "historia",
+      "percepcao"
+    ],
+    ferramentas: [
+      "ferramentas-de-artesao-um"
+    ],
+    idiomas: {
+      picks: 0,
+      from: []
+    },
+    idiomasFixos: [
+      "gigante"
+    ],
+    equipamento: [
+      "Faca pequena",
+      "Pedra de amolar",
+      "Roupas comuns",
+      "Bolsa (10 PO)"
+    ],
+    ouro: {
+      gp: 10
+    },
+    recurso: {
+      nome: "Moldar Runas",
+      resumo: "Recebe o talento Moldar Runas."
+    },
+  },
+  "construtor-navios": {
+    id: "construtor-navios",
+    nome: "Construtor Naval",
+    fonte: "GoS",
+    pericias: [
+      "historia",
+      "percepcao"
+    ],
+    ferramentas: [
+      "ferramentas-de-carpinteiro",
+      "Veículos (aquáticos)"
+    ],
+    idiomas: {
+      picks: 0,
+      from: []
+    },
+    equipamento: [
+      "Ferramentas de carpinteiro gastas",
+      "Livro em branco",
+      "Tinta",
+      "Caneta",
+      "Roupas de viajante",
+      "Bolsa de couro (10 PO)"
+    ],
+    ouro: {
+      gp: 10
+    },
+    recurso: {
+      nome: "Eu Conserto!",
+      resumo: "Pode reparar o casco de uma embarcação com ferramentas de carpinteiro e madeira."
+    },
+  },
+  contrabandista: {
+    id: "contrabandista",
+    nome: "Contrabandista",
+    fonte: "GoS",
+    pericias: [
+      "atletismo",
+      "enganacao"
+    ],
+    ferramentas: [
+      "Veículos (aquáticos)"
+    ],
+    idiomas: {
+      picks: 0,
+      from: []
+    },
+    equipamento: [
+      "Roupas comuns",
+      "Bolsa de couro (15 PO)"
+    ],
+    ouro: {
+      gp: 15
+    },
+    recurso: {
+      nome: "Discrição",
+      resumo: "Tem contatos entre contrabandistas que podem ajudar a sair de situações difíceis."
+    },
+  },
+  "cacador-recompensas-urbano": {
+    id: "cacador-recompensas-urbano",
+    nome: "Caçador de Recompensas Urbano",
+    fonte: "SCAG",
+    pericias: [],
+    periciasEscolha: {
+      picks: 2,
+      from: [
+        "enganacao",
+        "intuicao",
+        "persuasao",
+        "furtividade"
+      ]
+    },
+    ferramentas: [
+      "ferramenta-urbana-um"
+    ],
+    idiomas: {
+      picks: 0,
+      from: []
+    },
+    equipamento: [
+      "Roupas adequadas ao seu trabalho",
+      "Bolsa (20 PO)"
+    ],
+    ouro: {
+      gp: 20
+    },
+    recurso: {
+      nome: "Ouvido no Submundo",
+      resumo: "Mantém contato com pessoas ligadas aos grupos por onde circulam suas presas."
+    },
+  },
+  "membro-tribo-uthgardt": {
+    id: "membro-tribo-uthgardt",
+    nome: "Membro da Tribo Uthgardt",
+    fonte: "SCAG",
+    pericias: [
+      "atletismo",
+      "sobrevivencia"
+    ],
+    ferramentas: [
+      "ferramentas-de-artesao-ou-instrumento"
+    ],
+    idiomas: {
+      picks: 1,
+      from: [
+        "qualquer"
+      ]
+    },
+    equipamento: [
+      "Armadilha de caça",
+      "Totem ou tatuagens da tribo",
+      "Roupas de viajante",
+      "Bolsa (10 PO)"
+    ],
+    ouro: {
+      gp: 10
+    },
+    recurso: {
+      nome: "Herança Uthgardt",
+      resumo: "Conhece bem o território de sua tribo, o Norte e seus recursos naturais."
+    },
+  },
+  "investigador-guarda-cidade": {
+    id: "investigador-guarda-cidade",
+    nome: "Investigador da Guarda da Cidade",
+    fonte: "SCAG",
+    pericias: [
+      "intuicao",
+      "investigacao"
+    ],
+    ferramentas: [],
+    idiomas: {
+      picks: 2,
+      from: [
+        "qualquer"
+      ]
+    },
+    equipamento: [
+      "Uniforme da guarda",
+      "Buzina para chamar ajuda",
+      "Algemas",
+      "Bolsa (10 PO)"
+    ],
+    ouro: {
+      gp: 10
+    },
+    recurso: {
+      nome: "Olhar do Vigilante",
+      resumo: "Conhece leis e criminosos locais e encontra postos da guarda ou autoridades equivalentes."
+    },
+  },
+  "nobre-waterdeep": {
+    id: "nobre-waterdeep",
+    nome: "Nobre de Águas Profundas",
+    fonte: "SCAG",
+    pericias: [
+      "historia",
+      "persuasao"
+    ],
+    ferramentas: [
+      "instrumento-musical-ou-conjunto-de-jogos"
+    ],
+    idiomas: {
+      picks: 1,
+      from: [
+        "qualquer"
+      ]
+    },
+    equipamento: [
+      "Roupas finas",
+      "Anel de sinete ou broche",
+      "Pergaminho genealógico",
+      "Odre de vinho ou zzar fino",
+      "Bolsa (20 PO)"
+    ],
+    ouro: {
+      gp: 20
+    },
+    recurso: {
+      nome: "Mantido em Estilo",
+      resumo: "Sua casa cobre despesas cotidianas quando você está em Waterdeep ou no Norte."
+    },
+  },
+  "mao-do-carnaval": {
+    id: "mao-do-carnaval",
+    nome: "Ajudante do Carnaval",
+    fonte: "WBtW",
+    pericias: [
+      "atuacao",
+      "prestidigitacao"
+    ],
+    ferramentas: [
+      "kit-de-disfarce-ou-instrumento"
+    ],
+    idiomas: {
+      picks: 1,
+      from: [
+        "qualquer"
+      ]
+    },
+    equipamento: [
+      "Baralho",
+      "Uniforme de carnaval ou fantasia",
+      "Lembrança do Reino das Fadas",
+      "Bolsa (8 PO)"
+    ],
+    ouro: {
+      gp: 8
+    },
+    recurso: {
+      nome: "Presença no Carnaval",
+      resumo: "O Carnaval da Bruxa oferece hospedagem e refeições modestas e permite aproveitar as atrações sem custo."
+    },
+  },
+  "mercador-guilda": {
+    id: "mercador-guilda",
+    nome: "Mercador da Guilda",
+    fonte: "PHB",
+    pericias: [
+      "intuicao",
+      "persuasao"
+    ],
+    ferramentas: [
+      "ferramentas-de-artesao-ou-navegador"
+    ],
+    idiomas: {
+      picks: 1,
+      from: [
+        "qualquer"
+      ]
+    },
+    equipamento: [
+      "Mula e carroça",
+      "Carta de apresentação da guilda",
+      "Roupas de viajante",
+      "Bolsa (15 PO)"
+    ],
+    ouro: {
+      gp: 15
+    },
+    recurso: {
+      nome: "Filiação à Guilda",
+      resumo: "Tem acesso a contatos e alojamento ligados à sua guilda mercantil."
+    },
+  },
+  gladiador: {
+    id: "gladiador",
+    nome: "Gladiador",
+    fonte: "PHB",
+    pericias: [
+      "acrobacia",
+      "atuacao"
+    ],
+    ferramentas: [
+      "kit-de-disfarce-ou-instrumento"
+    ],
+    idiomas: {
+      picks: 1,
+      from: [
+        "qualquer"
+      ]
+    },
+    equipamento: [
+      "Arma incomum de espetáculo",
+      "Lembrança de admirador",
+      "Fantasia",
+      "Bolsa (15 PO)"
+    ],
+    ouro: {
+      gp: 15
+    },
+    recurso: {
+      nome: "Pela Demanda Popular",
+      resumo: "Consegue apresentações, refeições e hospedagem modesta onde seu espetáculo é conhecido."
+    },
+    variantes: [
+      "Variante oficial de Artista; pode substituir o instrumento musical por arma incomum de espetáculo."
+    ]
+  },
+  "cavaleiro-nobre": {
+    id: "cavaleiro-nobre",
+    nome: "Cavaleiro",
+    fonte: "PHB",
+    pericias: [
+      "historia",
+      "persuasao"
+    ],
+    ferramentas: [
+      "conjunto-de-jogos-um"
+    ],
+    idiomas: {
+      picks: 1,
+      from: [
+        "qualquer"
+      ]
+    },
+    equipamento: [
+      "Roupas finas",
+      "Anel de sinete",
+      "Pergaminho genealógico",
+      "Bolsa (25 PO)"
+    ],
+    ouro: {
+      gp: 25
+    },
+    recurso: {
+      nome: "Retentores",
+      resumo: "Conta com três retentores leais à sua família, que podem realizar tarefas simples, mas não entram em combate."
+    },
+    variantes: [
+      "Variante oficial de Nobre."
+    ]
+  },
+  pirata: {
+    id: "pirata",
+    nome: "Pirata",
+    fonte: "PHB",
+    pericias: [
+      "atletismo",
+      "percepcao"
+    ],
+    ferramentas: [
+      "Veículos (aquáticos)"
+    ],
+    idiomas: {
+      picks: 0,
+      from: []
+    },
+    equipamento: [
+      "Pino de amarração (clava)",
+      "Corda de seda (15 m)",
+      "Amuleto da sorte",
+      "Roupas comuns",
+      "Bolsa (10 PO)"
+    ],
+    ouro: {
+      gp: 10
+    },
+    recurso: {
+      nome: "Má Reputação",
+      resumo: "Sua reputação basta para que a maioria das pessoas hesite antes de denunciá-lo ou se opor a você."
+    },
+    variantes: [
+      "Variante oficial de Marinheiro."
+    ]
+  },
+  "agente-casa-cannith": {
+    id: "agente-casa-cannith",
+    nome: "Agente da Casa (Cannith)",
+    fonte: "ERLW",
+    pericias: [
+      "investigacao",
+      "persuasao"
+    ],
+    ferramentas: [
+      "Suprimentos de alquimista",
+      "Ferramentas de funileiro"
+    ],
+    idiomas: {
+      picks: 0,
+      from: []
+    },
+    equipamento: [
+      "Roupas finas",
+      "Anel de sinete da casa",
+      "Documentos de identificação",
+      "Bolsa (20 PO)"
+    ],
+    ouro: {
+      gp: 20
+    },
+    recurso: {
+      nome: "Conexões da Casa",
+      resumo: "Encontra hospedagem, suprimentos e contatos nas instalações de sua casa."
+    },
+  },
+  "agente-casa-deneith": {
+    id: "agente-casa-deneith",
+    nome: "Agente da Casa (Deneith)",
+    fonte: "ERLW",
+    pericias: [
+      "investigacao",
+      "persuasao"
+    ],
+    ferramentas: [
+      "conjunto-de-jogos-um",
+      "Veículos (terrestres)"
+    ],
+    idiomas: {
+      picks: 0,
+      from: []
+    },
+    equipamento: [
+      "Roupas finas",
+      "Anel de sinete da casa",
+      "Documentos de identificação",
+      "Bolsa (20 PO)"
+    ],
+    ouro: {
+      gp: 20
+    },
+    recurso: {
+      nome: "Conexões da Casa",
+      resumo: "Encontra hospedagem, suprimentos e contatos nas instalações de sua casa."
+    },
+  },
+  "agente-casa-ghallanda": {
+    id: "agente-casa-ghallanda",
+    nome: "Agente da Casa (Ghallanda)",
+    fonte: "ERLW",
+    pericias: [
+      "investigacao",
+      "persuasao"
+    ],
+    ferramentas: [
+      "Suprimentos de cervejeiro",
+      "Utensílios de cozinheiro"
+    ],
+    idiomas: {
+      picks: 0,
+      from: []
+    },
+    equipamento: [
+      "Roupas finas",
+      "Anel de sinete da casa",
+      "Documentos de identificação",
+      "Bolsa (20 PO)"
+    ],
+    ouro: {
+      gp: 20
+    },
+    recurso: {
+      nome: "Conexões da Casa",
+      resumo: "Encontra hospedagem, suprimentos e contatos nas instalações de sua casa."
+    },
+  },
+  "agente-casa-jorasco": {
+    id: "agente-casa-jorasco",
+    nome: "Agente da Casa (Jorasco)",
+    fonte: "ERLW",
+    pericias: [
+      "investigacao",
+      "persuasao"
+    ],
+    ferramentas: [
+      "Suprimentos de alquimista",
+      "Kit de herbalismo"
+    ],
+    idiomas: {
+      picks: 0,
+      from: []
+    },
+    equipamento: [
+      "Roupas finas",
+      "Anel de sinete da casa",
+      "Documentos de identificação",
+      "Bolsa (20 PO)"
+    ],
+    ouro: {
+      gp: 20
+    },
+    recurso: {
+      nome: "Conexões da Casa",
+      resumo: "Encontra hospedagem, suprimentos e contatos nas instalações de sua casa."
+    },
+  },
+  "agente-casa-kundarak": {
+    id: "agente-casa-kundarak",
+    nome: "Agente da Casa (Kundarak)",
+    fonte: "ERLW",
+    pericias: [
+      "investigacao",
+      "persuasao"
+    ],
+    ferramentas: [
+      "ferramentas-de-ladrao",
+      "Ferramentas de funileiro"
+    ],
+    idiomas: {
+      picks: 0,
+      from: []
+    },
+    equipamento: [
+      "Roupas finas",
+      "Anel de sinete da casa",
+      "Documentos de identificação",
+      "Bolsa (20 PO)"
+    ],
+    ouro: {
+      gp: 20
+    },
+    recurso: {
+      nome: "Conexões da Casa",
+      resumo: "Encontra hospedagem, suprimentos e contatos nas instalações de sua casa."
+    },
+  },
+  "agente-casa-lyrandar": {
+    id: "agente-casa-lyrandar",
+    nome: "Agente da Casa (Lyrandar)",
+    fonte: "ERLW",
+    pericias: [
+      "investigacao",
+      "persuasao"
+    ],
+    ferramentas: [
+      "ferramentas-de-navegador",
+      "Veículos (aquáticos)",
+      "Veículos (aéreos)"
+    ],
+    idiomas: {
+      picks: 0,
+      from: []
+    },
+    equipamento: [
+      "Roupas finas",
+      "Anel de sinete da casa",
+      "Documentos de identificação",
+      "Bolsa (20 PO)"
+    ],
+    ouro: {
+      gp: 20
+    },
+    recurso: {
+      nome: "Conexões da Casa",
+      resumo: "Encontra hospedagem, suprimentos e contatos nas instalações de sua casa."
+    },
+  },
+  "agente-casa-medani": {
+    id: "agente-casa-medani",
+    nome: "Agente da Casa (Medani)",
+    fonte: "ERLW",
+    pericias: [
+      "investigacao",
+      "persuasao"
+    ],
+    ferramentas: [
+      "kit-de-disfarce",
+      "ferramentas-de-ladrao"
+    ],
+    idiomas: {
+      picks: 0,
+      from: []
+    },
+    equipamento: [
+      "Roupas finas",
+      "Anel de sinete da casa",
+      "Documentos de identificação",
+      "Bolsa (20 PO)"
+    ],
+    ouro: {
+      gp: 20
+    },
+    recurso: {
+      nome: "Conexões da Casa",
+      resumo: "Encontra hospedagem, suprimentos e contatos nas instalações de sua casa."
+    },
+  },
+  "agente-casa-orien": {
+    id: "agente-casa-orien",
+    nome: "Agente da Casa (Orien)",
+    fonte: "ERLW",
+    pericias: [
+      "investigacao",
+      "persuasao"
+    ],
+    ferramentas: [
+      "conjunto-de-jogos-um",
+      "Veículos (terrestres)"
+    ],
+    idiomas: {
+      picks: 0,
+      from: []
+    },
+    equipamento: [
+      "Roupas finas",
+      "Anel de sinete da casa",
+      "Documentos de identificação",
+      "Bolsa (20 PO)"
+    ],
+    ouro: {
+      gp: 20
+    },
+    recurso: {
+      nome: "Conexões da Casa",
+      resumo: "Encontra hospedagem, suprimentos e contatos nas instalações de sua casa."
+    },
+  },
+  "agente-casa-phiarlan": {
+    id: "agente-casa-phiarlan",
+    nome: "Agente da Casa (Phiarlan)",
+    fonte: "ERLW",
+    pericias: [
+      "investigacao",
+      "persuasao"
+    ],
+    ferramentas: [
+      "kit-de-disfarce",
+      "instrumento-musical-um"
+    ],
+    idiomas: {
+      picks: 0,
+      from: []
+    },
+    equipamento: [
+      "Roupas finas",
+      "Anel de sinete da casa",
+      "Documentos de identificação",
+      "Bolsa (20 PO)"
+    ],
+    ouro: {
+      gp: 20
+    },
+    recurso: {
+      nome: "Conexões da Casa",
+      resumo: "Encontra hospedagem, suprimentos e contatos nas instalações de sua casa."
+    },
+  },
+  "agente-casa-sivis": {
+    id: "agente-casa-sivis",
+    nome: "Agente da Casa (Sivis)",
+    fonte: "ERLW",
+    pericias: [
+      "investigacao",
+      "persuasao"
+    ],
+    ferramentas: [
+      "ferramentas-de-caligrafo",
+      "Kit de falsificação"
+    ],
+    idiomas: {
+      picks: 0,
+      from: []
+    },
+    equipamento: [
+      "Roupas finas",
+      "Anel de sinete da casa",
+      "Documentos de identificação",
+      "Bolsa (20 PO)"
+    ],
+    ouro: {
+      gp: 20
+    },
+    recurso: {
+      nome: "Conexões da Casa",
+      resumo: "Encontra hospedagem, suprimentos e contatos nas instalações de sua casa."
+    },
+  },
+  "agente-casa-tharashk": {
+    id: "agente-casa-tharashk",
+    nome: "Agente da Casa (Tharashk)",
+    fonte: "ERLW",
+    pericias: [
+      "investigacao",
+      "persuasao"
+    ],
+    ferramentas: [
+      "conjunto-de-jogos-um",
+      "ferramentas-de-ladrao"
+    ],
+    idiomas: {
+      picks: 0,
+      from: []
+    },
+    equipamento: [
+      "Roupas finas",
+      "Anel de sinete da casa",
+      "Documentos de identificação",
+      "Bolsa (20 PO)"
+    ],
+    ouro: {
+      gp: 20
+    },
+    recurso: {
+      nome: "Conexões da Casa",
+      resumo: "Encontra hospedagem, suprimentos e contatos nas instalações de sua casa."
+    },
+  },
+  "agente-casa-thuranni": {
+    id: "agente-casa-thuranni",
+    nome: "Agente da Casa (Thuranni)",
+    fonte: "ERLW",
+    pericias: [
+      "investigacao",
+      "persuasao"
+    ],
+    ferramentas: [
+      "instrumento-musical-um",
+      "Kit de venenos"
+    ],
+    idiomas: {
+      picks: 0,
+      from: []
+    },
+    equipamento: [
+      "Roupas finas",
+      "Anel de sinete da casa",
+      "Documentos de identificação",
+      "Bolsa (20 PO)"
+    ],
+    ouro: {
+      gp: 20
+    },
+    recurso: {
+      nome: "Conexões da Casa",
+      resumo: "Encontra hospedagem, suprimentos e contatos nas instalações de sua casa."
+    },
+  },
+  "agente-casa-vadalis": {
+    id: "agente-casa-vadalis",
+    nome: "Agente da Casa (Vadalis)",
+    fonte: "ERLW",
+    pericias: [
+      "investigacao",
+      "persuasao"
+    ],
+    ferramentas: [
+      "Kit de herbalismo",
+      "Veículos (terrestres)"
+    ],
+    idiomas: {
+      picks: 0,
+      from: []
+    },
+    equipamento: [
+      "Roupas finas",
+      "Anel de sinete da casa",
+      "Documentos de identificação",
+      "Bolsa (20 PO)"
+    ],
+    ouro: {
+      gp: 20
+    },
+    recurso: {
+      nome: "Conexões da Casa",
+      resumo: "Encontra hospedagem, suprimentos e contatos nas instalações de sua casa."
+    },
+  }
+};
 
-export const ANTECEDENTES_EXPANDIDOS = Object.fromEntries(data.map((entry) => {
-  const { escolhasEquipamento, ...background } = entry;
-  return [entry.id, background];
-}));
+/**
+ * Fontes oficiais dos antecedentes expandidos. Os livros são vinculados por sigla,
+ * mas as listas de personalidade não são inferidas nem reescritas por tema.
+ * Campos vazios significam que o texto oficial não foi integrado a este dataset.
+ */
+export const FONTES_OFICIAIS_ANTECEDENTES_5E = {
+  ToA: { titulo: "Tomb of Annihilation", url: "https://www.dndbeyond.com/sources/dnd/toa" },
+  AAG: { titulo: "Spelljammer: Adventures in Space — Astral Adventurer’s Guide", url: "https://www.dndbeyond.com/sources/dnd/sais/aag" },
+  MOT: { titulo: "Mythic Odysseys of Theros", url: "https://www.dndbeyond.com/sources/dnd/moot" },
+  GGR: { titulo: "Guildmasters’ Guide to Ravnica", url: "https://www.dndbeyond.com/sources/dnd/ggtr" },
+  AI: { titulo: "Acquisitions Incorporated", url: "https://www.dndbeyond.com/sources/dnd/ai" },
+  BGDIA: { titulo: "Baldur’s Gate: Descent into Avernus", url: "https://www.dndbeyond.com/sources/dnd/bgdia" },
+  SCAG: { titulo: "Sword Coast Adventurer’s Guide", url: "https://www.dndbeyond.com/sources/dnd/scag" },
+  WBtW: { titulo: "The Wild Beyond the Witchlight", url: "https://www.dndbeyond.com/sources/dnd/twbtw" },
+  GoS: { titulo: "Ghosts of Saltmarsh", url: "https://www.dndbeyond.com/sources/dnd/gos" },
+  SatO: { titulo: "Planescape: Adventures in the Multiverse", url: "https://www.dndbeyond.com/sources/dnd/paitm/sato" },
+  BGG: { titulo: "Bigby Presents: Glory of the Giants", url: "https://www.dndbeyond.com/sources/dnd/gotg" },
+  CoS: { titulo: "Curse of Strahd", url: "https://www.dndbeyond.com/sources/dnd/cos" },
+  VRGR: { titulo: "Van Richten’s Guide to Ravenloft", url: "https://marketplace.dndbeyond.com/sourcebooks/van-richtens-guide-to-ravenloft" },
+  DSotDQ: { titulo: "Dragonlance: Shadow of the Dragon Queen", url: "https://www.dndbeyond.com/sources/dnd/sotdq" },
+  SCC: { titulo: "Strixhaven: A Curriculum of Chaos", url: "https://www.dndbeyond.com/sources/dnd/sacoc" },
+  BMT: { titulo: "The Book of Many Things", url: "https://www.dndbeyond.com/sources/dnd/tbomt" },
+  PHB: { titulo: "Player’s Handbook (2014)", url: "https://www.dndbeyond.com/sources/dnd/phb-2014" },
+  ERLW: { titulo: "Eberron: Rising from the Last War", url: "https://www.dndbeyond.com/sources/dnd/erftlw" }
+};
 
-export const BACKGROUND_EQUIPMENT_RULES_EXPANDIDAS = Object.fromEntries(data
-  .filter((entry) => entry.escolhasEquipamento?.length)
-  .map((entry) => [entry.id, {
+for (const antecedente of Object.values(ANTECEDENTES_EXPANDIDOS)) {
+  antecedente.personalidade = [];
+  antecedente.ideais = [];
+  antecedente.vinculos = [];
+  antecedente.defeitos = [];
+  const fonte = FONTES_OFICIAIS_ANTECEDENTES_5E[antecedente.fonte];
+  antecedente.referenciaFonte = fonte ? { ...fonte } : null;
+}
+
+export const BACKGROUND_EQUIPMENT_RULES_EXPANDIDAS = Object.fromEntries(Object.entries(escolhasEquipamentoExpandidas)
+  .map(([id, escolhas]) => [id, {
     groups: [{
       id: "equipamento-inicial",
       label: "Equipamento e escolhas do antecedente",
       grants: [
-        ...entry.equipamento.map((value) => ({ type: "text", value })),
-        ...entry.escolhasEquipamento.map((choice) => ({ type: "textSelect", ...choice })),
+        ...ANTECEDENTES_EXPANDIDOS[id].equipamento.map((value) => ({ type: "text", value })),
+        ...escolhas.map((choice) => ({ type: "textSelect", ...choice })),
       ],
     }],
   }]));
