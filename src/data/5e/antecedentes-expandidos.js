@@ -1,4 +1,8 @@
 import { ANTECEDENTES as ANTECEDENTES_BASE } from "./antecedentes.js";
+import {
+  ANTECEDENTES_BASE_CARACTERISTICAS_5E,
+  CARACTERISTICAS_OFICIAIS_ANTECEDENTES_5E_COMPLEMENTARES,
+} from "./antecedentes-caracteristicas-expandidas.js";
 
 const escolhasEquipamentoExpandidas = {
   arqueologo: [
@@ -3328,12 +3332,19 @@ const CARACTERISTICAS_OFICIAIS_ANTECEDENTES_5E = {
   }
 };
 
+Object.assign(
+  CARACTERISTICAS_OFICIAIS_ANTECEDENTES_5E,
+  CARACTERISTICAS_OFICIAIS_ANTECEDENTES_5E_COMPLEMENTARES,
+);
+
 for (const antecedente of Object.values(ANTECEDENTES_EXPANDIDOS)) {
-  const caracteristicas = CARACTERISTICAS_OFICIAIS_ANTECEDENTES_5E[antecedente.id];
-  antecedente.personalidade = caracteristicas?.personalidade ?? [];
-  antecedente.ideais = caracteristicas?.ideais ?? [];
-  antecedente.vinculos = caracteristicas?.vinculos ?? [];
-  antecedente.defeitos = caracteristicas?.defeitos ?? [];
+  const idAntecedenteBase = ANTECEDENTES_BASE_CARACTERISTICAS_5E[antecedente.id];
+  const caracteristicas = CARACTERISTICAS_OFICIAIS_ANTECEDENTES_5E[antecedente.id]
+    ?? (idAntecedenteBase ? ANTECEDENTES_BASE[idAntecedenteBase] : undefined);
+  antecedente.personalidade = [...(caracteristicas?.personalidade ?? [])];
+  antecedente.ideais = (caracteristicas?.ideais ?? []).map((ideal) => ({ ...ideal }));
+  antecedente.vinculos = [...(caracteristicas?.vinculos ?? [])];
+  antecedente.defeitos = [...(caracteristicas?.defeitos ?? [])];
   const fonte = FONTES_OFICIAIS_ANTECEDENTES_5E[antecedente.fonte];
   antecedente.referenciaFonte = fonte ? { ...fonte } : null;
 }
