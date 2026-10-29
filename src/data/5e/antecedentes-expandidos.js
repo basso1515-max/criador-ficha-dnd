@@ -482,6 +482,57 @@ const escolhasEquipamentoExpandidas = {
   ]
 };
 
+Object.assign(escolhasEquipamentoExpandidas, {
+  "baldur-acolito": [
+    { selectionId: "livro-oracoes", label: "Livro de orações ou roda de orações", options: [{ id: "livro-oracoes", label: "Livro de orações" }, { id: "roda-oracoes", label: "Roda de orações" }], targets: ["equipment"] },
+  ],
+  "baldur-criminoso": [
+    { selectionId: "jogo", label: "Conjunto de jogos", optionsList: "gamingSets", placeholderKey: "conjunto-de-jogos-um", targets: ["proficiency"] },
+  ],
+  "baldur-charlatao": [
+    { selectionId: "esquema", label: "Ferramenta do golpe", optionsList: "charlatanConItems", targets: ["equipment"] },
+  ],
+  "baldur-artista": [
+    { selectionId: "instrumento", label: "Instrumento musical", optionsList: "musicalInstruments", placeholderKey: "instrumento-musical-um", targets: ["equipment", "proficiency"] },
+    { selectionId: "favor", label: "Favor de admirador", optionsList: "entertainerFavors", targets: ["equipment"] },
+  ],
+  "baldur-heroi-do-povo": [
+    { selectionId: "ferramenta", label: "Ferramenta de artesão", optionsList: "artisanTools", placeholderKey: "ferramentas-de-artesao-um", targets: ["equipment", "proficiency"] },
+  ],
+  "baldur-artesao-da-guilda": [
+    { selectionId: "ferramenta", label: "Ferramenta de artesão", optionsList: "artisanTools", placeholderKey: "ferramentas-de-artesao-um", targets: ["equipment", "proficiency"] },
+  ],
+  "baldur-eremita": [],
+  "baldur-nobre": [
+    { selectionId: "jogo", label: "Conjunto de jogos", optionsList: "gamingSets", placeholderKey: "conjunto-de-jogos-um", targets: ["proficiency"] },
+  ],
+  "baldur-forasteiro": [
+    { selectionId: "instrumento", label: "Instrumento musical", optionsList: "musicalInstruments", placeholderKey: "instrumento-musical-um", targets: ["proficiency"] },
+  ],
+  "baldur-sabio": [],
+  "baldur-marinheiro": [],
+  "baldur-soldado": [
+    { selectionId: "jogo", label: "Conjunto de jogos e equipamento", optionsList: "soldierGamingSets", placeholderKey: "conjunto-de-jogos-um", targets: ["equipment", "proficiency"] },
+  ],
+  "baldur-orfa-de-rua": [],
+  "augen-trust-espio": [
+    { selectionId: "jogo", label: "Conjunto de jogos", optionsList: "gamingSets", placeholderKey: "conjunto-de-jogos-um", targets: ["proficiency"] },
+  ],
+  "estudioso-alma-cobalto": [],
+  grinner: [
+    { selectionId: "instrumento", label: "Instrumento musical", optionsList: "musicalInstruments", placeholderKey: "instrumento-musical-um", targets: ["equipment", "proficiency"] },
+  ],
+  "operativo-myriad": [
+    { selectionId: "jogo", label: "Conjunto de jogos", optionsList: "gamingSets", placeholderKey: "conjunto-de-jogos-um", targets: ["proficiency"] },
+  ],
+  "nascido-do-luxon": [
+    { selectionId: "livro-oracoes", label: "Livro de orações ou roda de orações", options: [{ id: "livro-oracoes", label: "Livro de orações" }, { id: "roda-oracoes", label: "Roda de orações" }], targets: ["equipment"] },
+  ],
+  "pirata-revelry": [],
+  "agente-volstrucker": [],
+  "antecedente-personalizado": [],
+});
+
 export const ANTECEDENTES_EXPANDIDOS = {
   antropologo: {
     id: "antropologo",
@@ -2864,6 +2915,140 @@ export const ANTECEDENTES_EXPANDIDOS = {
   }
 };
 
+// Variantes de Baldur's Gate e Wildemount, além do modelo de Antecedente
+// Personalizado do PHB 2014. Características de personalidade herdadas são
+// ligadas abaixo a seus antecedentes-base; os textos próprios são transcritos
+// e traduzidos das fontes indicadas em FONTES_OFICIAIS_ANTECEDENTES_5E.
+Object.assign(ANTECEDENTES_EXPANDIDOS, {
+  "baldur-acolito": {
+    id: "baldur-acolito", nome: "Acólito de Baldur's Gate", nomeEN: "Baldur's Gate Acolyte", fonte: "BGDIA",
+    pericias: ["intuicao", "religiao"], ferramentas: [], idiomas: { picks: 2, from: ["qualquer"] },
+    equipamento: ["Símbolo sagrado", "5 incensos", "Vestes", "Roupas comuns", "Bolsa (15 PO)"], ouro: { gp: 15 },
+    recurso: { nome: "Abrigo dos Fiéis e Comunidade Religiosa", resumo: "Recebe cura e cuidados em templos de sua fé, apoio para um estilo de vida modesto e, se mantiver boas relações, ajuda não perigosa de seu templo. Em Baldur's Gate, conhece as comunidades religiosas, seus locais de culto e os bairros onde se reúnem." },
+  },
+  "baldur-charlatao": {
+    id: "baldur-charlatao", nome: "Charlatão de Baldur's Gate", nomeEN: "Baldur's Gate Charlatan", fonte: "BGDIA",
+    pericias: ["enganacao", "prestidigitacao"], ferramentas: ["kit-de-disfarce", "kit-de-falsificacao"],
+    equipamento: ["Roupas finas", "Kit de disfarce", "Bolsa (15 PO)"], ouro: { gp: 15 },
+    recurso: { nome: "Identidade Falsa e Herdeiro Há Muito Perdido", resumo: "Mantém uma identidade documentada e falsifica documentos que já tenha visto. Em Baldur's Gate, imita os Patriarcas e porta um token da Guarda que lhe permite entrar sozinho na Cidade Alta; uma verificação minuciosa pode revelar a fraude." },
+  },
+  "baldur-criminoso": {
+    id: "baldur-criminoso", nome: "Criminoso de Baldur's Gate", nomeEN: "Baldur's Gate Criminal", fonte: "BGDIA",
+    pericias: ["enganacao", "furtividade"], ferramentas: ["ferramentas-de-ladrao", "conjunto-de-jogos-um"],
+    equipamento: ["Pé de cabra", "Roupas comuns escuras com capuz", "Bolsa (15 PO)"], ouro: { gp: 15 },
+    recurso: { nome: "Contato Criminal e Conexões Criminosas", resumo: "Mantém um contato confiável no submundo e sabe enviar mensagens a distância. Em Baldur's Gate, pode organizar um encontro com um agente de baixo escalão de quase qualquer negócio, família, tripulação, instituição ou guilda, em locais discretos." },
+  },
+  "baldur-artista": {
+    id: "baldur-artista", nome: "Artista de Baldur's Gate", nomeEN: "Baldur's Gate Entertainer", fonte: "BGDIA",
+    pericias: ["acrobacia", "atuacao"], ferramentas: ["kit-de-disfarce", "instrumento-musical-um"],
+    equipamento: ["Roupas de apresentação", "Bolsa (15 PO)"], ouro: { gp: 15 },
+    recurso: { nome: "Por Demanda Popular e Acesso aos Bastidores", resumo: "Encontra locais para atuar e recebe hospedagem e comida enquanto se apresenta. Em Baldur's Gate, reconhece os públicos de cada local e, após uma apresentação bem-sucedida, pode conversar com alguém da plateia que frequente aquele estabelecimento." },
+  },
+  "baldur-heroi-do-povo": {
+    id: "baldur-heroi-do-povo", nome: "Herói do Povo de Baldur's Gate", nomeEN: "Baldur's Gate Folk Hero", fonte: "BGDIA",
+    pericias: ["adestrarAnimais", "sobrevivencia"], ferramentas: ["ferramentas-de-artesao-um", "veiculos-terrestres"],
+    equipamento: ["Pá", "Panela de ferro", "Roupas comuns", "Bolsa (10 PO)"], ouro: { gp: 10 },
+    recurso: { nome: "Hospitalidade Rústica e Vingança Social", resumo: "Consegue abrigo e proteção entre pessoas comuns. Em uma área movimentada da Cidade Baixa ou Exterior, leva 2d10 minutos para convencer 1d6 pessoas comuns a praticar um ato não ilegal que incomode um membro da Guarda, um Patriarca ou outra pessoa rica." },
+  },
+  "baldur-artesao-da-guilda": {
+    id: "baldur-artesao-da-guilda", nome: "Artesão da Guilda de Baldur's Gate", nomeEN: "Baldur's Gate Guild Artisan", fonte: "BGDIA",
+    pericias: ["intuicao", "persuasao"], ferramentas: ["ferramentas-de-artesao-um"], idiomas: { picks: 1, from: ["qualquer"] },
+    equipamento: ["Carta de apresentação da guilda", "Roupas de viajante", "Bolsa (15 PO)"], ouro: { gp: 15 },
+    recurso: { nome: "Membro da Guilda e Cortesia Profissional", resumo: "Conta com a rede de sua guilda, mediante a contribuição de 5 PO por mês e as demais obrigações de membro. Em Baldur's Gate, escolhe um distrito para obter rumores locais com as equipes que atuam ali e entrar sem impedimentos em muitos estabelecimentos do distrito." },
+  },
+  "baldur-eremita": {
+    id: "baldur-eremita", nome: "Eremita de Baldur's Gate", nomeEN: "Baldur's Gate Hermit", fonte: "BGDIA",
+    pericias: ["medicina", "religiao"], ferramentas: ["kit-de-herborismo"], idiomas: { picks: 1, from: ["qualquer"] },
+    equipamento: ["Estojo com anotações ou orações", "Cobertor de inverno", "Roupas comuns", "Kit de herbologia", "Bolsa (5 PO)"], ouro: { gp: 5 },
+    recurso: { nome: "Descoberta e A Cidade Real", resumo: "Sua reclusão levou a uma descoberta singular, definida com o DM. Em Baldur's Gate, conhece os abrigos improvisados da Cidade Baixa e Exterior, onde pode encontrar comida simples, privacidade e anonimato." },
+  },
+  "baldur-nobre": {
+    id: "baldur-nobre", nome: "Nobre de Baldur's Gate", nomeEN: "Baldur's Gate Noble", fonte: "BGDIA",
+    pericias: ["historia", "persuasao"], ferramentas: ["conjunto-de-jogos-um"], idiomas: { picks: 1, from: ["qualquer"] },
+    equipamento: ["Roupas finas", "Anel de sinete", "Pergaminho de linhagem", "Bolsa (25 PO)"], ouro: { gp: 25 },
+    recurso: { nome: "Patriar", resumo: "Como integrante de uma família de elite, passa pelos portões sem pagar pedágio, circula entre a nobreza e é bem-vindo na Cidade Alta. Em Baldur's Gate, sua palavra costuma prevalecer e a corrupção oficial tende a favorecê-lo enquanto não tentar expô-la." },
+  },
+  "baldur-forasteiro": {
+    id: "baldur-forasteiro", nome: "Forasteiro de Baldur's Gate", nomeEN: "Baldur's Gate Outlander", fonte: "BGDIA",
+    pericias: ["atletismo", "sobrevivencia"], ferramentas: ["instrumento-musical-um"], idiomas: { picks: 1, from: ["qualquer"] },
+    equipamento: ["Bastão", "Armadilha de caça", "Troféu de um animal abatido", "Roupas de viajante", "Bolsa (10 PO)"], ouro: { gp: 10 },
+    recurso: { nome: "Andarilho e Experiência Imigrante", resumo: "Recorda mapas e geografia e encontra comida e água para até cinco pessoas. Em Baldur's Gate, é conhecido nas comunidades imigrantes e sabe onde encontrar pessoas com experiência direta sobre outras terras, povos, tradições e histórias." },
+  },
+  "baldur-sabio": {
+    id: "baldur-sabio", nome: "Sábio de Baldur's Gate", nomeEN: "Baldur's Gate Sage", fonte: "BGDIA",
+    pericias: ["arcanismo", "historia"], ferramentas: [], idiomas: { picks: 2, from: ["qualquer"] },
+    equipamento: ["Frasco de tinta", "Pena", "Faca pequena", "Carta de um colega falecido com uma pergunta sem resposta", "Roupas comuns", "Bolsa (10 PO)"], ouro: { gp: 10 },
+    recurso: { nome: "Pesquisador e Mercador de Rumores", resumo: "Sabe onde e com quem buscar informações. Em Baldur's Gate, quando ocorre um crime notório ou acontecimento misterioso, identifica 1d4 suspeitos que podem estar envolvidos ou saber quem está." },
+  },
+  "baldur-marinheiro": {
+    id: "baldur-marinheiro", nome: "Marinheiro de Baldur's Gate", nomeEN: "Baldur's Gate Sailor", fonte: "BGDIA",
+    pericias: ["atletismo", "percepcao"], ferramentas: ["ferramentas-de-navegador", "veiculos-aquaticos"],
+    equipamento: ["Cassetete de amarração", "Corda de seda (15 m)", "Amuleto da sorte", "Roupas comuns", "Bolsa (10 PO)"], ouro: { gp: 10 },
+    recurso: { nome: "Passagem em Navio e Faro de Contrabandista", resumo: "Consegue passagem gratuita em um navio à vela ao ajudar a tripulação. Em Baldur's Gate, conhece o movimento de cargas, fiscais e guardas do porto e sabe embarcar ou desembarcar mercadorias sem atrair suspeita ou impostos." },
+  },
+  "baldur-soldado": {
+    id: "baldur-soldado", nome: "Soldado de Baldur's Gate", nomeEN: "Baldur's Gate Soldier", fonte: "BGDIA",
+    pericias: ["atletismo", "intimidacao"], ferramentas: ["conjunto-de-jogos-um", "veiculos-terrestres"],
+    equipamento: ["Insígnia de patente", "Troféu de um inimigo derrotado", "Roupas comuns", "Bolsa (10 PO)"], ouro: { gp: 10 },
+    recurso: { nome: "Patente Militar, Guarda da Cidade e Teste de Lealdade", resumo: "Soldados de patente inferior reconhecem sua autoridade; você pode influenciar soldados, requisitar equipamento simples ou cavalos temporariamente e acessar acampamentos aliados. Em Baldur's Gate, pode servir à Flaming Fist ou à Guarda, recebendo benefícios enquanto cumpre seus deveres; também reconhece sinais comuns de corrupção entre guardas e oficiais." },
+  },
+  "baldur-orfa-de-rua": {
+    id: "baldur-orfa-de-rua", nome: "Órfão de Rua de Baldur's Gate", nomeEN: "Baldur's Gate Urchin", fonte: "BGDIA",
+    pericias: ["prestidigitacao", "furtividade"], ferramentas: ["kit-de-disfarce", "ferramentas-de-ladrao"],
+    equipamento: ["Faca pequena", "Mapa da cidade onde cresceu", "Rato de estimação", "Lembrança de seus pais", "Roupas comuns", "Bolsa (10 PO)"], ouro: { gp: 10 },
+    recurso: { nome: "Segredos da Cidade e Contato dos Guias do Portão", resumo: "Conhece passagens urbanas e, fora de combate, você e seus companheiros viajam pela cidade duas vezes mais rápido. Em Baldur's Gate, entende o código de tochas dos Guias do Portão e deduz informações sobre moradores e estabelecimentos." },
+  },
+  "augen-trust-espio": {
+    id: "augen-trust-espio", nome: "Agente do Augen Trust (Espião)", nomeEN: "Augen Trust (Spy)", fonte: "EGW",
+    pericias: ["enganacao", "furtividade"], ferramentas: ["conjunto-de-jogos-um", "ferramentas-de-ladrao"],
+    equipamento: ["Pé de cabra", "Roupas comuns escuras com capuz", "Bolsa (15 PO)"], ouro: { gp: 15 },
+    recurso: { nome: "Contato Espião", resumo: "Tem um contato confiável que faz a ligação com uma rede de espiões e sabe enviar mensagens a ele por mensageiros, caravaneiros corruptos e marinheiros." },
+  },
+  "estudioso-alma-cobalto": {
+    id: "estudioso-alma-cobalto", nome: "Estudioso da Alma Cobalto (Sábio)", nomeEN: "Cobalt Scholar (Sage)", fonte: "EGW",
+    pericias: ["arcanismo", "historia"], ferramentas: [], idiomas: { picks: 2, from: ["qualquer"] },
+    equipamento: ["Frasco de tinta", "Pena", "Faca pequena", "Carta de um colega falecido com uma pergunta sem resposta", "Roupas comuns", "Bolsa (10 PO)"], ouro: { gp: 10 },
+    recurso: { nome: "Pesquisador", resumo: "Quando não conhece uma informação, costuma saber onde e com quem pode obtê-la; descobertas profundas podem exigir uma aventura." },
+  },
+  grinner: {
+    id: "grinner", nome: "Sorridente (Grinner)", nomeEN: "Grinner", fonte: "EGW",
+    pericias: ["enganacao", "atuacao"], ferramentas: ["ferramentas-de-ladrao", "instrumento-musical-um"],
+    equipamento: ["Roupas finas", "Kit de disfarce", "Anel dourado com um rosto sorridente", "Bolsa (15 PO)"], ouro: { gp: 15 },
+    recurso: { nome: "Balada do Tolo Sorridente", resumo: "Em uma cidade com pelo menos 10 mil habitantes na Costa Menagerie ou no Império Dwendaliano, toca a balada em uma taverna importante para encontrar um membro do Sorriso Dourado, que pode abrigar você e seus companheiros. Use com cautela: alguns que conhecem a balada são traidores ou agentes do poder." },
+  },
+  "nascido-do-luxon": {
+    id: "nascido-do-luxon", nome: "Nascido do Luxon (Acólito)", nomeEN: "Luxonborn (Acolyte)", fonte: "EGW",
+    pericias: ["intuicao", "religiao"], ferramentas: [], idiomas: { picks: 2, from: ["qualquer"] },
+    equipamento: ["Símbolo sagrado", "5 incensos", "Vestes", "Roupas comuns", "Bolsa (15 PO)"], ouro: { gp: 15 },
+    recurso: { nome: "Abrigo dos Fiéis", resumo: "Recebe apoio e cuidados básicos em templos de sua fé e pode pedir ajuda não perigosa a sacerdotes de um templo ao qual esteja ligado." },
+  },
+  "operativo-myriad": {
+    id: "operativo-myriad", nome: "Operativo da Myriad (Criminoso)", nomeEN: "Myriad Operative (Criminal)", fonte: "EGW",
+    pericias: ["enganacao", "furtividade"], ferramentas: ["ferramentas-de-ladrao", "conjunto-de-jogos-um"],
+    equipamento: ["Pé de cabra", "Roupas comuns escuras com capuz", "Bolsa (15 PO)"], ouro: { gp: 15 },
+    recurso: { nome: "Contato Criminal", resumo: "Tem um contato confiável que faz a ligação com uma rede de criminosos e sabe enviar mensagens a ele por mensageiros, caravaneiros corruptos e marinheiros." },
+  },
+  "pirata-revelry": {
+    id: "pirata-revelry", nome: "Pirata da Revelry (Marinheiro)", nomeEN: "Revelry Pirate (Sailor)", fonte: "EGW",
+    pericias: ["atletismo", "percepcao"], ferramentas: ["ferramentas-de-navegador", "veiculos-aquaticos"],
+    equipamento: ["Cassetete de amarração", "Corda de seda (15 m)", "Amuleto da sorte", "Roupas comuns", "Bolsa (10 PO)"], ouro: { gp: 10 },
+    recurso: { nome: "Passagem em Navio", resumo: "Consegue passagem gratuita em um navio à vela com o qual tenha boas relações, desde que você e seus companheiros ajudem a tripulação durante a viagem." },
+  },
+  "agente-volstrucker": {
+    id: "agente-volstrucker", nome: "Agente Volstrucker", nomeEN: "Volstrucker Agent", fonte: "EGW",
+    pericias: ["enganacao", "furtividade"], ferramentas: ["kit de envenenador"], idiomas: { picks: 1, from: ["qualquer"] },
+    equipamento: ["Roupas comuns", "Manto preto com capuz", "Kit de envenenador", "Bolsa (10 PO)"], ouro: { gp: 10 },
+    recurso: { nome: "Rede das Sombras", resumo: "Envia mensagens a longa distância a outros Volstruckers: escreve com tinta arcana especial, endereça a carta e a lança ao fogo. A tinta custa 10 PO por página." },
+  },
+  "antecedente-personalizado": {
+    id: "antecedente-personalizado", nome: "Antecedente Personalizado", nomeEN: "Custom Background", fonte: "PHB",
+    pericias: [], periciasEscolha: { picks: 2, from: ["acrobacia", "adestrarAnimais", "arcanismo", "atletismo", "atuacao", "enganacao", "furtividade", "historia", "intimidacao", "intuicao", "investigacao", "medicina", "natureza", "percepcao", "persuasao", "prestidigitacao", "religiao", "sobrevivencia"] },
+    ferramentas: [], idiomas: { picks: 2, from: ["qualquer"] }, equipamento: [],
+    recurso: { nome: "Escolha um Recurso", resumo: "Escolha um recurso de qualquer antecedente e use as características sugeridas desse antecedente. O PHB permite substituir idiomas por proficiências com ferramentas, em qualquer combinação." },
+    regrasCustomizacao: "Escolha duas perícias, duas proficiências em qualquer combinação de ferramentas e idiomas, o pacote de equipamento e o recurso de qualquer antecedente. O editor oferece duas escolhas de idioma; se optar por ferramentas, registre as proficiências manualmente em Proficiências & Idiomas. O pacote de equipamento e o ouro do antecedente escolhido também precisam ser registrados manualmente.",
+  },
+});
+
 /**
  * Fontes oficiais dos antecedentes expandidos. Os livros são vinculados por sigla,
  * mas as listas de personalidade não são inferidas nem reescritas por tema.
@@ -2876,6 +3061,7 @@ export const FONTES_OFICIAIS_ANTECEDENTES_5E = {
   GGR: { titulo: "Guildmasters’ Guide to Ravnica", url: "https://www.dndbeyond.com/sources/dnd/ggtr" },
   AI: { titulo: "Acquisitions Incorporated", url: "https://www.dndbeyond.com/sources/dnd/ai" },
   BGDIA: { titulo: "Baldur’s Gate: Descent into Avernus", url: "https://www.dndbeyond.com/sources/dnd/bgdia" },
+  EGW: { titulo: "Explorer’s Guide to Wildemount", url: "https://www.dndbeyond.com/sources/dnd/egtw" },
   SCAG: { titulo: "Sword Coast Adventurer’s Guide", url: "https://www.dndbeyond.com/sources/dnd/scag" },
   WBtW: { titulo: "The Wild Beyond the Witchlight", url: "https://www.dndbeyond.com/sources/dnd/twbtw" },
   GoS: { titulo: "Ghosts of Saltmarsh", url: "https://www.dndbeyond.com/sources/dnd/gos" },
@@ -3328,6 +3514,72 @@ const CARACTERISTICAS_OFICIAIS_ANTECEDENTES_5E = {
       "Estou extremamente confiante na minha capacidade de me adaptar a qualquer situação e lidar com qualquer perigo.",
       "Vou correr qualquer risco para ganhar reconhecimento por meu brilhantismo científico.",
       "Tenho a tendência de usar atalhos em minha pesquisa e em qualquer outra tarefa que tenha que concluir."
+    ]
+  },
+  grinner: {
+    personalidade: [
+      "Adoro os holofotes. Todo mundo, olhe para mim!",
+      "Dê-me uma bebida e já sou seu amigo.",
+      "Fale comigo sobre você. Sou um ouvinte e tanto.",
+      "Odeio começar brigas, mas adoro terminá-las.",
+      "Não consigo ficar parado.",
+      "Estou sempre cantarolando uma velha melodia do meu passado.",
+      "Quando não tenho motivo para sorrir, fico infeliz.",
+      "Tenho uma sorte inacreditável."
+    ],
+    ideais: [
+      { k: "revolucao", texto: "Revolução. Tiranos devem cair, a qualquer custo. (Caótico)" },
+      { k: "compaixao", texto: "Compaixão. A única forma de melhorar o mundo é por meio de pequenas gentilezas. (Bom)" },
+      { k: "justica", texto: "Justiça. Uma nação fundada em princípios justos garantirá a liberdade de todos. (Leal)" },
+      { k: "expressao", texto: "Expressão. Música, alegria e riso são chaves para a liberdade. (Bom)" },
+      { k: "autodeterminacao", texto: "Autodeterminação. As pessoas devem ser livres para fazer o que quiserem. (Caótico)" },
+      { k: "vigilancia", texto: "Vigilância. Um povo livre precisa ser ensinado com cuidado para não ser enganado. (Neutro)" }
+    ],
+    vinculos: [
+      "Perdi alguém importante para um agente do Império Dwendaliano. Aquele regime cairá.",
+      "As primeiras pessoas prejudicadas por esta guerra serão o povo comum. Preciso protegê-las.",
+      "A música me ajudou a atravessar um período sombrio. Agora vou usá-la para mudar o mundo.",
+      "Serei conhecido como o maior espião que já viveu.",
+      "Toda vida é preciosa para mim. Sei que posso mudar o mundo sem tirar a vida de um humanoide.",
+      "As elites em suas torres de marfim não entendem nosso sofrimento. Pretendo mostrar a elas."
+    ],
+    defeitos: [
+      "Nunca menti na vida. O quê? Não estou cruzando os dedos!",
+      "Faço tudo em grande escala! Discrição? Não sei o que essa palavra significa! Ah, isso é um problema?",
+      "Ser espião em tempos de guerra é doloroso. Vi tanto sofrimento que acho que estou perdendo a razão.",
+      "Não consigo me concentrar na missão. Só quero festejar, cantar e tocar!",
+      "Sim, esse é meu nome. Sim, sou espião Grinner. Quem se importa em manter o disfarce?",
+      "Não posso confiar em ninguém. Em ninguém mesmo."
+    ]
+  },
+  "agente-volstrucker": {
+    personalidade: [
+      "Prefiro guardar meus pensamentos para mim.",
+      "Exagero nos vícios para silenciar minha consciência.",
+      "Deixei as emoções para trás. Agora sou perfeitamente impassível.",
+      "Um acontecimento do passado continua voltando à minha mente e me deixa inquieto.",
+      "Sempre cumpro minha palavra — exceto quando recebo ordens para quebrá-la.",
+      "Rio dos insultos e não os levo para o lado pessoal."
+    ],
+    ideais: [
+      { k: "ordem", texto: "Ordem. A vontade da Coroa é absoluta. (Leal)" },
+      { k: "lealdade-verdadeira", texto: "Lealdade Verdadeira. A Assembleia Cerberus está acima de qualquer poder, até mesmo da Coroa. (Leal)" },
+      { k: "morte", texto: "Morte. A deslealdade é punida com a morte. (Mal)" },
+      { k: "determinacao", texto: "Determinação. Não posso falhar. Nunca. (Neutro)" },
+      { k: "medo", texto: "Medo. As pessoas não devem respeitar o poder; devem temê-lo. (Mal)" },
+      { k: "fuga", texto: "Fuga. Os Volstruckers são pura maldade! Não posso reparar o que fiz por eles, mas posso escapar com vida. (Qualquer)" }
+    ],
+    vinculos: [
+      "O trabalho é tudo o que importa. Vou concluí-lo.",
+      "Minhas ordens são importantes, mas meus companheiros valem mais do que qualquer coisa. Eu morreria por eles.",
+      "Fiz tudo o que fiz para proteger alguém próximo de mim.",
+      "Se o Império cair, toda a civilização cairá com ele. Vou conter o caos e a barbárie a qualquer custo."
+    ],
+    defeitos: [
+      "Bebo para aliviar a dor na parte de trás da minha cabeça.",
+      "Fico um tanto fora de mim quando vejo sangue.",
+      "Ouço as vozes de todos que matei e vejo seus rostos. Não consigo me livrar desses fantasmas.",
+      "O medo é um poderoso motivador. Farei qualquer coisa para impedir que quem sabe o que sou me veja falhar — e para impedir que as pessoas de quem gosto descubram quem sou."
     ]
   }
 };

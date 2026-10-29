@@ -2650,16 +2650,26 @@ function hydrateRaceCatalog(catalog = {}) {
   function describeBackgroundOption(value) {
     const bg = BACKGROUND_BY_NAME.get(value);
     if (!bg) return { summary: "", lines: [], body: "", search: "" };
+    const skillChoices = bg.periciasEscolha?.picks
+      ? `Escolha ${bg.periciasEscolha.picks} perícias`
+      : "";
+    const languageChoices = bg.idiomas?.picks
+      ? `${bg.idiomas.picks} idioma${bg.idiomas.picks === 1 ? "" : "s"} à escolha`
+      : "";
     return {
-      summary: [bg.pericias?.length ? `Perícias: ${bg.pericias.map(skillKeyToLabel).join(", ")}` : "", bg.recurso?.nome || ""].filter(Boolean).join(" • "),
+      summary: [bg.pericias?.length ? `Perícias: ${bg.pericias.map(skillKeyToLabel).join(", ")}` : skillChoices, languageChoices, bg.recurso?.nome || ""].filter(Boolean).join(" • "),
       group: getBackgroundCompendiumLabel5e(bg),
       lines: [
+        bg.nomeEN ? `Nome na fonte: ${bg.nomeEN}` : "",
         bg.pericias?.length ? `Perícias: ${bg.pericias.map(skillKeyToLabel).join(", ")}` : "",
+        skillChoices,
+        languageChoices,
         bg.ferramentas?.length ? `Ferramentas: ${bg.ferramentas.map(labelFromSlug).join(", ")}` : "",
         bg.recurso?.nome ? `Recurso: ${bg.recurso.nome}` : "",
+        bg.regrasCustomizacao || "",
       ].filter(Boolean),
-      body: bg.recurso?.resumo || "",
-      search: `${bg.nome} ${bg.recurso?.nome || ""} ${bg.recurso?.resumo || ""}`,
+      body: [bg.recurso?.resumo, bg.regrasCustomizacao].filter(Boolean).join(" "),
+      search: `${bg.nome} ${bg.nomeEN || ""} ${bg.recurso?.nome || ""} ${bg.recurso?.resumo || ""} ${bg.regrasCustomizacao || ""}`,
     };
   }
 
@@ -12224,8 +12234,10 @@ function hydrateRaceCatalog(catalog = {}) {
 
     return [
       background.pericias?.length ? `Perícias: ${formatList(background.pericias.map(skillKeyToLabel))}` : null,
+      background.periciasEscolha?.picks ? `Perícias à escolha: ${background.periciasEscolha.picks}` : null,
       toolLabels.length ? `Ferramentas: ${formatList(toolLabels)}` : null,
       background.recurso?.nome ? `Recurso: ${background.recurso.nome}` : null,
+      background.regrasCustomizacao || null,
     ].filter(Boolean).join(" • ");
   }
 
