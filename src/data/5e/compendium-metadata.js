@@ -130,11 +130,11 @@ export const RACE_COMPENDIUMS_5E = Object.freeze({
 export const SUBRACE_COMPENDIUMS_5E = Object.freeze({
   duergar: "SCAG",
   "elfo-do-mar": "MTF",
-  eladrin: "MTF",
+  eladrin: "DMG",
   "elfo-palido": "EGW",
   "shadar-kai": "MTF",
   "pequenino-fantasma": "SCAG",
-  "pequenino-lotusden": "MOT",
+  "pequenino-lotusden": "EGW",
   calishita: "SCAG",
   chondathano: "SCAG",
   damarano: "SCAG",

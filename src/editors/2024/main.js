@@ -9520,12 +9520,13 @@ import {
       hiddenTraitChoiceIds.add("ancestralidade-gigante");
     }
 
-    if (Array.isArray(race?.tamanhoEscolha) && race.tamanhoEscolha.length) {
+    const sizeOptions = race?.tamanhoEscolha || race?.extra?.tamanhoEscolha;
+    if (Array.isArray(sizeOptions) && sizeOptions.length) {
       choices.push({
         id: "size",
         label: "Tamanho",
         help: "Algumas espécies de 2024 permitem escolher o tamanho logo na criação.",
-        options: race.tamanhoEscolha.map((size) => ({
+        options: sizeOptions.map((size) => ({
           value: size,
           label: SIZE_LABELS[size] || size,
         })),
@@ -14945,8 +14946,9 @@ import {
 
   function formatRaceSizeSummary(race, subrace) {
     if (!race) return "";
-    if (Array.isArray(race.tamanhoEscolha) && race.tamanhoEscolha.length) {
-      return race.tamanhoEscolha.map((size) => SIZE_LABELS[size] || size).join(" ou ");
+    const sizeOptions = race.tamanhoEscolha || race.extra?.tamanhoEscolha;
+    if (Array.isArray(sizeOptions) && sizeOptions.length) {
+      return sizeOptions.map((size) => SIZE_LABELS[size] || size).join(" ou ");
     }
     const size = subrace?.tamanho || race.tamanho;
     return SIZE_LABELS[size] || size;

@@ -6941,16 +6941,16 @@ export const ADDITIONAL_RACES_2024 = {
       expansionTrait2024("visao-no-escuro", "Visão no Escuro", "Enxerga no escuro até 18 metros."),
       expansionTrait2024("escalada-aranha", "Escalada de Aranha", "Recebe deslocamento de escalada igual ao seu deslocamento; a partir do nível 3, move-se por paredes e tetos sem usar as mãos."),
       expansionTrait2024("traco-de-nao-morto", "Traço de Não Morto", "Tem resistência a dano necrótico."),
-      expansionTrait2024("mordida-vampirica", "Mordida Vampírica", "A mordida causa 1d4 + Constituição de dano perfurante e pode recuperar PV ou fortalecer um teste/ataque; usos iguais ao bônus de proficiência por descanso longo."),
+      expansionTrait2024("mordida-vampirica", "Mordida Vampírica", "Ao causar dano com um ataque desarmado, pode morder com as presas e causar 1d4 + Constituição de dano perfurante. Contra criatura que não seja Constructo nem Morto-Vivo, pode recuperar PV iguais ao dano ou somar esse dano ao próximo teste de atributo ou jogada de ataque feito em 1 minuto. Pode potencializar a mordida um número de vezes igual ao bônus de proficiência por descanso longo."),
     ],
-    extra: { fontes: ["ABOH", "RHW"], tamanhoEscolha: ["P", "M"] },
+    extra: { fonte: "RHW", fontes: ["ABOH", "RHW"], tamanhoEscolha: ["P", "M"] },
   }),
   hexblood: expansionRace2024({
     id: "hexblood", nome: "Sangue de Bruxa", nomeEN: "Hexblood", tipo: "Feérico", descricao: "Pessoa infundida por magia feérica e marcada por pactos ou bruxaria sobrenatural.",
     tracos: [
       expansionTrait2024("visao-no-escuro", "Visão no Escuro", "Enxerga no escuro até 18 metros."),
-      expansionTrait2024("token-estranho", "Token Estranho", "Cria um token mágico para enviar mensagens ou observar à distância de até 16 km; uma vez por descanso longo."),
-      expansionTrait2024("magia-hex", "Magia Bruxa", "Sempre tem Disfarçar-se e Bruxaria preparados, com uma conjuração gratuita de cada por descanso longo; escolha Int, Sab ou Carisma." , ["int", "sab", "car"]),
+      expansionTrait2024("token-estranho", "Token Estranho", "Como ação bônus, cria um token mágico removendo sem dano uma mecha de cabelo, unha ou outro fragmento. Até concluir um descanso longo, pode usar uma ação Mágica para enviar mensagem telepática de até 25 palavras a quem carrega o token a até 10 milhas, ou observar e ouvir pelo token por até 1 minuto; encerra ao ficar Incapacitado ou por vontade própria. Ao encerrar a observação, o token é destruído. Só pode criar um token por descanso longo."),
+      expansionTrait2024("magia-hex", "Magia Bruxa", "Você sempre tem Disfarçar-se e Bruxaria preparados. Pode conjurar cada magia uma vez sem espaço de magia por descanso longo e também usando espaços de magia apropriados. Escolha Inteligência, Sabedoria ou Carisma como atributo de conjuração." , ["int", "sab", "car"]),
     ],
     extra: { fonte: "RHW", tamanhoEscolha: ["P", "M"] },
   }),
@@ -6959,7 +6959,7 @@ export const ADDITIONAL_RACES_2024 = {
     tracos: [
       expansionTrait2024("visao-no-escuro", "Visão no Escuro", "Enxerga no escuro até 18 metros."),
       expansionTrait2024("bote-feral", "Bote Feral", "Ataques desarmados causam dano cortante; uma vez por turno, combina as opções Dano e Empurrão."),
-      expansionTrait2024("uivo", "Uivo", "Como ação bônus, impõe desvantagem em ataques e salvaguardas a criaturas escolhidas próximas; usos iguais ao bônus de proficiência por descanso longo."),
+      expansionTrait2024("uivo", "Uivo", "Como ação bônus, emite um uivo sobrenatural. Cada criatura escolhida a até 15 pés deve passar em uma salvaguarda de Sabedoria (CD 8 + Constituição + bônus de proficiência) ou terá desvantagem em jogadas de ataque e salvaguardas até o início do seu próximo turno. Usos iguais ao bônus de proficiência por descanso longo."),
       expansionTrait2024("instintos-de-lobisomem", "Instintos de Lobisomem", "Escolhe proficiência em Percepção, Furtividade ou Sobrevivência.", ["percepcao", "furtividade", "sobrevivencia"]),
     ],
     extra: { fonte: "RHW", tamanhoEscolha: ["P", "M"] },
@@ -6975,7 +6975,7 @@ export const ADDITIONAL_RACES_2024 = {
     extra: { fonte: "RHW", tamanhoEscolha: ["P", "M"] },
   }),
   boggart: expansionRace2024({
-    id: "boggart", nome: "Boggart", nomeEN: "Boggart", tipo: "Humanoide (goblinoide)", tamanho: "P", descricao: "Povo pequeno e goblinoide de Lorwyn-Shadowmoor; usa as regras oficiais de Goblin de Mordenkainen Presents: Monsters of the Multiverse.",
+    id: "boggart", nome: "Boggart", nomeEN: "Boggart", tipo: "Humanoide", tamanho: "P", descricao: "Povo pequeno e goblinoide de Lorwyn-Shadowmoor; usa as regras oficiais de Goblin de Mordenkainen Presents: Monsters of the Multiverse.",
     tracos: [
       expansionTrait2024("visao-no-escuro", "Visão no Escuro", "Enxerga no escuro até 18 metros."),
       expansionTrait2024("ancestralidade-feerica", "Ancestralidade Feérica", "Tem vantagem em salvaguardas para evitar ou encerrar Enfeitiçado."),
@@ -6986,7 +6986,7 @@ export const ADDITIONAL_RACES_2024 = {
   faerie: expansionRace2024({
     id: "faerie", nome: "Fada", nomeEN: "Faerie", tipo: "Feérico", tamanho: "P", descricao: "Ser feérico alado de Lorwyn-Shadowmoor; usa as regras oficiais de Fada de Mordenkainen Presents: Monsters of the Multiverse.",
     tracos: [
-      expansionTrait2024("magia-feerica", "Magia Feérica", "Conhece Arte Druídica; aprende Fogo das Fadas no nível 3 e Aumentar/Reduzir no nível 5, com conjuração gratuita por descanso longo; escolha Int, Sab ou Carisma.", ["int", "sab", "car"]),
+      expansionTrait2024("magia-feerica", "Magia Feérica", "Você conhece Arte Druídica e sempre tem Fogo das Fadas preparado a partir do nível 3 e Aumentar/Reduzir a partir do nível 5. Pode conjurar cada uma uma vez sem espaço de magia por descanso longo e também usando espaços de magia apropriados. Escolha Inteligência, Sabedoria ou Carisma como atributo de conjuração.", ["int", "sab", "car"]),
       expansionTrait2024("voo", "Voo", "Tem deslocamento de voo igual ao deslocamento de caminhada; não pode voar com armadura média ou pesada."),
     ],
     subracas: ["faerie-lorwyn", "faerie-shadowmoor"],
@@ -6996,7 +6996,7 @@ export const ADDITIONAL_RACES_2024 = {
     tracos: [
       expansionTrait2024("visao-no-escuro", "Visão no Escuro", "Enxerga no escuro até 18 metros."),
       expansionTrait2024("resistencia-fogo", "Resistência ao Fogo", "Tem resistência a dano ígneo."),
-      expansionTrait2024("alcance-das-chamas", "Alcance das Chamas", "Conhece Produzir Chamas; aprende Mãos Flamejantes no nível 3 e Lâmina Flamejante no nível 5, com conjuração gratuita de cada por descanso longo; escolha Int, Sab ou Carisma.", ["int", "sab", "car"]),
+      expansionTrait2024("alcance-das-chamas", "Alcance das Chamas", "Você conhece Produzir Chamas e sempre tem Mãos Flamejantes preparada a partir do nível 3 e Lâmina Flamejante a partir do nível 5. Pode conjurar cada uma uma vez sem espaço de magia por descanso longo e também usando espaços de magia apropriados. Escolha Inteligência, Sabedoria ou Carisma como atributo de conjuração.", ["int", "sab", "car"]),
     ],
     extra: { tamanhoEscolha: ["P", "M"] },
   }),
@@ -7013,17 +7013,17 @@ export const ADDITIONAL_RACES_2024 = {
   "lorwyn-changeling": expansionRace2024({
     id: "lorwyn-changeling", nome: "Metamorfo de Lorwyn", nomeEN: "Lorwyn Changeling", tipo: "Feérico", descricao: "Metamorfo feérico cuja mudança de forma altera apenas a superfície do corpo.",
     tracos: [
-      expansionTrait2024("moldar-forma", "Moldar Forma", "Como ação, assume forma bípede humanoide ou quadrúpede bestial; a mudança é apenas superficial."),
+      expansionTrait2024("moldar-forma", "Moldar Forma", "Como ação, remodela o corpo para uma forma humanoide bípede ou bestial quadrúpede; a mudança é superficial. Na forma humanoide, pode usar roupas e armaduras feitas para uma criatura humanoide do seu tamanho."),
       expansionTrait2024("visao-no-escuro", "Visão no Escuro", "Enxerga no escuro até 36 metros."),
-      expansionTrait2024("imitador-encantador", "Imitador Encantador", "Tem proficiência em Atuação."),
-      expansionTrait2024("movimento-imprevisivel", "Movimento Imprevisível", "Ao rolar iniciativa sem desvantagem, pode usar a Reação para Correr."),
+      expansionTrait2024("imitador-encantador", "Imitador Encantador", "Você tem proficiência em Enganação ou Atuação, à sua escolha.", ["enganacao", "atuacao"]),
+      expansionTrait2024("movimento-imprevisivel", "Movimento Imprevisível", "Quando rola iniciativa sem desvantagem, pode imediatamente se mover até metade do seu deslocamento."),
     ],
     extra: { fontes: ["LFL"] , tamanhoEscolha: ["P", "M"] },
   }),
   rimekin: expansionRace2024({
     id: "rimekin", nome: "Povo da Geada", nomeEN: "Rimekin", descricao: "Descendente do Povo Ígneo cujas chamas arcanas se tornaram gélidas.",
     tracos: [
-      expansionTrait2024("magia-de-fogo-frio", "Magia de Fogo Frio", "Conhece Raio de Gelo; aprende Faca de Gelo no nível 3 e Lâmina Flamejante no 5. A Lâmina causa dano frio; escolha Int, Sab ou Carisma.", ["int", "sab", "car"]),
+      expansionTrait2024("magia-de-fogo-frio", "Magia de Fogo Frio", "Você conhece Raio de Gelo e sempre tem Faca de Gelo preparada a partir do nível 3 e Lâmina Flamejante a partir do nível 5. Pode conjurar cada uma uma vez sem espaço de magia por descanso longo e também usando espaços de magia apropriados. A Lâmina Flamejante causa dano frio quando conjurada com esta característica. Escolha Inteligência, Sabedoria ou Carisma como atributo de conjuração.", ["int", "sab", "car"]),
       expansionTrait2024("resistencia-frio", "Resistência ao Frio", "Tem resistência a dano frio."),
       expansionTrait2024("visao-no-escuro", "Visão no Escuro", "Enxerga no escuro até 18 metros."),
     ],

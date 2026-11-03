@@ -1,5 +1,5 @@
 // racas.js
-export const DATASET_VERSION = "0.4.6";
+export const DATASET_VERSION = "0.4.7";
 export const META_RACAS = {
   dataset: "dnd5e-ptbr",
   version: DATASET_VERSION,
@@ -11,6 +11,7 @@ export const META_RACAS = {
     oficial: "PHB, EEPC, SCAG, VGM, MTF, ERLW, EGW, GGR, MOT, TTP, LR, OGA, AI, TCE, Mordenkainen Apresenta: Monstros do Multiverso, VRGR, WBtW, SCC, AAG, FTD e DSotDQ"
   },
   changelog: [
+    "0.4.7: Corrige as fontes do Eladrin (DMG) e Lotusden (EGW) e registra tamanhos Pequeno/Médio de Hadozee, Owlin, Plasmoide e Thri-kreen.",
     "0.4.6: Separa as linhagens de Genasi e Draconato Gema por compêndio; inclui variantes Draconblood, Ravenite, Asmodeus e Lua/Sol do Meio-Elfo.",
     "0.4.5: Corrige escolhas de perícias e detalhes mecânicos de espécies de Monstros do Multiverso; registra a proficiência em instrumento do sátiro e os níveis oficiais das magias raciais.",
     "0.4.4: Inclui as 33 espécies de Mordenkainen Apresenta: Monstros do Multiverso como opções separadas e registra escolhas raciais de tamanho e características sem substituir versões anteriores.",
@@ -1672,6 +1673,7 @@ Object.assign(RACAS, {
     nome: "Hadozee",
     nomeEN: "Hadozee",
     tamanho: "M",
+    opcoesTamanho: ["P", "M"],
     velocidade: { ft: 30, m: ftToM(30) },
     idiomas: ["comum"],
     atributosEscolha: criarAsiFlexivelPadrao(),
@@ -1688,6 +1690,7 @@ Object.assign(RACAS, {
     nome: "Owlin",
     nomeEN: "Owlin",
     tamanho: "M",
+    opcoesTamanho: ["P", "M"],
     velocidade: { ft: 30, m: ftToM(30) },
     idiomas: ["comum"],
     atributosEscolha: criarAsiFlexivelPadrao(),
@@ -1703,6 +1706,7 @@ Object.assign(RACAS, {
     nome: "Plasmoide",
     nomeEN: "Plasmoid",
     tamanho: "M",
+    opcoesTamanho: ["P", "M"],
     velocidade: { ft: 30, m: ftToM(30) },
     idiomas: ["comum"],
     atributosEscolha: criarAsiFlexivelPadrao(),
@@ -1721,6 +1725,7 @@ Object.assign(RACAS, {
     nome: "Thri-kreen",
     nomeEN: "Thri-kreen",
     tamanho: "M",
+    opcoesTamanho: ["P", "M"],
     velocidade: { ft: 30, m: ftToM(30) },
     idiomas: ["comum"],
     atributosEscolha: criarAsiFlexivelPadrao(),
