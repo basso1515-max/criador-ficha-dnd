@@ -1,5 +1,5 @@
 // racas.js
-export const DATASET_VERSION = "0.4.7";
+export const DATASET_VERSION = "0.4.8";
 export const META_RACAS = {
   dataset: "dnd5e-ptbr",
   version: DATASET_VERSION,
@@ -11,6 +11,7 @@ export const META_RACAS = {
     oficial: "PHB, EEPC, SCAG, VGM, MTF, ERLW, EGW, GGR, MOT, TTP, LR, OGA, AI, TCE, Mordenkainen Apresenta: Monstros do Multiverso, VRGR, WBtW, SCC, AAG, FTD e DSotDQ"
   },
   changelog: [
+    "0.4.8: Inclui Draconato Cromático e Draconato Metálico de Tesouro dos Dragões de Fizban, com escolha de ancestralidade e sopros próprios.",
     "0.4.7: Corrige as fontes do Eladrin (DMG) e Lotusden (EGW) e registra tamanhos Pequeno/Médio de Hadozee, Owlin, Plasmoide e Thri-kreen.",
     "0.4.6: Separa as linhagens de Genasi e Draconato Gema por compêndio; inclui variantes Draconblood, Ravenite, Asmodeus e Lua/Sol do Meio-Elfo.",
     "0.4.5: Corrige escolhas de perícias e detalhes mecânicos de espécies de Monstros do Multiverso; registra a proficiência em instrumento do sátiro e os níveis oficiais das magias raciais.",
@@ -2987,6 +2988,44 @@ const GEM_DRAGONBORN_SUBRACES_5E = [
 ];
 
 Object.assign(RACAS, {
+  "draconato-cromatico": {
+    id: "draconato-cromatico",
+    nome: "Draconato Cromático",
+    nomeEN: "Dragonborn (Chromatic)",
+    tamanho: "M",
+    velocidade: { ft: 30, m: ftToM(30) },
+    idiomas: ["comum", "draconico"],
+    atributosEscolha: criarAsiFlexivelPadrao(),
+    tracos: [
+      traco("ancestralidade-cromatica-ftd", "Ancestralidade Cromática", "Escolha um tipo de dragão cromático; ele define o dano do sopro, a resistência dracônica e a Proteção Cromática.", { escolhaDetalhada: true }),
+      traco("arma-de-sopro-cromatica-ftd", "Arma de Sopro", "Ao realizar a ação Atacar, substitua um ataque por um sopro em linha de 9 m (30 ft) por 1,5 m (5 ft) de largura. As criaturas na área fazem salvaguarda de Destreza (CD 8 + modificador de Constituição + bônus de proficiência); sofrem 1d10 do tipo ligado à ancestralidade, ou metade em caso de sucesso. O dano aumenta para 2d10 no 5º nível, 3d10 no 11º e 4d10 no 17º. Usos iguais ao bônus de proficiência por descanso longo."),
+      traco("resistencia-draconica-cromatica-ftd", "Resistência Dracônica", "Você tem resistência ao tipo de dano ligado à sua ancestralidade cromática."),
+      traco("protecao-cromatica-ftd", "Proteção Cromática", "A partir do 5º nível, como ação, torna-se imune por 1 minuto ao tipo de dano ligado à sua ancestralidade. Recupera o uso após um descanso longo.")
+    ],
+    refs: {
+      oficial: "Tesouro dos Dragões de Fizban (2021), p. 10",
+      dndbeyond: "https://www.dndbeyond.com/sources/dnd/ftod",
+    },
+  },
+  "draconato-metalico": {
+    id: "draconato-metalico",
+    nome: "Draconato Metálico",
+    nomeEN: "Dragonborn (Metallic)",
+    tamanho: "M",
+    velocidade: { ft: 30, m: ftToM(30) },
+    idiomas: ["comum", "draconico"],
+    atributosEscolha: criarAsiFlexivelPadrao(),
+    tracos: [
+      traco("ancestralidade-metalica-ftd", "Ancestralidade Metálica", "Escolha um tipo de dragão metálico; ele define o dano do sopro e a resistência dracônica.", { escolhaDetalhada: true }),
+      traco("arma-de-sopro-metalica-ftd", "Arma de Sopro", "Ao realizar a ação Atacar, substitua um ataque por um sopro em cone de 4,5 m (15 ft). As criaturas na área fazem salvaguarda de Destreza (CD 8 + modificador de Constituição + bônus de proficiência); sofrem 1d10 do tipo ligado à ancestralidade, ou metade em caso de sucesso. O dano aumenta para 2d10 no 5º nível, 3d10 no 11º e 4d10 no 17º. Usos iguais ao bônus de proficiência por descanso longo."),
+      traco("resistencia-draconica-metalica-ftd", "Resistência Dracônica", "Você tem resistência ao tipo de dano ligado à sua ancestralidade metálica."),
+      traco("sopro-metalico-ftd", "Sopro Metálico", "A partir do 5º nível, ao realizar a ação Atacar, substitua um ataque por um segundo sopro em cone de 4,5 m (15 ft). Escolha um efeito: Sopro Enervante (salvaguarda de Constituição ou fica incapacitado até o início do seu próximo turno) ou Sopro de Repulsão (salvaguarda de Força ou é empurrado 6 m (20 ft) e fica caído). Recupera o uso após um descanso longo.")
+    ],
+    refs: {
+      oficial: "Tesouro dos Dragões de Fizban (2021), p. 12",
+      dndbeyond: "https://www.dndbeyond.com/sources/dnd/ftod",
+    },
+  },
   "draconato-gema": {
     id: "draconato-gema",
     nome: "Draconato (Gema)",

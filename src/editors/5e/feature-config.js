@@ -931,6 +931,30 @@ export const RACIAL_DETAIL_DEFINITIONS = {
     description: "Escolha Inteligência, Sabedoria ou Carisma para as magias da Dádiva dos Svirfneblin.",
     options: RACIAL_SPELLCASTING_ABILITY_OPTIONS,
   },
+  "draconato-cromatico": {
+    detailType: "dragonbornAncestry",
+    label: "Ancestralidade Cromática",
+    description: "Escolha a cor do ancestral dracônico, que define o tipo de dano do sopro, da resistência e da Proteção Cromática.",
+    options: [
+      { value: "black", label: "Negro (ácido)", summary: "Dragão Negro: ácido é o tipo de dano do seu sopro, da Resistência Dracônica e da Proteção Cromática." },
+      { value: "blue", label: "Azul (elétrico)", summary: "Dragão Azul: elétrico é o tipo de dano do seu sopro, da Resistência Dracônica e da Proteção Cromática." },
+      { value: "green", label: "Verde (veneno)", summary: "Dragão Verde: veneno é o tipo de dano do seu sopro, da Resistência Dracônica e da Proteção Cromática." },
+      { value: "red", label: "Vermelho (ígneo)", summary: "Dragão Vermelho: ígneo é o tipo de dano do seu sopro, da Resistência Dracônica e da Proteção Cromática." },
+      { value: "white", label: "Branco (frio)", summary: "Dragão Branco: frio é o tipo de dano do seu sopro, da Resistência Dracônica e da Proteção Cromática." },
+    ],
+  },
+  "draconato-metalico": {
+    detailType: "dragonbornAncestry",
+    label: "Ancestralidade Metálica",
+    description: "Escolha a cor do ancestral dracônico, que define o tipo de dano do sopro e da resistência.",
+    options: [
+      { value: "brass", label: "Latão (ígneo)", summary: "Dragão de Latão: ígneo é o tipo de dano do seu sopro e da Resistência Dracônica." },
+      { value: "bronze", label: "Bronze (elétrico)", summary: "Dragão de Bronze: elétrico é o tipo de dano do seu sopro e da Resistência Dracônica." },
+      { value: "copper", label: "Cobre (ácido)", summary: "Dragão de Cobre: ácido é o tipo de dano do seu sopro e da Resistência Dracônica." },
+      { value: "gold", label: "Ouro (ígneo)", summary: "Dragão de Ouro: ígneo é o tipo de dano do seu sopro e da Resistência Dracônica." },
+      { value: "silver", label: "Prata (frio)", summary: "Dragão de Prata: frio é o tipo de dano do seu sopro e da Resistência Dracônica." },
+    ],
+  },
   "duergar-motm": {
     detailType: "spellAbility",
     label: "Atributo de Conjuração",

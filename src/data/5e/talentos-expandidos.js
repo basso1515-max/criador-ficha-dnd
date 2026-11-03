@@ -265,4 +265,24 @@ export const TALENTOS_ADICIONAIS = [
     description_pt: "Use um baralho como foco, disfarce componentes de Prestidigitação como truques de cartas e armazene uma magia da sua lista de classe para conjurá-la com uma ação bônus.",
     tags: ["magia", "utilidade"]
   }),
+  feat({
+    name: "Divinely Favored",
+    name_pt: "Favor Divino",
+    source: "DSotDQ",
+    source_full: "Dragonlance: Shadow of the Dragon Queen",
+    prerequisites: ["4º nível", "Campanha de Dragonlance"],
+    description_en: "Choose Intelligence, Wisdom, or Charisma; learn a cleric cantrip and alignment-based 1st-level spell, plus augury",
+    description_pt: "Escolha Inteligência, Sabedoria ou Carisma para suas magias; aprenda um truque de clérigo, uma magia de 1º círculo conforme seu alinhamento e Augúrio. Pode conjurar as duas magias uma vez por descanso longo sem espaços e também usando espaços apropriados; um símbolo sagrado pode servir de foco para magias que usem o atributo escolhido.",
+    tags: ["magia", "utilidade"]
+  }),
+  feat({
+    name: "Svirfneblin Magic",
+    name_pt: "Magia dos Svirfneblin",
+    source: "MTF",
+    source_full: "Mordenkainen's Tome of Foes",
+    prerequisites: ["Gnomo das Profundezas"],
+    description_en: "Cast nondetection on yourself at will and cast blindness/deafness, blur, and disguise self once per long rest",
+    description_pt: "Com Inteligência como atributo de conjuração, pode conjurar Antidetecção em si mesmo à vontade, sem componente material, e conjurar Cegueira/Surdez, Nublar e Disfarçar-se uma vez por descanso longo, cada uma no menor círculo possível.",
+    tags: ["magia", "racial", "utilidade"]
+  }),
 ];

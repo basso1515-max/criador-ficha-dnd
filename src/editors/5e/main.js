@@ -5973,6 +5973,19 @@ function hydrateRaceCatalog(catalog = {}) {
         if (abilitySource) sources.push(abilitySource);
       }
 
+      if (featId === "favor-divino") {
+        const spellAbilitySource = buildFeatDetailSource({
+          key: `${entry.slotKey}:spell-ability`,
+          featId,
+          featLabel,
+          detailType: "spellAbility",
+          label: "Atributo de Conjuração",
+          options: ["int", "sab", "car"].map((abilityKey) => ({ value: abilityKey, label: abilityKeyToLabel(abilityKey) })),
+          description: "Escolha Inteligência, Sabedoria ou Carisma para as magias do Favor Divino e para o símbolo sagrado usado como foco.",
+        });
+        if (spellAbilitySource) sources.push(spellAbilitySource);
+      }
+
       if (featId === "iniciado-magico" || featId === "conjurador-de-rituais") {
         const classSource = buildFeatDetailSource({
           key: `${entry.slotKey}:class`,
@@ -6456,7 +6469,12 @@ function hydrateRaceCatalog(catalog = {}) {
       || FEAT_FLEXIBLE_ABILITY_OPTIONS[featId]?.[0]
       || fallback
     );
+    const getSpellAbilityForFeat = (slotKeyPrefix, fallback = "int") => (
+      findDetail(slotKeyPrefix, "spellAbility")?.value || fallback
+    );
     const getAbilityModValue = (ability) => abilityMod(resolvedAttrs[ability] || 10);
+    const getSpellIdByEnglishName = (name) => SPELL_LIST.find((spell) => normalizePt(spell?.nomeEN || "") === normalizePt(name))?.id || "";
+    const getSpellIdsByEnglishName = (names = []) => names.map(getSpellIdByEnglishName).filter(Boolean);
     const getAllowedSpellIds = ({ classIds = [], maxSpellLevel = 9, exactLevel = null, ritualOnly = false, spellIds = null } = {}) => {
       const explicitIds = Array.isArray(spellIds) ? new Set(spellIds) : null;
       const normalizedClassIds = (Array.isArray(classIds) ? classIds : []).map((classId) => normalizeClassId(classId)).filter(Boolean);
@@ -6512,6 +6530,117 @@ function hydrateRaceCatalog(catalog = {}) {
 
       const featLabel = entry?.feat?.name_pt || entry?.feat?.name || labelFromSlug(featId);
       const baseSourceKey = `talento:${slotPrefix}`;
+
+      if (featId === "favor-divino") {
+        const ability = getSpellAbilityForFeat(slotPrefix, "int");
+        const abilityModValue = getAbilityModValue(ability);
+        const alignment = parseAlignmentAxes(el.alinhamento?.value || state.alinhamento || "");
+        const alignedClass = alignment.moral === "maligno" ? "bruxo" : alignment.moral === "bom" ? "clerigo" : "druida";
+        const auguryId = getSpellIdByEnglishName("Augury");
+
+        sources.push(buildFeatSpellSource({
+          entry,
+          sourceKey: `${baseSourceKey}:divinely-favored-cantrip`,
+          featId,
+          classLabel: featLabel,
+          detailLabel: `${featLabel} • Truque de Clérigo`,
+          listLabel: featLabel,
+          ability,
+          limits: {
+            level: 0,
+            sourceClassId: "clerigo",
+            allowedClassIds: ["clerigo"],
+            ability,
+            abilityMod: abilityModValue,
+            restrictedSchools: [],
+            flexibleSpellAllowance: 0,
+            cantripLimit: 1,
+            spellLimit: 0,
+            maxSpellLevel: 0,
+            allowedSpellIds: getAllowedSpellIds({ classIds: ["clerigo"], exactLevel: 0 }),
+            selectionLabel: "Truque de clérigo",
+            kind: "known",
+          },
+        }));
+        sources.push(buildFeatSpellSource({
+          entry,
+          sourceKey: `${baseSourceKey}:divinely-favored-alignment-spell`,
+          featId,
+          classLabel: featLabel,
+          detailLabel: `${featLabel} • Magia de 1º círculo (${alignedClass})`,
+          listLabel: featLabel,
+          ability,
+          limits: {
+            level: 1,
+            sourceClassId: alignedClass,
+            allowedClassIds: [alignedClass],
+            ability,
+            abilityMod: abilityModValue,
+            restrictedSchools: [],
+            flexibleSpellAllowance: 0,
+            cantripLimit: 0,
+            spellLimit: 1,
+            maxSpellLevel: 1,
+            allowedSpellIds: getAllowedSpellIds({ classIds: [alignedClass], exactLevel: 1 }),
+            selectionLabel: "Magia de 1º círculo",
+            kind: "known",
+          },
+        }));
+        if (auguryId) {
+          sources.push(buildFeatSpellSource({
+            entry,
+            sourceKey: `${baseSourceKey}:divinely-favored-augury`,
+            featId,
+            classLabel: featLabel,
+            detailLabel: `${featLabel} • Augúrio`,
+            listLabel: featLabel,
+            ability,
+            limits: {
+              level: 2,
+              ability,
+              abilityMod: abilityModValue,
+              restrictedSchools: [],
+              flexibleSpellAllowance: 0,
+              cantripLimit: 0,
+              spellLimit: 1,
+              maxSpellLevel: 2,
+              allowedSpellIds: [auguryId],
+              selectionLabel: "Magia concedida",
+              kind: "known",
+            },
+            grantedSpellIds: [auguryId],
+          }));
+        }
+      }
+
+      if (featId === "magia-dos-svirfneblin") {
+        const spellIds = getSpellIdsByEnglishName(["Nondetection", "Blindness/Deafness", "Blur", "Disguise Self"]);
+        const ability = "int";
+        const abilityModValue = getAbilityModValue(ability);
+        sources.push(buildFeatSpellSource({
+          entry,
+          sourceKey: `${baseSourceKey}:svirfneblin-magic`,
+          featId,
+          classLabel: featLabel,
+          detailLabel: `${featLabel} • Magias inatas`,
+          listLabel: featLabel,
+          ability,
+          limits: {
+            level: 3,
+            ability,
+            abilityMod: abilityModValue,
+            restrictedSchools: [],
+            flexibleSpellAllowance: 0,
+            cantripLimit: 0,
+            spellLimit: spellIds.length,
+            maxSpellLevel: 3,
+            allowedSpellIds: spellIds,
+            selectionLabel: "Magias concedidas",
+            kind: "known",
+          },
+          grantedSpellIds: spellIds,
+        }));
+      }
 
       if (featId === "iniciado-magico") {
         const chosenClass = findDetail(slotPrefix, "class")?.value || "mago";
@@ -9877,6 +10006,8 @@ function hydrateRaceCatalog(catalog = {}) {
     }
 
     if (text === "4o nivel") return Number(state?.nivel || 0) >= 4;
+    // The sheet does not store a campaign setting; keep this prerequisite visible and let the player validate it.
+    if (text === "campanha de dragonlance") return true;
     if (text === "capaz de conjurar ao menos uma magia" || text === "spellcasting ou pact magic") {
       return hasSpellcastingPrerequisite(state);
     }
@@ -9904,6 +10035,9 @@ function hydrateRaceCatalog(catalog = {}) {
         return raceName === "elfo" || raceName === "meio-elfo";
       case "gnomo":
         return raceName === "gnomo";
+      case "gnomo das profundezas":
+        return (raceName === "gnomo" && subraceName.includes("gnomo das profundezas"))
+          || raceName.includes("gnomo das profundezas");
       case "humano, meio-elfo ou meio-orc":
         return ["humano", "meio-elfo", "meio-orc"].includes(raceName);
       case "meio-orc":
