@@ -1,6 +1,6 @@
 import { ADDITIONAL_RACES_2024, ADDITIONAL_SUBRACES_2024 } from "./official-expansions-2024.js";
 
-export const DATASET_VERSION = "1.3.1";
+export const DATASET_VERSION = "1.3.2";
 
 const ftToM = (ft) => Math.round(ft * 0.3048 * 10) / 10;
 
@@ -8,17 +8,20 @@ export const META_RACAS = {
   dataset: "dnd5e-2024-ptbr",
   version: DATASET_VERSION,
   locale: "pt-BR",
-  builtAt: "2026-10-19",
+  builtAt: "2026-11-03",
   sources: {
     phb2024: "Player's Handbook (2024)",
     efota: "Eberron: Forge of the Artificer (2025)",
+    efa: "Eberron: Forge of the Artificer (2025)",
     aboh: "Astarion’s Book of Hungers",
     rthw: "Ravenloft: The Horrors Within",
+    rhw: "Ravenloft: The Horrors Within",
     lfl: "Lorwyn: First Light",
     drops0926: "D&D Beyond Drop — September 2026",
     referenciaLocal: "src/data/5.5e/DnD 5.5 - Livro do Jogador (2024).pdf",
   },
   changelog: [
+    "1.3.2: Separa o Elfo de Lorwyn do Elfo do Livro do Jogador 2024 e corrige os códigos de fonte EFA/RHW das espécies de Eberron e Ravenloft.",
     "1.3.1: Localiza em PT-BR nomes de espécies adicionais e preserva os nomes originais para referência.",
     "1.3.0: Adiciona Dhampir, Hexblood, Lupin, Renascido, linhagens de Lorwyn/Shadowmoor, Duskling e adaptações oficiais de espécies de Lorwyn.",
     "1.2.0: Adiciona Changeling, Kalashtar, Khoravar, Shifter e Warforged de Eberron: Forge of the Artificer.",
@@ -137,7 +140,7 @@ export const RACAS = {
       trait("sentidos-agucados", "Sentidos Aguçados", "Você tem proficiência em Intuição, Percepção ou Sobrevivência."),
       trait("transe", "Transe", "Você completa descanso longo em 4 horas de meditação consciente."),
     ],
-    subracas: ["elfo-alto", "drow", "elfo-silvestre", "elfo-lorwyn", "elfo-shadowmoor"],
+    subracas: ["elfo-alto", "drow", "elfo-silvestre"],
   }),
   gnomo: race({
     id: "gnomo",
@@ -227,7 +230,7 @@ export const RACAS = {
       trait("instintos-de-changeling", "Instintos de Metamorfo", "Você ganha proficiência em duas perícias entre Enganação, Intuição, Intimidação, Atuação e Persuasão."),
       trait("metamorfo", "Metamorfo", "Você pode alterar sua aparência e voz para imitar outra pessoa, sem mudar seu equipamento."),
     ],
-    extra: { fonte: "EFotA" },
+    extra: { fonte: "EFA" },
   }),
   kalashtar: race({
     id: "kalashtar",
@@ -241,7 +244,7 @@ export const RACAS = {
       trait("elo-mental", "Elo Mental", "Você pode se comunicar telepaticamente com criaturas próximas que compreendam um idioma."),
       trait("separado-dos-sonhos", "Separado dos Sonhos", "Você não sonha durante o descanso e é difícil de afetar por magia que induz sono."),
     ],
-    extra: { fonte: "EFotA" },
+    extra: { fonte: "EFA" },
   }),
   khoravar: race({
     id: "khoravar",
@@ -255,7 +258,7 @@ export const RACAS = {
       trait("resiliencia-a-letargia", "Resiliência à Letargia", "Você possui proteção especial contra efeitos que tentam deixá-lo adormecido."),
       trait("versatilidade-em-pericia", "Versatilidade em Perícia", "Você ganha proficiência em duas perícias à sua escolha."),
     ],
-    extra: { fonte: "EFotA" },
+    extra: { fonte: "EFA" },
   }),
   shifter: race({
     id: "shifter",
@@ -268,7 +271,7 @@ export const RACAS = {
       trait("transformacao", "Transformação", "Como ação bônus, você assume uma forma mais bestial por 1 minuto e recebe Pontos de Vida temporários e o benefício da sua linhagem."),
     ],
     subracas: ["shifter-presa-feroz", "shifter-pele-de-fera", "shifter-passos-rapidos", "shifter-cacador-selvagem"],
-    extra: { fonte: "EFotA" },
+    extra: { fonte: "EFA" },
   }),
   warforged: race({
     id: "warforged",
@@ -283,7 +286,7 @@ export const RACAS = {
       trait("design-especializado", "Design Especializado", "Você ganha proficiência em uma perícia e uma ferramenta à sua escolha."),
       trait("incansavel", "Incansável", "Sua constituição artificial reduz os efeitos de exaustão e mantém você ativo por mais tempo."),
     ],
-    extra: { fonte: "EFotA" },
+    extra: { fonte: "EFA" },
   }),
   ...ADDITIONAL_RACES_2024,
 };

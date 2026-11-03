@@ -831,20 +831,21 @@ function hydrateRaceCatalog(catalog = {}) {
   }
 
   function restoreSavedCharacterPreset(preset) {
+    const normalizedPreset = canonicalizeSavedCharacterPreset5e(preset);
     selectedPortraitImage = null;
     selectedSymbolImage = null;
     if (el.aparenciaPersonagem) el.aparenciaPersonagem.value = "";
     if (el.imagemSimbolo) el.imagemSimbolo.value = "";
 
     withDeferredHeavyUi(() => {
-      ensureMulticlassRowsForPreset(preset?.extra?.multiclassRowIds || []);
-      restoreSpellSelectionSnapshot(preset?.extra?.selectedSpellsBySource || {});
+      ensureMulticlassRowsForPreset(normalizedPreset?.extra?.multiclassRowIds || []);
+      restoreSpellSelectionSnapshot(normalizedPreset?.extra?.selectedSpellsBySource || {});
 
-      restoreFormPreset(el.form, preset);
+      restoreFormPreset(el.form, normalizedPreset);
       rerenderAfterPresetRestore();
-      restoreFormPreset(el.form, preset);
+      restoreFormPreset(el.form, normalizedPreset);
       rerenderAfterPresetRestore();
-      restoreFormPreset(el.form, preset);
+      restoreFormPreset(el.form, normalizedPreset);
       syncAllCustomSelectFields();
       syncUnitToggleButtons(document);
       previousDistanceUnit = getPreferredDistanceUnit();
@@ -853,10 +854,40 @@ function hydrateRaceCatalog(catalog = {}) {
       renderMagicSection();
     });
 
-    restoreFormPreset(el.form, preset);
+    restoreFormPreset(el.form, normalizedPreset);
     syncAllCustomSelectFields();
     syncUnitToggleButtons(document);
     commitCharacterStateMutation("preset:restore");
+  }
+
+  function canonicalizeSavedCharacterPreset5e(preset) {
+    if (!preset || !Array.isArray(preset.fields)) return preset;
+    const raceField = preset.fields.find((field) => field?.id === "raca");
+    const subraceField = preset.fields.find((field) => field?.id === "subraca");
+    if (!raceField) return preset;
+    const selectedSubrace = SUBRACE_BY_ID.get(String(subraceField?.value || ""));
+    const legacyStandaloneGenasi = !selectedSubrace
+      ? Object.values(RACE_SUBRACAS).find((entry) => entry?.base === "genasi-motm" && [
+        entry.nome,
+        `${entry.nome} (Monstros do Multiverso)`,
+      ].includes(raceField.value))
+      : null;
+    const subrace = selectedSubrace || legacyStandaloneGenasi;
+    const parentRace = RACAS[subrace?.race || subrace?.base] || null;
+    if (!parentRace) return preset;
+    const needsRaceUpdate = raceField.value !== parentRace.nome;
+    const needsLegacySubraceUpdate = Boolean(legacyStandaloneGenasi && subraceField?.value !== legacyStandaloneGenasi.id);
+    if (!needsRaceUpdate && !needsLegacySubraceUpdate) return preset;
+    const fields = preset.fields.map((field) => {
+      if (field === raceField) return { ...field, value: parentRace.nome };
+      if (legacyStandaloneGenasi && field === subraceField) return { ...field, value: legacyStandaloneGenasi.id };
+      return field;
+    });
+    if (legacyStandaloneGenasi && !subraceField) fields.push({ id: "subraca", value: legacyStandaloneGenasi.id });
+    return {
+      ...preset,
+      fields,
+    };
   }
 
   function ensureMulticlassRowsForPreset(rowIds = []) {
@@ -900,7 +931,12 @@ function hydrateRaceCatalog(catalog = {}) {
     previousWeightUnit = getPreferredWeightUnit();
     syncXpWithLevel();
     syncMulticlassUi();
+    const restoredSubraceId = el.subraca.value;
     onRaceChanged();
+    if (restoredSubraceId && Array.from(el.subraca.options).some((option) => option.value === restoredSubraceId)) {
+      el.subraca.value = restoredSubraceId;
+      syncCustomSelectField("subraca");
+    }
     onSubraceChanged();
     onClassChanged();
     onSubclassChanged();
@@ -2280,6 +2316,9 @@ function hydrateRaceCatalog(catalog = {}) {
 
     choiceSources.push(...extractSkillChoiceSourcesFromTraits(`Raça ${race?.nome || ""}`.trim(), raceTraits.filter((trait) => race?.tracos?.includes(trait))));
     choiceSources.push(...extractSkillChoiceSourcesFromTraits(`Sub-raça ${subrace?.nome || ""}`.trim(), raceTraits.filter((trait) => subrace?.tracos?.includes(trait))));
+    if (subrace?.id === "meio-elfo-lua-sol" && getRaceDetailValue(selectedRaceDetails, "halfElfVariant", subrace.id, "subrace") === "skillVersatility") {
+      choiceSources.push(buildSkillChoiceSource("Meio-Elfo: Versatilidade em Perícias", 2, SKILLS.map((skill) => skill.key), "raca"));
+    }
     choiceSources.push(...collectMulticlassSkillChoiceSources(classEntries));
     choiceSources.push(...subclassAdjustments.choiceSources);
     choiceSources.push(...featSkillChoiceSources);
@@ -2488,6 +2527,21 @@ function hydrateRaceCatalog(catalog = {}) {
   }
 
   function onSubraceChanged() {
+    const subrace = getSelectedSubraceData();
+    const parentRace = RACAS[subrace?.race || subrace?.base] || null;
+    const selectedRace = getSelectedRaceData();
+    if (parentRace && selectedRace?.id !== parentRace.id) {
+      const selectedSubraceId = subrace.id;
+      el.raca.value = parentRace.nome;
+      el.racaInput.value = parentRace.nome;
+      syncCustomSelectField("raca");
+      onRaceChanged();
+      if (parentRace.subracas?.includes(selectedSubraceId)) {
+        el.subraca.value = selectedSubraceId;
+        syncCustomSelectField("subraca");
+      }
+    }
+
     applyPhysicalProfileSuggestions();
     updatePhysicalProfileInfo();
     atualizarAsiAvailability();

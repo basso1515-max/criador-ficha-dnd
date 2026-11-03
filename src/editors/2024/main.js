@@ -947,9 +947,9 @@ import {
 
     return {
       ...preset,
-      fields: Array.isArray(preset.fields)
-        ? preset.fields.map(canonicalizePresetField2024)
-        : preset.fields,
+      fields: canonicalizeSpeciesFields2024(
+        Array.isArray(preset.fields) ? preset.fields.map(canonicalizePresetField2024) : preset.fields
+      ),
       communityStats: canonicalizeCommunityStatsSnapshot2024(preset.communityStats),
       extra,
     };
@@ -964,6 +964,16 @@ import {
       return { ...field, value: canonicalSubclassId2024(field.value) };
     }
     return field;
+  }
+
+  function canonicalizeSpeciesFields2024(fields) {
+    if (!Array.isArray(fields)) return fields;
+    const raceField = fields.find((field) => field?.id === "raca2024");
+    const subraceField = fields.find((field) => field?.id === "subraca2024");
+    const subrace = SUBRACE_BY_ID.get(String(subraceField?.value || ""));
+    const parentRace = RACE_BY_ID.get(subrace?.race || subrace?.base);
+    if (!raceField || !parentRace || raceField.value === parentRace.id) return fields;
+    return fields.map((field) => field === raceField ? { ...field, value: parentRace.id } : field);
   }
 
   function isClassPresetField2024(field) {
@@ -1193,7 +1203,7 @@ import {
     populateDivinityPantheonFilter2024();
 
     bindCharacterBasicsEvents2024(el, {
-      onCoreSelectionChanged: renderAll,
+      onCoreSelectionChanged: handleCoreSelectionChanged2024,
       onLevelChanged: onLevelChanged2024,
       onLegacyBackgroundNameInput: () => {
         updateInfoBoxes();
@@ -1320,6 +1330,19 @@ import {
       announceAbilityScores2024(`Conjunto padrão atualizado para ${className}`);
     }
     if (!isDeferringHeavyUi2024()) floatingSubmitButton2024.requestRecalc();
+  }
+
+  function handleCoreSelectionChanged2024(event) {
+    if (event?.target === el.subraca) {
+      const subrace = SUBRACE_BY_ID.get(el.subraca.value);
+      const parentRace = RACE_BY_ID.get(subrace?.race || subrace?.base);
+      if (parentRace && getSelectedRace()?.id !== parentRace.id) {
+        el.raca.value = parentRace.id;
+        el.racaInput.value = parentRace.nome;
+        syncCustomSelectField2024("raca2024");
+      }
+    }
+    renderAll();
   }
 
   function onAbilityScoresChanged() {
@@ -10799,7 +10822,7 @@ import {
   function isOfficialSpellFor2024(spell) {
     const source = String(spell?.fonte || "").trim().toUpperCase();
     return new Set([
-      "PHB", "PHB24", "EFOTA", "AU", "ABOH", "FRHOF", "RTHW", "LFL",
+      "PHB", "PHB24", "EFOTA", "EFA", "AU", "ABOH", "FRHOF", "RTHW", "RHW", "LFL",
       "DROP0526", "DROP0626", "DROP0726", "DROP0826", "DROP0926", "DROP1026",
     ]).has(source);
   }

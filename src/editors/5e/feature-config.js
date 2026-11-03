@@ -897,6 +897,16 @@ const MUSICAL_INSTRUMENT_CHOICE_OPTIONS = (EQUIPMENT_OPTION_LISTS.musicalInstrum
   label,
 }));
 export const RACIAL_DETAIL_DEFINITIONS = {
+  "meio-elfo-lua-sol": {
+    detailType: "halfElfVariant",
+    label: "Característica Variante",
+    description: "Escolha uma característica da variante de descendência de Elfo da Lua ou do Sol.",
+    options: [
+      { value: "skillVersatility", label: "Versatilidade em Perícias", summary: "Escolha duas perícias para ganhar proficiência." },
+      { value: "elfWeaponTraining", label: "Treinamento Élfico com Armas", summary: "Ganha proficiência com espada longa, espada curta, arco curto e arco longo." },
+      { value: "cantrip", label: "Truque de Mago", summary: "Aprende um truque da lista de mago; Inteligência é o atributo de conjuração." },
+    ],
+  },
   fada: {
     detailType: "spellAbility",
     label: "Atributo de Conjuração",
@@ -1102,42 +1112,6 @@ export const RACIAL_SPELL_SOURCE_DEFINITIONS = {
         featureLabel: "Portador da Luz",
         ability: "car",
         grantedSpellIds: ["luz"],
-      },
-    ],
-    "genasi-do-ar-motm": [
-      {
-        sourceKeySuffix: "misturar-se-ao-vento",
-        featureLabel: "Misturar-se ao Vento",
-        abilityDetailTarget: "genasi-do-ar-motm",
-        defaultAbility: "int",
-        unlocks: { 1: ["toque-chocante"], 3: ["queda-suave"], 5: ["levitacao"] },
-      },
-    ],
-    "genasi-da-terra-motm": [
-      {
-        sourceKeySuffix: "fundir-se-a-pedra",
-        featureLabel: "Fundir-se à Pedra",
-        abilityDetailTarget: "genasi-da-terra-motm",
-        defaultAbility: "int",
-        unlocks: { 1: ["protecao-contra-laminas"], 3: ["passos-sem-pegadas"] },
-      },
-    ],
-    "genasi-do-fogo-motm": [
-      {
-        sourceKeySuffix: "alcance-da-chama",
-        featureLabel: "Alcance da Chama",
-        abilityDetailTarget: "genasi-do-fogo-motm",
-        defaultAbility: "int",
-        unlocks: { 1: ["produzir-chama"], 3: ["maos-flamejantes"] },
-      },
-    ],
-    "genasi-da-agua-motm": [
-      {
-        sourceKeySuffix: "chamado-da-onda",
-        featureLabel: "Chamado da Onda",
-        abilityDetailTarget: "genasi-da-agua-motm",
-        defaultAbility: "int",
-        unlocks: { 1: ["moldar-agua"], 3: ["criar-ou-destruir-agua"] },
       },
     ],
     "gnomo-das-profundezas-motm": [
@@ -1370,6 +1344,54 @@ export const RACIAL_SPELL_SOURCE_DEFINITIONS = {
           3: ["fogo-feerico"],
           5: ["escuridao"],
         },
+      },
+    ],
+    "meio-elfo-lua-sol": [
+      {
+        sourceKeySuffix: "lua-sol-cantrip",
+        featureLabel: "Truque de Elfo da Lua ou do Sol",
+        sourceClassId: "mago",
+        ability: "int",
+        cantripLimit: 1,
+        maxSpellLevel: 0,
+        selectionLabel: "Truque de mago",
+        requiredDetail: { detailType: "halfElfVariant", value: "cantrip" },
+      },
+    ],
+    "genasi-do-ar-motm": [
+      {
+        sourceKeySuffix: "misturar-se-ao-vento",
+        featureLabel: "Misturar-se ao Vento",
+        abilityDetailTarget: "genasi-do-ar-motm",
+        defaultAbility: "int",
+        unlocks: { 1: ["toque-chocante"], 3: ["queda-suave"], 5: ["levitacao"] },
+      },
+    ],
+    "genasi-da-terra-motm": [
+      {
+        sourceKeySuffix: "fundir-se-a-pedra",
+        featureLabel: "Fundir-se à Pedra",
+        abilityDetailTarget: "genasi-da-terra-motm",
+        defaultAbility: "int",
+        unlocks: { 1: ["protecao-contra-laminas"], 3: ["passos-sem-pegadas"] },
+      },
+    ],
+    "genasi-do-fogo-motm": [
+      {
+        sourceKeySuffix: "alcance-da-chama",
+        featureLabel: "Alcance da Chama",
+        abilityDetailTarget: "genasi-do-fogo-motm",
+        defaultAbility: "int",
+        unlocks: { 1: ["produzir-chama"], 3: ["maos-flamejantes"] },
+      },
+    ],
+    "genasi-da-agua-motm": [
+      {
+        sourceKeySuffix: "chamado-da-onda",
+        featureLabel: "Chamado da Onda",
+        abilityDetailTarget: "genasi-da-agua-motm",
+        defaultAbility: "int",
+        unlocks: { 1: ["moldar-agua"], 3: ["criar-ou-destruir-agua"] },
       },
     ],
     "tiferino-lingua-do-diabo": [

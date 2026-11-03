@@ -1,10 +1,12 @@
 // Catálogo de opções de personagem das publicações oficiais pós-PHB 2024.
 // Os resumos são editoriais e não substituem o texto das regras publicado nas fontes.
 export const OFFICIAL_EXPANSION_SOURCES_2024 = {
+  "efa": "Eberron: Forge of the Artificer (2025)",
   "au": "Arcana Unleashed",
   "aboh": "Astarion’s Book of Hungers",
   "frhof": "Forgotten Realms: Heroes of Faerûn",
   "rthw": "Ravenloft: The Horrors Within",
+  "rhw": "Ravenloft: The Horrors Within",
   "lfl": "Lorwyn: First Light",
   "drops0526": "D&D Beyond Drop — May 2026",
   "drops0626": "D&D Beyond Drop — June 2026",
@@ -6923,6 +6925,16 @@ const expansionRace2024 = ({ id, nome, nomeEN = "", tipo = "Humanoide", tamanho 
 });
 
 export const ADDITIONAL_RACES_2024 = {
+  "elfo-lfl": expansionRace2024({
+    id: "elfo-lfl", nome: "Elfo", nomeEN: "Elf", descricao: "Espécie élfica publicada em Lorwyn: First Light, com as linhagens de Lorwyn e Shadowmoor.",
+    tracos: [
+      expansionTrait2024("visao-no-escuro", "Visão no Escuro", "Enxerga no escuro até 18 metros."),
+      expansionTrait2024("ancestralidade-feerica", "Ancestralidade Feérica", "Tem vantagem em salvaguardas para evitar ou encerrar Enfeitiçado."),
+      expansionTrait2024("sentidos-agucados", "Sentidos Aguçados", "Escolhe proficiência em Intuição, Percepção ou Sobrevivência.", ["intuicao", "percepcao", "sobrevivencia"]),
+      expansionTrait2024("transe", "Transe", "Completa um descanso longo em quatro horas de meditação consciente."),
+    ],
+    subracas: ["elfo-lorwyn", "elfo-shadowmoor"],
+  }),
   dhampir: expansionRace2024({
     id: "dhampir", nome: "Dampiro", nomeEN: "Dhampir", velocidadeFt: 35, descricao: "Humanoide marcado por uma fome sobrenatural e dons vampíricos.",
     tracos: [
@@ -6931,7 +6943,7 @@ export const ADDITIONAL_RACES_2024 = {
       expansionTrait2024("traco-de-nao-morto", "Traço de Não Morto", "Tem resistência a dano necrótico."),
       expansionTrait2024("mordida-vampirica", "Mordida Vampírica", "A mordida causa 1d4 + Constituição de dano perfurante e pode recuperar PV ou fortalecer um teste/ataque; usos iguais ao bônus de proficiência por descanso longo."),
     ],
-    extra: { fontes: ["ABOH", "RTHW"], tamanhoEscolha: ["P", "M"] },
+    extra: { fontes: ["ABOH", "RHW"], tamanhoEscolha: ["P", "M"] },
   }),
   hexblood: expansionRace2024({
     id: "hexblood", nome: "Sangue de Bruxa", nomeEN: "Hexblood", tipo: "Feérico", descricao: "Pessoa infundida por magia feérica e marcada por pactos ou bruxaria sobrenatural.",
@@ -6940,7 +6952,7 @@ export const ADDITIONAL_RACES_2024 = {
       expansionTrait2024("token-estranho", "Token Estranho", "Cria um token mágico para enviar mensagens ou observar à distância de até 16 km; uma vez por descanso longo."),
       expansionTrait2024("magia-hex", "Magia Bruxa", "Sempre tem Disfarçar-se e Bruxaria preparados, com uma conjuração gratuita de cada por descanso longo; escolha Int, Sab ou Carisma." , ["int", "sab", "car"]),
     ],
-    extra: { fonte: "RTHW", tamanhoEscolha: ["P", "M"] },
+    extra: { fonte: "RHW", tamanhoEscolha: ["P", "M"] },
   }),
   lupin: expansionRace2024({
     id: "lupin", nome: "Lupino", nomeEN: "Lupin", descricao: "Humanoide lupino com instintos predatórios, garras e um uivo sobrenatural.",
@@ -6950,7 +6962,7 @@ export const ADDITIONAL_RACES_2024 = {
       expansionTrait2024("uivo", "Uivo", "Como ação bônus, impõe desvantagem em ataques e salvaguardas a criaturas escolhidas próximas; usos iguais ao bônus de proficiência por descanso longo."),
       expansionTrait2024("instintos-de-lobisomem", "Instintos de Lobisomem", "Escolhe proficiência em Percepção, Furtividade ou Sobrevivência.", ["percepcao", "furtividade", "sobrevivencia"]),
     ],
-    extra: { fonte: "RTHW", tamanhoEscolha: ["P", "M"] },
+    extra: { fonte: "RHW", tamanhoEscolha: ["P", "M"] },
   }),
   reborn: expansionRace2024({
     id: "reborn", nome: "Renascido", nomeEN: "Reborn", descricao: "Criatura que morreu, mas voltou à vida por meios misteriosos.",
@@ -6960,7 +6972,7 @@ export const ADDITIONAL_RACES_2024 = {
       expansionTrait2024("conhecimento-de-vida-passada", "Conhecimento de Vida Passada", "Escolhe uma perícia; após falhar em teste de atributo, pode adicionar 1d6, usos iguais ao bônus de proficiência por descanso longo.", ["acrobacia", "adestrarAnimais", "arcanismo", "atletismo", "atuacao", "enganacao", "furtividade", "historia", "intimidacao", "intuicao", "investigacao", "medicina", "natureza", "percepcao", "persuasao", "prestidigitacao", "religiao", "sobrevivencia"]),
       expansionTrait2024("resistencia-estranha", "Resistência Estranha", "Escolhe resistência a dano frio, necrótico ou venenoso.", ["frio", "necrótico", "veneno"]),
     ],
-    extra: { fonte: "RTHW", tamanhoEscolha: ["P", "M"] },
+    extra: { fonte: "RHW", tamanhoEscolha: ["P", "M"] },
   }),
   boggart: expansionRace2024({
     id: "boggart", nome: "Boggart", nomeEN: "Boggart", tipo: "Humanoide (goblinoide)", tamanho: "P", descricao: "Povo pequeno e goblinoide de Lorwyn-Shadowmoor; usa as regras oficiais de Goblin de Mordenkainen Presents: Monsters of the Multiverse.",
@@ -7030,11 +7042,11 @@ export const ADDITIONAL_RACES_2024 = {
 
 export const ADDITIONAL_SUBRACES_2024 = {
   "elfo-lorwyn": {
-    id: "elfo-lorwyn", race: "elfo", nome: "Elfo de Lorwyn", descricao: "Linhagem élfica de Lorwyn, com magia druídica e encantamentos de comando e silêncio.",
+    id: "elfo-lorwyn", race: "elfo-lfl", nome: "Elfo de Lorwyn", descricao: "Linhagem élfica de Lorwyn, com magia druídica e encantamentos de comando e silêncio.",
     tracos: [expansionTrait2024("linhagem-lorwyn", "Linhagem de Lorwyn", "Conhece Chicote de Espinhos e pode trocá-lo após descanso longo por outro truque de Druida; aprende Comando no nível 3 e Silêncio no nível 5.")],
   },
   "elfo-shadowmoor": {
-    id: "elfo-shadowmoor", race: "elfo", nome: "Elfo de Shadowmoor", descricao: "Linhagem élfica sombria com sentidos ampliados e magia de proteção e repouso.",
+    id: "elfo-shadowmoor", race: "elfo-lfl", nome: "Elfo de Shadowmoor", descricao: "Linhagem élfica sombria com sentidos ampliados e magia de proteção e repouso.",
     tracos: [expansionTrait2024("linhagem-shadowmoor", "Linhagem de Shadowmoor", "Aumenta Visão no Escuro para 36 metros, conhece Centelha Estelar e aprende Heroísmo no nível 3 e Repouso Tranquilo no nível 5.")],
   },
   "faerie-lorwyn": { id: "faerie-lorwyn", race: "faerie", nome: "Fada de Lorwyn", nomeEN: "Faerie of Lorwyn", tracos: [] },

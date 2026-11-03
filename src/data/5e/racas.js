@@ -1,16 +1,17 @@
 // racas.js
-export const DATASET_VERSION = "0.4.5";
+export const DATASET_VERSION = "0.4.6";
 export const META_RACAS = {
   dataset: "dnd5e-ptbr",
   version: DATASET_VERSION,
   locale: "pt-BR",
-  builtAt: "2026-10-21",
+  builtAt: "2026-11-03",
   sources: {
     srd: "https://media.wizards.com/2023/downloads/dnd/SRD_CC_v5.1.pdf",
     drs: "https://aventureirosdosreinos.com/documento-de-referencia-de-sistema-drs/",
     oficial: "PHB, EEPC, SCAG, VGM, MTF, ERLW, EGW, GGR, MOT, TTP, LR, OGA, AI, TCE, Mordenkainen Apresenta: Monstros do Multiverso, VRGR, WBtW, SCC, AAG, FTD e DSotDQ"
   },
   changelog: [
+    "0.4.6: Separa as linhagens de Genasi e Draconato Gema por compêndio; inclui variantes Draconblood, Ravenite, Asmodeus e Lua/Sol do Meio-Elfo.",
     "0.4.5: Corrige escolhas de perícias e detalhes mecânicos de espécies de Monstros do Multiverso; registra a proficiência em instrumento do sátiro e os níveis oficiais das magias raciais.",
     "0.4.4: Inclui as 33 espécies de Mordenkainen Apresenta: Monstros do Multiverso como opções separadas e registra escolhas raciais de tamanho e características sem substituir versões anteriores.",
     "0.4.3: Corrige nomes e regras de variantes de tiferinos, meio-elfos e Sinais do Dragão; inclui as duas distribuições de atributos da Linhagem Personalizada.",
@@ -376,19 +377,14 @@ export const RACAS = {
         nome: "Ancestral Dracônico", 
         resumo: "Escolha tipo de dragão: define dano do sopro e resistência.", 
         escolhas: [
-          "ametista",
           "azul", 
           "branco", 
           "bronze", 
           "cobre", 
-          "cristal",
-          "esmeralda",
           "latao", 
           "negro", 
           "prata", 
           "ouro", 
-          "safira",
-          "topazio",
           "verde", 
           "vermelho"
         ]
@@ -403,19 +399,14 @@ export const RACAS = {
       }
     ],
     subracas: [
-        "draconato-ametista",
         "draconato-azul", 
         "draconato-branco", 
         "draconato-bronze", 
         "draconato-cobre", 
-        "draconato-cristal",
         "draconato-dourado",
-        "draconato-esmeralda",
         "draconato-latao", 
         "draconato-negro", 
         "draconato-prata", 
-        "draconato-safira",
-        "draconato-topazio",
         "draconato-verde", 
         "draconato-vermelho"
     ],
@@ -469,6 +460,7 @@ export const RACAS = {
       "meio-elfo-elfo-da-floresta-mascara",
       "meio-elfo-drow-magia",
       "meio-elfo-elfo-aquatico-nado",
+      "meio-elfo-lua-sol",
       "meio-elfo-marca-deteccao",
       "meio-elfo-marca-tormenta"
     ],
@@ -2979,4 +2971,173 @@ Object.assign(RACAS, {
     traco("resiliencia-venenosa", "Resiliência Venenosa", "Você tem resistência a dano de veneno e vantagem em testes de resistência para evitar ou encerrar a condição envenenado."),
     traco("conjuracao-serpentina", "Conjuração Serpentina", "Conhece o truque Jato Venenoso; pode conjurar Amizade Animal sem limite com esta característica, mas somente tendo serpentes como alvo. A partir do 3º nível, pode conjurar Sugestão uma vez por descanso longo e também usar espaços de magia. Escolha Inteligência, Sabedoria ou Carisma como atributo de conjuração.")
   ] }),
+});
+
+const GEM_DRAGONBORN_SUBRACES_5E = [
+  "draconato-ametista",
+  "draconato-cristal",
+  "draconato-esmeralda",
+  "draconato-safira",
+  "draconato-topazio",
+];
+
+Object.assign(RACAS, {
+  "draconato-gema": {
+    id: "draconato-gema",
+    nome: "Draconato (Gema)",
+    nomeEN: "Dragonborn (Gem)",
+    tamanho: "M",
+    velocidade: { ft: 30, m: ftToM(30) },
+    idiomas: ["comum", "draconico"],
+    atributosEscolha: criarAsiFlexivelPadrao(),
+    subracas: [...GEM_DRAGONBORN_SUBRACES_5E],
+    tracos: [
+      traco("visao-no-escuro-gema", "Visão no Escuro", "Enxerga no escuro até 18 m (60 ft) como penumbra."),
+    ],
+    refs: {
+      oficial: "Tesouro dos Dragões de Fizban (2021)",
+      dndbeyond: "https://www.dndbeyond.com/sources/dnd/ftod",
+    },
+  },
+  "draconato-egw": {
+    id: "draconato-egw",
+    nome: "Draconato (Wildemount)",
+    nomeEN: "Dragonborn",
+    tamanho: "M",
+    velocidade: { ft: 30, m: ftToM(30) },
+    idiomas: ["comum", "draconico"],
+    atributos: { for: 2, car: 1 },
+    subracas: ["draconato-draconblood", "draconato-ravenite"],
+    tracos: RACAS.draconato.tracos.map((trait) => ({ ...trait })),
+    refs: {
+      oficial: "Explorer's Guide to Wildemount (2020)",
+      dndbeyond: "https://www.dndbeyond.com/sources/dnd/egtw",
+    },
+  },
+  "genasi-motm": {
+    id: "genasi-motm",
+    nome: "Genasi (Monstros do Multiverso)",
+    nomeEN: "Genasi",
+    tamanho: "M",
+    opcoesTamanho: ["P", "M"],
+    velocidade: { ft: 30, m: ftToM(30) },
+    idiomas: ["comum"],
+    atributosEscolha: criarAsiFlexivelPadrao(),
+    subracas: ["genasi-do-ar-motm", "genasi-da-terra-motm", "genasi-do-fogo-motm", "genasi-da-agua-motm"],
+    tracos: [
+      traco("visao-no-escuro-genasi-motm", "Visão no Escuro", "Enxerga no escuro até 18 m (60 ft) como penumbra."),
+      traco("idioma-extra", "Idiomas", "Você fala, lê e escreve Comum e um idioma adicional à sua escolha."),
+    ],
+    refs: {
+      oficial: "Mordenkainen Apresenta: Monstros do Multiverso (2022)",
+      dndbeyond: "https://www.dndbeyond.com/sources/dnd/motm",
+    },
+  },
+});
+
+Object.assign(SUBRACAS, {
+  "draconato-ametista": { ...SUBRACAS["draconato-ametista"], base: "draconato-gema" },
+  "draconato-cristal": { ...SUBRACAS["draconato-cristal"], base: "draconato-gema" },
+  "draconato-esmeralda": { ...SUBRACAS["draconato-esmeralda"], base: "draconato-gema" },
+  "draconato-safira": { ...SUBRACAS["draconato-safira"], base: "draconato-gema" },
+  "draconato-topazio": { ...SUBRACAS["draconato-topazio"], base: "draconato-gema" },
+  "draconato-draconblood": {
+    id: "draconato-draconblood",
+    base: "draconato-egw",
+    nome: "Draconato Draconblood",
+    nomeEN: "Draconblood",
+    atributosSubstitui: true,
+    atributos: { int: 2, car: 1 },
+    tracos: [
+      traco("visao-no-escuro-draconblood", "Visão no Escuro", "Enxerga no escuro até 18 m (60 ft) como penumbra."),
+      traco("presenca-imponente-draconblood", "Presença Imponente", "Ganha proficiência em Persuasão e Intimidação."),
+    ],
+    refs: { oficial: "Explorer's Guide to Wildemount (2020)" },
+  },
+  "draconato-ravenite": {
+    id: "draconato-ravenite",
+    base: "draconato-egw",
+    nome: "Draconato Ravenita",
+    nomeEN: "Ravenite",
+    atributosSubstitui: true,
+    atributos: { for: 2, con: 1 },
+    tracos: [
+      traco("visao-no-escuro-ravenite", "Visão no Escuro", "Enxerga no escuro até 18 m (60 ft) como penumbra."),
+      traco("ataque-vingativo-ravenite", "Ataque Vingativo", "Quando uma criatura a até 1,5 m causar dano a você, pode usar sua reação para fazer um ataque corpo a corpo contra ela."),
+    ],
+    refs: { oficial: "Explorer's Guide to Wildemount (2020)" },
+  },
+  "tiferino-asmodeus": {
+    id: "tiferino-asmodeus",
+    base: "tiferino",
+    nome: "Asmodeus",
+    nomeEN: "Asmodeus Tiefling",
+    atributosSubstitui: true,
+    atributos: { int: 1, car: 2 },
+    refs: { oficial: "Tomo de Mordenkainen para Inimigos (2018)" },
+  },
+  "tiferino-legado-infernal": {
+    id: "tiferino-legado-infernal",
+    base: "tiferino",
+    nome: "Variante: Legado Infernal",
+    nomeEN: "Variant: Infernal Legacy",
+    atributosSubstitui: true,
+    atributos: { int: 1 },
+    atributosEscolha: { picks: 1, bonus: 2, from: ["des", "car"] },
+    refs: { oficial: "Guia do Aventureiro para a Costa da Espada (2015)" },
+  },
+  "meio-elfo-lua-sol": {
+    id: "meio-elfo-lua-sol",
+    base: "meio-elfo",
+    nome: "Variante: Descendência de Elfo da Lua ou do Sol",
+    nomeEN: "Variant: Moon Elf or Sun Elf Descent",
+    substituiTracos: ["versatilidade-em-pericias"],
+    tracos: [
+      traco("caracteristica-variante-meio-elfo", "Característica Variante", "Escolha Versatilidade em Perícias, Treinamento Élfico com Armas ou um truque da lista de mago; Inteligência é o atributo de conjuração do truque.", { escolhaDetalhada: "meio-elfo-lua-sol" }),
+    ],
+    refs: { oficial: "Guia do Aventureiro para a Costa da Espada (2015)" },
+  },
+  "genasi-do-ar-motm": createGenasiMotmSubrace("genasi-do-ar-motm", "Genasi do Ar", "Air Genasi"),
+  "genasi-da-terra-motm": createGenasiMotmSubrace("genasi-da-terra-motm", "Genasi da Terra", "Earth Genasi"),
+  "genasi-do-fogo-motm": createGenasiMotmSubrace("genasi-do-fogo-motm", "Genasi do Fogo", "Fire Genasi"),
+  "genasi-da-agua-motm": createGenasiMotmSubrace("genasi-da-agua-motm", "Genasi da Água", "Water Genasi"),
+});
+
+for (const id of [
+  "genasi-do-ar-motm",
+  "genasi-da-terra-motm",
+  "genasi-do-fogo-motm",
+  "genasi-da-agua-motm",
+]) {
+  delete RACAS[id];
+}
+
+function createGenasiMotmSubrace(id, nome, nomeEN) {
+  const raceData = RACAS[id];
+  const subrace = {
+    id,
+    base: "genasi-motm",
+    nome,
+    nomeEN,
+    tracos: (raceData?.tracos || []).filter((trait) => !String(trait.id || "").startsWith("visao-no-escuro") && trait.id !== "idioma-extra"),
+    refs: raceData?.refs,
+  };
+  if (Number(raceData?.velocidade?.ft) !== 30) subrace.velocidade = raceData.velocidade;
+  if (raceData?.velocidadeNado) subrace.velocidadeNado = raceData.velocidadeNado;
+  return subrace;
+}
+
+RACAS.tiferino.subracas.push("tiferino-asmodeus", "tiferino-legado-infernal");
+
+[
+  "tiferino-lingua-do-diabo",
+  "tiferino-inferno",
+  "tiferino-alado",
+  "tiferino-legado-infernal",
+].forEach((id) => {
+  Object.assign(SUBRACAS[id], {
+    atributosSubstitui: true,
+    atributos: { int: 1 },
+    atributosEscolha: { picks: 1, bonus: 2, from: ["des", "car"] },
+  });
 });
