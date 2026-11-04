@@ -6561,11 +6561,11 @@ export const ADDITIONAL_SPELLS_2024 = [
       "bruxo",
       "mago"
     ],
-    "descricao": "Uma torrente astral causa dano frio ou radiante em cone.",
+    "descricao": "Uma torrente astral causa dano frio ou radiante em cone. Uma salvaguarda bem-sucedida reduz o dano à metade; o efeito adicional da energia escolhida ocorre apenas se o alvo falhar.",
     "emNiveisSuperiores": "",
     "fonte": "DROP0526",
     "pagina": null,
-    "resumo": "Uma torrente astral causa dano frio ou radiante em cone.",
+    "resumo": "Cone astral causa dano; sucesso na salvaguarda reduz o dano à metade.",
     "tags": [
       "dano"
     ]
@@ -6743,11 +6743,11 @@ export const ADDITIONAL_SPELLS_2024 = [
       "druida",
       "guardiao"
     ],
-    "descricao": "Concede proteção defensiva semelhante a um casco.",
+    "descricao": "Concede proteção defensiva semelhante a um casco enquanto você permanece no lugar.",
     "emNiveisSuperiores": "",
     "fonte": "DROP0626",
     "pagina": null,
-    "resumo": "Concede proteção defensiva semelhante a um casco.",
+    "resumo": "Aumenta sua defesa enquanto você não se move.",
     "tags": [
       "utilidade",
       "concentracao"

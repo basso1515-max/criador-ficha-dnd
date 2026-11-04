@@ -1,12 +1,12 @@
 // magias.js
 import { ADDITIONAL_SPELLS_2024 } from "./official-expansions-2024.js";
 import { OFFICIAL_CLASS_OVERRIDES_2024 } from "./official-class-list-overrides.js";
-export const DATASET_VERSION = "0.5.2";
+export const DATASET_VERSION = "0.5.3";
 export const META_MAGIAS = {
   dataset: "dnd5e-ptbr",
   version: DATASET_VERSION,
   locale: "pt-BR",
-  builtAt: "2026-10-21",
+  builtAt: "2026-11-04",
   sources: {
     dndBeyondSpells2024: "https://www.dndbeyond.com/spells?filter-source-category=24&filter-source-category=38&filter-source-category=46",
     srd: "https://media.wizards.com/2023/downloads/dnd/SRD_CC_v5.1.pdf",
@@ -18,6 +18,7 @@ export const META_MAGIAS = {
     drops2026: "D&D Beyond Drops (2026)",
   },
   changelog: [
+    "0.5.3: Corrige escolas, níveis, duração e flags de magias reimpressas no PHB 2024.",
     "0.5.2: Corrige a disponibilidade das magias nas listas de classe oficiais 2024; preserva a lista própria publicada para o Artífice.",
     "0.5.1: Localiza nomes, componentes e durações das magias adicionais em PT-BR, preservando os títulos originais.",
     "0.5.0: Adiciona 64 magias oficiais de Arcana Unleashed, Forgotten Realms e Drops de 2026, unificando reimpressões por nome.",
@@ -15724,9 +15725,101 @@ function patchSpell2024(spellId, patch) {
       nome: "Cão Fiel de Mordenkainen",
       nomeEN: "Mordenkainen's Faithful Hound",
       fonte: "PHB24",
-      pagina: 252
+      pagina: 300,
+      ritual: false,
+      componentesDetalhe: "um apito de prata"
     }
   },
+  { id: "disparo-acido", patch: { escola: "evocação", fonte: "PHB24", pagina: 239 } },
+  { id: "auxilio-divino", patch: { escola: "transmutação", concentracao: false, duracao: "1 minuto", fonte: "PHB24", pagina: 265 } },
+  { id: "curar-ferimentos", patch: { escola: "abjuração", fonte: "PHB24", pagina: 259 } },
+  { id: "bom-fruto", patch: { escola: "conjuração", fonte: "PHB24", pagina: 280 } },
+  { id: "esfera-flamejante", patch: { escola: "evocação", fonte: "PHB24", pagina: 275 } },
+  { id: "cegueira-surdez", patch: { escola: "transmutação", fonte: "PHB24", pagina: 248 } },
+  { id: "aura-da-vitalidade", patch: { escola: "abjuração", fonte: "PHB24", pagina: 244 } },
+  { id: "erupcao-de-terra", patch: { escola: "transmutação" } },
+  { id: "esfera-resiliente", patch: { escola: "abjuração", fonte: "PHB24", pagina: 303 } },
+  { id: "inseto-gigante", patch: { escola: "conjuração", fonte: "PHB24", pagina: 279 } },
+  { id: "curar-ferimentos-em-massa", patch: { escola: "abjuração", fonte: "PHB24", pagina: 296 } },
+  { id: "consagrar", patch: { escola: "abjuração", fonte: "PHB24", pagina: 283 } },
+  { id: "contingencia", patch: { escola: "abjuração", fonte: "PHB24", pagina: 256 } },
+  { id: "cura-completa", patch: { escola: "abjuração", fonte: "PHB24", pagina: 284 } },
+  { id: "eterealidade", patch: { escola: "conjuração", fonte: "PHB24", pagina: 269 } },
+  { id: "terremoto", patch: { escola: "transmutação", fonte: "PHB24", pagina: 267 } },
+  { id: "cura-completa-em-massa", patch: { escola: "abjuração", fonte: "PHB24", pagina: 296 } },
+  { id: "augurio", patch: { nivel: 2, fonte: "PHB24", pagina: 244 } },
+  {
+    id: "contagio",
+    patch: {
+      nivel: 5,
+      alcance: "Toque",
+      duracao: "7 dias",
+      fonte: "PHB24",
+      pagina: 256,
+      descricao: "Seu toque infecta o alvo. Se falhar na salvaguarda de Constituição, ele sofre dano necrótico, fica Envenenado e tem desvantagem nas salvaguardas de um atributo escolhido. Repete a salvaguarda ao fim de cada turno: três sucessos encerram a magia; três falhas mantêm a doença por 7 dias.",
+      resumo: "Infecta o alvo com uma doença mágica debilitante."
+    }
+  },
+  {
+    id: "ataque-certeiro",
+    patch: {
+      ritual: false,
+      concentracao: false,
+      tempoConjuracao: "Ação",
+      alcance: "Pessoal",
+      componentes: ["S", "M"],
+      componentesDetalhe: "uma arma na qual você seja proficiente, valendo pelo menos 1 pc",
+      duracao: "Instantânea",
+      fonte: "PHB24",
+      pagina: 336,
+      descricao: "Você faz um ataque com a arma usada como componente, usando seu modificador de conjuração nas jogadas de ataque e dano. O ataque pode causar dano radiante ou o tipo normal da arma; ambos recebem dano radiante adicional conforme seu nível.",
+      emNiveisSuperiores: "O dano radiante adicional é 1d6 no nível 5, 2d6 no nível 11 e 3d6 no nível 17.",
+      resumo: "Ataca com uma arma usando a habilidade de conjuração e causa dano radiante."
+    }
+  },
+  { id: "cativar", patch: { concentracao: true, duracao: "Concentração, até 1 minuto", fonte: "PHB24", pagina: 269 } },
+  { id: "arma-espiritual", patch: { concentracao: true, duracao: "Concentração, até 1 minuto", fonte: "PHB24", pagina: 319 } },
+  { id: "arma-magica", patch: { concentracao: false, duracao: "1 hora", fonte: "PHB24", pagina: 295 } },
+  { id: "flecha-de-relampago", patch: { concentracao: false, duracao: "Instantânea", fonte: "PHB24", pagina: 292 } },
+  { id: "jaula-de-energia", patch: { concentracao: true, duracao: "Concentração, até 1 hora", fonte: "PHB24", pagina: 276 } },
+  { id: "formas-animais", patch: { concentracao: false, duracao: "24 horas", fonte: "PHB24", pagina: 240 } },
+  {
+    id: "encontrar-familiar",
+    patch: {
+      ritual: true,
+      tempoConjuracao: "1 hora ou Ritual",
+      alcance: "3 metros",
+      componentesDetalhe: "incenso em combustão no valor mínimo de 10 po, consumido",
+      fonte: "PHB24",
+      pagina: 272,
+      descricao: "Invoca um espírito em forma animal para servir como familiar. Ele pode comunicar-se telepaticamente a curta distância e entregar magias de toque.",
+      resumo: "Invoca um familiar espiritual que auxilia na exploração e entrega magias de toque."
+    }
+  },
+  {
+    id: "crescer-plantas",
+    patch: {
+      ritual: false,
+      tempoConjuracao: "Ação (Supercrescimento) ou 8 horas (Enriquecimento)",
+      duracao: "Instantânea",
+      fonte: "PHB24",
+      pagina: 305,
+      descricao: "O tempo de conjuração define se a magia causa supercrescimento numa área ou enriquece as plantas da região, dobrando a colheita por 365 dias.",
+      resumo: "Provoca supercrescimento ou dobra a colheita por um ano."
+    }
+  },
+  {
+    id: "falar-com-plantas",
+    patch: {
+      ritual: false,
+      alcance: "Pessoal (emanação de 9 metros)",
+      fonte: "PHB24",
+      pagina: 319,
+      descricao: "Concede às plantas imóveis na área sentiência limitada para conversar e seguir comandos simples; também altera o terreno com vegetação.",
+      resumo: "Conversa com plantas e altera terreno com vegetação."
+    }
+  },
+  { id: "despertar", patch: { ritual: false, fonte: "PHB24", pagina: 244 } },
   {
     id: "elo-telepatico",
     patch: {
