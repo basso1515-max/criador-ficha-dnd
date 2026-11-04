@@ -1,7 +1,7 @@
 // magias.js
 import { ADDITIONAL_SPELLS_2024 } from "./official-expansions-2024.js";
 import { OFFICIAL_CLASS_OVERRIDES_2024 } from "./official-class-list-overrides.js";
-export const DATASET_VERSION = "0.5.3";
+export const DATASET_VERSION = "0.5.4";
 export const META_MAGIAS = {
   dataset: "dnd5e-ptbr",
   version: DATASET_VERSION,
@@ -18,6 +18,7 @@ export const META_MAGIAS = {
     drops2026: "D&D Beyond Drops (2026)",
   },
   changelog: [
+    "0.5.4: Atualiza Cão Fiel de Mordenkainen às regras 2024 e explicita diferenças para a versão 2014.",
     "0.5.3: Corrige escolas, níveis, duração e flags de magias reimpressas no PHB 2024.",
     "0.5.2: Corrige a disponibilidade das magias nas listas de classe oficiais 2024; preserva a lista própria publicada para o Artífice.",
     "0.5.1: Localiza nomes, componentes e durações das magias adicionais em PT-BR, preservando os títulos originais.",
@@ -15727,7 +15728,9 @@ function patchSpell2024(spellId, patch) {
       fonte: "PHB24",
       pagina: 300,
       ritual: false,
-      componentesDetalhe: "um apito de prata"
+      componentesDetalhe: "um apito de prata",
+      descricao: "Você conjura um cão de guarda fantasmagórico em um espaço desocupado no alcance. Ele permanece pela duração ou até vocês se afastarem mais de 91 metros um do outro. Só você pode vê-lo; ele é intangível e invulnerável. Quando uma criatura Pequena ou maior se aproxima a até 9 metros sem dizer a senha que você definiu ao conjurar a magia, ele começa a latir alto. O cão tem Visão Verdadeira com alcance de 9 metros. No início de cada um dos seus turnos, tenta morder um inimigo a até 1,5 metro; o alvo deve passar numa salvaguarda de Destreza ou sofre 4d8 de dano de força. Nos seus turnos seguintes, você pode usar uma ação Mágica para mover o cão até 9 metros.",
+      resumo: "Cão espectral com Visão Verdadeira ataca com 4d8 de força e pode ser movido."
     }
   },
   { id: "disparo-acido", patch: { escola: "evocação", fonte: "PHB24", pagina: 239 } },

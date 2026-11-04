@@ -1,3 +1,4 @@
+import { SPELL_EDITION_DIFFERENCES } from "../../data/spell-edition-differences.js";
 import { CLASSES } from "../../data/5e/classes.js";
 import { SUBCLASSES } from "../../data/5e/subclasses.js";
 import { ANTECEDENTES } from "../../data/5e/antecedentes.js";
@@ -14645,10 +14646,22 @@ function listVisibleSpellPickerSourceKeys(sources = []) {
     return target?.closest?.("[data-spell-id]") || null;
   }
 
+function renderSpellEditionComparison(spellId) {
+  const entries = SPELL_EDITION_DIFFERENCES[spellId] || [];
+  if (!entries.length) return "";
+  return [
+    '<section class="magic-spell-hover-grid" aria-label="Diferenças da magia entre edições">',
+    "<p><strong>Diferenças entre edições</strong></p>",
+    ...entries.map((entry) => "<p><strong>" + escapeHtml(entry.edition) + ":</strong> " + escapeHtml(entry.description) + "</p>"),
+    "</section>",
+  ].join("");
+}
+
 function buildMagicSpellHoverCardMarkup(target) {
   const spellId = target?.getAttribute("data-spell-id");
   const spell = spellId ? SPELL_BY_ID.get(spellId) : null;
   if (!spell) return "";
+  const editionComparisonMarkup = renderSpellEditionComparison(spell.id);
 
   const sourceLabel = target.getAttribute("data-source-label") || "";
   const warningLabel = target.getAttribute("data-spell-warning-label") || "";
@@ -14727,6 +14740,8 @@ function buildMagicSpellHoverCardMarkup(target) {
           : spell.resumo || spell.descricao || "-"
       )}
     </p>
+
+    ${editionComparisonMarkup}
 
     ${
       spell.emNiveisSuperiores

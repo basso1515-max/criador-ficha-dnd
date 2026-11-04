@@ -2,7 +2,7 @@
 import { ADDITIONAL_OFFICIAL_SPELLS_2014 } from "./official-expansion-spells.js";
 import { OFFICIAL_CLASS_OVERRIDES_2014 } from "./official-class-list-overrides.js";
 
-export const DATASET_VERSION = "0.2.4";
+export const DATASET_VERSION = "0.2.5";
 export const META_MAGIAS = {
   dataset: "dnd5e-ptbr",
   version: DATASET_VERSION,
@@ -28,6 +28,7 @@ export const META_MAGIAS = {
     }
   },
   changelog: [
+    "0.2.5: Restaura componentes e efeitos originais de Cão Fiel de Mordenkainen (2014).",
     "0.2.4: Corrige metadados de magias e adiciona as fontes Explorer's Guide to Wildemount e Adventures in the Forgotten Realms: Adventures.",
     "0.2.3: Corrige o nome oficial em português de Névoa Obscurecente.",
     "0.2.2: Corrige os nomes oficiais de Zombaria Perversa e Fogo das Fadas.",
@@ -5819,14 +5820,14 @@ export const MAGIAS = {
         tempoConjuracao: "Ação",
         alcance: "9 metros",
         componentes: ["V", "S", "M"],
-        componentesDetalhe: "um apito de prata",
+        componentesDetalhe: "um apito de prata minúsculo, um pedaço de osso e um fio",
         duracao: "8 horas",
-        classes: ["mago","artifice"],
-        descricao: "Um cão invisível vigia a área, alerta intrusos e ataca inimigos causando 4d6 de dano.",
+        classes: ["mago", "artifice"],
+        descricao: "Você conjura um cão de guarda fantasmagórico em um espaço desocupado no alcance. Ele permanece pela duração, até você dispensá-lo com uma ação ou até você se afastar mais de 30 metros dele. O cão é invisível para todas as criaturas, exceto você, e não pode ser ferido. Quando uma criatura Pequena ou maior se aproxima a até 9 metros sem dizer a senha que você definiu ao conjurar a magia, ele começa a latir alto. O cão vê criaturas invisíveis, enxerga o Plano Etéreo e ignora ilusões. No início de cada um dos seus turnos, tenta morder uma criatura hostil a você a até 1,5 metro. O ataque usa seu modificador de conjuração e bônus de proficiência; se acertar, causa 4d8 de dano perfurante.",
         emNiveisSuperiores: "-",
         fonte: "PHB",
-        pagina: 248,
-        resumo: "Sentinela invisível defensiva.",
+        pagina: 261,
+        resumo: "Cão invisível alerta sobre intrusos e ataca com 4d8 de dano perfurante.",
         tags: ["defesa", "invocação"]
       },
       "conjurar-elementais-menores": {

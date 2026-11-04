@@ -1,3 +1,4 @@
+import { SPELL_EDITION_DIFFERENCES } from "../../data/spell-edition-differences.js";
 import { RACAS, SUBRACAS, META_RACAS, ENUMS_RACAS } from "../../data/5.5e/racas.js";
 import { CLASSES as CLASSES_2024, META_CLASSES } from "../../data/5.5e/classes.js";
 import { SUBCLASSES as CORE_SUBCLASSES, SUBCLASSES_ADDITIONAL_2024 } from "../../data/5.5e/subclasses.js";
@@ -13265,7 +13266,7 @@ import {
             hoverCard: () => el.magicSpellHoverCard,
             availablePanel: () => el.availableSpellPanel,
             selectedPanel: () => el.selectedSpellBook,
-            buildMarkup: buildMagicSpellHoverCardMarkup2024,
+            buildMarkup: (target) => buildMagicSpellHoverCardMarkup2024(target) + renderSpellEditionComparison2024(target?.getAttribute("data-spell-id")),
             isSelected(sourceKey, spellId, kind) {
               const selection = getSpellSelectionForSource2024(sourceKey);
               return kind === "cantrip" ? selection.cantrips.has(spellId) : selection.spells.has(spellId);
@@ -13313,6 +13314,17 @@ import {
 
   function findMagicSpellHoverTarget2024(target) {
     return target?.closest?.("[data-spell-id]") || null;
+  }
+
+  function renderSpellEditionComparison2024(spellId) {
+    const entries = SPELL_EDITION_DIFFERENCES[spellId] || [];
+    if (!entries.length) return "";
+    return [
+      '<section class="magic-spell-hover-grid" aria-label="Diferenças da magia entre edições">',
+      "<p><strong>Diferenças entre edições</strong></p>",
+      ...entries.map((entry) => "<p><strong>" + escapeHtml(entry.edition) + ":</strong> " + escapeHtml(entry.description) + "</p>"),
+      "</section>",
+    ].join("");
   }
 
   function buildMagicSpellHoverCardMarkup2024(target) {
