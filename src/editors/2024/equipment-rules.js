@@ -74,6 +74,22 @@ export function currencyBreakdownToCopper2024(breakdown = {}) {
 }
 
 /**
+ * Convert equipment prices stored with either legacy English coin keys or 2024 Portuguese coin keys.
+ * @param {Record<string, number | string | null | undefined> | null | undefined} cost
+ * @returns {number}
+ */
+export function equipmentCostToCopper2024(cost = {}) {
+  const hasLegacyCurrencyKeys = ["cp", "sp", "ep", "gp"].some((key) => Object.hasOwn(cost, key));
+  if (!hasLegacyCurrencyKeys) return currencyBreakdownToCopper2024(cost);
+
+  const legacyCurrencyMap = { cp: "pc", sp: "pp", ep: "pe", gp: "po", pp: "pl" };
+  return Math.round(Object.entries(legacyCurrencyMap).reduce(
+    (total, [legacyKey, currencyKey]) => total + (Number(cost[legacyKey] || 0) * CURRENCY_TO_COPPER_FACTORS[currencyKey]),
+    0
+  ));
+}
+
+/**
  * @param {unknown} totalCopper
  * @returns {CurrencyBreakdown2024}
  */

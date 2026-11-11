@@ -324,7 +324,7 @@ export const ARMAS = {
 
   "foice-curta": { 
     id: "foice-curta", 
-    nome: "Foice Curta",
+    nome: "Foice", 
     categoria: "simples",
     tipo: "corpo-a-corpo", 
     dano: {
@@ -602,8 +602,8 @@ export const ARMAS = {
       "light"
     ], 
     peso: { 
-      lb: 2, 
-      kg: lbToKg(2) 
+      lb: 3, 
+      kg: lbToKg(3) 
     }, 
     custo: { 
       gp: 25 
@@ -712,8 +712,8 @@ export const ARMAS = {
       "reach", 
       "twoHanded"
     ],
-    peso: { lb: 9, 
-      kg: lbToKg (9) 
+    peso: { lb: 18, 
+      kg: lbToKg (18) 
     },
     custo: { 
       gp: 5 
@@ -776,8 +776,8 @@ export const ARMAS = {
       "heavy", 
       "twoHanded"],
     peso: { 
-      lb: 11, 
-      kg: lbToKg (11) 
+      lb: 10, 
+      kg: lbToKg (10) 
     },
     custo: { 
       gp: 10 
@@ -873,8 +873,8 @@ export const ARMAS = {
       dado: "1d8" 
     },
     peso: { 
-      lb: 5, 
-      kg: lbToKg (5) 
+      lb: 4, 
+      kg: lbToKg (4) 
     },
     custo: { gp: 5       
     }
@@ -973,8 +973,8 @@ export const ARMAS = {
       }
     },
     peso: { 
-      lb: 10, 
-      kg: lbToKg (10) 
+      lb: 18, 
+      kg: lbToKg (18) 
     },
     custo: { 
       gp: 50 

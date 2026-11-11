@@ -645,8 +645,8 @@ export const ARMAS = {
       "light"
     ], 
     peso: { 
-      lb: 2, 
-      kg: lbToKg(2) 
+      lb: 3, 
+      kg: lbToKg(3) 
     }, 
     custo: { 
       gp: 25 
@@ -725,13 +725,15 @@ export const ARMAS = {
     categoria: "marcial",
     tipo: "corpo-a-corpo",
     dano: { 
-      dado: "1d12", 
+      dado: "1d10", 
       tipo: "perfurante" 
     },
     propriedades: [
-      "reach", 
-      "special"
+      "heavy",
+      "reach",
+      "twoHanded"
     ],
+    regraEspecial: "Requer duas mãos para empunhar quando você não está montado.",
     peso: { 
       lb: 6, 
       kg: lbToKg (6) 
@@ -755,8 +757,8 @@ export const ARMAS = {
       "reach", 
       "twoHanded"
     ],
-    peso: { lb: 9, 
-      kg: lbToKg (9) 
+    peso: { lb: 18, 
+      kg: lbToKg (18) 
     },
     custo: { 
       gp: 5 
@@ -819,8 +821,8 @@ export const ARMAS = {
       "heavy", 
       "twoHanded"],
     peso: { 
-      lb: 11, 
-      kg: lbToKg (11) 
+      lb: 10, 
+      kg: lbToKg (10) 
     },
     custo: { 
       gp: 10 
@@ -863,7 +865,7 @@ export const ARMAS = {
       dado: "1d10" 
     },
     peso: { 
-      lb: 2, kg: lbToKg (2) 
+      lb: 5, kg: lbToKg (5) 
     },
     custo: { 
       gp: 15 
@@ -880,7 +882,9 @@ export const ARMAS = {
       tipo: "perfurante" 
     },
     propriedades: [
+      "versatile"
     ],
+    versatil: { dado: "1d10" },
     peso: { 
       lb: 2, kg: lbToKg (2) 
     },
@@ -895,7 +899,7 @@ export const ARMAS = {
     categoria: "marcial",
     tipo: "corpo-a-corpo",
     dano: { 
-      dado: "1d6", 
+      dado: "1d8", 
       tipo: "perfurante" 
     },
     propriedades: [
@@ -913,11 +917,11 @@ export const ARMAS = {
       }
     },
     versatil: { 
-      dado: "1d8" 
+      dado: "1d10" 
     },
     peso: { 
-      lb: 5, 
-      kg: lbToKg (5) 
+      lb: 4, 
+      kg: lbToKg (4) 
     },
     custo: { gp: 5       
     }
@@ -1016,8 +1020,8 @@ export const ARMAS = {
       }
     },
     peso: { 
-      lb: 10, 
-      kg: lbToKg (10) 
+      lb: 18, 
+      kg: lbToKg (18) 
     },
     custo: { 
       gp: 50 

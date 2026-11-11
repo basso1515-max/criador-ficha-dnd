@@ -92,7 +92,6 @@ import {
   CHAPTER_TWO_LANGUAGE_CHOICE_IDS_2024,
   LANGUAGE_ORIGINS_2024,
   LANGUAGE_METADATA_2024,
-  CURRENCY_TO_COPPER_FACTORS_2024,
   WEAPON_TEXT_ALIASES_2024,
   PDF_MAP_URL_2024,
   DEFAULT_TEMPLATE_URL_2024,
@@ -122,6 +121,7 @@ import {
   extractCurrencyBreakdownFromText2024,
   addCurrencyBreakdown2024,
   currencyBreakdownToCopper2024,
+  equipmentCostToCopper2024,
   copperToCurrencyBreakdown2024,
   stringifyCurrencyBreakdown2024,
   formatCurrencyBreakdownSummary2024,
@@ -3269,6 +3269,7 @@ import {
             `${masteryLabel}: ${mastery.resumo || "Ativa a propriedade de Maestria desta arma."}`,
             damage ? `Dano ${damage}` : "",
             properties.length ? `Propriedades: ${formatList(properties)}` : "",
+            weapon.regraEspecial ? `Regra especial: ${weapon.regraEspecial}` : "",
           ].filter(Boolean).join(" • "),
         };
       });
@@ -11206,7 +11207,7 @@ import {
         group: "weapons",
         type: "weapon",
         sourceId: weapon.id,
-        costCopper: Math.round(Number(weapon?.custo?.gp || 0) * CURRENCY_TO_COPPER_FACTORS_2024.po),
+        costCopper: equipmentCostToCopper2024(weapon?.custo),
         weightLb: Number.isFinite(Number(weapon?.peso?.lb)) ? Number(weapon.peso.lb) : null,
       }))
       .sort((a, b) => a.label.localeCompare(b.label, "pt-BR"));
@@ -11218,7 +11219,7 @@ import {
         group: "armor",
         type: "armor",
         sourceId: entry.id,
-        costCopper: Math.round(Number(entry?.custo?.gp || 0) * CURRENCY_TO_COPPER_FACTORS_2024.po),
+        costCopper: equipmentCostToCopper2024(entry?.custo),
         weightLb: Number.isFinite(Number(entry?.peso?.lb)) ? Number(entry.peso.lb) : null,
       }))
       .sort((a, b) => a.label.localeCompare(b.label, "pt-BR"));
@@ -11230,7 +11231,7 @@ import {
         group: entry.grupo,
         type: "item",
         sourceId: entry.id,
-        costCopper: currencyBreakdownToCopper2024(entry.custo),
+        costCopper: equipmentCostToCopper2024(entry.custo),
         weaponIds: [...(entry.weaponIds || [])],
         weightLb: Number.isFinite(Number(entry?.peso?.lb)) ? Number(entry.peso.lb) : null,
       }))
