@@ -897,6 +897,48 @@ const MUSICAL_INSTRUMENT_CHOICE_OPTIONS = (EQUIPMENT_OPTION_LISTS.musicalInstrum
   label,
 }));
 export const RACIAL_DETAIL_DEFINITIONS = {
+  giomorgo: {
+    detailType: "vistaniTribe",
+    label: "Tribo de origem",
+    description: "A herança Meio-Vistani concede uma proficiência diferente conforme a tribo da família.",
+    options: [
+      { value: "canjar", label: "Canjar", summary: "Proficiência em Arcanismo pela herança Canjar." },
+      { value: "corvara", label: "Corvara", summary: "Proficiência em Prestidigitação pela herança Corvara." },
+      { value: "equaar", label: "Equaar", summary: "Proficiência em Adestrar Animais pela herança Equaar." },
+    ],
+  },
+  parias: {
+    detailType: "domainPeople",
+    label: "Povo específico",
+    description: "Escolha o povo humano local dos Domínios do Pavor. Estes traços são uma adaptação para personagens jogadores de D&D 5e.",
+    options: [
+      { value: "baroviano", label: "Baroviano", summary: "Vantagem em salvaguardas contra ficar amedrontado e em testes de Inteligência (História) para reconhecer mortos-vivos e lobisomens." },
+      { value: "falkovniano", label: "Falkovniano", summary: "Povo Falkovniano: proficiência com armas marciais, fruto do treinamento militar obrigatório." },
+      { value: "tepestani", label: "Tepestani", summary: "Vantagem em salvaguardas contra magias de encantamento ou ilusão conjuradas por criaturas feéricas ou bruxas." },
+      { value: "dementlieuse", label: "Dementlieuse", summary: "Proficiência em Persuasão. Vantagem em testes de Inteligência (História) ligados à política e à alta sociedade." },
+      { value: "mordentish", label: "Mordentish", summary: "Proficiência em Investigação. Vantagem em testes para investigar assombrações ou reconhecer espíritos e fantasmas." },
+      { value: "lamordiano", label: "Lamordiano", summary: "Proficiência em Medicina. Vantagem em testes de Inteligência para examinar experimentos, máquinas e fenômenos naturais, e em salvaguardas contra ficar amedrontado ou ser iludido." },
+      { value: "borcano", label: "Borcano", summary: "Proficiência com kit de envenenador. Vantagem em salvaguardas para resistir a venenos." },
+      { value: "darkoniano", label: "Darkoniano", summary: "Proficiência em História. Vantagem em salvaguardas contra efeitos que alterem ou apaguem memórias." },
+      { value: "kartakassiano", label: "Kartakassiano", summary: "Proficiência em Atuação e com um instrumento musical à sua escolha. Vantagem em testes para cantar, narrar histórias ou se apresentar." },
+      { value: "invidiano", label: "Invidiano", summary: "Proficiência em Intuição e Furtividade." },
+      { value: "har-akiri", label: "Har'Akiri", summary: "Proficiência em Sobrevivência. Vantagem em salvaguardas para evitar exaustão causada por calor extremo." },
+      { value: "souragnien", label: "Souragnien", summary: "Proficiência em Sobrevivência. Vantagem em salvaguardas contra maldições e magias de necromancia." },
+      { value: "rokuma", label: "Rokuma", summary: "Proficiência com espadas longas e curtas. Vantagem em salvaguardas contra ficar amedrontado." },
+      { value: "vudukan", label: "Vudukan", summary: "Proficiência em Medicina e com um kit de herbalismo. Vantagem em testes para tratar doenças ou reconhecer remédios e rituais populares." },
+    ],
+  },
+  calibans: {
+    detailType: "calibanMutation",
+    label: "Mutação e fraqueza",
+    description: "Escolha uma mutação física. Cada mutação vem acompanhada de uma fraqueza para manter a opção equilibrada.",
+    options: [
+      { value: "garras", label: "Garras deformadas", summary: "Garras: seus ataques desarmados causam 1d4 de dano cortante. Fraqueza: desvantagem em testes de Carisma (Persuasão) com criaturas que vejam suas garras." },
+      { value: "pele-petrea", label: "Pele pétrea", summary: "Pele pétrea: resistência a dano necrótico. Fraqueza: vulnerabilidade a dano radiante." },
+      { value: "sentidos-aguçados", label: "Sentidos aguçados", summary: "Proficiência em Percepção. Fraqueza: desvantagem em ataques e testes de Sabedoria (Percepção) que dependam da visão sob luz solar direta." },
+      { value: "sem-mutacao", label: "Sem mutação adicional", summary: "Você não recebe uma mutação física adicional nem uma fraqueza relacionada a ela." },
+    ],
+  },
   "meio-elfo-lua-sol": {
     detailType: "halfElfVariant",
     label: "Característica Variante",

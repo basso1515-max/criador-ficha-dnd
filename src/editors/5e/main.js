@@ -2375,7 +2375,7 @@ function hydrateRaceCatalog(catalog = {}) {
     });
 
     if (!hintParts.length) {
-      hintParts.push("Sem regra oficial específica de perícias para a combinação atual.");
+      hintParts.push("Sem regra específica de perícias para a combinação atual.");
     }
 
     return {
@@ -2437,11 +2437,11 @@ function hydrateRaceCatalog(catalog = {}) {
 
     let warningMessage = "";
     if (invalidOutsideRules.length) {
-      warningMessage = `As perícias ${formatList(invalidOutsideRules.map(skillKeyToLabel))} não fazem parte das opções oficiais disponíveis para a classe/raça atual.`;
+      warningMessage = `As perícias ${formatList(invalidOutsideRules.map(skillKeyToLabel))} não fazem parte das opções disponíveis para a classe/raça atual.`;
     } else if (exceedsLimit) {
       warningMessage = `Você marcou ${extraSelected.length} perícias escolhidas, mas a combinação atual permite ${totalChoiceSlots}.`;
     } else if (!allocationIsValid) {
-      warningMessage = "A distribuição atual não encaixa nas regras oficiais da classe/raça. Revise as escolhas marcadas fora das concessões automáticas.";
+      warningMessage = "A distribuição atual não encaixa nas regras da classe/raça selecionada. Revise as escolhas marcadas fora das concessões automáticas.";
     }
 
     if (el.skillsRuleWarning) {
@@ -2458,7 +2458,7 @@ function hydrateRaceCatalog(catalog = {}) {
       const isInvalidSelection = isSelected && !isFixed && !isAllowedChoice;
       if (checkbox) {
         checkbox.disabled = isFixed;
-        checkbox.title = isFixed ? "Proficiência concedida automaticamente pelas regras oficiais atuais." : "";
+        checkbox.title = isFixed ? "Proficiência concedida automaticamente pela origem selecionada." : "";
       }
       item.classList.toggle("is-fixed", isFixed);
       item.classList.toggle("is-class-option", Boolean(skillKey) && classChoiceSkills.has(skillKey));
@@ -7739,10 +7739,10 @@ function hydrateRaceCatalog(catalog = {}) {
 
     el.raceDetailChoicesPanel.hidden = false;
     el.raceDetailChoicesSummary.textContent = detailSources.length === 1
-      ? "1 escolha oficial de raça precisa ser definida."
-      : `${detailSources.length} escolhas oficiais de raça precisam ser definidas.`;
+      ? "1 escolha de raça ou cultura está disponível."
+      : `${detailSources.length} escolhas de raça ou cultura estão disponíveis.`;
     if (el.raceDetailChoicesInfo) {
-      el.raceDetailChoicesInfo.textContent = "Este bloco resolve raças e sub-raças com atributo de conjuração ou outra escolha que altera magias raciais.";
+      el.raceDetailChoicesInfo.textContent = "As escolhas feitas aqui são registradas nas características da ficha e podem acrescentar proficiências.";
     }
 
     el.raceDetailChoicesContainer.innerHTML = detailSources.map((source) => {
@@ -8040,6 +8040,7 @@ function hydrateRaceCatalog(catalog = {}) {
 
     setStatus("");
     renderRaceDetailChoices();
+    syncSuggestedSkillSelections();
     commitCharacterStateMutation("race-detail");
   }
 
@@ -17330,7 +17331,7 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
     const allocationIsValid = canAllocateSkillSelection(extraSelected, skillContext.choiceSources);
 
     if (invalidOutsideRules.length) {
-      return [`Revise as perícias escolhidas: ${formatList(invalidOutsideRules.map(skillKeyToLabel))} não pertence às opções oficiais atuais.`];
+      return [`Revise as perícias escolhidas: ${formatList(invalidOutsideRules.map(skillKeyToLabel))} não pertence às opções atuais.`];
     }
     if (extraSelected.length > totalChoiceSlots) {
       return ["Revise as perícias escolhidas: a build atual tem mais perícias marcadas do que o permitido pelas classes."];

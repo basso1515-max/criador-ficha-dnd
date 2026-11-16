@@ -1,5 +1,5 @@
 // racas.js
-export const DATASET_VERSION = "0.4.9";
+export const DATASET_VERSION = "0.5.0";
 export const META_RACAS = {
   dataset: "dnd5e-ptbr",
   version: DATASET_VERSION,
@@ -11,6 +11,7 @@ export const META_RACAS = {
     oficial: "PHB, EEPC, SCAG, VGM, MTF, ERLW, EGW, GGR, MOT, TTP, LR, OGA, AI, TCE, Mordenkainen Apresenta: Monstros do Multiverso, VRGR, WBtW, SCC, AAG, FTD e DSotDQ"
   },
   changelog: [
+    "0.5.0: Adiciona traços jogáveis adaptados para Ravenloft a Vistani, Meio-Vistani e Caliban; inclui povos dos domínios e heranças tribais selecionáveis.",
     "0.4.9: Adiciona Vistani como identidade cultural humana de Ravenloft, sem traços mecânicos próprios.",
     "0.4.8: Inclui Draconato Cromático e Draconato Metálico de Tesouro dos Dragões de Fizban, com escolha de ancestralidade e sopros próprios.",
     "0.4.7: Corrige as fontes do Eladrin (DMG) e Lotusden (EGW) e registra tamanhos Pequeno/Médio de Hadozee, Owlin, Plasmoide e Thri-kreen.",
@@ -322,7 +323,10 @@ export const RACAS = {
       "shou",
       "tethyriano",
       "turami",
-      "vistani"
+      "vistani",
+      "giomorgo",
+      "parias",
+      "calibans"
     ],
     refs: {
       srd: "SRD 5.1 (Races: Human)",
@@ -899,38 +903,51 @@ export const SUBRACAS = {
     nome: "Vistani",
     nomeEN: "Vistani",
     origem: "Povo itinerante associado a Ravenloft.",
-    descricao: "Nômades de pele oliva ou bronzeada, cabelos e olhos escuros, feições angulares e uma cicatriz ritual violeta na palma da mão. Costumam se vestir com roupas vibrantes e muitas joias.",
-    refs: { oficial: "Van Richten's Guide to Ravenloft" }
+    descricao: "Povo itinerante de Ravenloft. Os traços abaixo são uma adaptação de alto poder para personagem jogador; confirme com o Mestre se esta opção está liberada na campanha.",
+    tracos: [
+      traco("navegador-das-brumas", "Navegador das Brumas", "Você e seus acompanhantes conseguem atravessar as Brumas letais entre os domínios sem se perder."),
+      traco("olho-gordo-vistani", "Olho Gordo", "1/descanso curto ou longo, como ação, escolha uma criatura que possa ver a até 3 m (10 ft). Ela faz uma salvaguarda de Sabedoria (CD 8 + bônus de proficiência + modificador de Carisma). No fracasso, você conjura Amizade Animal, Enfeitiçar Pessoa ou Imobilizar Pessoa apenas com o olhar, sem componentes verbais, somáticos ou materiais; concentração e duração da magia continuam valendo. Se ela resistir, você fica cego até o fim do próximo turno; quem resistir fica imune ao seu Olho Gordo por 24 horas."),
+      traco("maldicao-vistani", "Maldição Vistana", "1/descanso longo, como ação, amaldiçoe uma criatura a até 9 m (30 ft), que faz uma salvaguarda de Sabedoria (CD 8 + bônus de proficiência + modificador de Carisma). No fracasso, escolha: efeito leve (impedir uma tarefa simples ou ocultar um objeto não mágico pequeno), moderado (impor desvantagem em testes e salvaguardas ligados a um atributo ou conceder vulnerabilidade a um tipo de dano) ou severo (encerrar a sintonia com um item mágico ou impor cegueira/surdez). A maldição dura até ser encerrada por Remover Maldição, Restauração Maior ou magia semelhante. Se uma magia a encerrar, você sofre 1d6, 3d6 ou 5d6 de dano psíquico, conforme a gravidade escolhida."),
+    ],
+    refs: { oficial: "Curse of Strahd (2016), apêndice de NPCs; adaptação para personagem jogador" }
   },
 
-    "giomorgo": {
+  "giomorgo": {
     id: "giomorgo",
     base: "humano",
-    nome: "Giomorgo (Meio-Vistani)",
+    nome: "Meio-Vistani (Giomorgo)",
     nomeEN: "Giomorg (Half-Vistani)",
     origem: "Filhos de Vistani com outros seres.",
     descricao: "Filhos da união entre um Vistana e um morador comum dos domínios (ou, muito raramente, com elfos, sendo chamados de Giamarga). Não possuem o poder completo de navegar pelas Brumas e costumam ser vistos como párias tanto pelos humanos sedentários quanto pelos próprios Vistani.",
-    refs: { oficial: "Van Richten's Guide to Ravenloft" }
+    tracos: [
+      traco("heranca-meio-vistani", "Herança Meio-Vistani", "Você não atravessa as Brumas com a segurança dos Vistani. Ganha proficiência em Sobrevivência e tem vantagem em testes de Sabedoria (Sobrevivência) para se orientar nas Brumas ou evitar se perder nelas."),
+    ],
+    refs: { legado: "Povos de Ravenloft; adaptação para personagem jogador de D&D 5e" }
   },
 
-    "parias": {
+  "parias": {
     id: "parias",
     base: "humano",
     nome: "Párias",
     nomeEN: "Outcasts",
-    origem: "Diversos grupos étnicos e culturais que só existem em Ravenloft.",
-    descricao: "Barovianos (sombrios e supersticiosos), os Falkovnianos (militaristas e marcados na testa caso sejam servos), os Vudukans e os Tepestani (caçadores de feéricos e bruxas).",
-    refs: { oficial: "Van Richten's Guide to Ravenloft" }
+    origem: "Humanos locais dos Domínios do Pavor; escolha um povo específico no seletor de detalhes raciais.",
+    descricao: "Uma origem cultural dos Domínios do Pavor. Escolha no segundo seletor o povo local e receba seus traços culturais.",
+    refs: { oficial: "Van Richten's Guide to Ravenloft; traços culturais adaptados para personagem jogador" }
   },
   
-    "calibans": {
+  "calibans": {
     id: "calibans",
     base: "humano",
-    nome: "Calibans",
+    nome: "Caliban",
     nomeEN: "Caliban",
     origem: "Povo amaldiçoado ou deformado por Ravenloft.",
-    descricao: "Nasceram amaldiçoados ou deformados pela magia sombria, alquimia corrompida ou maldições familiares de Ravenloft. Possuem força física descomunal e aparência monstruosa ou mutante, sendo geralmente rejeitados pela sociedade e obrigados a viver isolados nas florestas ou esgotos.",
-    refs: { oficial: "Van Richten's Guide to Ravenloft" }
+    descricao: "Nasceram amaldiçoados ou deformados pela magia sombria, alquimia corrompida ou maldições familiares. A herança humana somada aos ajustes abaixo resulta em +2 Força, sem bônus em Inteligência ou Carisma.",
+    atributos: { for: 1, int: -1, car: -1 },
+    tracos: [
+      traco("intimidacao-caliban", "Intimidação Natural", "Você ganha proficiência em Intimidação pela aparência monstruosa e pela aura amaldiçoada."),
+      traco("mutacao-caliban", "Mutação Calibana", "Escolha uma mutação e sua fraqueza correspondente em Detalhes de Raça ou Cultura."),
+    ],
+    refs: { legado: "Povos de Ravenloft da 3ª edição; adaptação para personagem jogador de D&D 5e" }
   },
 
   
