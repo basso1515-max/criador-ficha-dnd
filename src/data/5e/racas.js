@@ -896,12 +896,44 @@ export const SUBRACAS = {
   "vistani": {
     id: "vistani",
     base: "humano",
-    nome: "Vistani (povo humano)",
+    nome: "Vistani",
     nomeEN: "Vistani",
     origem: "Povo itinerante associado a Ravenloft.",
-    descricao: "Identidade cultural humana de Ravenloft. Use os traços de Humano; esta opção não concede bônus mecânicos próprios.",
-    refs: { oficial: "Van Richten's Guide to Ravenloft (povo/cultura)" }
+    descricao: "Nômades de pele oliva ou bronzeada, cabelos e olhos escuros, feições angulares e uma cicatriz ritual violeta na palma da mão. Costumam se vestir com roupas vibrantes e muitas joias.",
+    refs: { oficial: "Van Richten's Guide to Ravenloft" }
   },
+
+    "giomorgo": {
+    id: "giomorgo",
+    base: "humano",
+    nome: "Giomorgo (Meio-Vistani)",
+    nomeEN: "Giomorg (Half-Vistani)",
+    origem: "Filhos de Vistani com outros seres.",
+    descricao: "Filhos da união entre um Vistana e um morador comum dos domínios (ou, muito raramente, com elfos, sendo chamados de Giamarga). Não possuem o poder completo de navegar pelas Brumas e costumam ser vistos como párias tanto pelos humanos sedentários quanto pelos próprios Vistani.",
+    refs: { oficial: "Van Richten's Guide to Ravenloft" }
+  },
+
+    "parias": {
+    id: "parias",
+    base: "humano",
+    nome: "Párias",
+    nomeEN: "Outcasts",
+    origem: "Diversos grupos étnicos e culturais que só existem em Ravenloft.",
+    descricao: "Barovianos (sombrios e supersticiosos), os Falkovnianos (militaristas e marcados na testa caso sejam servos), os Vudukans e os Tepestani (caçadores de feéricos e bruxas).",
+    refs: { oficial: "Van Richten's Guide to Ravenloft" }
+  },
+  
+    "calibans": {
+    id: "calibans",
+    base: "humano",
+    nome: "Calibans",
+    nomeEN: "Caliban",
+    origem: "Povo amaldiçoado ou deformado por Ravenloft.",
+    descricao: "Nasceram amaldiçoados ou deformados pela magia sombria, alquimia corrompida ou maldições familiares de Ravenloft. Possuem força física descomunal e aparência monstruosa ou mutante, sendo geralmente rejeitados pela sociedade e obrigados a viver isolados nas florestas ou esgotos.",
+    refs: { oficial: "Van Richten's Guide to Ravenloft" }
+  },
+
+  
 
   "draconato-azul": {
     id: "draconato-azul",
