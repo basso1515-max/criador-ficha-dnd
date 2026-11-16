@@ -152,6 +152,7 @@ export function createCharacterStateController({
       selectedWarlockPactBoons: state.selectedWarlockPactBoons,
       selectedWarlockInvocations: state.selectedWarlockInvocations,
       selectedFeatureChoices: state.selectedFeatureChoices,
+      selectedDarkGift: state.selectedDarkGift?.id || "",
       selectedSubclassProficiencyChoices: state.selectedSubclassProficiencyChoices,
       artificerInfusionState: state.artificerInfusionState,
       equipmentSelections: state.equipmentSelections,

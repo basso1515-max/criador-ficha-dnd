@@ -7,6 +7,7 @@ import { ARMADURAS } from "../../data/5e/armaduras.js";
 import { EQUIPMENT_OPTION_LISTS, CLASS_EQUIPMENT_RULES, BACKGROUND_EQUIPMENT_RULES } from "../../data/5e/equipamento-inicial.js";
 import { EXTRA_EQUIPMENT_CATALOG_2024, EXTRA_EQUIPMENT_GROUP_LABELS_2024 } from "../../data/5.5e/equipment-compendium.js";
 import { TALENTOS, loadOfficialTalentCatalog } from "../../data/5e/talentos.js";
+import { DADIVAS_SOMBRIAS_5E } from "../../data/5e/dadivas-sombrias.js";
 import {
   ARCANE_SHOT_OPTIONS_5E,
   ARCANE_SHOT_OPTIONS_BY_LEVEL_5E,
@@ -623,6 +624,8 @@ function hydrateRaceCatalog(catalog = {}) {
     defeitosSelectSuggestions: $("defeitosSelectSuggestions"),
     defeitosSelectHoverCard: $("defeitosSelectHoverCard"),
     defeitos: $("defeitos"),
+    darkGiftSelect: $("darkGiftSelect"),
+    darkGiftDescription: $("darkGiftDescription"),
     featuresTraits: $("featuresTraits"),
     caracteristicasTalentosAdicionais: $("caracteristicasTalentosAdicionais"),
     historiaPersonagem: $("historiaPersonagem"),
@@ -848,6 +851,7 @@ function hydrateRaceCatalog(catalog = {}) {
       rerenderAfterPresetRestore();
       restoreFormPreset(el.form, normalizedPreset);
       syncAllCustomSelectFields();
+      renderDarkGiftDescription();
       syncUnitToggleButtons(document);
       previousDistanceUnit = getPreferredDistanceUnit();
       previousWeightUnit = getPreferredWeightUnit();
@@ -975,6 +979,13 @@ function hydrateRaceCatalog(catalog = {}) {
     hydrateRaceCatalog(raceCatalog);
     FEAT_LIST = [...officialTalents].sort((a, b) => String(a.name_pt || a.name || "").localeCompare(String(b.name_pt || b.name || ""), "pt-BR"));
     FEAT_BY_ID = new Map(FEAT_LIST.map((feat) => [feat.id, feat]));
+    populateObjectSelect(el.darkGiftSelect, DADIVAS_SOMBRIAS_5E, {
+      placeholder: "Nenhuma / escolher depois",
+      valueKey: "id",
+      labelKey: "nome",
+    });
+    if (el.darkGiftSelect.options[0]) el.darkGiftSelect.options[0].disabled = false;
+    renderDarkGiftDescription();
     CORE_COMPENDIUM_5E = compendiumMetadata.CORE_COMPENDIUM_5E;
     COMPENDIUM_SOURCE_LABELS_5E = compendiumMetadata.COMPENDIUM_SOURCE_LABELS_5E;
     RACE_COMPENDIUMS_5E = compendiumMetadata.RACE_COMPENDIUMS_5E;
@@ -1039,6 +1050,7 @@ function hydrateRaceCatalog(catalog = {}) {
     initializePointBuyControls();
     initializeStandardAttributeSelects();
     bindReactiveCharacterForm();
+    el.darkGiftSelect.addEventListener("change", renderDarkGiftDescription);
 
     renderSkillsExtra();
     renderAsiOptions();
@@ -1229,6 +1241,18 @@ function hydrateRaceCatalog(catalog = {}) {
 
     select.innerHTML = options.join("");
     syncCustomSelectField(select.id);
+  }
+
+  function getSelectedDarkGift() {
+    return DADIVAS_SOMBRIAS_5E.find((gift) => gift.id === el.darkGiftSelect?.value) || null;
+  }
+
+  function renderDarkGiftDescription() {
+    if (!el.darkGiftDescription) return;
+    const gift = getSelectedDarkGift();
+    el.darkGiftDescription.textContent = gift
+      ? `${gift.resumo} Consulte o livro para os detalhes completos das regras.`
+      : "Pode ser escolhida no início ou concedida durante a campanha, conforme decisão do Mestre.";
   }
 
   function getCompendiumLabel5e(sourceCode = "PHB") {
@@ -15606,6 +15630,7 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
       subclassData: subclass,
       classEntries,
       background: bg,
+      selectedDarkGift: getSelectedDarkGift(),
       featGrants,
       selectedFeats,
       selectedFeatAbilityIncreases,
@@ -16225,6 +16250,14 @@ function buildSpellChecklistMarkup(spells, source, sourceMap = new Map(), duplic
             descricao: compactBackgroundFeatureSummary(state.background?.recurso, state.background),
           }),
         ].filter(Boolean),
+        bucket: "primary",
+      });
+    }
+
+    if (state.selectedDarkGift) {
+      sections.push({
+        title: `Dádiva Sombria: ${state.selectedDarkGift.nome}`,
+        lines: [state.selectedDarkGift.resumo],
         bucket: "primary",
       });
     }
