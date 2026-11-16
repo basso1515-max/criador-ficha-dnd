@@ -16,6 +16,9 @@ import {
   ARMADURAS as ARMADURAS_2024,
 } from "../../src/data/5.5e/armaduras.js";
 import {
+  ARMADURAS as ARMADURAS_2014,
+} from "../../src/data/5e/armaduras.js";
+import {
   EXTRA_EQUIPMENT_CATALOG_2024,
 } from "../../src/data/5.5e/equipment-compendium.js";
 import {
@@ -72,6 +75,7 @@ test("regras de moeda 2024 extraem, somam e formatam saldo", () => {
 test("preços de equipamentos 2024 aceitam as moedas legadas e localizadas", () => {
   assert.equal(equipmentCostToCopper2024({ cp: 4, sp: 3, ep: 1, gp: 2, pp: 1 }), 1284);
   assert.equal(equipmentCostToCopper2024({ pc: 4, pp: 3, pe: 1, po: 2, pl: 1 }), 1284);
+  assert.equal(equipmentCostToCopper2024(null), 0);
   assert.equal(equipmentCostToCopper2024(ARMAS_2024["clava-grande"].custo), 20);
   assert.equal(equipmentCostToCopper2024(ARMAS_2024.dardo.custo), 5);
   assert.equal(equipmentCostToCopper2024(ARMADURAS_2024.acolchoada.custo), 500);
@@ -85,6 +89,8 @@ test("catálogo 2024 corrige pesos e inclui equipamento faltante", () => {
   assert.equal(items.get("gear-frasco").peso.lb, 1);
   assert.equal(items.get("gear-frasco").custo.pc, 2);
   assert.equal(items.get("gear-saca").custo.pc, 1);
+  assert.equal(items.get("gear-baliza").legacyOnly, true);
+  assert.equal(ARMADURAS_2014["armadura-espinhos"].peso.lb, 45);
   for (const id of [
     "gear-cerveja-caneca", "gear-pao", "gear-queijo", "gear-vinho-comum", "gear-vinho-fino",
     "gear-vara-10-pes", "gear-estaca-ferro-unitaria", "mount-racao-animal-dia", "mount-estabulagem-dia",

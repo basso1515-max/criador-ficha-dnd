@@ -172,8 +172,8 @@ export const ARMADURAS = {
     reqFor: 0, 
     stealthDesv: true, 
     peso: { 
-      lb: 40, 
-      kg: lbToKg(40) 
+      lb: 45,
+      kg: lbToKg(45)
     }, 
     custo: { 
       gp: 75 

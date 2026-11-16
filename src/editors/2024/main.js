@@ -379,6 +379,7 @@ import {
     ["virotes", "ammo-virotes"],
   ]);
   const EQUIPMENT_PURCHASE_MATCHERS_2024 = EQUIPMENT_PURCHASE_CATALOG_2024
+    .filter((item) => !item.legacyOnly)
     .map((item) => ({
       id: item.id,
       normalizedLabel: normalizePt(item.label)
@@ -6919,6 +6920,7 @@ import {
     }
 
     const matches = EQUIPMENT_PURCHASE_CATALOG_2024.filter((item) => {
+      if (item.legacyOnly) return false;
       if (!query) return true;
       const requirementState = getEquipmentRequirementState2024(item);
       const searchable = [
@@ -7387,11 +7389,13 @@ import {
     select.appendChild(placeholder);
 
     const groups = new Map();
-    EQUIPMENT_PURCHASE_CATALOG_2024.forEach((entry) => {
-      const groupKey = entry.group || "adventuringGear";
-      if (!groups.has(groupKey)) groups.set(groupKey, []);
-      groups.get(groupKey).push(entry);
-    });
+    EQUIPMENT_PURCHASE_CATALOG_2024
+      .filter((entry) => !entry.legacyOnly || entry.id === selectedValue)
+      .forEach((entry) => {
+        const groupKey = entry.group || "adventuringGear";
+        if (!groups.has(groupKey)) groups.set(groupKey, []);
+        groups.get(groupKey).push(entry);
+      });
 
     Object.keys(EQUIPMENT_PURCHASE_GROUP_LABELS_2024).forEach((groupKey) => {
       const items = groups.get(groupKey);
@@ -11233,6 +11237,7 @@ import {
         sourceId: entry.id,
         costCopper: equipmentCostToCopper2024(entry.custo),
         weaponIds: [...(entry.weaponIds || [])],
+        legacyOnly: Boolean(entry.legacyOnly),
         weightLb: Number.isFinite(Number(entry?.peso?.lb)) ? Number(entry.peso.lb) : null,
       }))
       .sort((a, b) => {

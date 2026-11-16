@@ -79,12 +79,13 @@ export function currencyBreakdownToCopper2024(breakdown = {}) {
  * @returns {number}
  */
 export function equipmentCostToCopper2024(cost = {}) {
-  const hasLegacyCurrencyKeys = ["cp", "sp", "ep", "gp"].some((key) => Object.hasOwn(cost, key));
-  if (!hasLegacyCurrencyKeys) return currencyBreakdownToCopper2024(cost);
+  const normalizedCost = cost && typeof cost === "object" ? cost : {};
+  const hasLegacyCurrencyKeys = ["cp", "sp", "ep", "gp"].some((key) => Object.hasOwn(normalizedCost, key));
+  if (!hasLegacyCurrencyKeys) return currencyBreakdownToCopper2024(normalizedCost);
 
   const legacyCurrencyMap = { cp: "pc", sp: "pp", ep: "pe", gp: "po", pp: "pl" };
   return Math.round(Object.entries(legacyCurrencyMap).reduce(
-    (total, [legacyKey, currencyKey]) => total + (Number(cost[legacyKey] || 0) * CURRENCY_TO_COPPER_FACTORS[currencyKey]),
+    (total, [legacyKey, currencyKey]) => total + (Number(normalizedCost[legacyKey] || 0) * CURRENCY_TO_COPPER_FACTORS[currencyKey]),
     0
   ));
 }

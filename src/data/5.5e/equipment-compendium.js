@@ -228,7 +228,7 @@ export const EXTRA_EQUIPMENT_CATALOG_2024 = [
   item("gear-armadilha-caca", "Armadilha de caça", "adventuringGear", { po: 5 }),
   item("gear-arpeu", "Arpéu", "adventuringGear", { po: 2 }),
   item("gear-balde", "Balde", "adventuringGear", { pc: 5 }),
-  item("gear-baliza", "Baliza", "adventuringGear", { pc: 5 }),
+  item("gear-baliza", "Baliza", "adventuringGear", { pc: 5 }, { legacyOnly: true }),
   item("gear-barril", "Barril", "adventuringGear", { po: 2 }),
   item("gear-bau", "Baú", "adventuringGear", { po: 5 }),
   item("gear-bolsa-componentes", "Bolsa de componentes", "adventuringGear", { po: 25 }),
