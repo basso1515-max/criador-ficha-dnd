@@ -1,16 +1,17 @@
 // racas.js
-export const DATASET_VERSION = "0.4.8";
+export const DATASET_VERSION = "0.4.9";
 export const META_RACAS = {
   dataset: "dnd5e-ptbr",
   version: DATASET_VERSION,
   locale: "pt-BR",
-  builtAt: "2026-11-03",
+  builtAt: "2026-11-16",
   sources: {
     srd: "https://media.wizards.com/2023/downloads/dnd/SRD_CC_v5.1.pdf",
     drs: "https://aventureirosdosreinos.com/documento-de-referencia-de-sistema-drs/",
     oficial: "PHB, EEPC, SCAG, VGM, MTF, ERLW, EGW, GGR, MOT, TTP, LR, OGA, AI, TCE, Mordenkainen Apresenta: Monstros do Multiverso, VRGR, WBtW, SCC, AAG, FTD e DSotDQ"
   },
   changelog: [
+    "0.4.9: Adiciona Vistani como identidade cultural humana de Ravenloft, sem traços mecânicos próprios.",
     "0.4.8: Inclui Draconato Cromático e Draconato Metálico de Tesouro dos Dragões de Fizban, com escolha de ancestralidade e sopros próprios.",
     "0.4.7: Corrige as fontes do Eladrin (DMG) e Lotusden (EGW) e registra tamanhos Pequeno/Médio de Hadozee, Owlin, Plasmoide e Thri-kreen.",
     "0.4.6: Separa as linhagens de Genasi e Draconato Gema por compêndio; inclui variantes Draconblood, Ravenite, Asmodeus e Lua/Sol do Meio-Elfo.",
@@ -320,7 +321,8 @@ export const RACAS = {
       "rashemita",
       "shou",
       "tethyriano",
-      "turami"
+      "turami",
+      "vistani"
     ],
     refs: {
       srd: "SRD 5.1 (Races: Human)",
@@ -889,6 +891,16 @@ export const SUBRACAS = {
     nomeEN: "Turami",
     origem: "Turmish e o litoral sul do Mar das Estrelas Cadentes.",
     descricaoFisica: "Possuem olhos âmbar ou castanhos, pele escura bronzeada e cabelo preto. Altura média de 1,79 m (variando de 1,68 m a 1,92 m) e peso médio de 81 kg (variando de 62 kg a 102 kg)."
+  },
+
+  "vistani": {
+    id: "vistani",
+    base: "humano",
+    nome: "Vistani (povo humano)",
+    nomeEN: "Vistani",
+    origem: "Povo itinerante associado a Ravenloft.",
+    descricao: "Identidade cultural humana de Ravenloft. Use os traços de Humano; esta opção não concede bônus mecânicos próprios.",
+    refs: { oficial: "Van Richten's Guide to Ravenloft (povo/cultura)" }
   },
 
   "draconato-azul": {

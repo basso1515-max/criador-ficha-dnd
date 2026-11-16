@@ -1252,7 +1252,7 @@ function hydrateRaceCatalog(catalog = {}) {
     const gift = getSelectedDarkGift();
     el.darkGiftDescription.textContent = gift
       ? `${gift.resumo} Consulte o livro para os detalhes completos das regras.`
-      : "Pode ser escolhida no início ou concedida durante a campanha, conforme decisão do Mestre.";
+      : "Abra a lista e escolha uma dádiva. O resumo será registrado automaticamente em Características & Talentos.";
   }
 
   function getCompendiumLabel5e(sourceCode = "PHB") {

@@ -144,6 +144,7 @@ export const SUBRACE_COMPENDIUMS_5E = Object.freeze({
   shou: "SCAG",
   tethyriano: "SCAG",
   turami: "SCAG",
+  vistani: "VRGTR",
   "draconato-ametista": "FTD",
   "draconato-cristal": "FTD",
   "draconato-esmeralda": "FTD",
