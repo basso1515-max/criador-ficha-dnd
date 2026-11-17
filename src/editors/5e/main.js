@@ -7748,6 +7748,8 @@ function hydrateRaceCatalog(catalog = {}) {
     el.raceDetailChoicesContainer.innerHTML = detailSources.map((source) => {
       const slotKey = buildRaceDetailSlotKey(source, 0);
       const selectedValue = selections.get(slotKey) || "";
+      const selectedOption = source.options.find((option) => option.value === selectedValue);
+      const selectedSummary = selectedOption?.summary || "";
       const options = source.options.map((option) => `
         <option value="${escapeHtml(option.value)}"${selectedValue === option.value ? " selected" : ""}>${escapeHtml(option.label)}</option>
       `).join("");
@@ -7756,13 +7758,16 @@ function hydrateRaceCatalog(catalog = {}) {
         <article class="feat-choice-card">
           <strong>${escapeHtml(source.targetLabel)}</strong>
           <p class="feat-choice-meta">${escapeHtml(source.description || "Escolha o detalhe oficial exigido por essa origem racial.")}</p>
-          <label class="row feat-choice-field">
-            <span>${escapeHtml(source.label)}</span>
-            <select data-race-detail-slot-key="${escapeHtml(slotKey)}" data-race-detail-source-key="${escapeHtml(source.key)}">
-              <option value="" selected disabled>Selecione...</option>
-              ${options}
-            </select>
-          </label>
+          <div class="feat-choice-layout">
+            <label class="row feat-choice-field">
+              <span>${escapeHtml(source.label)}</span>
+              <select data-race-detail-slot-key="${escapeHtml(slotKey)}" data-race-detail-source-key="${escapeHtml(source.key)}">
+                <option value=""${selectedValue ? "" : " selected"} disabled>Selecione...</option>
+                ${options}
+              </select>
+            </label>
+            <p class="feat-choice-description feat-choice-selected-meta race-detail-choice-summary" role="status" aria-live="polite">${escapeHtml(selectedSummary || "Escolha uma opção para ver os detalhes.")}</p>
+          </div>
         </article>
       `;
     }).join("");

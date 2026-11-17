@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { RACAS, SUBRACAS } from "../../src/data/5e/racas.js";
+import { SUBRACE_COMPENDIUMS_5E } from "../../src/data/5e/compendium-metadata.js";
 import { RACIAL_DETAIL_DEFINITIONS } from "../../src/editors/5e/feature-config.js";
 
 test("Humano lista Vistani, Meio-Vistani, Párias e Caliban no seletor de sub-raça", () => {
@@ -11,6 +12,15 @@ test("Humano lista Vistani, Meio-Vistani, Párias e Caliban no seletor de sub-ra
     assert.ok(humanSubraces.has(id), `${id} precisa estar disponível para Humano`);
     assert.equal(SUBRACAS[id]?.base, "humano");
   });
+});
+
+test("sub-raças humanas usam o compêndio correto", () => {
+  ["calishita", "chondathano", "damarano", "illuskano", "mulano", "rashemita", "shou", "tethyriano", "turami"]
+    .forEach((id) => assert.equal(SUBRACE_COMPENDIUMS_5E[id], "PHB", `${id} deve aparecer no Livro do Jogador`));
+  assert.equal(SUBRACE_COMPENDIUMS_5E.vistani, "VRGTR");
+  assert.equal(SUBRACE_COMPENDIUMS_5E.parias, "VRGTR");
+  assert.match(SUBRACE_COMPENDIUMS_5E.giomorgo, /Ravenloft/);
+  assert.match(SUBRACE_COMPENDIUMS_5E.calibans, /Ravenloft/);
 });
 
 test("Vistani, Meio-Vistani e Caliban apresentam seus traços de Ravenloft", () => {
